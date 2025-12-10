@@ -1,0 +1,17 @@
+FROM node:20-alpine
+
+RUN apk add --no-cache bash openssl python3 make g++ && npm i -g pnpm
+
+WORKDIR /usr/src/app
+
+# Copy package files
+COPY package.json pnpm-lock.yaml* ./
+
+# Allow build scripts for native modules
+RUN echo "enable-pre-post-scripts=true" > .npmrc && \
+    pnpm install --no-frozen-lockfile || pnpm install --no-frozen-lockfile
+
+# Copy source code
+COPY . .
+
+CMD ["pnpm", "dev"]

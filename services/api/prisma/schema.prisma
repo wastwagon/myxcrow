@@ -1,0 +1,663 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// ENUMS
+// ============================================
+
+enum UserRole {
+  BUYER
+  SELLER
+  ADMIN
+  AUDITOR
+  SUPPORT
+}
+
+enum KYCStatus {
+  PENDING
+  IN_PROGRESS
+  VERIFIED
+  REJECTED
+  EXPIRED
+}
+
+enum EscrowStatus {
+  DRAFT
+  AWAITING_FUNDING
+  FUNDED
+  AWAITING_SHIPMENT
+  SHIPPED
+  IN_TRANSIT
+  DELIVERED
+  AWAITING_RELEASE
+  RELEASED
+  REFUNDED
+  CANCELLED
+  DISPUTED
+}
+
+enum PaymentMethodType {
+  BANK_ACCOUNT
+  CARD
+  WALLET
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum DisputeStatus {
+  OPEN
+  NEGOTIATION
+  MEDIATION
+  ARBITRATION
+  RESOLVED
+  CLOSED
+}
+
+enum DisputeReason {
+  NOT_RECEIVED
+  NOT_AS_DESCRIBED
+  DEFECTIVE
+  WRONG_ITEM
+  PARTIAL_DELIVERY
+  OTHER
+}
+
+enum WalletFundingSource {
+  PAYSTACK_TOPUP
+  BANK_TRANSFER
+  PROMO
+  ADJUSTMENT
+  REFUND
+}
+
+enum WalletFundingStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+enum WithdrawalMethod {
+  BANK_ACCOUNT
+  MOBILE_MONEY
+  MANUAL
+}
+
+enum WithdrawalStatus {
+  REQUESTED
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  passwordHash  String?
+  firstName     String?
+  lastName      String?
+  phone         String?
+  roles         UserRole[]  @default([BUYER])
+  kycStatus     KYCStatus   @default(PENDING)
+  kycVerifiedAt DateTime?
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  buyerEscrows      EscrowAgreement[] @relation("BuyerEscrows")
+  sellerEscrows     EscrowAgreement[] @relation("SellerEscrows")
+  wallet            Wallet?
+  sessions          Session[]
+  devices           Device[]
+  paymentMethods    PaymentMethod[]
+  bankAccounts      BankAccount[]
+  disputes          Dispute[]         @relation("Initiator")
+  auditLogs         AuditLog[]
+  profile           UserProfile?
+  kycDetails        KYCDetail?
+  ratingsGiven      EscrowRating[]    @relation("RatingsGiven")
+  ratingsReceived   EscrowRating[]    @relation("RatingsReceived")
+
+  @@index([email])
+  @@index([kycStatus])
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String
+  deviceId  String?
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  lastUsedAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+model Device {
+  id          String   @id @default(uuid())
+  userId      String
+  fingerprint String
+  name        String?
+  type        String?
+  isTrusted   Boolean  @default(false)
+  lastSeenAt  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model UserProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  avatarUrl String?
+  bio       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model KYCDetail {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  
+  // Ghana Card Information
+  ghanaCardNumber   String?
+  cardFrontUrl      String?  // Front image URL in MinIO
+  cardBackUrl       String?  // Back image URL in MinIO
+  
+  // Selfie/Liveness
+  selfieUrl         String?  // Selfie image URL in MinIO
+  faceMatchScore    Float?   // 0-1 similarity score
+  faceMatchPassed   Boolean  @default(false)
+  
+  // Admin Review
+  reviewedBy        String?  // Admin user ID
+  reviewedAt        DateTime?
+  reviewNotes       String?
+  adminApproved     Boolean  @default(false)
+  rejectionReason   String?
+  
+  // Metadata
+  documentType      String?  @default("GHANA_CARD")
+  verifiedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([faceMatchPassed])
+  @@index([adminApproved])
+}
+
+// ============================================
+// WALLETS
+// ============================================
+
+model Wallet {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  currency       String   @default("GHS")
+  availableCents Int      @default(0) // Spendable balance
+  pendingCents   Int      @default(0) // In hold/reserve (chargeback risk)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fundings        WalletFunding[]
+  withdrawals     Withdrawal[]
+  escrowsAsBuyer  EscrowAgreement[] @relation("BuyerWallet")
+  escrowsAsSeller EscrowAgreement[] @relation("SellerWallet")
+
+  @@index([userId])
+}
+
+model WalletFunding {
+  id          String              @id @default(uuid())
+  walletId    String
+  sourceType  WalletFundingSource
+  externalRef String? // Paystack reference, bank transfer ID, etc.
+  amountCents Int
+  feeCents    Int      @default(0)
+  currency    String   @default("GHS")
+  status      WalletFundingStatus @default(PENDING)
+  metadata    Json? // Provider-specific data
+  holdUntil   DateTime? // Chargeback risk hold expiration
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([externalRef])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Withdrawal {
+  id            String           @id @default(uuid())
+  walletId      String
+  methodType    WithdrawalMethod
+  methodDetails Json // Encrypted payout details (account number, MoMo number, etc.)
+  amountCents   Int
+  feeCents      Int      @default(0)
+  status        WithdrawalStatus @default(REQUESTED)
+  requestedBy   String
+  processedBy   String? // Admin who processed
+  processedAt   DateTime?
+  failureReason String?
+  metadata      Json?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([status])
+  @@index([requestedBy])
+  @@index([createdAt])
+}
+
+// ============================================
+// ESCROWS
+// ============================================
+
+model EscrowAgreement {
+  id                   String       @id @default(uuid())
+  buyerId              String
+  sellerId             String
+  buyerWalletId        String?      // Wallet used for funding (null = direct payment)
+  sellerWalletId       String?      // Wallet for receiving funds (null = direct payout)
+  currency             String       @default("GHS")
+  amountCents          Int
+  feeCents             Int          @default(0) // Calculated fee amount
+  feePercentage        Float?       // Fee percentage used
+  feePaidBy            String?      // buyer, seller, split
+  netAmountCents       Int          @default(0) // amountCents - feeCents (what seller receives)
+  description          String?
+  status               EscrowStatus @default(AWAITING_FUNDING)
+  fundingMethod        String?      @default("direct") // "wallet" or "direct" (for backward compatibility)
+  
+  // Terms
+  expectedDeliveryDate DateTime?
+  autoReleaseDays     Int?         @default(7) // Auto-release after X days if no dispute
+  disputeWindowDays   Int?         @default(14) // Days buyer has to dispute after delivery
+  
+  // Tracking
+  fundedAt             DateTime?
+  shippedAt            DateTime?
+  deliveredAt          DateTime?
+  releasedAt           DateTime?
+  refundedAt           DateTime?
+  cancelledAt          DateTime?
+  
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  // Relations
+  buyer                User         @relation("BuyerEscrows", fields: [buyerId], references: [id])
+  seller               User         @relation("SellerEscrows", fields: [sellerId], references: [id])
+  buyerWallet          Wallet?      @relation("BuyerWallet", fields: [buyerWalletId], references: [id])
+  sellerWallet         Wallet?      @relation("SellerWallet", fields: [sellerWalletId], references: [id])
+  payments             Payment[]
+  shipments            Shipment[]
+  disputes             Dispute[]
+  ledgerJournals       LedgerJournal[]
+  messages             EscrowMessage[]
+  evidence             Evidence[]
+  ratings              EscrowRating[]
+  milestones           EscrowMilestone[]
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([buyerWalletId])
+  @@index([sellerWalletId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model EscrowMilestone {
+  id          String   @id @default(uuid())
+  escrowId    String
+  name        String
+  description String?
+  amountCents Int      // Portion of total amount for this milestone
+  status      String   @default("pending") // pending, completed, released
+  completedAt DateTime?
+  releasedAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  escrow EscrowAgreement @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+
+  @@index([escrowId])
+}
+
+// ============================================
+// PAYMENTS
+// ============================================
+
+model PaymentMethod {
+  id          String           @id @default(uuid())
+  userId      String
+  type        PaymentMethodType
+  provider    String?          // stripe, adyen, etc.
+  providerId String?          // External provider ID
+  isDefault   Boolean          @default(false)
+  isVerified  Boolean          @default(false)
+  metadata    Json?            // Provider-specific data
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model BankAccount {
+  id            String   @id @default(uuid())
+  userId        String
+  accountType   String   // checking, savings
+  bankName      String?
+  accountNumber String?
+  routingNumber String?
+  currency      String   @default("GHS")
+  isVerified    Boolean  @default(false)
+  isDefault     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Payment {
+  id              String        @id @default(uuid())
+  escrowId        String?
+  userId          String
+  paymentMethodId String?
+  type            String        // funding, payout, refund, fee
+  amountCents     Int
+  currency        String        @default("GHS")
+  status          PaymentStatus @default(PENDING)
+  provider        String?       // stripe, adyen, etc.
+  providerId      String?       // External transaction ID
+  failureReason   String?
+  metadata        Json?
+  processedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  escrow          EscrowAgreement? @relation(fields: [escrowId], references: [id], onDelete: SetNull)
+
+  @@index([escrowId])
+  @@index([userId])
+  @@index([status])
+}
+
+// ============================================
+// SHIPMENTS & DELIVERY
+// ============================================
+
+model Shipment {
+  id              String   @id @default(uuid())
+  escrowId        String
+  carrier         String?
+  trackingNumber  String?
+  status          String   @default("pending")
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  deliveryAddress Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  escrow      EscrowAgreement @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+  events      ShipmentEvent[]
+
+  @@index([escrowId])
+}
+
+model ShipmentEvent {
+  id          String   @id @default(uuid())
+  shipmentId  String
+  status      String
+  location    String?
+  timestamp   DateTime @default(now())
+  metadata    Json?
+
+  shipment Shipment @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
+
+  @@index([shipmentId])
+}
+
+// ============================================
+// EVIDENCE
+// ============================================
+
+model Evidence {
+  id          String   @id @default(uuid())
+  escrowId    String?
+  disputeId  String?
+  uploadedBy  String
+  type        String   // photo, document, video
+  fileKey     String   // MinIO object key
+  fileName    String
+  fileSize    Int
+  mimeType    String?
+  sha256      String?
+  description String?
+  createdAt   DateTime @default(now())
+
+  escrow EscrowAgreement? @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+
+  @@index([escrowId])
+  @@index([disputeId])
+  @@index([uploadedBy])
+}
+
+// ============================================
+// DISPUTES
+// ============================================
+
+model Dispute {
+  id            String        @id @default(uuid())
+  escrowId      String
+  initiatorId   String
+  reason        DisputeReason
+  status        DisputeStatus @default(OPEN)
+  description   String?
+  resolution    String?
+  resolvedBy    String?
+  resolvedAt    DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  escrow    EscrowAgreement @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+  initiator User            @relation("Initiator", fields: [initiatorId], references: [id])
+  messages  DisputeMessage[]
+
+  @@index([escrowId])
+  @@index([initiatorId])
+  @@index([status])
+}
+
+model DisputeMessage {
+  id        String   @id @default(uuid())
+  disputeId String
+  senderId  String
+  content   String
+  isSystem  Boolean  @default(false)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  dispute Dispute @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+
+  @@index([disputeId])
+  @@index([senderId])
+}
+
+// ============================================
+// MESSAGING
+// ============================================
+
+model EscrowMessage {
+  id        String   @id @default(uuid())
+  escrowId  String
+  userId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  escrow EscrowAgreement @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+
+  @@index([escrowId])
+  @@index([userId])
+}
+
+// ============================================
+// REPUTATION & RATINGS
+// ============================================
+
+model EscrowRating {
+  id        String   @id @default(uuid())
+  escrowId  String
+  raterId   String   // User who gave the rating
+  rateeId   String   // User being rated
+  role      String   // 'buyer' or 'seller' (role of the ratee)
+  score     Int      // 1-5 stars
+  comment   String?
+  createdAt DateTime @default(now())
+
+  escrow EscrowAgreement @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+  rater  User            @relation("RatingsGiven", fields: [raterId], references: [id], onDelete: Cascade)
+  ratee  User            @relation("RatingsReceived", fields: [rateeId], references: [id], onDelete: Cascade)
+
+  @@unique([escrowId, raterId, rateeId]) // One rating per escrow per rater-ratee pair
+  @@index([rateeId])
+  @@index([raterId])
+  @@index([escrowId])
+  @@index([createdAt])
+}
+
+// ============================================
+// LEDGER
+// ============================================
+
+model LedgerJournal {
+  id          String   @id @default(uuid())
+  escrowId    String?
+  type        String?  // escrow_funding, escrow_release, escrow_refund, wallet_topup, withdrawal
+  description String?
+  createdAt   DateTime @default(now())
+
+  escrow  EscrowAgreement? @relation(fields: [escrowId], references: [id], onDelete: SetNull)
+  entries LedgerEntry[]
+
+  @@index([escrowId])
+  @@index([createdAt])
+}
+
+model LedgerEntry {
+  id          String   @id @default(uuid())
+  journalId   String
+  account     String   // buyer_wallet, seller_wallet, escrow_hold, fees_revenue, etc.
+  currency    String   @default("GHS")
+  amountCents Int      // Positive = credit, Negative = debit
+  metadata    Json?    // Additional data (walletId, withdrawalId, etc.)
+  createdAt   DateTime @default(now())
+  
+  journal LedgerJournal @relation(fields: [journalId], references: [id], onDelete: Cascade)
+
+  @@index([journalId])
+  @@index([account])
+}
+
+// ============================================
+// PLATFORM SETTINGS
+// ============================================
+
+model PlatformSettings {
+  id          String   @id @default(uuid())
+  key         String   @unique
+  value       Json     // Flexible JSON value
+  description String?
+  category    String   // fees, security, notifications, etc.
+  isPublic    Boolean  @default(false) // Can be read without auth
+  updatedBy   String?  // User ID who last updated
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+  @@index([key])
+}
+
+// ============================================
+// AUDIT LOGS
+// ============================================
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String   // create_escrow, release_funds, etc.
+  resource    String   // escrow:123, user:456
+  resourceId  String?
+  details     Json?
+  ipAddress   String?
+  userAgent   String?
+  beforeState Json?    // State before action
+  afterState  Json?    // State after action
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ============================================
+// RISK & FRAUD
+// ============================================
+
+model RiskEvent {
+  id          String   @id @default(uuid())
+  userId      String?
+  type        String   // suspicious_activity, chargeback, etc.
+  severity    String   // low, medium, high, critical
+  details     Json?
+  resolved    Boolean  @default(false)
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}

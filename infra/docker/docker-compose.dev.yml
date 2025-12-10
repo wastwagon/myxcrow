@@ -1,0 +1,113 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: escrow_db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_DB: escrow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - escrow_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: escrow_redis
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: escrow_minio
+    ports:
+      - "9003:9000"
+      - "9004:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: escrow_mailpit
+    ports:
+      - "1026:1025"
+      - "8026:8025"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025"]
+
+  api:
+    build:
+      context: ../../services/api
+      dockerfile: Dockerfile.dev
+    container_name: escrow_api
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/escrow
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: escrow-evidence
+      JWT_SECRET: your-secret-key-change-in-production
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-sk_test_xxx}
+      PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-pk_test_xxx}
+      PORT: 4000
+      WEB_APP_URL: http://localhost:3003
+      CI: "true"
+    volumes:
+      - ../../services/api:/usr/src/app
+      - /usr/src/app/node_modules
+    command: sh -c "cd /usr/src/app && pnpm install --no-frozen-lockfile && pnpm dev"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ../../apps/web
+      dockerfile: Dockerfile.dev
+    container_name: escrow_web
+    ports:
+      - "3003:3003"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:4000/api
+      NEXT_PUBLIC_MAILPIT_URL: http://localhost:8026
+      NEXT_PUBLIC_MINIO_CONSOLE: http://localhost:9004
+      NEXT_PUBLIC_ENV: local
+      PORT: 3003
+    volumes:
+      - ../../apps/web:/usr/src/app
+      - /usr/src/app/node_modules
+      - /usr/src/app/.next
+    command: pnpm dev
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:3003"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - api
+
+volumes:
+  escrow_db_data:
+
