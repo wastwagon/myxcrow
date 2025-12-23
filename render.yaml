@@ -21,8 +21,8 @@ services:
     region: oregon
     plan: starter
     nodeVersion: 20
-    buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm prisma:generate && pnpm build
-    startCommand: cd services/api && pnpm prisma migrate deploy && test -f dist/main.js && node dist/main.js || (echo "ERROR: dist/main.js not found. Current directory:" && pwd && echo "Files in current directory:" && ls -la && echo "Files in dist (if exists):" && ls -la dist/ 2>&1 || echo "dist folder does not exist" && exit 1)
+    buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm prisma:generate && pnpm build && echo "=== Build Verification ===" && pwd && ls -la && echo "=== Checking dist folder ===" && ls -la dist/ && echo "=== Checking for main.js ===" && test -f dist/main.js && echo "✅ dist/main.js exists" || echo "❌ dist/main.js NOT FOUND"
+    startCommand: cd services/api && echo "=== Runtime Verification ===" && pwd && echo "=== Current directory contents ===" && ls -la && echo "=== Checking dist folder ===" && ls -la dist/ 2>&1 || echo "dist folder does not exist" && echo "=== Checking for main.js ===" && test -f dist/main.js && echo "✅ dist/main.js found, starting..." && node dist/main.js || (echo "❌ ERROR: dist/main.js not found!" && exit 1)
     healthCheckPath: /api/health
     envVars:
       - key: PORT
