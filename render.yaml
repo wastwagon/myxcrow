@@ -20,8 +20,8 @@ services:
     env: node
     region: oregon
     plan: starter
-    buildCommand: cd services/api && pnpm install && pnpm prisma:generate && pnpm build
-    startCommand: cd services/api && pnpm prisma migrate deploy && pnpm start
+    buildCommand: cd services/api && pnpm install && pnpm prisma:generate && pnpm build && ls -la dist/ || echo "Build output check"
+    startCommand: cd services/api && pnpm prisma migrate deploy && node dist/main.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
