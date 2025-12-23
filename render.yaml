@@ -17,12 +17,12 @@ services:
   # API Service (NestJS Backend)
   - type: web
     name: myxcrow-api
-    env: node
+    env: docker
     region: oregon
     plan: starter
-    nodeVersion: 20
-    buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm prisma:generate && pnpm build && echo "=== Build Verification ===" && pwd && ls -la && echo "=== Checking dist folder ===" && ls -la dist/ && echo "=== Checking for main.js ===" && test -f dist/main.js && echo "✅ dist/main.js exists" || echo "❌ dist/main.js NOT FOUND"
-    startCommand: cd services/api && pnpm prisma migrate deploy && pnpm start
+    dockerfilePath: ./services/api/Dockerfile.render
+    dockerContext: .
+    healthCheckPath: /api/health
     healthCheckPath: /api/health
     envVars:
       - key: PORT
