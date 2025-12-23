@@ -7,7 +7,7 @@ databases:
     region: oregon
 
 services:
-  # Redis Cache
+  # Redis Cache (Required for email queues, webhooks, and background jobs)
   - type: redis
     name: myxcrow-redis
     plan: starter
