@@ -21,12 +21,10 @@ services:
     region: oregon
     plan: starter
     nodeVersion: 20
-    buildCommand: pnpm install --no-frozen-lockfile --no-prod && cd services/api && pnpm prisma:generate && pnpm build
+    buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm prisma:generate && pnpm build
     startCommand: cd services/api && pnpm prisma migrate deploy && node dist/main.js
     healthCheckPath: /api/health
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: PORT
         value: 4000
       - key: DATABASE_URL
@@ -77,11 +75,9 @@ services:
     region: oregon
     plan: starter
     nodeVersion: 20
-    buildCommand: pnpm install --no-frozen-lockfile --no-prod && cd apps/web && pnpm build
+    buildCommand: pnpm install --no-frozen-lockfile && cd apps/web && pnpm build
     startCommand: cd apps/web && pnpm start
     envVars:
-      - key: NODE_ENV
-        value: production
       - key: PORT
         value: 3000
       - key: NEXT_PUBLIC_API_BASE_URL
