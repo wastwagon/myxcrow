@@ -20,7 +20,7 @@ services:
     env: node
     region: oregon
     plan: starter
-    buildCommand: cd services/api && pnpm install --frozen-lockfile && pnpm prisma:generate && pnpm build
+    buildCommand: pnpm install --frozen-lockfile && cd services/api && pnpm prisma:generate && pnpm build
     startCommand: cd services/api && pnpm prisma migrate deploy && pnpm start
     healthCheckPath: /api/health
     envVars:
@@ -75,8 +75,8 @@ services:
     env: node
     region: oregon
     plan: starter
-    buildCommand: cd apps/web && pnpm install --frozen-lockfile && pnpm build
-    startCommand: cd apps/web && pnpm start
+    buildCommand: pnpm install --frozen-lockfile && cd apps/web && pnpm build
+    startCommand: cd apps/web && pnpm start -p $PORT
     envVars:
       - key: NODE_ENV
         value: production
