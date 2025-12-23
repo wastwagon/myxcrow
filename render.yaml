@@ -20,8 +20,8 @@ services:
     env: node
     region: oregon
     plan: starter
-    buildCommand: cd services/api && pnpm install && pnpm prisma:generate && echo "=== Starting NestJS Build ===" && pnpm build 2>&1 && echo "=== Build Complete ===" && echo "=== Checking for dist folder ===" && pwd && ls -la && echo "=== Contents of dist (if exists) ===" && ls -la dist/ 2>&1 || echo "dist folder does not exist" && echo "=== Verifying dist/main.js ===" && test -f dist/main.js && echo "✅ Build successful: dist/main.js exists" || (echo "❌ Build failed: dist/main.js not found" && echo "=== Full directory listing ===" && find . -name "*.js" -type f | head -20 && exit 1)
-    startCommand: cd services/api && echo "=== Start Verification ===" && pwd && ls -la && ls -la dist/ 2>&1 || echo "dist folder not found" && pnpm prisma migrate deploy && test -f dist/main.js && echo "✅ Starting application..." && node dist/main.js || (echo "❌ dist/main.js not found" && ls -la dist/ 2>&1 && exit 1)
+    buildCommand: cd services/api && pnpm install --no-frozen-lockfile && pnpm prisma:generate && pnpm build
+    startCommand: cd services/api && pnpm prisma migrate deploy && node dist/main.js
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
@@ -75,7 +75,7 @@ services:
     env: node
     region: oregon
     plan: starter
-    buildCommand: pnpm install --filter myxcrow-web --no-frozen-lockfile && cd apps/web && pnpm build
+    buildCommand: cd apps/web && pnpm install --no-frozen-lockfile && pnpm build
     startCommand: cd apps/web && pnpm start -p $PORT
     envVars:
       - key: NODE_ENV
