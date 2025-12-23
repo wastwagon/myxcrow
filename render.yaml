@@ -1,11 +1,12 @@
-services:
+databases:
   # PostgreSQL Database
-  - type: postgresql
-    name: myxcrow-db
-    plan: starter
+  - name: myxcrow-db
     databaseName: escrow
     user: escrow_user
+    plan: starter
+    region: oregon
 
+services:
   # Redis Cache
   - type: redis
     name: myxcrow-redis
