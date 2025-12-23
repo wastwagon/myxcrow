@@ -75,7 +75,7 @@ services:
     env: node
     region: oregon
     plan: starter
-    buildCommand: cd apps/web && pnpm install && pnpm build
+    buildCommand: pnpm install --filter myxcrow-web --no-frozen-lockfile && cd apps/web && pnpm build
     startCommand: cd apps/web && pnpm start -p $PORT
     envVars:
       - key: NODE_ENV
