@@ -3,7 +3,7 @@ databases:
   - name: myxcrow-db
     databaseName: escrow
     user: escrow_user
-    plan: starter
+    plan: free
     region: oregon
 
 services:
