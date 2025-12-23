@@ -17,11 +17,12 @@ services:
   # API Service (NestJS Backend)
   - type: web
     name: myxcrow-api
-    env: docker
+    env: node
     region: oregon
     plan: starter
-    dockerfilePath: ./services/api/Dockerfile.render
-    dockerContext: .
+    nodeVersion: 20
+    buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm prisma:generate && pnpm build && cd dist && ls -la && cd .. && pwd && ls -la dist/
+    startCommand: cd services/api && pnpm prisma migrate deploy && ls -la && ls -la dist/ && node dist/main.js
     healthCheckPath: /api/health
     envVars:
       - key: PORT
