@@ -21,7 +21,7 @@ services:
     region: oregon
     plan: starter
     nodeVersion: 20
-    buildCommand: corepack enable && corepack prepare pnpm@9.12.3 --activate && pnpm install --no-frozen-lockfile && cd services/api && pnpm prisma:generate && pnpm build
+    buildCommand: corepack enable && corepack prepare pnpm@9.12.3 --activate && NODE_ENV=development pnpm install --no-frozen-lockfile && cd services/api && pnpm prisma:generate && pnpm build
     startCommand: cd services/api && pnpm prisma migrate deploy && node dist/main.js
     healthCheckPath: /api/health
     envVars:
@@ -77,7 +77,7 @@ services:
     region: oregon
     plan: starter
     nodeVersion: 20
-    buildCommand: corepack enable && corepack prepare pnpm@9.12.3 --activate && pnpm install --no-frozen-lockfile && cd apps/web && pnpm build
+    buildCommand: corepack enable && corepack prepare pnpm@9.12.3 --activate && NODE_ENV=development pnpm install --no-frozen-lockfile && cd apps/web && pnpm build
     startCommand: cd apps/web && pnpm start
     envVars:
       - key: NODE_ENV
