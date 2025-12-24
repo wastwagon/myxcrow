@@ -122,7 +122,7 @@ export default function AdminSettingsPage() {
           title="Platform Settings"
           subtitle="Configure system-wide settings and preferences"
           icon={<Settings className="w-6 h-6 text-white" />}
-          gradient="gray"
+          gradient="purple"
         />
 
         {/* Tabs */}
