@@ -13,15 +13,18 @@ if [ -f dist/main.js ]; then
 else
   echo "❌ dist/main.js missing, rebuilding..."
   
-  # Only install what's needed for build (production + build tools)
-  # This avoids installing test dependencies which saves memory
-  pnpm install --no-frozen-lockfile --prod=false --filter=api
+  # Install only production dependencies first (saves memory)
+  pnpm install --no-frozen-lockfile --prod
+  
+  # Then install only the build tools we need (TypeScript and NestJS CLI are already in dependencies)
+  # Skip test dependencies to save memory
+  pnpm add -D typescript@^5.4.0 @nestjs/cli@^10.0.0 --no-save || true
   
   # Generate Prisma Client
   pnpm prisma:generate
   
-  # Build with increased memory limit
-  NODE_OPTIONS="--max-old-space-size=512" pnpm build
+  # Build with memory limit (stay within Render's 512MB)
+  NODE_OPTIONS="--max-old-space-size=400" pnpm build
   
   # Verify build succeeded
   if [ ! -f dist/main.js ]; then
