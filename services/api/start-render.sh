@@ -13,9 +13,11 @@ if [ -f dist/main.js ]; then
 else
   echo "❌ dist/main.js missing, rebuilding..."
   
-  # Install dependencies (TypeScript and @nestjs/cli are already in dependencies)
-  # Use --prod=false but limit memory usage
-  NODE_OPTIONS="--max-old-space-size=400" pnpm install --no-frozen-lockfile --prod=false
+  # Install only API workspace dependencies to save memory
+  # TypeScript and @nestjs/cli are already in dependencies
+  cd ../..
+  NODE_OPTIONS="--max-old-space-size=400" pnpm install --no-frozen-lockfile --prod=false --filter=api
+  cd services/api
   
   # Generate Prisma Client
   pnpm prisma:generate
