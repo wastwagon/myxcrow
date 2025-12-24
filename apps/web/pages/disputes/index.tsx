@@ -52,7 +52,7 @@ export default function DisputesPage() {
           title="Disputes"
           subtitle="View and manage disputes"
           icon={<AlertCircle className="w-6 h-6 text-white" />}
-          gradient="orange"
+          gradient="red"
         />
 
         <div className="bg-white rounded-lg shadow">
