@@ -5,7 +5,8 @@ FROM node:20-alpine AS base
 RUN npm install -g pnpm
 
 # Install build dependencies including canvas native libraries
-RUN apk add --no-cache \
+# Update package index and install all required packages
+RUN apk update && apk add --no-cache \
     python3 \
     make \
     g++ \
@@ -16,7 +17,8 @@ RUN apk add --no-cache \
     giflib-dev \
     librsvg-dev \
     pixman-dev \
-    pkgconfig
+    pkgconfig \
+    && pkg-config --exists pixman-1 || (echo "ERROR: pixman-1 not found" && pkg-config --list-all | grep pixman || true)
 
 WORKDIR /opt/render/project/src
 
