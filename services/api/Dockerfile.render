@@ -33,6 +33,16 @@ FROM node:20-alpine AS production
 
 RUN npm install -g pnpm
 
+# Install canvas native dependencies (required for canvas package)
+RUN apk add --no-cache \
+    cairo \
+    jpeg \
+    pango \
+    giflib \
+    librsvg \
+    pixman \
+    pkgconfig
+
 WORKDIR /opt/render/project/src
 
 # Copy root package files
