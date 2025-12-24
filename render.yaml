@@ -20,7 +20,7 @@ services:
     env: docker
     region: oregon
     plan: starter
-    dockerfilePath: ./services/api/Dockerfile.render
+    dockerfilePath: services/api/Dockerfile.render
     healthCheckPath: /api/health
     envVars:
       - key: PORT
