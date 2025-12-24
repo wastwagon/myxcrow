@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-cd services/api
+# Start from project root (Render runs from root)
+cd services/api || cd /opt/render/project/src/services/api
 
 # Run migrations
 pnpm prisma migrate deploy
@@ -13,11 +14,11 @@ if [ -f dist/main.js ]; then
 else
   echo "❌ dist/main.js missing, rebuilding..."
   
-  # Install only API workspace dependencies to save memory
+  # Go to root and install only API workspace dependencies to save memory
   # TypeScript and @nestjs/cli are already in dependencies
-  cd ../..
+  cd ../.. || cd /opt/render/project/src
   NODE_OPTIONS="--max-old-space-size=400" pnpm install --no-frozen-lockfile --prod=false --filter=api
-  cd services/api
+  cd services/api || cd /opt/render/project/src/services/api
   
   # Generate Prisma Client
   pnpm prisma:generate
@@ -34,4 +35,3 @@ else
   echo "✅ Build successful, starting..."
   node dist/main.js
 fi
-
