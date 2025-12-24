@@ -67,7 +67,7 @@ export default function AdminDashboard() {
     ? disputesData 
     : (disputesData?.data || disputesData?.disputes || []);
 
-  const { data: usersData, isLoading: usersLoading } = useQuery<{ users?: any[]; total?: number } | any[]>({
+  const { data: usersData, isLoading: usersLoading } = useQuery<{ data?: any[]; users?: any[]; total?: number } | any[]>({
     queryKey: ['admin-users'],
     queryFn: async () => {
       const response = await apiClient.get('/users?limit=100');
