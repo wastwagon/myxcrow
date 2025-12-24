@@ -72,8 +72,9 @@ COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
 # Copy API package files
 COPY services/api/package.json ./services/api/
 
-# Install production dependencies only
-RUN pnpm install --no-frozen-lockfile --prod
+# Skip pnpm install - we'll copy node_modules from base stage instead
+# This avoids rebuilding native modules like canvas
+# RUN pnpm install --no-frozen-lockfile --prod
 
 # Copy built application and node_modules from base stage
 # This includes the compiled canvas module, avoiding rebuild
