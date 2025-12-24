@@ -22,7 +22,7 @@ services:
     plan: starter
     nodeVersion: 20
     buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm prisma:generate && pnpm build && echo "=== BUILD VERIFICATION ===" && pwd && ls -la && echo "=== DIST CONTENTS ===" && ls -la dist/ && echo "=== COPYING DIST TO PRESERVED LOCATION ===" && mkdir -p ../../build-artifacts && cp -r dist ../../build-artifacts/api-dist && ls -la ../../build-artifacts/
-    startCommand: cd services/api && pnpm prisma migrate deploy && echo "=== RUNTIME VERIFICATION ===" && pwd && ls -la && if [ -d "dist" ]; then echo "dist EXISTS"; ls -la dist/; node dist/main.js; else echo "dist MISSING - trying preserved location"; ls -la ../../build-artifacts/api-dist/ 2>/dev/null && node ../../build-artifacts/api-dist/main.js || (echo "FALLBACK: Rebuilding..."; pnpm build && node dist/main.js); fi
+    startCommand: cd services/api && pnpm prisma migrate deploy && if [ -f "dist/main.js" ]; then echo "✅ dist/main.js found, starting..."; node dist/main.js; else echo "❌ dist/main.js MISSING - Rebuilding..."; pnpm install --no-frozen-lockfile && pnpm prisma:generate && pnpm build && echo "✅ Rebuild complete, starting..."; node dist/main.js; fi
     healthCheckPath: /api/health
     envVars:
       - key: PORT
