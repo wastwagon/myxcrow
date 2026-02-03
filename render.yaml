@@ -4,7 +4,7 @@
 
 databases:
   - name: myxcrow-db
-    plan: free
+    plan: basic-256mb
     databaseName: escrow
     region: oregon
 
