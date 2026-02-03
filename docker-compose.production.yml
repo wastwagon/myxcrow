@@ -1,6 +1,6 @@
 # Production Docker Compose for Infrastructure Services
-# Use this if you prefer to manage PostgreSQL/Redis outside Coolify
-# Or deploy these services separately on your VPS
+# Optional: run Postgres/Redis/MinIO locally for testing production-like setup.
+# For production, use Render Blueprint (render.yaml) with Render Postgres and Key Value.
 
 version: '3.8'
 

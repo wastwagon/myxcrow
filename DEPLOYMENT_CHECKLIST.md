@@ -1,91 +1,53 @@
-# Pre-Deployment Checklist
+# Deployment Checklist (Render)
 
-Use this checklist before deploying to **VPS + Coolify**.
+Use this checklist before deploying MYXCROW to **Render** with the Blueprint.
 
-## 📋 Code Preparation
+## Code & Repo
 
-- [ ] All code is committed to Git
-- [ ] Code is pushed to GitHub
-- [ ] `.gitignore` includes `.env` files
-- [ ] No sensitive data in code (API keys, secrets, etc.)
+- [ ] All code committed and pushed to GitHub/GitLab
+- [ ] `.gitignore` includes `.env` and secrets
+- [ ] No hardcoded secrets in code
 
-## 🔧 Configuration Files
+## Render Setup
 
-- [ ] Production Dockerfiles exist (`services/api/Dockerfile.production`, `apps/web/Dockerfile.production`)
-- [ ] `package.json` scripts are updated for production
-- [ ] Environment variable examples in `.env.example`
+- [ ] Render account created
+- [ ] Repo connected to Render
+- [ ] Blueprint will use `render.yaml` from repo root
 
-## 🗄️ Database
+## Secrets & Env (prepare before Apply)
 
-- [ ] Prisma schema is up to date
-- [ ] Migrations are ready (`prisma migrate deploy`)
-- [ ] Seed script is tested (optional)
+### API (`myxcrow-api`) – set when prompted or in Dashboard
 
-## 🔐 External Services Setup
+- [ ] `WEB_APP_URL` (e.g. `https://myxcrow-web.onrender.com`)
+- [ ] `WEB_BASE_URL` (same as WEB_APP_URL)
+- [ ] `JWT_SECRET` (Blueprint can generate; or set manually)
+- [ ] `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` (or add after first deploy)
+- [ ] `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY`, `PAYSTACK_WEBHOOK_SECRET`
+- [ ] `EMAIL_HOST`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM`
 
-### AWS S3 (or compatible)
-- [ ] S3 bucket created: `escrow-evidence`
-- [ ] IAM user created with S3 access
-- [ ] Access key and secret key obtained
-- [ ] Bucket CORS configured (if needed)
+### Web (`myxcrow-web`)
 
-### Email Service (SMTP)
-- [ ] SMTP service account created (SendGrid, Mailgun, etc.)
-- [ ] SMTP credentials obtained
-- [ ] From email address configured
+- [ ] `NEXT_PUBLIC_API_BASE_URL` = `https://myxcrow-api.onrender.com/api` (set after first deploy, then redeploy web)
 
-### Paystack
-- [ ] Paystack account created
-- [ ] Production API keys obtained
-- [ ] Webhook URL configured (if needed)
+## External Services
 
-## 🌐 Domain & URLs
+- [ ] Paystack: production keys; webhook URL = `https://<api-domain>/api/payments/webhook`
+- [ ] SMTP: SendGrid/Mailgun/etc. credentials
+- [ ] S3: bucket and IAM keys (for evidence uploads)
 
-- [ ] DNS A records configured:
-  - API: `api.myxcrow.com` → VPS IP
-  - Web: `myxcrow.com` → VPS IP
-- [ ] SSL is enabled via Coolify (green lock)
+## After First Deploy
 
-## 📝 Environment Variables List
+- [ ] Set **myxcrow-web** → `NEXT_PUBLIC_API_BASE_URL` to your API URL
+- [ ] Trigger **Manual Deploy** on **myxcrow-web**
+- [ ] API health: `https://myxcrow-api.onrender.com/api/health` → 200
+- [ ] Web loads and login works
 
-Prepare these values before deployment:
+## Optional: Custom domains
 
-### API Service
-- [ ] `JWT_SECRET` (generate strong secret)
-- [ ] `S3_ENDPOINT`
-- [ ] `S3_ACCESS_KEY`
-- [ ] `S3_SECRET_KEY`
-- [ ] `S3_BUCKET`
-- [ ] `S3_REGION`
-- [ ] `PAYSTACK_SECRET_KEY`
-- [ ] `PAYSTACK_PUBLIC_KEY`
-- [ ] `EMAIL_HOST`
-- [ ] `EMAIL_PORT`
-- [ ] `EMAIL_USER`
-- [ ] `EMAIL_PASSWORD`
-- [ ] `EMAIL_FROM`
-
-### Web Service
-- [ ] `NEXT_PUBLIC_API_BASE_URL=https://api.myxcrow.com/api`
-
-## ✅ Testing
-
-- [ ] Local build works: `cd services/api && pnpm build`
-- [ ] Frontend build works: `cd apps/web && pnpm build`
-- [ ] Database migrations work locally
-- [ ] All tests pass (if applicable)
-
-## 🚀 Ready to Deploy
-
-Once all items are checked:
-1. Push code to GitHub
-2. Deploy API in Coolify
-3. Deploy Web in Coolify
-4. Configure environment variables
-5. Monitor build/runtime logs
-6. Test deployed services
+- [ ] Add custom domains in Render for API and Web
+- [ ] DNS CNAME records pointing to Render
+- [ ] Update `WEB_APP_URL`, `WEB_BASE_URL`, `NEXT_PUBLIC_API_BASE_URL`; redeploy
 
 ---
 
-**Note:** Keep this checklist updated as you prepare for deployment!
-
+See **[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)** for full steps.

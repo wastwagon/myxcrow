@@ -106,11 +106,11 @@ myexrow/
 - [Implementation Summary](README_IMPLEMENTATION.md) - Detailed implementation guide
 
 ### Production Deployment
-- **[Coolify Quick Start](COOLIFY_QUICK_START.md)** - Quick deployment guide (start here!)
-- **[Coolify Deployment Guide](COOLIFY_MIGRATION_GUIDE.md)** - Detailed deployment guide for VPS + Coolify
-- **[Migration Checklist](MIGRATION_CHECKLIST.md)** - Step-by-step migration checklist
-- **[Domain Configuration](DOMAIN_CONFIGURATION.md)** - DNS setup for myxcrow.com
-- **[Environment Variables Template](COOLIFY_ENV_TEMPLATE.md)** - Production environment variables
+- **[Render Deployment](RENDER_DEPLOYMENT.md)** - Deploy with Render Blueprint (start here!)
+- **[Deployment Guide](DEPLOYMENT_GUIDE.md)** - Canonical deployment guide
+- **[Deployment Checklist](DEPLOYMENT_CHECKLIST.md)** - Pre-deploy checklist
+- **[Domain Configuration](DOMAIN_CONFIGURATION.md)** - Custom domains on Render
+- **[Environment Variables](RENDER_ENV_TEMPLATE.md)** - Production env vars reference
 - **[Complete Product Review](PRODUCT_REVIEW_COMPLETE.md)** - Full product review and architecture overview
 
 ### Market Analysis & Enhancements

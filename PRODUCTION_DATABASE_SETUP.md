@@ -1,34 +1,29 @@
-# Production Database Setup Guide (VPS + Coolify)
+# Production Database Setup (Render)
 
-This guide explains how to set up and maintain the production database when deploying MYXCROW on a **VPS** using **Coolify**.
+This guide covers the production database when deploying MYXCROW on **Render** with the Blueprint.
 
 ## Database connection
 
-Your API needs a `DATABASE_URL` in this format:
+The Blueprint creates a Render Postgres database (`myxcrow-db`) and injects `DATABASE_URL` into the API service. You do **not** set `DATABASE_URL` manually.
 
-```bash
-export DATABASE_URL="postgresql://user:password@host:5432/dbname"
-```
-
-Where you get it:
-
-- **Recommended**: Create a PostgreSQL **Resource** in Coolify and copy the connection string into your API app env vars.
-- **Alternative**: Run PostgreSQL yourself (e.g. `docker-compose.production.yml`) and use that connection string.
-
-## Running migrations
+## Migrations
 
 ### Automatic (recommended)
 
-Ensure the API startup flow runs:
+The API’s **preDeployCommand** in `render.yaml` runs:
 
-- `pnpm prisma generate`
-- `pnpm prisma migrate deploy`
+```bash
+pnpm prisma:deploy
+```
 
-This keeps schema up to date on every deployment.
+So every deploy runs `prisma migrate deploy` before the app starts. No manual step needed.
 
-### Manual (via Coolify shell)
+### Manual (Render Shell / local)
 
-Open your **API app** in Coolify → **Terminal/Shell**, then:
+If you need to run migrations manually (e.g. from Render Shell or with a one-off job):
+
+1. Get `DATABASE_URL` from Render Dashboard → **myxcrow-db** → **Info** (Internal Database URL).
+2. From repo root with `DATABASE_URL` set:
 
 ```bash
 cd services/api
@@ -36,33 +31,26 @@ pnpm prisma generate
 pnpm prisma migrate deploy
 ```
 
-### Script (from your laptop/VPS)
+Or use the project script (with `DATABASE_URL` set):
 
 ```bash
-export DATABASE_URL="postgresql://user:password@host:5432/dbname"
 ./scripts/migrate-production.sh
 ```
 
 ## Seeding
 
-Run from the API container shell:
+From Render Dashboard → **myxcrow-api** → **Shell** (if available), or run locally with `DATABASE_URL` set:
 
 ```bash
 cd services/api
 pnpm seed
 ```
 
-## Verification
+## Backups
 
-```bash
-psql "$DATABASE_URL" -c "\dt"
-psql "$DATABASE_URL" -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';"
-```
+Use Render’s managed Postgres backups (Dashboard → **myxcrow-db** → Backups). For extra safety, schedule your own dumps to external storage.
 
-## Security notes
+## Security
 
-- Never commit database credentials (or any production secrets) to git.
-- Enable automatic backups:
-  - Coolify resource backups, or
-  - Your own scheduled dumps + offsite storage.
-
+- Never commit `DATABASE_URL` or any production secrets.
+- Render keeps credentials in the Dashboard and injects them into the API service.

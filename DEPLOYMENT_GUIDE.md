@@ -1,88 +1,39 @@
-# MYXCROW Deployment Guide (VPS + Coolify)
+# MYXCROW Deployment Guide (Render)
 
-Canonical deployment guide for running MYXCROW on your **VPS** using **Coolify**.
+Canonical deployment guide for running MYXCROW on **Render** using the Blueprint. No VPS or self-managed servers.
 
-## What Coolify will run
+## What Render runs
 
-- **API**: `services/api/Dockerfile.production` (listens on port `4000`)
-- **Web**: `apps/web/Dockerfile.production` (listens on port `3000`)
-- **Infrastructure** (choose one):
-  - **Recommended**: Create Postgres + Redis as **Coolify Resources**
-  - **Alternative**: Run your own with `docker-compose.production.yml`
+- **PostgreSQL** – Render-managed database (from Blueprint)
+- **Redis (Key Value)** – Render-managed cache/queue (from Blueprint)
+- **API** – NestJS backend (`services/api`), Starter plan
+- **Web** – Next.js frontend (`apps/web`), Starter plan
 
 ## Prerequisites
 
-- VPS with Coolify installed and working
-- DNS A records pointing to the VPS
-  - `api.myxcrow.com` → VPS IP
-  - `myxcrow.com` (and optionally `www.myxcrow.com`) → VPS IP
-- Ports open: `80`, `443` (and `22` for SSH)
-- Production environment variables prepared: see `COOLIFY_ENV_TEMPLATE.md`
+- GitHub (or GitLab) repo connected to Render
+- Render account: [dashboard.render.com](https://dashboard.render.com)
+- Production env values: Paystack keys, SMTP, S3 (see `RENDER_ENV_TEMPLATE.md`)
 
-## Deploy in Coolify (recommended path)
+## Deploy with Blueprint
 
-### 1) Create resources
+1. **New Blueprint** in Render Dashboard; select this repo. Render uses `render.yaml` at repo root.
+2. **Apply** – Render creates database, Redis, API, and Web services.
+3. **Set secrets** when prompted (WEB_APP_URL, WEB_BASE_URL, S3_*, PAYSTACK_*, EMAIL_*, and `NEXT_PUBLIC_API_BASE_URL` for web).
+4. After first deploy, set **myxcrow-web** → `NEXT_PUBLIC_API_BASE_URL` = `https://myxcrow-api.onrender.com/api` (or your API URL), then **Manual Deploy** the web service.
 
-In Coolify:
+Full steps: **[RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md)**  
+Env reference: **[RENDER_ENV_TEMPLATE.md](RENDER_ENV_TEMPLATE.md)**
 
-- **PostgreSQL** resource (save connection string)
-- **Redis** resource (save connection string)
+## Custom domains
 
-### 2) Deploy the API
-
-Create a new application:
-
-- **Repo**: your GitHub repo
-- **Build pack**: Dockerfile
-- **Dockerfile path**: `services/api/Dockerfile.production`
-- **Port**: `4000`
-- **Health check**: `/api/health`
-- **Domain**: `api.myxcrow.com`
-- **Environment variables**: copy from `COOLIFY_ENV_TEMPLATE.md`
-
-**Important**: ensure the API container runs DB migrations on start (the production Dockerfile/start script should already handle this; if you changed it, verify migrations are executed before serving traffic).
-
-### 3) Deploy the Web
-
-Create a new application:
-
-- **Build pack**: Dockerfile
-- **Dockerfile path**: `apps/web/Dockerfile.production`
-- **Port**: `3000`
-- **Domain**: `myxcrow.com`
-- **Environment variables**:
-  - `NEXT_PUBLIC_API_BASE_URL=https://api.myxcrow.com/api`
-  - `NEXT_PUBLIC_ENV=production`
-
-### 4) Verify
-
-- API health: `https://api.myxcrow.com/api/health` → `200`
-- Web loads: `https://myxcrow.com`
-- Login works using your seeded/admin credentials
-
-## Alternative: self-managed Postgres/Redis/MinIO on VPS
-
-If you do not want to use Coolify Resources for infrastructure, you can run them yourself:
-
-```bash
-docker compose -f docker-compose.production.yml up -d
-```
-
-Then point your API environment variables to the container endpoints (especially `DATABASE_URL`, `REDIS_URL`, and S3/MinIO settings).
-
-## Secrets
-
-Generate strong secrets on your VPS:
-
-```bash
-openssl rand -base64 32
-```
-
-Use for values like `JWT_SECRET` and any encryption keys used by the API.
+- In Render: **myxcrow-api** → Custom Domains → e.g. `api.myxcrow.com`
+- **myxcrow-web** → Custom Domains → e.g. `myxcrow.com`
+- In DNS: CNAME to the URLs Render provides.
+- Update `WEB_APP_URL`, `WEB_BASE_URL`, and `NEXT_PUBLIC_API_BASE_URL` to your domains; redeploy.
 
 ## Related docs
 
-- `COOLIFY_QUICK_START.md` (fast setup)
-- `COOLIFY_ENV_TEMPLATE.md` (copy/paste env vars)
-- `DOMAIN_CONFIGURATION.md` (DNS & SSL notes)
-
+- [RENDER_DEPLOYMENT.md](RENDER_DEPLOYMENT.md) – Step-by-step deploy
+- [RENDER_ENV_TEMPLATE.md](RENDER_ENV_TEMPLATE.md) – Env vars reference
+- [DOMAIN_CONFIGURATION.md](DOMAIN_CONFIGURATION.md) – DNS & SSL (Render)

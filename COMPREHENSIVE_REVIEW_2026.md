@@ -264,7 +264,7 @@ Found in 6 files (API):
 ### Documentation ✅
 - **53 markdown files** covering:
   - Setup guides
-  - Deployment guides (Coolify/VPS)
+  - Deployment guides (Render Blueprint)
   - Feature documentation
   - API structure
   - Migration guides
@@ -513,5 +513,5 @@ cd services/api && pnpm test
 
 ### Support Contacts
 - Repository: https://github.com/wastwagon/myxcrow
-- Deployment: VPS + Coolify
+- Deployment: Render Blueprint
 - Documentation: See /docs folder

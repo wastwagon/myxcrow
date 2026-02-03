@@ -9,7 +9,7 @@
 
 ### Updated Files:
 - ✅ `pnpm-workspace.yaml` - Removed `packages/*` reference
-- ✅ Deployment configuration is Dockerfile-based (Coolify)
+- ✅ Deployment configuration is Render Blueprint–based
 
 ## 🚀 Starting Docker Services
 
@@ -136,7 +136,7 @@ docker-compose -f infra/docker/docker-compose.dev.yml down -v
 2. **Test all endpoints** locally
 3. **Review logs** for any errors
 4. **Commit changes** when everything works
-5. **Push to GitHub** for Coolify deployment
+5. **Push to GitHub** for Render deployment
 
 ---
 

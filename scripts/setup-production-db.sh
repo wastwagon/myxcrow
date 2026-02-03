@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Production Database Setup Script (VPS + Coolify)
+# Production Database Setup Script (use with DATABASE_URL from Render or other provider)
 # This script sets up the production database with migrations and (optional) seed data.
 
 set -e
@@ -21,7 +21,7 @@ echo -e "${BLUE}📋 Step 1: Setting up database connection...${NC}"
 if [ -z "$DATABASE_URL" ]; then
     echo -e "${RED}❌ DATABASE_URL is not set!${NC}"
     echo ""
-    echo "Set it in your environment (or Coolify app env vars) and re-run:"
+    echo "Set it in your environment (e.g. Render Dashboard or .env) and re-run:"
     echo "  export DATABASE_URL='postgresql://user:pass@host:5432/dbname'"
     exit 1
 fi

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Quick Production Migration Script
-# Run this from your VPS/Coolify shell (or locally) with DATABASE_URL set
+# Run with DATABASE_URL set (e.g. from Render Dashboard or locally)
 
 set -e
 

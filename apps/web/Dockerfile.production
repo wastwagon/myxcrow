@@ -1,5 +1,5 @@
-# Production Dockerfile for Web (Coolify-optimized)
-# This Dockerfile is designed for Coolify deployment with monorepo support
+# Production Dockerfile for Web (optional Docker-based deploy)
+# Render Blueprint uses native Node; use this for other Docker-based hosting
 FROM node:20-alpine AS base
 
 # Install pnpm (use specific version for reproducibility)
