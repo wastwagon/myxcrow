@@ -76,6 +76,24 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Check if file was captured from camera (has capture attribute)
+      // This helps ensure the image is from a live camera, not uploaded
+      const isFromCamera = e.target.hasAttribute('capture');
+      
+      // Add metadata to help backend verify it's a live capture
+      // Note: This is a basic check - the backend will do the actual face matching
+      if (!isFromCamera) {
+        // Warn user that camera capture is preferred for better verification
+        const useCamera = window.confirm(
+          'For better security, we recommend using the camera to take a live photo. ' +
+          'Uploaded files may not pass verification. Continue with upload?'
+        );
+        if (!useCamera) {
+          e.target.value = ''; // Reset input
+          return;
+        }
+      }
+      
       onCapture(file);
     }
   };

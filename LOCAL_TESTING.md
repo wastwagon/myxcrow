@@ -9,7 +9,7 @@
 
 ### Updated Files:
 - ✅ `pnpm-workspace.yaml` - Removed `packages/*` reference
-- ✅ `render.yaml` - Simplified build commands (from previous fixes)
+- ✅ Deployment configuration is Dockerfile-based (Coolify)
 
 ## 🚀 Starting Docker Services
 
@@ -118,7 +118,7 @@ Before committing and pushing:
 - [ ] No errors in service logs
 - [ ] All unused files removed
 - [ ] `dist/` folder is in `.gitignore` (✅ already done)
-- [ ] `render.yaml` is correct for deployment
+- [ ] Dockerfiles build successfully for production
 
 ## 🛑 Stopping Services
 
@@ -136,7 +136,7 @@ docker-compose -f infra/docker/docker-compose.dev.yml down -v
 2. **Test all endpoints** locally
 3. **Review logs** for any errors
 4. **Commit changes** when everything works
-5. **Push to GitHub** for Render deployment
+5. **Push to GitHub** for Coolify deployment
 
 ---
 

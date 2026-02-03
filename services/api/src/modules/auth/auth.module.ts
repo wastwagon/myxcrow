@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditModule } from '../audit/audit.module';
 import { KYCModule } from '../kyc/kyc.module';
 import { KYCVerifiedGuard } from './guards/kyc-verified.guard';
+import { EmailModule } from '../email/email.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { KYCVerifiedGuard } from './guards/kyc-verified.guard';
     }),
     forwardRef(() => AuditModule),
     forwardRef(() => KYCModule),
+    forwardRef(() => EmailModule),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, LocalStrategy, PrismaService, KYCVerifiedGuard],

@@ -12,7 +12,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-indigo-50/30">
+    <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518]/95 to-[#160f10]">
       <Navigation />
       <main className="container mx-auto px-4 py-6 md:py-8 max-w-7xl" suppressHydrationWarning>{children}</main>
     </div>

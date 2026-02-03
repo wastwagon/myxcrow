@@ -9,6 +9,7 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { LedgerHelperService } from '../payments/ledger-helper.service';
 import { EmailService } from '../email/email.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class WalletService {
@@ -19,6 +20,7 @@ export class WalletService {
     private auditService: AuditService,
     private ledgerHelper: LedgerHelperService,
     private emailService: EmailService,
+    private notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -344,7 +346,7 @@ export class WalletService {
   ) {
     const withdrawal = await this.prisma.withdrawal.findUnique({
       where: { id: withdrawalId },
-      include: { wallet: true },
+      include: { wallet: { include: { user: true } } },
     });
 
     if (!withdrawal || withdrawal.status !== WithdrawalStatus.REQUESTED) {
@@ -392,6 +394,35 @@ export class WalletService {
         reason,
       },
     });
+
+    const user = (withdrawal.wallet as any).user;
+    const email = user?.email ?? '';
+    const phone = user?.phone ?? '';
+    const amount = `${withdrawal.amountCents / 100}`;
+    const currency = withdrawal.wallet.currency ?? 'GHS';
+
+    if (email) {
+      try {
+        if (succeeded) {
+          await this.notificationsService.sendWithdrawalApprovedNotifications({
+            email,
+            phone,
+            amount,
+            currency,
+          });
+        } else {
+          await this.notificationsService.sendWithdrawalDeniedNotifications({
+            email,
+            phone,
+            amount,
+            currency,
+            reason: reason ?? 'No reason provided',
+          });
+        }
+      } catch (err: any) {
+        this.logger.warn(`Failed to send withdrawal ${succeeded ? 'approved' : 'denied'} notification: ${err.message}`);
+      }
+    }
 
     return updated;
   }

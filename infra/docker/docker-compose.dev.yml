@@ -78,7 +78,7 @@ services:
       PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-sk_test_xxx}
       PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-pk_test_xxx}
       PORT: 4000
-      WEB_APP_URL: http://localhost:3005
+      WEB_APP_URL: http://localhost:3007
       NODE_ENV: development
     volumes:
       - ../../services/api:/usr/src/app
@@ -99,7 +99,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: escrow_web
     ports:
-      - "3005:3000"
+      - "3007:3000"
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:4000/api
       NEXT_PUBLIC_MAILPIT_URL: http://localhost:8026

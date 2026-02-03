@@ -1,15 +1,17 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { DisputeStatus, DisputeReason } from '@prisma/client';
-import { EmailService } from '../email/email.service';
+import { DisputeStatus, DisputeReason, DisputeResolutionOutcome } from '@prisma/client';
+import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
+import { EscrowService } from '../escrow/escrow.service';
 
 @Injectable()
 export class DisputesService {
   constructor(
     private prisma: PrismaService,
-    private emailService: EmailService,
+    private notificationsService: NotificationsService,
     private auditService: AuditService,
+    private escrowService: EscrowService,
   ) {}
 
   async createDispute(data: {
@@ -48,8 +50,9 @@ export class DisputesService {
     const buyer = await this.prisma.user.findUnique({ where: { id: escrow.buyerId } });
     const seller = await this.prisma.user.findUnique({ where: { id: escrow.sellerId } });
 
-    await this.emailService.sendDisputeOpenedEmail({
-      to: [buyer!.email, seller!.email],
+    await this.notificationsService.sendDisputeOpenedNotifications({
+      emails: [buyer!.email, seller!.email],
+      phones: [buyer!.phone, seller!.phone].filter((p): p is string => !!p),
       escrowId: data.escrowId,
       disputeId: dispute.id,
     });
@@ -93,11 +96,23 @@ export class DisputesService {
     });
   }
 
-  async listDisputes(filters?: { escrowId?: string; initiatorId?: string; status?: DisputeStatus }) {
+  async listDisputes(filters?: {
+    escrowId?: string;
+    status?: DisputeStatus;
+    userId?: string;
+    isStaff?: boolean;
+  }) {
     const where: any = {};
     if (filters?.escrowId) where.escrowId = filters.escrowId;
-    if (filters?.initiatorId) where.initiatorId = filters.initiatorId;
     if (filters?.status) where.status = filters.status;
+
+    // Normal users: show disputes where they're a participant (buyer/seller)
+    // Staff (ADMIN/SUPPORT): show all disputes by default
+    if (!filters?.isStaff && filters?.userId) {
+      where.escrow = {
+        OR: [{ buyerId: filters.userId }, { sellerId: filters.userId }],
+      };
+    }
 
     return this.prisma.dispute.findMany({
       where,
@@ -141,7 +156,12 @@ export class DisputesService {
     });
   }
 
-  async resolveDispute(disputeId: string, adminId: string, resolution: string) {
+  async resolveDispute(
+    disputeId: string,
+    adminId: string,
+    resolution: string,
+    outcome: DisputeResolutionOutcome,
+  ) {
     const dispute = await this.prisma.dispute.findUnique({
       where: { id: disputeId },
       include: { escrow: true },
@@ -151,11 +171,30 @@ export class DisputesService {
       throw new NotFoundException('Dispute not found');
     }
 
+    const resolvable: DisputeStatus[] = [
+      DisputeStatus.OPEN,
+      DisputeStatus.NEGOTIATION,
+      DisputeStatus.MEDIATION,
+      DisputeStatus.ARBITRATION,
+    ];
+    if (!resolvable.includes(dispute.status as DisputeStatus)) {
+      throw new BadRequestException(`Dispute is ${dispute.status}, cannot resolve`);
+    }
+
+    if (outcome === DisputeResolutionOutcome.RELEASE_TO_SELLER) {
+      await this.escrowService.releaseFundsFromDispute(dispute.escrowId, adminId);
+    } else if (outcome === DisputeResolutionOutcome.REFUND_TO_BUYER) {
+      await this.escrowService.refundEscrowFromDispute(dispute.escrowId, adminId, resolution);
+    } else {
+      throw new BadRequestException('Invalid outcome: use RELEASE_TO_SELLER or REFUND_TO_BUYER');
+    }
+
     const updated = await this.prisma.dispute.update({
       where: { id: disputeId },
       data: {
         status: DisputeStatus.RESOLVED,
         resolution,
+        resolutionOutcome: outcome,
         resolvedBy: adminId,
         resolvedAt: new Date(),
       },
@@ -164,8 +203,9 @@ export class DisputesService {
     const buyer = await this.prisma.user.findUnique({ where: { id: dispute.escrow.buyerId } });
     const seller = await this.prisma.user.findUnique({ where: { id: dispute.escrow.sellerId } });
 
-    await this.emailService.sendDisputeResolvedEmail({
-      to: [buyer!.email, seller!.email],
+    await this.notificationsService.sendDisputeResolvedNotifications({
+      emails: [buyer!.email, seller!.email],
+      phones: [buyer!.phone, seller!.phone].filter((p): p is string => !!p),
       escrowId: dispute.escrowId,
       disputeId: dispute.id,
     });
@@ -175,7 +215,7 @@ export class DisputesService {
       action: 'dispute_resolved',
       resource: 'dispute',
       resourceId: disputeId,
-      details: { resolution },
+      details: { resolution, outcome },
     });
 
     return updated;

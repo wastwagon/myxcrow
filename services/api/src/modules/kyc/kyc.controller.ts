@@ -1,14 +1,91 @@
-import { Controller, Get, Post, Put, Body, Param, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Body,
+  Param,
+  UseGuards,
+  Query,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
+} from '@nestjs/common';
 import { KYCService } from './kyc.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
+import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('kyc')
 export class KYCController {
   constructor(private readonly kycService: KYCService) {}
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMyKyc(@CurrentUser() user: any) {
+    return this.kycService.getKYCDetails(user.id);
+  }
+
+  @Post('resubmit')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FilesInterceptor('files', 3, {
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max per file
+    }),
+  )
+  async resubmitKyc(
+    @CurrentUser() user: any,
+    @Body() body: { ghanaCardNumber: string },
+    @UploadedFiles() files?: any[],
+  ) {
+    if (!body?.ghanaCardNumber) {
+      throw new BadRequestException('ghanaCardNumber is required');
+    }
+    if (!files || files.length < 3) {
+      throw new BadRequestException(
+        'All files are required: Ghana Card front, Ghana Card back, and selfie',
+      );
+    }
+
+    // Parse files if provided (same approach as auth/register)
+    const fileBuffers: { cardFront?: Buffer; cardBack?: Buffer; selfie?: Buffer } = {};
+
+    for (const file of files) {
+      const fileName = file.originalname?.toLowerCase() || '';
+      if (fileName.includes('card-front') || fileName.includes('front')) {
+        fileBuffers.cardFront = file.buffer;
+      } else if (fileName.includes('card-back') || fileName.includes('back')) {
+        fileBuffers.cardBack = file.buffer;
+      } else if (fileName.includes('selfie')) {
+        fileBuffers.selfie = file.buffer;
+      } else {
+        if (!fileBuffers.cardFront) {
+          fileBuffers.cardFront = file.buffer;
+        } else if (!fileBuffers.cardBack) {
+          fileBuffers.cardBack = file.buffer;
+        } else if (!fileBuffers.selfie) {
+          fileBuffers.selfie = file.buffer;
+        }
+      }
+    }
+
+    if (!fileBuffers.cardFront || !fileBuffers.cardBack || !fileBuffers.selfie) {
+      throw new BadRequestException(
+        'All files are required: Ghana Card front, Ghana Card back, and selfie',
+      );
+    }
+
+    return this.kycService.resubmitKYC({
+      userId: user.id,
+      ghanaCardNumber: body.ghanaCardNumber,
+      cardFrontBuffer: fileBuffers.cardFront,
+      cardBackBuffer: fileBuffers.cardBack,
+      selfieBuffer: fileBuffers.selfie,
+    });
+  }
 
   @Get('pending')
   @UseGuards(JwtAuthGuard, RolesGuard)

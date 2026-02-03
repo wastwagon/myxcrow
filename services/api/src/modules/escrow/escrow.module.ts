@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SettingsModule } from '../settings/settings.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { PaymentsModule } from '../payments/payments.module';
-import { EmailModule } from '../email/email.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { AutomationModule } from '../automation/automation.module';
@@ -20,7 +20,7 @@ import { AutomationModule } from '../automation/automation.module';
     SettingsModule,
     forwardRef(() => WalletModule),
     forwardRef(() => PaymentsModule),
-    EmailModule,
+    NotificationsModule,
     AuditModule,
     AuthModule,
     AutomationModule,

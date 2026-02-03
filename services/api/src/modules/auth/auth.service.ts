@@ -7,6 +7,9 @@ import * as bcrypt from 'bcrypt';
 import { AuditService } from '../audit/audit.service';
 import { UserRole, KYCStatus } from '@prisma/client';
 import { KYCService } from '../kyc/kyc.service';
+import { EmailService } from '../email/email.service';
+import { ConfigService } from '@nestjs/config';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +17,8 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private auditService: AuditService,
+    private emailService: EmailService,
+    private configService: ConfigService,
     @Inject(forwardRef(() => KYCService))
     private kycService?: KYCService,
   ) {}
@@ -216,6 +221,77 @@ export class AuthService {
     return user;
   }
 
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    // Validate new password strength
+    if (newPassword.length < 8) {
+      throw new BadRequestException('New password must be at least 8 characters long');
+    }
+
+    // Get user with password hash
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        passwordHash: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Verify current password
+    const isValidPassword = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValidPassword) {
+      await this.auditService.log({
+        userId: user.id,
+        action: 'change_password_failed',
+        resource: 'user',
+        resourceId: user.id,
+        details: { reason: 'Invalid current password' },
+      });
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Hash new password
+    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newPasswordHash },
+    });
+
+    // Log successful password change
+    await this.auditService.log({
+      userId: user.id,
+      action: 'change_password',
+      resource: 'user',
+      resourceId: user.id,
+      details: { success: true },
+    });
+
+    // Send email notification
+    try {
+      await this.emailService.sendEmail(
+        user.email,
+        'Password Changed Successfully',
+        `
+          <h2>Password Changed</h2>
+          <p>Your MYXCROW account password has been changed successfully.</p>
+          <p>If you did not make this change, please contact support immediately.</p>
+          <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+        `
+      );
+    } catch (error) {
+      // Don't fail the request if email fails
+      console.error('Failed to send password change email:', error);
+    }
+
+    return { message: 'Password changed successfully' };
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -270,6 +346,109 @@ export class AuthService {
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
+  }
+
+  async requestPasswordReset(email: string) {
+    const normalized = (email || '').trim().toLowerCase();
+    if (!normalized) {
+      return { success: true };
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: normalized },
+      select: { id: true, email: true, isActive: true },
+    });
+
+    // Always return success to avoid account enumeration
+    if (!user || !user.isActive) {
+      return { success: true };
+    }
+
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await this.prisma.passwordResetToken.create({
+      data: {
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+      },
+    });
+
+    const webBase =
+      this.configService.get<string>('WEB_BASE_URL') ||
+      this.configService.get<string>('WEB_APP_URL') ||
+      'http://localhost:3003';
+
+    const resetLink = `${webBase.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(rawToken)}`;
+
+    const html = `
+      <h2>Reset your MYXCROW password</h2>
+      <p>We received a request to reset your password.</p>
+      <p><a href="${resetLink}">Click here to reset your password</a></p>
+      <p>If you didn't request this, you can safely ignore this email.</p>
+      <p>This link expires in 1 hour.</p>
+    `;
+
+    await this.emailService.sendEmail(user.email, 'Reset your MYXCROW password', html);
+
+    await this.auditService.log({
+      userId: user.id,
+      action: 'password_reset_requested',
+      resource: 'user',
+      resourceId: user.id,
+      details: { email: user.email },
+    });
+
+    return { success: true };
+  }
+
+  async confirmPasswordReset(token: string, newPassword: string) {
+    const rawToken = (token || '').trim();
+    if (!rawToken) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+    if (!newPassword || newPassword.length < 8) {
+      throw new BadRequestException('Password must be at least 8 characters');
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+    const record = await this.prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+    });
+
+    if (!record || record.usedAt || record.expiresAt < new Date()) {
+      throw new BadRequestException('Invalid or expired reset token');
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: record.userId },
+        data: { passwordHash },
+      }),
+      this.prisma.passwordResetToken.update({
+        where: { tokenHash },
+        data: { usedAt: new Date() },
+      }),
+      // Best-effort: invalidate other unused tokens for this user
+      this.prisma.passwordResetToken.updateMany({
+        where: { userId: record.userId, usedAt: null },
+        data: { usedAt: new Date() },
+      }),
+    ]);
+
+    await this.auditService.log({
+      userId: record.userId,
+      action: 'password_reset_confirmed',
+      resource: 'user',
+      resourceId: record.userId,
+    });
+
+    return { success: true };
   }
 }
 

@@ -158,7 +158,7 @@ export class FaceMatchingService {
   }
 
   /**
-   * Validate image quality
+   * Validate image quality and perform basic anti-spoofing checks
    */
   async validateImage(imageBuffer: Buffer, fieldName: string): Promise<void> {
     if (!loadImage || !faceapi) {
@@ -173,10 +173,11 @@ export class FaceMatchingService {
     try {
       const img = await loadImage(imageBuffer);
 
-      // Check minimum resolution
-      if (img.width < 400 || img.height < 400) {
+      // Check minimum resolution (higher resolution = harder to spoof)
+      const minResolution = fieldName.toLowerCase().includes('selfie') ? 480 : 400;
+      if (img.width < minResolution || img.height < minResolution) {
         throw new BadRequestException(
-          `${fieldName} resolution too low. Minimum 400x400 pixels required. Current: ${img.width}x${img.height}`,
+          `${fieldName} resolution too low. Minimum ${minResolution}x${minResolution} pixels required. Current: ${img.width}x${img.height}`,
         );
       }
 
@@ -186,11 +187,52 @@ export class FaceMatchingService {
         throw new BadRequestException(`${fieldName} file too large. Maximum 5MB allowed.`);
       }
 
+      // Check minimum file size (very small files might be screenshots or low quality)
+      const minSize = 50 * 1024; // 50KB minimum
+      if (imageBuffer.length < minSize) {
+        throw new BadRequestException(
+          `${fieldName} file appears to be too small or low quality. Please use a clear, high-quality image.`,
+        );
+      }
+
       // Try to detect at least one face
       await this.loadModels();
-      const detection = await faceapi.detectSingleFace(img as any);
+      const detection = await faceapi.detectSingleFace(img as any).withFaceLandmarks();
+      
       if (!detection) {
-        throw new BadRequestException(`No face detected in ${fieldName}. Please ensure your face is clearly visible.`);
+        throw new BadRequestException(
+          `No face detected in ${fieldName}. Please ensure your face is clearly visible and well-lit.`,
+        );
+      }
+
+      // Additional validation for selfie: check face size relative to image
+      // Very small faces might indicate a photo of a photo
+      if (fieldName.toLowerCase().includes('selfie')) {
+        const faceBox = detection.detection.box;
+        const faceArea = faceBox.width * faceBox.height;
+        const imageArea = img.width * img.height;
+        const faceRatio = faceArea / imageArea;
+
+        // Face should be at least 5% of the image area for a good selfie
+        if (faceRatio < 0.05) {
+          this.logger.warn(`Selfie face appears small (${(faceRatio * 100).toFixed(1)}% of image). Possible spoofing attempt.`);
+          // Don't reject, but log for review
+        }
+
+        // Check if face is reasonably centered (not a photo of a photo)
+        const faceCenterX = faceBox.x + faceBox.width / 2;
+        const faceCenterY = faceBox.y + faceBox.height / 2;
+        const imageCenterX = img.width / 2;
+        const imageCenterY = img.height / 2;
+        const distanceFromCenter = Math.sqrt(
+          Math.pow(faceCenterX - imageCenterX, 2) + Math.pow(faceCenterY - imageCenterY, 2),
+        );
+        const maxDistance = Math.min(img.width, img.height) * 0.4; // 40% of image dimension
+
+        if (distanceFromCenter > maxDistance) {
+          this.logger.warn(`Selfie face is off-center. Possible spoofing attempt.`);
+          // Don't reject, but log for review
+        }
       }
     } catch (error) {
       if (error instanceof BadRequestException) {

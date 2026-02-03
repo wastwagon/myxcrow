@@ -76,7 +76,8 @@ export default function EscrowDetailPage() {
   const canFund = isBuyer && escrow?.status === 'AWAITING_FUNDING';
   const canShip = isSeller && escrow?.status === 'FUNDED';
   const canDeliver = isBuyer && escrow?.status === 'SHIPPED';
-  const canRelease = isBuyer && escrow?.status === 'DELIVERED';
+  const canRelease = isBuyer && (escrow?.status === 'DELIVERED' || escrow?.status === 'AWAITING_RELEASE');
+  const canMarkServiceCompleted = isSeller && escrow?.status === 'FUNDED';
   const canRate = (isBuyer || isSeller) && escrow && ['RELEASED', 'REFUNDED'].includes(escrow.status);
 
   const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
@@ -84,6 +85,7 @@ export default function EscrowDetailPage() {
     FUNDED: { label: 'Funded', color: 'bg-blue-100 text-blue-800', icon: DollarSign },
     SHIPPED: { label: 'Shipped', color: 'bg-purple-100 text-purple-800', icon: Truck },
     DELIVERED: { label: 'Delivered', color: 'bg-green-100 text-green-800', icon: Package },
+    AWAITING_RELEASE: { label: 'Awaiting Release', color: 'bg-indigo-100 text-indigo-800', icon: Clock },
     RELEASED: { label: 'Released', color: 'bg-gray-100 text-gray-800', icon: CheckCircle },
     DISPUTED: { label: 'Disputed', color: 'bg-red-100 text-red-800', icon: AlertCircle },
     CANCELLED: { label: 'Cancelled', color: 'bg-gray-100 text-gray-800', icon: AlertCircle },
@@ -147,6 +149,20 @@ export default function EscrowDetailPage() {
     },
   });
 
+  const serviceCompletedMutation = useMutation({
+    mutationFn: async () => {
+      return apiClient.put(`/escrows/${id}/service-completed`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['escrow', id] });
+      queryClient.invalidateQueries({ queryKey: ['escrows'] });
+      toast.success('Service marked as completed');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to mark service as completed');
+    },
+  });
+
   const handleFund = () => {
     if (confirm('Fund this escrow from your wallet?')) {
       fundMutation.mutate();
@@ -165,8 +181,18 @@ export default function EscrowDetailPage() {
   };
 
   const handleRelease = () => {
-    if (confirm('Release funds to seller? This action cannot be undone.')) {
+    const msg =
+      escrow?.status === 'AWAITING_RELEASE'
+        ? 'Confirm service completion and release funds to seller? This action cannot be undone.'
+        : 'Release funds to seller? This action cannot be undone.';
+    if (confirm(msg)) {
       releaseMutation.mutate();
+    }
+  };
+
+  const handleServiceCompleted = () => {
+    if (confirm('Mark this escrow as "Service Completed" (no shipping)? Buyer will then be able to release funds.')) {
+      serviceCompletedMutation.mutate();
     }
   };
 
@@ -308,6 +334,16 @@ export default function EscrowDetailPage() {
                   {shipMutation.isPending ? 'Updating...' : 'Mark as Shipped'}
                 </button>
               )}
+              {canMarkServiceCompleted && (
+                <button
+                  onClick={handleServiceCompleted}
+                  disabled={serviceCompletedMutation.isPending}
+                  className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  {serviceCompletedMutation.isPending ? 'Updating...' : 'Mark Service Completed'}
+                </button>
+              )}
               {canDeliver && (
                 <button
                   onClick={handleDeliver}
@@ -325,10 +361,14 @@ export default function EscrowDetailPage() {
                   className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  {releaseMutation.isPending ? 'Releasing...' : 'Release Funds'}
+                  {releaseMutation.isPending
+                    ? 'Releasing...'
+                    : escrow?.status === 'AWAITING_RELEASE'
+                    ? 'Confirm Service & Release Funds'
+                    : 'Release Funds'}
                 </button>
               )}
-              {!canFund && !canShip && !canDeliver && !canRelease && (
+              {!canFund && !canShip && !canMarkServiceCompleted && !canDeliver && !canRelease && (
                 <p className="text-sm text-gray-500 text-center py-4">
                   No actions available for this status
                 </p>

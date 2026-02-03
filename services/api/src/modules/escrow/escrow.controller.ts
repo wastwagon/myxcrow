@@ -73,6 +73,11 @@ export class EscrowController {
     });
   }
 
+  @Get('stats')
+  async stats(@CurrentUser() user: any) {
+    return this.escrowService.getEscrowStats(user.id);
+  }
+
   @Get(':id')
   @UseGuards(EscrowParticipantGuard)
   async getOne(@Param('id') id: string) {
@@ -99,6 +104,12 @@ export class EscrowController {
   @UseGuards(EscrowParticipantGuard)
   async deliver(@Param('id') id: string, @CurrentUser() user: any) {
     return this.escrowService.deliverEscrow(id, user.id);
+  }
+
+  @Put(':id/service-completed')
+  @UseGuards(EscrowParticipantGuard)
+  async serviceCompleted(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.escrowService.markServiceCompleted(id, user.id);
   }
 
   @Put(':id/release')

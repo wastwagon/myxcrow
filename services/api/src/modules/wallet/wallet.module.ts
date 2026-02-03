@@ -6,9 +6,16 @@ import { AuditModule } from '../audit/audit.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { AuthModule } from '../auth/auth.module';
 import { EmailModule } from '../email/email.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [AuditModule, forwardRef(() => PaymentsModule), AuthModule, EmailModule],
+  imports: [
+    AuditModule,
+    forwardRef(() => PaymentsModule),
+    AuthModule,
+    EmailModule,
+    NotificationsModule,
+  ],
   controllers: [WalletController],
   providers: [WalletService, PrismaService],
   exports: [WalletService],

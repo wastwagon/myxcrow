@@ -1,5 +1,6 @@
 import { PrismaClient, EscrowStatus, UserRole, KYCStatus, WithdrawalMethod, WithdrawalStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import * as MinIO from 'minio';
 
 const prisma = new PrismaClient();
 
@@ -15,6 +16,55 @@ const USERS = [
   { email: 'buyer5@test.com', firstName: 'Tom', lastName: 'Acquirer', role: UserRole.BUYER },
   { email: 'seller5@test.com', firstName: 'Anna', lastName: 'Supplier', role: UserRole.SELLER },
 ];
+
+function buildMinioClientFromEnv() {
+  const endpoint = process.env.S3_ENDPOINT || process.env.MINIO_ENDPOINT || 'minio';
+  const accessKey = process.env.S3_ACCESS_KEY || process.env.MINIO_ACCESS_KEY || 'minioadmin';
+  const secretKey = process.env.S3_SECRET_KEY || process.env.MINIO_SECRET_KEY || 'minioadmin';
+
+  let endPoint = endpoint;
+  let port = 9000;
+
+  try {
+    if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
+      const url = new URL(endpoint);
+      endPoint = url.hostname;
+      port = parseInt(url.port || '9000', 10);
+    } else {
+      endPoint = endpoint.replace(/^http:\/\//, '').replace(/^https:\/\//, '').split(':')[0];
+      const portMatch = endpoint.match(/:(\d+)/);
+      if (portMatch) port = parseInt(portMatch[1], 10);
+    }
+  } catch {
+    // Keep defaults
+  }
+
+  return new MinIO.Client({
+    endPoint,
+    port,
+    useSSL: false,
+    accessKey,
+    secretKey,
+  });
+}
+
+async function ensureBucket(client: MinIO.Client, bucket: string) {
+  const exists = await client.bucketExists(bucket);
+  if (!exists) {
+    await client.makeBucket(bucket, 'us-east-1');
+  }
+}
+
+async function putObject(
+  client: MinIO.Client,
+  bucket: string,
+  objectName: string,
+  data: Buffer,
+  meta: Record<string, string>,
+) {
+  // Use promise-based API (newer MinIO client)
+  await client.putObject(bucket, objectName, data, data.length, meta);
+}
 
 async function main() {
   const PASSWORD_HASH = await bcrypt.hash('password123', 10);
@@ -247,9 +297,11 @@ async function main() {
   });
   console.log(`  ✅ Created escrow: ${escrow7.description} (CANCELLED)`);
 
-  // Create some milestone escrows
+  // Create milestone escrows
   console.log('\n🎯 Creating milestone escrows...');
-  const milestoneEscrow = await prisma.escrowAgreement.create({
+  
+  // Milestone Escrow 1 - Website Development (In Progress)
+  const milestoneEscrow1 = await prisma.escrowAgreement.create({
     data: {
       buyerId: buyers[1].id,
       sellerId: sellers[2].id,
@@ -285,9 +337,145 @@ async function main() {
       },
     },
   });
-  console.log(`  ✅ Created milestone escrow: ${milestoneEscrow.description}`);
+  console.log(`  ✅ Created milestone escrow: ${milestoneEscrow1.description}`);
+  
+  // Milestone Escrow 2 - Mobile App (Awaiting Funding)
+  const milestoneEscrow2 = await prisma.escrowAgreement.create({
+    data: {
+      buyerId: buyers[3].id,
+      sellerId: sellers[0].id,
+      amountCents: 300000, // 3000 GHS
+      currency: 'GHS',
+      description: 'Mobile App Development - iOS & Android',
+      status: EscrowStatus.AWAITING_FUNDING,
+      feeCents: 15000,
+      netAmountCents: 285000,
+      milestones: {
+        create: [
+          {
+            name: 'Project Setup & Backend',
+            description: 'Initialize project, setup database and API',
+            amountCents: 80000,
+            status: 'pending',
+          },
+          {
+            name: 'UI Implementation',
+            description: 'Build all screens and navigation',
+            amountCents: 120000,
+            status: 'pending',
+          },
+          {
+            name: 'Testing & Deployment',
+            description: 'Test app and deploy to stores',
+            amountCents: 100000,
+            status: 'pending',
+          },
+        ],
+      },
+    },
+  });
+  console.log(`  ✅ Created milestone escrow: ${milestoneEscrow2.description}`);
+  
+  // Milestone Escrow 3 - Graphic Design (Partially Completed)
+  const milestoneEscrow3 = await prisma.escrowAgreement.create({
+    data: {
+      buyerId: buyers[0].id,
+      sellerId: sellers[3].id,
+      amountCents: 90000, // 900 GHS
+      currency: 'GHS',
+      description: 'Brand Identity Design Package',
+      status: EscrowStatus.FUNDED,
+      feeCents: 4500,
+      netAmountCents: 85500,
+      fundedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+      milestones: {
+        create: [
+          {
+            name: 'Logo Design',
+            description: 'Create 3 logo concepts',
+            amountCents: 30000,
+            status: 'completed',
+            completedAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+          },
+          {
+            name: 'Brand Guidelines',
+            description: 'Color palette, typography, usage rules',
+            amountCents: 30000,
+            status: 'completed',
+            completedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+          },
+          {
+            name: 'Marketing Materials',
+            description: 'Business cards, letterhead, social media templates',
+            amountCents: 30000,
+            status: 'pending',
+          },
+        ],
+      },
+    },
+  });
+  console.log(`  ✅ Created milestone escrow: ${milestoneEscrow3.description}`);
 
-  // Create some escrow messages
+  // Create more disputes with different statuses
+  console.log('\n⚖️ Creating additional disputes...');
+  
+  // Dispute 2 - In Mediation
+  const escrow8 = await prisma.escrowAgreement.create({
+    data: {
+      buyerId: buyers[2].id,
+      sellerId: sellers[0].id,
+      amountCents: 95000, // 950 GHS
+      currency: 'GHS',
+      description: 'Designer Handbag - Quality Issue',
+      status: EscrowStatus.DISPUTED,
+      feeCents: 4750,
+      netAmountCents: 90250,
+      fundedAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000),
+      shippedAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000),
+      deliveredAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+    },
+  });
+  const dispute2 = await prisma.dispute.create({
+    data: {
+      escrowId: escrow8.id,
+      initiatorId: buyers[2].id,
+      reason: 'DEFECTIVE',
+      description: 'Item has manufacturing defect - stitching is coming apart',
+      status: 'MEDIATION',
+    },
+  });
+  console.log(`  ✅ Created dispute: ${escrow8.description} (MEDIATION)`);
+  
+  // Dispute 3 - Resolved
+  const escrow9 = await prisma.escrowAgreement.create({
+    data: {
+      buyerId: buyers[3].id,
+      sellerId: sellers[2].id,
+      amountCents: 65000, // 650 GHS
+      currency: 'GHS',
+      description: 'Bluetooth Speaker - Wrong Model Sent',
+      status: EscrowStatus.REFUNDED,
+      feeCents: 3250,
+      netAmountCents: 61750,
+      fundedAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+      shippedAt: new Date(Date.now() - 17 * 24 * 60 * 60 * 1000),
+      deliveredAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      refundedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+    },
+  });
+  await prisma.dispute.create({
+    data: {
+      escrowId: escrow9.id,
+      initiatorId: buyers[3].id,
+      reason: 'WRONG_ITEM',
+      description: 'Ordered Model X but received Model Y',
+      status: 'RESOLVED',
+      resolution: 'Full refund issued to buyer',
+    },
+  });
+  console.log(`  ✅ Created dispute: ${escrow9.description} (RESOLVED - REFUNDED)`);
+  
+  // Create escrow messages
   console.log('\n💬 Creating escrow messages...');
   await prisma.escrowMessage.createMany({
     data: [
@@ -306,35 +494,153 @@ async function main() {
         userId: buyers[2].id,
         content: 'Received the tracking number, thanks!',
       },
+      {
+        escrowId: milestoneEscrow1.id,
+        userId: buyers[1].id,
+        content: 'The design looks great! Ready to move to development phase.',
+      },
+      {
+        escrowId: milestoneEscrow1.id,
+        userId: sellers[2].id,
+        content: 'Thank you! I will start on the backend setup this week.',
+      },
+      {
+        escrowId: escrow4.id,
+        userId: buyers[3].id,
+        content: 'Everything arrived in perfect condition!',
+      },
+      {
+        escrowId: escrow4.id,
+        userId: sellers[3].id,
+        content: 'Glad to hear that! Please confirm delivery when ready.',
+      },
     ],
   });
-  console.log('  ✅ Created 3 escrow messages');
+  console.log('  ✅ Created 7 escrow messages');
 
-  // Create some evidence
+  // Create evidence records
   console.log('\n📎 Creating evidence records...');
-  await prisma.evidence.createMany({
-    data: [
+  try {
+    const bucket = process.env.S3_BUCKET || process.env.MINIO_BUCKET || 'evidence';
+    const client = buildMinioClientFromEnv();
+    await ensureBucket(client, bucket);
+
+    const seedItems = [
       {
         escrowId: escrow2.id,
         uploadedBy: sellers[1].id,
-        fileName: 'shipping_receipt.pdf',
-        fileKey: 'evidence/shipping_receipt.pdf',
-        fileSize: 102400,
+        fileName: 'shipping_receipt.txt',
+        mimeType: 'text/plain',
         type: 'document',
-        mimeType: 'application/pdf',
+        description: 'Shipping receipt from courier',
+        body: Buffer.from(
+          `SHIPPING RECEIPT\n\nEscrow ID: ${escrow2.id}\nTracking: GH123456789\nCourier: Ghana Post\nDate: ${new Date().toISOString()}\n`,
+          'utf-8',
+        ),
+      },
+      {
+        escrowId: escrow3.id,
+        uploadedBy: sellers[2].id,
+        fileName: 'package_photo.txt',
+        mimeType: 'text/plain',
+        type: 'photo',
+        description: 'Package ready for shipment',
+        body: Buffer.from(`[Photo placeholder] Package sealed and labeled for escrow ${escrow3.id}\n`, 'utf-8'),
       },
       {
         escrowId: escrow4.id,
         uploadedBy: buyers[3].id,
-        fileName: 'delivery_photo.jpg',
-        fileKey: 'evidence/delivery_photo.jpg',
-        fileSize: 204800,
+        fileName: 'delivery_photo.txt',
+        mimeType: 'text/plain',
         type: 'photo',
-        mimeType: 'image/jpeg',
+        description: 'Item delivered - furniture set',
+        body: Buffer.from(`[Photo placeholder] Delivery confirmation for escrow ${escrow4.id}\n`, 'utf-8'),
       },
-    ],
-  });
-  console.log('  ✅ Created 2 evidence records');
+      {
+        escrowId: escrow6.id,
+        uploadedBy: buyers[4].id,
+        fileName: 'item_defect_photo.txt',
+        mimeType: 'text/plain',
+        type: 'photo',
+        description: 'Photo showing product defect',
+        body: Buffer.from(`[Photo placeholder] Gaming console defect evidence for dispute\n`, 'utf-8'),
+      },
+      {
+        escrowId: escrow8.id,
+        uploadedBy: buyers[2].id,
+        fileName: 'handbag_stitching_issue.txt',
+        mimeType: 'text/plain',
+        type: 'photo',
+        description: 'Close-up of stitching defect',
+        body: Buffer.from(`[Photo placeholder] Handbag stitching coming apart - manufacturing defect\n`, 'utf-8'),
+      },
+      {
+        escrowId: escrow8.id,
+        uploadedBy: sellers[0].id,
+        fileName: 'quality_control_certificate.txt',
+        mimeType: 'text/plain',
+        type: 'document',
+        description: 'Product quality control certificate',
+        body: Buffer.from(`QUALITY CONTROL CERTIFICATE\n\nProduct passed inspection on [date]\nInspector: [name]\n`, 'utf-8'),
+      },
+      {
+        escrowId: milestoneEscrow1.id,
+        uploadedBy: sellers[2].id,
+        fileName: 'design_mockups.txt',
+        mimeType: 'text/plain',
+        type: 'document',
+        description: 'UI/UX design mockups (Milestone 1)',
+        body: Buffer.from(
+          `[Mockup files placeholder]\n\nDesign Phase Deliverables:\n- Homepage design\n- Dashboard layouts\n- Mobile responsive views\n`,
+          'utf-8',
+        ),
+      },
+      {
+        escrowId: milestoneEscrow3.id,
+        uploadedBy: sellers[3].id,
+        fileName: 'logo_concepts.txt',
+        mimeType: 'text/plain',
+        type: 'document',
+        description: 'Logo design concepts (3 variations)',
+        body: Buffer.from(`[Design files placeholder]\n\nLogo Concepts:\n- Concept A: Modern\n- Concept B: Classic\n- Concept C: Minimal\n`, 'utf-8'),
+      },
+      {
+        escrowId: milestoneEscrow3.id,
+        uploadedBy: sellers[3].id,
+        fileName: 'brand_guidelines.txt',
+        mimeType: 'text/plain',
+        type: 'document',
+        description: 'Brand guidelines document',
+        body: Buffer.from(
+          `BRAND GUIDELINES\n\nColor Palette:\n- Primary: #3B82F6\n- Secondary: #10B981\n\nTypography:\n- Headings: Inter Bold\n- Body: Inter Regular\n`,
+          'utf-8',
+        ),
+      },
+    ];
+
+    for (const item of seedItems) {
+      const objectName = `escrow/${item.escrowId}/seed_${Date.now()}_${Math.random().toString(36).substring(7)}_${item.fileName}`;
+      await putObject(client, bucket, objectName, item.body, { 'Content-Type': item.mimeType });
+
+      await prisma.evidence.create({
+        data: {
+          escrowId: item.escrowId,
+          disputeId: (item as any).disputeId || null,
+          uploadedBy: item.uploadedBy,
+          fileName: item.fileName,
+          fileKey: objectName,
+          fileSize: item.body.length,
+          type: item.type,
+          mimeType: item.mimeType,
+          description: item.description,
+        },
+      });
+    }
+
+    console.log('  ✅ Created 9 evidence records (with real objects in storage)');
+  } catch (e: any) {
+    console.warn(`  ⚠️ Skipped evidence seeding (storage not reachable): ${e?.message || e}`);
+  }
 
   // Create withdrawal requests
   console.log('\n💸 Creating withdrawal requests...');
@@ -360,12 +666,20 @@ async function main() {
   console.log('\n✅ Seed script completed successfully!');
   console.log('\n📊 Summary:');
   console.log(`   • Users created: ${createdUsers.length}`);
-  console.log(`   • Escrows created: 8`);
-  console.log(`   • Milestone escrows: 1`);
-  console.log(`   • Messages created: 3`);
-  console.log(`   • Evidence records: 2`);
+  console.log(`   • Regular escrows: 9 (various statuses)`);
+  console.log(`   • Milestone escrows: 3 (Website, Mobile App, Brand Design)`);
+  console.log(`   • Total escrows: 12`);
+  console.log(`   • Disputes created: 3 (OPEN, MEDIATION, RESOLVED)`);
+  console.log(`   • Messages created: 7`);
+  console.log(`   • Evidence records: 9 (escrows + disputes)`);
   console.log(`   • Withdrawal requests: 1`);
   console.log('\n🔑 All users have password: password123');
+  console.log('\n📝 Test Scenarios Available:');
+  console.log('   • Escrow lifecycle: Create → Fund → Ship → Deliver → Release');
+  console.log('   • Milestone payments: 3 escrows with multi-phase projects');
+  console.log('   • Disputes: Active disputes in different stages');
+  console.log('   • Evidence: Photos, receipts, quality certificates');
+  console.log('   • Messaging: Buyer-seller communication examples');
 }
 
 main()

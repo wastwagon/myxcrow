@@ -1,19 +1,17 @@
 # Pre-Deployment Checklist
 
-Use this checklist before deploying to Render.
+Use this checklist before deploying to **VPS + Coolify**.
 
 ## 📋 Code Preparation
 
 - [ ] All code is committed to Git
 - [ ] Code is pushed to GitHub
-- [ ] `render.yaml` is in the root directory
 - [ ] `.gitignore` includes `.env` files
 - [ ] No sensitive data in code (API keys, secrets, etc.)
 
 ## 🔧 Configuration Files
 
-- [ ] `render.yaml` is configured correctly
-- [ ] Production Dockerfiles exist (`services/api/Dockerfile`, `apps/web/Dockerfile`)
+- [ ] Production Dockerfiles exist (`services/api/Dockerfile.production`, `apps/web/Dockerfile.production`)
 - [ ] `package.json` scripts are updated for production
 - [ ] Environment variable examples in `.env.example`
 
@@ -43,11 +41,10 @@ Use this checklist before deploying to Render.
 
 ## 🌐 Domain & URLs
 
-- [ ] Decide on service names in Render
-- [ ] Note the URLs that will be generated:
-  - API: `https://myxcrow-api.onrender.com`
-  - Web: `https://myxcrow-web.onrender.com`
-- [ ] Custom domain ready (optional)
+- [ ] DNS A records configured:
+  - API: `api.myxcrow.com` → VPS IP
+  - Web: `myxcrow.com` → VPS IP
+- [ ] SSL is enabled via Coolify (green lock)
 
 ## 📝 Environment Variables List
 
@@ -69,7 +66,7 @@ Prepare these values before deployment:
 - [ ] `EMAIL_FROM`
 
 ### Web Service
-- [ ] `NEXT_PUBLIC_API_BASE_URL` (will be set after API deploys)
+- [ ] `NEXT_PUBLIC_API_BASE_URL=https://api.myxcrow.com/api`
 
 ## ✅ Testing
 
@@ -82,10 +79,10 @@ Prepare these values before deployment:
 
 Once all items are checked:
 1. Push code to GitHub
-2. Connect repository to Render
-3. Apply Blueprint
+2. Deploy API in Coolify
+3. Deploy Web in Coolify
 4. Configure environment variables
-5. Monitor deployment logs
+5. Monitor build/runtime logs
 6. Test deployed services
 
 ---

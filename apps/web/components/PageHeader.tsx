@@ -1,21 +1,23 @@
 import { ReactNode } from 'react';
-import { Shield } from 'lucide-react';
 
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
   icon?: ReactNode;
   action?: ReactNode;
-  gradient?: 'blue' | 'purple' | 'green' | 'red' | 'yellow';
+  gradient?: 'brand' | 'gold' | 'maroon' | 'green' | 'red' | 'yellow' | 'blue' | 'purple';
 }
 
-export default function PageHeader({ title, subtitle, icon, action, gradient = 'blue' }: PageHeaderProps) {
-  const gradientClasses = {
-    blue: 'from-blue-600 to-purple-600',
-    purple: 'from-purple-600 to-indigo-600',
-    green: 'from-green-600 to-emerald-600',
-    red: 'from-red-600 to-pink-600',
-    yellow: 'from-yellow-600 to-orange-600',
+export default function PageHeader({ title, subtitle, icon, action, gradient = 'brand' }: PageHeaderProps) {
+  const gradientClasses: Record<string, string> = {
+    brand: 'from-brand-maroon via-brand-maroon-dark to-brand-maroon-darker',
+    gold: 'from-brand-gold to-primary-600',
+    maroon: 'from-brand-maroon to-brand-maroon-darker',
+    green: 'from-brand-maroon-dark to-brand-maroon-darker',
+    red: 'from-brand-maroon-rust to-brand-maroon',
+    yellow: 'from-brand-gold to-primary-500',
+    blue: 'from-brand-maroon via-brand-maroon-dark to-brand-maroon-darker',
+    purple: 'from-brand-maroon-dark to-brand-maroon-darker',
   };
 
   return (

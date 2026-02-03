@@ -16,9 +16,18 @@ export class KYCService {
     private configService: ConfigService,
   ) {
     // Initialize MinIO client (same as EvidenceService)
-    const endpoint = this.configService.get<string>('S3_ENDPOINT') || 'minio';
-    const accessKey = this.configService.get<string>('S3_ACCESS_KEY') || 'minioadmin';
-    const secretKey = this.configService.get<string>('S3_SECRET_KEY') || 'minioadmin';
+    const endpoint =
+      this.configService.get<string>('S3_ENDPOINT') ||
+      this.configService.get<string>('MINIO_ENDPOINT') ||
+      'minio';
+    const accessKey =
+      this.configService.get<string>('S3_ACCESS_KEY') ||
+      this.configService.get<string>('MINIO_ACCESS_KEY') ||
+      'minioadmin';
+    const secretKey =
+      this.configService.get<string>('S3_SECRET_KEY') ||
+      this.configService.get<string>('MINIO_SECRET_KEY') ||
+      'minioadmin';
 
     let endPoint = endpoint;
     let port = 9000;
@@ -43,7 +52,22 @@ export class KYCService {
       secretKey,
     });
 
-    this.bucketName = this.configService.get<string>('S3_BUCKET') || 'escrow-evidence';
+    this.bucketName =
+      this.configService.get<string>('S3_BUCKET') ||
+      this.configService.get<string>('MINIO_BUCKET') ||
+      'escrow-evidence';
+  }
+
+  private async ensureBucketExists() {
+    try {
+      const exists = await this.minioClient.bucketExists(this.bucketName);
+      if (!exists) {
+        await this.minioClient.makeBucket(this.bucketName, 'us-east-1');
+      }
+    } catch (error: any) {
+      // Best-effort only; per-request ops will fail clearly if bucket is unavailable
+      console.warn(`Could not ensure KYC bucket exists: ${error?.message || String(error)}`);
+    }
   }
 
   /**
@@ -53,6 +77,7 @@ export class KYCService {
     const objectName = `kyc/${userId}/${fileType}-${Date.now()}-${fileName}`;
 
     try {
+      await this.ensureBucketExists();
       await this.minioClient.putObject(this.bucketName, objectName, fileBuffer, fileBuffer.length, {
         'Content-Type': 'image/jpeg',
       });
@@ -136,6 +161,44 @@ export class KYCService {
     return {
       faceMatchScore: matchResult.score,
       faceMatchPassed: matchResult.passed,
+    };
+  }
+
+  /**
+   * Allow an authenticated user to resubmit KYC (e.g. after rejection).
+   * Uses the same self-hosted face matching and document storage flow as registration.
+   */
+  async resubmitKYC(data: {
+    userId: string;
+    ghanaCardNumber: string;
+    cardFrontBuffer: Buffer;
+    cardBackBuffer: Buffer;
+    selfieBuffer: Buffer;
+  }): Promise<{ faceMatchScore: number; faceMatchPassed: boolean; kycStatus: KYCStatus }> {
+    const user = await this.prisma.user.findUnique({ where: { id: data.userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.kycStatus === KYCStatus.VERIFIED) {
+      throw new BadRequestException('Your KYC is already verified');
+    }
+
+    const result = await this.processKYCRegistration({
+      userId: data.userId,
+      ghanaCardNumber: data.ghanaCardNumber,
+      cardFrontBuffer: data.cardFrontBuffer,
+      cardBackBuffer: data.cardBackBuffer,
+      selfieBuffer: data.selfieBuffer,
+    });
+
+    const updated = await this.prisma.user.findUnique({
+      where: { id: data.userId },
+      select: { kycStatus: true },
+    });
+
+    return {
+      ...result,
+      kycStatus: updated?.kycStatus || KYCStatus.PENDING,
     };
   }
 

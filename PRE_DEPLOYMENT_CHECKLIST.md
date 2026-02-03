@@ -1,11 +1,10 @@
 # Pre-Deployment Checklist
 
-Use this checklist before deploying to Render.
+Use this checklist before deploying to **VPS + Coolify**.
 
 ## ✅ Code Ready
 
 - [x] All changes committed to git
-- [x] `render.yaml` configured correctly
 - [x] `.gitignore` updated
 - [x] Documentation complete
 
@@ -28,7 +27,7 @@ git log --oneline -5
 git push origin main
 ```
 
-## 🔧 Render Deployment Setup
+## 🔧 Production Deployment Setup (Coolify)
 
 ### Required Environment Variables
 
@@ -53,10 +52,8 @@ Before deploying, prepare these values:
 - [ ] From email address
 
 ### Auto-Configured (No Action Needed)
-- ✅ `DATABASE_URL` - Auto-set from PostgreSQL
-- ✅ `REDIS_URL` - Auto-set from Redis
-- ✅ `JWT_SECRET` - Auto-generated
-- ✅ `WEB_APP_URL` - Auto-set from web service
+- ✅ `DATABASE_URL` - From your PostgreSQL resource/instance
+- ✅ `REDIS_URL` - From your Redis resource/instance
 
 ## 🚀 Deployment Steps
 
@@ -65,39 +62,24 @@ Before deploying, prepare these values:
    git push origin main
    ```
 
-2. **Connect to Render**
-   - Go to https://dashboard.render.com
-   - Click "New +" → "Blueprint"
-   - Connect GitHub repository
-   - Select repository: `myxcrow`
+2. **Deploy in Coolify**
+   - Create PostgreSQL + Redis resources (recommended)
+   - Deploy API using `services/api/Dockerfile.production`
+   - Deploy Web using `apps/web/Dockerfile.production`
+   - Configure domains + SSL
 
-3. **Configure Environment Variables**
-   - Set all required variables (see DEPLOYMENT_GUIDE.md)
-   - Verify auto-configured variables
-
-4. **Deploy**
-   - Click "Apply"
-   - Wait for services to build and deploy
-
-5. **Verify Deployment**
-   - Check API: `https://myxcrow-api.onrender.com/api/health`
-   - Check Web: `https://myxcrow-web.onrender.com`
-
-6. **Post-Deployment**
-   - Update `NEXT_PUBLIC_API_BASE_URL` in web service
-   - Run database migrations (if needed)
-   - Seed database (optional)
+3. **Verify Deployment**
+   - API: `https://api.myxcrow.com/api/health`
+   - Web: `https://myxcrow.com`
 
 ## 📝 Important Notes
 
-- **Service Names**: Render will create services named `myxcrow-api` and `myxcrow-web`
-- **API URL**: After deployment, update `NEXT_PUBLIC_API_BASE_URL` to match your actual API URL
+- **API URL**: Ensure web env var `NEXT_PUBLIC_API_BASE_URL` matches your API domain
 - **Database**: Migrations run automatically on API startup
 - **Health Checks**: Both services have health check endpoints configured
 
 ## 🔗 Quick Links
 
-- [Render Dashboard](https://dashboard.render.com)
 - [Deployment Guide](DEPLOYMENT_GUIDE.md)
 - [Local Development Guide](LOCAL_DEVELOPMENT.md)
 

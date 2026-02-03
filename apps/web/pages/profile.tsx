@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { isAuthenticated, getUser, setUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { User, Mail, Calendar, Shield, Edit2, Save, X, Loader2 } from 'lucide-react';
+import { User, Mail, Calendar, Shield, Edit2, Save, X, Loader2, Key } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
@@ -286,6 +287,24 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Security Section - Always visible outside editing mode */}
+              {!isEditing && (
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Security</h3>
+                  <Link
+                    href="/change-password"
+                    className="flex items-center gap-3 p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition border border-gray-200"
+                  >
+                    <Key className="w-5 h-5 text-gray-600" />
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">Change Password</p>
+                      <p className="text-sm text-gray-600">Update your account password</p>
+                    </div>
+                    <span className="text-gray-400">→</span>
+                  </Link>
                 </div>
               )}
             </>

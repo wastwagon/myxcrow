@@ -74,6 +74,11 @@ enum DisputeReason {
   OTHER
 }
 
+enum DisputeResolutionOutcome {
+  RELEASE_TO_SELLER
+  REFUND_TO_BUYER
+}
+
 enum WalletFundingSource {
   PAYSTACK_TOPUP
   BANK_TRANSFER
@@ -133,11 +138,26 @@ model User {
   auditLogs         AuditLog[]
   profile           UserProfile?
   kycDetails        KYCDetail?
+  passwordResetTokens PasswordResetToken[]
   ratingsGiven      EscrowRating[]    @relation("RatingsGiven")
   ratingsReceived   EscrowRating[]    @relation("RatingsReceived")
 
   @@index([email])
   @@index([kycStatus])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Session {
@@ -488,17 +508,18 @@ model Evidence {
 // ============================================
 
 model Dispute {
-  id            String        @id @default(uuid())
-  escrowId      String
-  initiatorId   String
-  reason        DisputeReason
-  status        DisputeStatus @default(OPEN)
-  description   String?
-  resolution    String?
-  resolvedBy    String?
-  resolvedAt    DateTime?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  id                 String                   @id @default(uuid())
+  escrowId           String
+  initiatorId        String
+  reason             DisputeReason
+  status             DisputeStatus            @default(OPEN)
+  description        String?
+  resolution         String?
+  resolutionOutcome  DisputeResolutionOutcome?
+  resolvedBy         String?
+  resolvedAt         DateTime?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
 
   escrow    EscrowAgreement @relation(fields: [escrowId], references: [id], onDelete: Cascade)
   initiator User            @relation("Initiator", fields: [initiatorId], references: [id])

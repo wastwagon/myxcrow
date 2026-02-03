@@ -10,6 +10,13 @@ export interface EmailJobData {
   metadata?: Record<string, any>;
 }
 
+export interface SMSJobData {
+  to: string;
+  message: string;
+  type?: string;
+  metadata?: Record<string, any>;
+}
+
 export interface WebhookJobData {
   url: string;
   payload: any;
@@ -30,6 +37,7 @@ export class QueueService {
 
   constructor(
     @InjectQueue('email') private emailQueue: Queue<EmailJobData>,
+    @InjectQueue('sms') private smsQueue: Queue<SMSJobData>,
     @InjectQueue('webhook') private webhookQueue: Queue<WebhookJobData>,
     @InjectQueue('cleanup') private cleanupQueue: Queue<CleanupJobData>,
   ) {}
@@ -43,6 +51,18 @@ export class QueueService {
       delay: options?.delay || 0,
     });
     this.logger.log(`Email job ${job.id} added to queue`);
+    return job;
+  }
+
+  /**
+   * Add SMS job to queue
+   */
+  async addSMSJob(data: SMSJobData, options?: { priority?: number; delay?: number }) {
+    const job = await this.smsQueue.add('send-sms', data, {
+      priority: options?.priority || 0,
+      delay: options?.delay || 0,
+    });
+    this.logger.log(`SMS job ${job.id} added to queue`);
     return job;
   }
 
@@ -74,14 +94,16 @@ export class QueueService {
    * Get queue statistics
    */
   async getQueueStats() {
-    const [emailStats, webhookStats, cleanupStats] = await Promise.all([
+    const [emailStats, smsStats, webhookStats, cleanupStats] = await Promise.all([
       this.emailQueue.getJobCounts(),
+      this.smsQueue.getJobCounts(),
       this.webhookQueue.getJobCounts(),
       this.cleanupQueue.getJobCounts(),
     ]);
 
     return {
       email: emailStats,
+      sms: smsStats,
       webhook: webhookStats,
       cleanup: cleanupStats,
     };
@@ -90,7 +112,7 @@ export class QueueService {
   /**
    * Get failed jobs (for DLQ monitoring)
    */
-  async getFailedJobs(queueName: 'email' | 'webhook' | 'cleanup', limit: number = 10) {
+  async getFailedJobs(queueName: 'email' | 'sms' | 'webhook' | 'cleanup', limit: number = 10) {
     const queue = this.getQueue(queueName);
     const failed = await queue.getFailed(0, limit - 1);
     return failed;
@@ -99,7 +121,7 @@ export class QueueService {
   /**
    * Retry failed job
    */
-  async retryFailedJob(queueName: 'email' | 'webhook' | 'cleanup', jobId: string) {
+  async retryFailedJob(queueName: 'email' | 'sms' | 'webhook' | 'cleanup', jobId: string) {
     const queue = this.getQueue(queueName);
     const job = await queue.getJob(jobId);
     if (job) {
@@ -111,7 +133,7 @@ export class QueueService {
   /**
    * Move job to DLQ (mark as permanently failed)
    */
-  async moveToDLQ(queueName: 'email' | 'webhook' | 'cleanup', jobId: string, reason: string) {
+  async moveToDLQ(queueName: 'email' | 'sms' | 'webhook' | 'cleanup', jobId: string, reason: string) {
     const queue = this.getQueue(queueName);
     const job = await queue.getJob(jobId);
     if (job) {
@@ -120,10 +142,12 @@ export class QueueService {
     }
   }
 
-  private getQueue(queueName: 'email' | 'webhook' | 'cleanup'): Queue {
+  private getQueue(queueName: 'email' | 'sms' | 'webhook' | 'cleanup'): Queue {
     switch (queueName) {
       case 'email':
         return this.emailQueue;
+      case 'sms':
+        return this.smsQueue;
       case 'webhook':
         return this.webhookQueue;
       case 'cleanup':

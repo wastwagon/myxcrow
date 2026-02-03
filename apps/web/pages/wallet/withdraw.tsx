@@ -13,7 +13,7 @@ import { toast } from 'react-hot-toast';
 
 const withdrawalSchema = z.object({
   amountCents: z.number().min(100, 'Amount must be at least 1.00'),
-  methodType: z.enum(['BANK_TRANSFER', 'MOBILE_MONEY'], {
+  methodType: z.enum(['BANK_ACCOUNT', 'MOBILE_MONEY'], {
     required_error: 'Please select a withdrawal method',
   }),
   accountNumber: z.string().min(1, 'Account number is required'),
@@ -49,6 +49,7 @@ export default function WithdrawPage() {
     watch,
   } = useForm<WithdrawalFormData>({
     resolver: zodResolver(withdrawalSchema),
+    defaultValues: { methodType: 'BANK_ACCOUNT' },
   });
 
   const methodType = watch('methodType');
@@ -56,7 +57,7 @@ export default function WithdrawPage() {
   const withdrawMutation = useMutation({
     mutationFn: async (data: WithdrawalFormData) => {
       const methodDetails: any = {};
-      if (data.methodType === 'BANK_TRANSFER') {
+      if (data.methodType === 'BANK_ACCOUNT') {
         methodDetails.accountNumber = data.accountNumber;
         methodDetails.bankName = data.bankName;
       } else {
@@ -143,7 +144,7 @@ export default function WithdrawPage() {
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value="">Select method</option>
-              <option value="BANK_TRANSFER">Bank Transfer</option>
+              <option value="BANK_ACCOUNT">Bank Transfer</option>
               <option value="MOBILE_MONEY">Mobile Money</option>
             </select>
             {errors.methodType && (
@@ -151,7 +152,7 @@ export default function WithdrawPage() {
             )}
           </div>
 
-          {methodType === 'BANK_TRANSFER' && (
+          {methodType === 'BANK_ACCOUNT' && (
             <>
               <div>
                 <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-1">

@@ -1,0 +1,70 @@
+# Production Dockerfile for Web (Coolify-optimized)
+# This Dockerfile is designed for Coolify deployment with monorepo support
+FROM node:20-alpine AS base
+
+# Install pnpm (use specific version for reproducibility)
+RUN npm install -g pnpm@9.12.3
+
+WORKDIR /app
+
+# Copy root package files (for workspace)
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
+
+# Copy Web package files
+COPY apps/web/package.json ./apps/web/
+
+# Install root dependencies first (for workspace)
+RUN pnpm install --no-frozen-lockfile --prod=false
+
+# Copy Web source code
+COPY apps/web ./apps/web
+
+# Build the application
+WORKDIR /app/apps/web
+RUN pnpm build
+
+# Production stage
+FROM node:20-alpine AS production
+
+# Install pnpm
+RUN npm install -g pnpm@9.12.3
+
+WORKDIR /app
+
+# Copy root package files
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml ./
+
+# Copy Web package files
+COPY apps/web/package.json ./apps/web/
+
+# Install production dependencies only
+RUN pnpm install --no-frozen-lockfile --prod && \
+    rm -rf /root/.pnpm-store && \
+    rm -rf /tmp/*
+
+# Copy built application from base stage
+COPY --from=base /app/apps/web/.next ./apps/web/.next
+COPY --from=base /app/apps/web/public ./apps/web/public
+COPY --from=base /app/apps/web/next.config.js ./apps/web/next.config.js
+COPY --from=base /app/apps/web/package.json ./apps/web/package.json
+COPY --from=base /app/apps/web/tsconfig.json ./apps/web/tsconfig.json
+
+WORKDIR /app/apps/web
+
+# Production environment
+ENV NODE_ENV=production
+ENV PORT=3000
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Node.js production optimizations
+ENV NODE_OPTIONS="--max-old-space-size=1024"
+
+# Expose port
+EXPOSE 3000
+
+# Health check with better error handling
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+
+# Start the application
+CMD ["pnpm", "start"]

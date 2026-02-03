@@ -229,7 +229,7 @@ export default function AdminUsersPage() {
                           <ol className="list-decimal list-inside space-y-1">
                             <li>Start the API server: <code className="bg-gray-100 px-1 rounded">docker-compose up -d</code></li>
                             <li>Or start manually: <code className="bg-gray-100 px-1 rounded">cd services/api && npm run start:dev</code></li>
-                            <li>Verify API is running: <code className="bg-gray-100 px-1 rounded">curl http://localhost:4000/api/health</code></li>
+                            <li>Verify API is running: <code className="bg-gray-100 px-1 rounded">curl YOUR_API_URL/api/health</code> (use your API base URL)</li>
                             <li>Refresh this page after starting the API</li>
                           </ol>
                         </div>

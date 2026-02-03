@@ -15,6 +15,9 @@ interface Dispute {
   status: string;
   reason: string;
   description: string;
+  resolution?: string;
+  resolutionOutcome?: 'RELEASE_TO_SELLER' | 'REFUND_TO_BUYER';
+  resolvedAt?: string;
   createdAt: string;
 }
 
@@ -83,13 +86,14 @@ export default function DisputeDetailPage() {
   });
 
   const resolveMutation = useMutation({
-    mutationFn: async (data: { outcome: string; notes?: string }) => {
+    mutationFn: async (data: { resolution: string; outcome: 'RELEASE_TO_SELLER' | 'REFUND_TO_BUYER' }) => {
       return apiClient.put(`/disputes/${id}/resolve`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dispute', id] });
       queryClient.invalidateQueries({ queryKey: ['disputes'] });
-      toast.success('Dispute resolved');
+      queryClient.invalidateQueries({ queryKey: ['escrow', dispute?.escrowId] });
+      toast.success('Dispute resolved and funds applied');
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to resolve dispute');
@@ -122,11 +126,16 @@ export default function DisputeDetailPage() {
     }
   };
 
-  const handleResolve = () => {
-    const outcome = prompt('Enter resolution outcome:');
-    if (outcome) {
-      resolveMutation.mutate({ outcome });
+  const handleResolve = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = e.currentTarget;
+    const resolution = (form.elements.namedItem('resolution') as HTMLTextAreaElement)?.value?.trim() ?? '';
+    const outcome = (form.elements.namedItem('outcome') as HTMLSelectElement)?.value as 'RELEASE_TO_SELLER' | 'REFUND_TO_BUYER';
+    if (!outcome || !['RELEASE_TO_SELLER', 'REFUND_TO_BUYER'].includes(outcome)) {
+      toast.error('Select an outcome: Release to seller or Refund to buyer');
+      return;
     }
+    resolveMutation.mutate({ resolution, outcome });
   };
 
   const handleClose = () => {
@@ -163,6 +172,9 @@ export default function DisputeDetailPage() {
 
   const statusColors: Record<string, string> = {
     OPEN: 'bg-yellow-100 text-yellow-800',
+    NEGOTIATION: 'bg-amber-100 text-amber-800',
+    MEDIATION: 'bg-orange-100 text-orange-800',
+    ARBITRATION: 'bg-orange-100 text-orange-800',
     RESOLVED: 'bg-green-100 text-green-800',
     CLOSED: 'bg-gray-100 text-gray-800',
   };
@@ -226,6 +238,32 @@ export default function DisputeDetailPage() {
                   <p className="text-sm text-gray-600">Created</p>
                   <p className="font-medium text-gray-900">{formatDate(dispute.createdAt)}</p>
                 </div>
+                {dispute.status === 'RESOLVED' && (
+                  <>
+                    {dispute.resolutionOutcome && (
+                      <div>
+                        <p className="text-sm text-gray-600">Outcome</p>
+                        <p className="font-medium text-green-700">
+                          {dispute.resolutionOutcome === 'RELEASE_TO_SELLER'
+                            ? 'Released to seller'
+                            : 'Refunded to buyer'}
+                        </p>
+                      </div>
+                    )}
+                    {dispute.resolution && (
+                      <div>
+                        <p className="text-sm text-gray-600">Resolution notes</p>
+                        <p className="font-medium text-gray-900">{dispute.resolution}</p>
+                      </div>
+                    )}
+                    {dispute.resolvedAt && (
+                      <div>
+                        <p className="text-sm text-gray-600">Resolved at</p>
+                        <p className="font-medium text-gray-900">{formatDate(dispute.resolvedAt)}</p>
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
           </div>
@@ -299,27 +337,60 @@ export default function DisputeDetailPage() {
         </div>
 
         {/* Admin Actions */}
-        {isAdminUser && dispute && dispute.status === 'OPEN' && (
+        {isAdminUser && dispute && ['OPEN', 'NEGOTIATION', 'MEDIATION', 'ARBITRATION'].includes(dispute.status) && (
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Admin Actions</h2>
-            <div className="flex gap-4">
-              <button
-                onClick={handleResolve}
-                disabled={resolveMutation.isPending}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                <CheckCircle className="w-4 h-4" />
-                {resolveMutation.isPending ? 'Resolving...' : 'Resolve Dispute'}
-              </button>
-              <button
-                onClick={handleClose}
-                disabled={closeMutation.isPending}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
-              >
-                <XCircle className="w-4 h-4" />
-                {closeMutation.isPending ? 'Closing...' : 'Close Dispute'}
-              </button>
-            </div>
+            <form onSubmit={handleResolve} className="space-y-4">
+              <div>
+                <label htmlFor="outcome" className="block text-sm font-medium text-gray-700 mb-1">
+                  Resolution outcome *
+                </label>
+                <select
+                  id="outcome"
+                  name="outcome"
+                  required
+                  className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select outcome</option>
+                  <option value="RELEASE_TO_SELLER">Release to seller</option>
+                  <option value="REFUND_TO_BUYER">Refund to buyer</option>
+                </select>
+                <p className="mt-1 text-xs text-gray-500">
+                  Release pays the seller; Refund returns funds to the buyer.
+                </p>
+              </div>
+              <div>
+                <label htmlFor="resolution" className="block text-sm font-medium text-gray-700 mb-1">
+                  Resolution notes
+                </label>
+                <textarea
+                  id="resolution"
+                  name="resolution"
+                  rows={3}
+                  placeholder="Brief notes on the resolution decision..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex gap-4">
+                <button
+                  type="submit"
+                  disabled={resolveMutation.isPending}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                  {resolveMutation.isPending ? 'Resolving...' : 'Resolve & apply funds'}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  disabled={closeMutation.isPending}
+                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
+                >
+                  <XCircle className="w-4 h-4" />
+                  {closeMutation.isPending ? 'Closing...' : 'Close only (no funds)'}
+                </button>
+              </div>
+            </form>
           </div>
         )}
       </div>

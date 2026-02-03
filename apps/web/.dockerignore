@@ -1,6 +1,31 @@
-node_modules
-.next
-.git
-.env*.local
+# Source files (will be copied)
+# Only exclude what's not needed
+
+# Test files
+**/__tests__/
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+coverage/
+
+# Documentation
+*.md
+!README.md
+
+# Environment files
+.env
+.env.*
+
+# Logs
 *.log
-.DS_Store
+logs/
+
+# Development files
+*.local
+*.dev
+
+# Build outputs (will be built in container)
+.next/
+out/
+dist/

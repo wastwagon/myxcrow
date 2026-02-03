@@ -2,6 +2,15 @@
 
 A comprehensive escrow platform built with Next.js and NestJS, designed for secure transactions in Ghana.
 
+## 🎉 MVP Status: **100% COMPLETE** ✅
+
+All MVP phases have been successfully implemented:
+- ✅ SMS Notifications
+- ✅ Mobile App (iOS + Android)
+- ✅ Live Chat Support
+
+See [MVP_COMPLETE.md](MVP_COMPLETE.md) for full details.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -54,14 +63,24 @@ Or manually:
 docker exec escrow_api pnpm seed
 ```
 
+## 🏗️ Shared Architecture
+
+**Web and mobile use the same infrastructure:**
+- **One database** (PostgreSQL) — shared by all users and admin
+- **One backend API** (NestJS) — serves both web and mobile
+- **Same admin backend** — admin dashboard (web UI) uses the same API and DB
+
+Only the **frontends** differ: web (Next.js) and mobile (Expo/React Native) are different clients talking to the same API. See **[SHARED_ARCHITECTURE.md](SHARED_ARCHITECTURE.md)** for details.
+
 ## 📁 Project Structure
 
 ```
 myexrow/
 ├── apps/
-│   └── web/              # Next.js frontend
+│   ├── web/              # Next.js frontend (includes admin dashboard)
+│   └── mobile/           # React Native mobile app (iOS + Android)
 ├── services/
-│   └── api/              # NestJS backend
+│   └── api/              # NestJS backend (shared by web + mobile)
 ├── infra/
 │   └── docker/           # Docker configuration
 └── packages/
@@ -80,9 +99,34 @@ myexrow/
 
 ## 📚 Documentation
 
+### Architecture & Development
+- **[Shared Architecture](SHARED_ARCHITECTURE.md)** - One DB, one backend, one admin for web + mobile
 - **[Local Development Guide](LOCAL_DEVELOPMENT.md)** - Complete guide for local setup and development
 - [Product Review](PRODUCT_REVIEW.md) - Complete feature overview
 - [Implementation Summary](README_IMPLEMENTATION.md) - Detailed implementation guide
+
+### Production Deployment
+- **[Coolify Quick Start](COOLIFY_QUICK_START.md)** - Quick deployment guide (start here!)
+- **[Coolify Deployment Guide](COOLIFY_MIGRATION_GUIDE.md)** - Detailed deployment guide for VPS + Coolify
+- **[Migration Checklist](MIGRATION_CHECKLIST.md)** - Step-by-step migration checklist
+- **[Domain Configuration](DOMAIN_CONFIGURATION.md)** - DNS setup for myxcrow.com
+- **[Environment Variables Template](COOLIFY_ENV_TEMPLATE.md)** - Production environment variables
+- **[Complete Product Review](PRODUCT_REVIEW_COMPLETE.md)** - Full product review and architecture overview
+
+### Market Analysis & Enhancements
+- **[MVP Focus Summary](MVP_FOCUS_SUMMARY.md)** - Quick MVP overview (start here!)
+- **[MVP Enhancement Plan](MVP_ENHANCEMENT_PLAN.md)** - Detailed MVP implementation plan
+- **[MVP Implementation Status](MVP_IMPLEMENTATION_STATUS.md)** - ✅ **100% Complete** - All phases done!
+- **[SMS Notifications Implementation](SMS_NOTIFICATIONS_IMPLEMENTATION.md)** - ✅ SMS feature implementation guide
+- **[Mobile App Implementation](apps/mobile/MOBILE_APP_IMPLEMENTATION.md)** - ✅ Mobile app development guide
+- **[Live Chat Implementation](LIVE_CHAT_IMPLEMENTATION.md)** - ✅ Live chat integration guide
+- **[Self-Hosted Face Verification](SELF_HOSTED_FACE_VERIFICATION.md)** - ✅ Face verification system documentation
+- **[Phase 2 Complete Summary](PHASE_2_COMPLETE_SUMMARY.md)** - Mobile app completion summary
+- **[Phase 3 Complete Summary](PHASE_3_COMPLETE_SUMMARY.md)** - Live chat completion summary
+- **[Competitor Analysis](COMPETITOR_ANALYSIS_AND_ENHANCEMENTS.md)** - Comprehensive competitor feature analysis
+- **[Ghana Enhancement Roadmap](GHANA_ENHANCEMENT_ROADMAP.md)** - 12-month enhancement plan (updated for MVP)
+- **[Competitor Features Summary](COMPETITOR_FEATURES_SUMMARY.md)** - Quick reference comparison
+- **[Deferred Features](DEFERRED_FEATURES.md)** - Features moved to future phases
 
 ## 🛠️ Development
 
@@ -124,6 +168,13 @@ pnpm dev
 cd apps/web
 pnpm install
 pnpm dev
+```
+
+**Mobile App:**
+```bash
+cd apps/mobile
+pnpm install
+pnpm start
 ```
 
 **Note:** You'll need to set up PostgreSQL, Redis, and MinIO separately for local development.

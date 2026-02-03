@@ -17,7 +17,7 @@ export class AutoReleaseService {
 
     const deliveredEscrows = await this.prisma.escrowAgreement.findMany({
       where: {
-        status: EscrowStatus.DELIVERED,
+        status: { in: [EscrowStatus.DELIVERED, EscrowStatus.AWAITING_RELEASE] },
         deliveredAt: {
           not: null,
         },

@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '@/lib/api-client';
 import { setAuthTokens, setUser } from '@/lib/auth';
-import { Loader2, AlertCircle, Upload, X, Check, ArrowRight, ArrowLeft, User, Mail, Lock, Phone, CreditCard, Camera, Shield } from 'lucide-react';
+import { Loader2, AlertCircle, Upload, X, Check, ArrowRight, ArrowLeft, User, Mail, Lock, Phone, CreditCard, Camera } from 'lucide-react';
 import SelfieCapture from '@/components/SelfieCapture';
+import PublicHeader from '@/components/PublicHeader';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -160,23 +162,25 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center px-4 py-8">
-      <div className="max-w-2xl w-full">
-        {/* Branding Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mb-4 shadow-lg">
-            <Shield className="w-8 h-8 text-white" />
+    <>
+      <PublicHeader />
+      <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10] flex items-center justify-center px-4 py-8">
+        <div className="max-w-2xl w-full">
+          {/* Branding Header */}
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg overflow-hidden bg-brand-maroon-deep">
+              <Image src="/logo/website-logo.gif" alt="MYXCROW" width={64} height={64} className="object-contain" unoptimized />
+            </div>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">
+              MYXCROW
+            </h1>
+            <p className="text-base font-semibold text-brand-gold mb-1">
+              Secure Escrow Services for Safe Transactions
+            </p>
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            MYXCROW
-          </h1>
-          <p className="text-base font-semibold text-gray-700 mb-1">
-            Secure Escrow Services for Safe Transactions
-          </p>
-        </div>
 
-        {/* Main Card */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+          {/* Main Card */}
+          <div className="bg-white/95 rounded-2xl shadow-xl overflow-hidden border border-brand-gold/20">
           <div className="p-6 md:p-8">
             {/* Header */}
             <div className="text-center mb-6">
@@ -219,7 +223,7 @@ export default function Register() {
                       {...register('firstName')}
                       type="text"
                       id="firstName"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
                       placeholder="John"
                     />
                     {errors.firstName && (
@@ -234,7 +238,7 @@ export default function Register() {
                       {...register('lastName')}
                       type="text"
                       id="lastName"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
                       placeholder="Doe"
                     />
                     {errors.lastName && (
@@ -253,7 +257,7 @@ export default function Register() {
                     {...register('email')}
                     type="email"
                     id="email"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
                     placeholder="you@example.com"
                   />
                   {errors.email && (
@@ -271,7 +275,7 @@ export default function Register() {
                     {...register('phone')}
                     type="tel"
                     id="phone"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
                     placeholder="+233XXXXXXXXX or 0XXXXXXXXX"
                   />
                   {errors.phone && (
@@ -290,7 +294,7 @@ export default function Register() {
                     {...register('ghanaCardNumber')}
                     type="text"
                     id="ghanaCardNumber"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none uppercase"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none uppercase"
                     placeholder="GHA-123456789-1"
                     maxLength={15}
                   />
@@ -308,7 +312,7 @@ export default function Register() {
                   <select
                     {...register('role')}
                     id="role"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none bg-white"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none bg-white"
                   >
                     <option value="BUYER">Buyer - I want to purchase goods/services</option>
                     <option value="SELLER">Seller - I want to sell goods/services</option>
@@ -328,7 +332,7 @@ export default function Register() {
                     {...register('password')}
                     type="password"
                     id="password"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all outline-none"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
                     placeholder="••••••••"
                   />
                   {errors.password && (
@@ -341,7 +345,7 @@ export default function Register() {
                 <button
                   type="submit"
                   disabled={!canProceedToStep2()}
-                  className="w-full py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl"
+                  className="w-full py-3 px-6 bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white rounded-xl hover:from-brand-maroon-dark hover:to-brand-maroon-darker focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl"
                 >
                   Continue to Verification
                   <ArrowRight className="w-5 h-5" />
@@ -354,12 +358,12 @@ export default function Register() {
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                 {/* Processing Indicator */}
                 {processing && (
-                  <div className="p-4 bg-blue-50 border-2 border-blue-200 rounded-xl">
+                  <div className="p-4 bg-brand-gold/10 border-2 border-brand-gold/30 rounded-xl">
                     <div className="flex items-center gap-3 text-blue-700">
                       <Loader2 className="w-5 h-5 animate-spin" />
                       <div>
                         <p className="text-sm font-semibold">Verifying your identity...</p>
-                        <p className="text-xs text-blue-600 mt-1">
+                        <p className="text-xs text-brand-maroon mt-1">
                           Comparing your selfie with Ghana Card photo. This may take a few seconds.
                         </p>
                       </div>
@@ -393,10 +397,10 @@ export default function Register() {
                       </div>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center w-full h-40 md:h-48 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition-all group">
+                    <label className="flex flex-col items-center justify-center w-full h-40 md:h-48 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-brand-gold/50 transition-all group">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-10 h-10 mb-3 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                        <p className="mb-2 text-sm font-medium text-gray-600 group-hover:text-blue-600">
+                        <Upload className="w-10 h-10 mb-3 text-gray-400 group-hover:text-brand-gold transition-colors" />
+                        <p className="mb-2 text-sm font-medium text-gray-600 group-hover:text-brand-maroon">
                           Click to upload front of Ghana Card
                         </p>
                         <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
@@ -438,10 +442,10 @@ export default function Register() {
                       </div>
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center w-full h-40 md:h-48 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-blue-400 transition-all group">
+                    <label className="flex flex-col items-center justify-center w-full h-40 md:h-48 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 hover:border-brand-gold/50 transition-all group">
                       <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        <Upload className="w-10 h-10 mb-3 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                        <p className="mb-2 text-sm font-medium text-gray-600 group-hover:text-blue-600">
+                        <Upload className="w-10 h-10 mb-3 text-gray-400 group-hover:text-brand-gold transition-colors" />
+                        <p className="mb-2 text-sm font-medium text-gray-600 group-hover:text-brand-maroon">
                           Click to upload back of Ghana Card
                         </p>
                         <p className="text-xs text-gray-500">PNG, JPG up to 5MB</p>
@@ -484,7 +488,7 @@ export default function Register() {
                   <button
                     type="submit"
                     disabled={loading || !canSubmit()}
-                    className="flex-1 py-3 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl"
+                    className="flex-1 py-3 px-6 bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white rounded-xl hover:from-brand-maroon-dark hover:to-brand-maroon-darker focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl"
                   >
                     {loading ? (
                       <>
@@ -507,7 +511,7 @@ export default function Register() {
           <div className="bg-gray-50 px-6 md:px-8 py-4 border-t border-gray-200">
             <p className="text-center text-sm text-gray-600">
               Already have an account?{' '}
-              <Link href="/login" className="text-blue-600 hover:text-blue-700 font-semibold transition-colors">
+              <Link href="/login" className="text-brand-maroon hover:text-blue-700 font-semibold transition-colors">
                 Sign in
               </Link>
             </p>

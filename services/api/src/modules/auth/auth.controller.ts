@@ -15,6 +15,8 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
+import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -70,6 +72,16 @@ export class AuthController {
     return this.authService.login(data);
   }
 
+  @Post('password-reset/request')
+  async requestPasswordReset(@Body() data: RequestPasswordResetDto) {
+    return this.authService.requestPasswordReset(data.email);
+  }
+
+  @Post('password-reset/confirm')
+  async confirmPasswordReset(@Body() data: ConfirmPasswordResetDto) {
+    return this.authService.confirmPasswordReset(data.token, data.newPassword);
+  }
+
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   async getProfile(@CurrentUser() user: any) {
@@ -80,6 +92,15 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async updateProfile(@CurrentUser() user: any, @Body() data: { firstName?: string; lastName?: string }) {
     return this.authService.updateProfile(user.id, data);
+  }
+
+  @Put('change-password')
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @CurrentUser() user: any,
+    @Body() data: { currentPassword: string; newPassword: string },
+  ) {
+    return this.authService.changePassword(user.id, data.currentPassword, data.newPassword);
   }
 
   @Post('refresh')

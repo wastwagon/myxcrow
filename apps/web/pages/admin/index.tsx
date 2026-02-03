@@ -5,6 +5,8 @@ import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency } from '@/lib/utils';
+import { extractArrayData } from '@/lib/api-helpers';
+import { ESCROW_STATUS_COLORS, ACTIVE_ESCROW_STATUSES, COMPLETED_ESCROW_STATUSES } from '@/lib/constants';
 import {
   Users,
   FileText,
@@ -49,9 +51,7 @@ export default function AdminDashboard() {
   });
 
   // Extract escrows array from response (handle both formats)
-  const escrows: any[] = Array.isArray(escrowsData) 
-    ? escrowsData 
-    : (escrowsData?.data || escrowsData?.escrows || []);
+  const escrows: any[] = extractArrayData(escrowsData, 'escrows');
 
   const { data: disputesData, isLoading: disputesLoading } = useQuery<{ data?: any[]; disputes?: any[]; total?: number } | any[]>({
     queryKey: ['admin-disputes'],
@@ -63,9 +63,7 @@ export default function AdminDashboard() {
   });
 
   // Extract disputes array from response (handle both formats)
-  const disputes: any[] = Array.isArray(disputesData) 
-    ? disputesData 
-    : (disputesData?.data || disputesData?.disputes || []);
+  const disputes: any[] = extractArrayData(disputesData, 'disputes');
 
   const { data: usersData, isLoading: usersLoading } = useQuery<{ data?: any[]; users?: any[]; total?: number } | any[]>({
     queryKey: ['admin-users'],
@@ -77,9 +75,7 @@ export default function AdminDashboard() {
   });
 
   // Extract users array from response (handle both formats)
-  const users: any[] = Array.isArray(usersData) 
-    ? usersData 
-    : (usersData?.users || usersData?.data || []);
+  const users: any[] = extractArrayData(usersData, 'users');
 
   const { data: walletsData, isLoading: walletsLoading } = useQuery<{ data?: any[]; wallets?: any[]; total?: number } | any[]>({
     queryKey: ['admin-wallets'],
@@ -91,9 +87,7 @@ export default function AdminDashboard() {
   });
 
   // Extract wallets array from response (handle both formats)
-  const wallets: any[] = Array.isArray(walletsData) 
-    ? walletsData 
-    : (walletsData?.data || walletsData?.wallets || []);
+  const wallets: any[] = extractArrayData(walletsData, 'wallets');
 
   // Show loading state until mounted to prevent hydration mismatch
   if (!mounted) {
@@ -115,7 +109,7 @@ export default function AdminDashboard() {
 
   const stats = {
     totalEscrows: escrows.length || 0,
-    activeEscrows: escrows.filter((e: any) => !['RELEASED', 'CANCELLED'].includes(e.status)).length || 0,
+    activeEscrows: escrows.filter((e: any) => !COMPLETED_ESCROW_STATUSES.includes(e.status)).length || 0,
     fundedEscrows: escrows.filter((e: any) => e.status === 'FUNDED').length || 0,
     openDisputes: disputes.filter((d: any) => d.status === 'OPEN').length || 0,
     totalValue: escrows.reduce((sum: number, e: any) => sum + e.amountCents, 0) || 0,
@@ -376,17 +370,11 @@ export default function AdminDashboard() {
                           </p>
                         </div>
                         <span
-                          className={`px-3 py-1 text-xs font-medium rounded-full ${
-                            escrow.status === 'FUNDED'
-                              ? 'bg-blue-100 text-blue-800'
-                              : escrow.status === 'RELEASED'
-                              ? 'bg-green-100 text-green-800'
-                              : escrow.status === 'DISPUTED'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-gray-100 text-gray-800'
+                          className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                            ESCROW_STATUS_COLORS[escrow.status] || 'bg-gray-100 text-gray-800 border-gray-200'
                           }`}
                         >
-                          {escrow.status.replace('_', ' ')}
+                          {escrow.status.replace(/_/g, ' ')}
                         </span>
                       </div>
                     </Link>

@@ -45,7 +45,7 @@ export class WalletTopupService {
         type: 'wallet_topup',
         holdHours: data.holdHours,
       },
-      callback_url: data.callbackUrl || `${process.env.WEB_BASE_URL}/wallet/topup/callback`,
+      callback_url: data.callbackUrl || `${process.env.WEB_BASE_URL || process.env.WEB_APP_URL || 'http://localhost:3003'}/wallet/topup/callback`,
       channels: ['card', 'bank', 'mobile_money', 'ussd'],
     });
 

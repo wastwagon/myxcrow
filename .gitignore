@@ -13,8 +13,7 @@ node_modules/
 .pnpm-store/
 
 # Build outputs
-# NOTE: dist/ temporarily removed for Render deployment
-# dist/  # Commented out so Render includes dist folder
+dist/
 build/
 .next/
 out/
@@ -45,9 +44,6 @@ temp/
 
 # Face recognition models (large files, downloaded via script)
 services/api/models/
-
-# Render
-.render/
 
 # Docker volumes (local development)
 *.docker-data/

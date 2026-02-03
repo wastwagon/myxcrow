@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { IntercomChat } from '@/components/IntercomChat';
 import '../styles/globals.css';
 
 export default function App({ Component, pageProps }: AppProps) {
@@ -47,6 +48,7 @@ export default function App({ Component, pageProps }: AppProps) {
             },
           }}
         />
+        <IntercomChat />
       </QueryClientProvider>
     </ErrorBoundary>
   );

@@ -3,14 +3,17 @@ import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { QueueService } from './queue.service';
 import { EmailProcessor } from './processors/email.processor';
+import { SMSProcessor } from './processors/sms.processor';
 import { WebhookProcessor } from './processors/webhook.processor';
 import { CleanupProcessor } from './processors/cleanup.processor';
 import { EmailModule } from '../../modules/email/email.module';
+import { SMSModule } from '../../modules/notifications/sms.module';
 
 @Global()
 @Module({
   imports: [
     forwardRef(() => EmailModule),
+    forwardRef(() => SMSModule),
     BullModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => {
@@ -64,11 +67,12 @@ import { EmailModule } from '../../modules/email/email.module';
     }),
     BullModule.registerQueue(
       { name: 'email' },
+      { name: 'sms' },
       { name: 'webhook' },
       { name: 'cleanup' },
     ),
   ],
-  providers: [QueueService, EmailProcessor, WebhookProcessor, CleanupProcessor],
+  providers: [QueueService, EmailProcessor, SMSProcessor, WebhookProcessor, CleanupProcessor],
   exports: [QueueService, BullModule],
 })
 export class QueueModule {}

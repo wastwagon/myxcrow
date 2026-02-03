@@ -128,8 +128,7 @@ export default function EvidencePage() {
     return null;
   }
 
-  // Mock evidence data - in real app, fetch from API
-  const evidenceList: Evidence[] = [];
+  const evidenceList: Evidence[] = escrow?.evidence ?? [];
 
   return (
     <Layout>

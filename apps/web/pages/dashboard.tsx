@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
-import { isAuthenticated, getUser } from '@/lib/auth';
+import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import {
@@ -16,6 +16,8 @@ import {
   Activity,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { extractArrayData } from '@/lib/api-helpers';
+import { ESCROW_STATUS_COLORS, ACTIVE_ESCROW_STATUSES, COMPLETED_ESCROW_STATUSES, formatStatus } from '@/lib/constants';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 
@@ -43,7 +45,6 @@ export default function Dashboard() {
       router.push('/login');
     } else {
       // Redirect admins to admin dashboard instead of regular dashboard
-      const { isAdmin } = require('@/lib/auth');
       if (isAdmin()) {
         router.push('/admin');
         return;
@@ -241,10 +242,10 @@ export default function Dashboard() {
                           </h3>
                           <span
                             className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                              statusColors[escrow.status] || 'bg-gray-100 text-gray-800 border-gray-200'
+                              ESCROW_STATUS_COLORS[escrow.status] || 'bg-gray-100 text-gray-800 border-gray-200'
                             }`}
                           >
-                            {escrow.status.replace('_', ' ')}
+                            {formatStatus(escrow.status)}
                           </span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
@@ -296,7 +297,7 @@ export default function Dashboard() {
                 <Activity className="w-5 h-5 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-gray-900">
-                {escrows?.filter((e) => ['FUNDED', 'SHIPPED', 'DELIVERED'].includes(e.status)).length || 0}
+                {escrows?.filter((e) => ['FUNDED', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED'].includes(e.status)).length || 0}
               </p>
             </div>
 
@@ -306,7 +307,7 @@ export default function Dashboard() {
                 <CheckCircle className="w-5 h-5 text-purple-600" />
               </div>
               <p className="text-2xl font-bold text-gray-900">
-                {escrows?.filter((e) => e.status === 'RELEASED').length || 0}
+                {escrows?.filter((e) => COMPLETED_ESCROW_STATUSES.includes(e.status)).length || 0}
               </p>
             </div>
           </div>

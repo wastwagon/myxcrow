@@ -36,6 +36,20 @@ export class WalletController {
     return this.walletService.getWithdrawalHistory(user.id, limit ? parseInt(limit, 10) : 50);
   }
 
+  @Get('transactions')
+  async getTransactions(@CurrentUser() user: any, @Query('limit') limit?: string) {
+    const raw = await this.walletService.getWalletTransactions(user.id, limit ? parseInt(limit, 10) : 50);
+    return raw.map((t: any) => ({
+      id: t.id,
+      type: t.type,
+      amountCents: t.type === 'withdrawal' ? -t.amountCents : t.amountCents,
+      currency: t.currency ?? 'GHS',
+      createdAt: t.createdAt,
+      description: t.type === 'funding' ? (t.externalRef || 'Top-up') : 'Withdrawal',
+      reference: t.externalRef ?? t.id,
+    }));
+  }
+
   @Post('withdraw')
   @UseGuards(KYCVerifiedGuard)
   async requestWithdrawal(
