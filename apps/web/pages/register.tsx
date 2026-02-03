@@ -508,7 +508,13 @@ export default function Register() {
           </div>
 
           {/* Footer */}
-          <div className="bg-gray-50 px-6 md:px-8 py-4 border-t border-gray-200">
+          <div className="bg-gray-50 px-6 md:px-8 py-4 border-t border-gray-200 space-y-2">
+            <p className="text-center text-xs text-gray-500">
+              By registering you agree to our{' '}
+              <Link href="/terms" className="text-brand-maroon font-semibold hover:underline">Terms and Conditions</Link>
+              {' '}and{' '}
+              <Link href="/privacy" className="text-brand-maroon font-semibold hover:underline">Privacy Policy</Link>.
+            </p>
             <p className="text-center text-sm text-gray-600">
               Already have an account?{' '}
               <Link href="/login" className="text-brand-maroon hover:text-blue-700 font-semibold transition-colors">
@@ -524,5 +530,6 @@ export default function Register() {
         </p>
       </div>
     </div>
+    </>
   );
 }

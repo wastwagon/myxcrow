@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Switch, TouchableOpacity, ActivityIndicator, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { checkBiometricAvailability, isBiometricEnabled, setBiometricEnabled } from '../../../src/services/biometric';
+import { WEB_BASE_URL } from '../../../src/lib/constants';
 import Toast from 'react-native-toast-message';
 
 export default function SettingsScreen() {
@@ -72,6 +74,20 @@ export default function SettingsScreen() {
           />
         </View>
       </View>
+
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>Legal</Text>
+        <TouchableOpacity style={styles.linkRow} onPress={() => Linking.openURL(`${WEB_BASE_URL}/terms`)}>
+          <Ionicons name="document-text-outline" size={22} color="#374151" />
+          <Text style={styles.linkLabel}>Terms and Conditions</Text>
+          <Ionicons name="open-outline" size={18} color="#9ca3af" />
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.linkRow, styles.linkRowLast]} onPress={() => Linking.openURL(`${WEB_BASE_URL}/privacy`)}>
+          <Ionicons name="shield-checkmark-outline" size={22} color="#374151" />
+          <Text style={styles.linkLabel}>Privacy Policy</Text>
+          <Ionicons name="open-outline" size={18} color="#9ca3af" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -86,5 +102,9 @@ const styles = StyleSheet.create({
   label: { fontSize: 16, fontWeight: '700', color: '#111827' },
   hint: { marginTop: 6, color: '#6b7280', fontSize: 12 },
   loading: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  sectionTitle: { fontSize: 14, fontWeight: '600', color: '#6b7280', marginBottom: 12, textTransform: 'uppercase', letterSpacing: 0.5 },
+  linkRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6', gap: 12 },
+  linkRowLast: { borderBottomWidth: 0 },
+  linkLabel: { flex: 1, fontSize: 16, color: '#111827', fontWeight: '500' },
 });
 

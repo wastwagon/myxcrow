@@ -92,6 +92,8 @@ export class EvidenceService {
     type: string;
     description?: string;
     fileBuffer?: Buffer; // Optional buffer for scanning
+    latitude?: number;
+    longitude?: number;
   }) {
     // Scan file if buffer is provided
     if (data.fileBuffer) {
@@ -106,6 +108,15 @@ export class EvidenceService {
       }
     }
 
+    const metadata: { latitude?: number; longitude?: number; capturedAt?: string } | undefined =
+      data.latitude != null && data.longitude != null
+        ? {
+            latitude: data.latitude,
+            longitude: data.longitude,
+            capturedAt: new Date().toISOString(),
+          }
+        : undefined;
+
     const evidence = await this.prisma.evidence.create({
       data: {
         escrowId: data.escrowId,
@@ -116,6 +127,7 @@ export class EvidenceService {
         mimeType: data.mimeType,
         type: data.type,
         description: data.description,
+        metadata: metadata ?? undefined,
       },
     });
 

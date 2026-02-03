@@ -9,17 +9,25 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { WEB_BASE_URL } from '../../../src/lib/constants';
 
 export default function SupportScreen() {
   const router = useRouter();
 
   const handleOpenChat = () => {
-    // Redirect to web support page with Intercom chat
-    Linking.openURL('https://myxcrow.com/support');
+    Linking.openURL(`${WEB_BASE_URL}/support`);
   };
 
   const handleEmail = () => {
     Linking.openURL('mailto:support@myxcrow.com');
+  };
+
+  const handleOpenTerms = () => {
+    Linking.openURL(`${WEB_BASE_URL}/terms`);
+  };
+
+  const handleOpenPrivacy = () => {
+    Linking.openURL(`${WEB_BASE_URL}/privacy`);
   };
 
   const faqItems = [
@@ -112,6 +120,33 @@ export default function SupportScreen() {
             assist you faster!
           </Text>
         </View>
+      </View>
+
+      {/* Legal Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Legal</Text>
+
+        <TouchableOpacity style={styles.contactCard} onPress={handleOpenTerms}>
+          <View style={styles.contactIcon}>
+            <Ionicons name="document-text" size={24} color="#6b7280" />
+          </View>
+          <View style={styles.contactContent}>
+            <Text style={styles.contactTitle}>Terms and Conditions</Text>
+            <Text style={styles.contactDescription}>View our terms of service</Text>
+          </View>
+          <Ionicons name="open-outline" size={20} color="#9ca3af" />
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.contactCard} onPress={handleOpenPrivacy}>
+          <View style={styles.contactIcon}>
+            <Ionicons name="shield-checkmark" size={24} color="#6b7280" />
+          </View>
+          <View style={styles.contactContent}>
+            <Text style={styles.contactTitle}>Privacy Policy</Text>
+            <Text style={styles.contactDescription}>How we collect and protect your data</Text>
+          </View>
+          <Ionicons name="open-outline" size={20} color="#9ca3af" />
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );

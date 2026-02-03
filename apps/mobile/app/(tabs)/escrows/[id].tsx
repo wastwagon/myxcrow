@@ -8,12 +8,13 @@ import {
   ActivityIndicator,
   Alert,
   TextInput,
+  Linking,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useQuery } from '../../../src/hooks/useQuery';
 import apiClient from '../../../src/lib/api-client';
-import { formatCurrency, formatDate, formatStatus } from '../../../src/lib/constants';
+import { formatCurrency, formatDate, formatStatus, WEB_BASE_URL } from '../../../src/lib/constants';
 import Toast from 'react-native-toast-message';
 import RatingModal from '../../../src/components/RatingModal';
 
@@ -23,6 +24,7 @@ export default function EscrowDetailScreen() {
   const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [trackingNumber, setTrackingNumber] = useState('');
+  const [deliveryCodeInput, setDeliveryCodeInput] = useState('');
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
 
   const { data: escrow, isLoading } = useQuery({
@@ -108,6 +110,21 @@ export default function EscrowDetailScreen() {
         text1: 'Error',
         text2: error.response?.data?.message || 'Failed to mark as delivered',
       });
+    },
+  });
+
+  const confirmDeliveryByCodeMutation = useMutation({
+    mutationFn: async (code: string) => {
+      return apiClient.put(`/escrows/${id}/confirm-delivery`, { deliveryCode: code });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['escrow', id] });
+      queryClient.invalidateQueries({ queryKey: ['escrows'] });
+      setDeliveryCodeInput('');
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Delivery confirmed with code' });
+    },
+    onError: (error: any) => {
+      Toast.show({ type: 'error', text1: 'Error', text2: error.response?.data?.message || 'Invalid code' });
     },
   });
 
@@ -198,6 +215,20 @@ export default function EscrowDetailScreen() {
       },
     ]);
   };
+
+  const handleConfirmDeliveryByCode = () => {
+    const code = deliveryCodeInput.trim();
+    if (!code) {
+      Toast.show({ type: 'error', text1: 'Error', text2: 'Enter the delivery code' });
+      return;
+    }
+    confirmDeliveryByCodeMutation.mutate(code);
+  };
+
+  const firstShipmentWithCode = (escrow as any)?.shipments?.find(
+    (s: any) => s.deliveryCode && s.shortReference,
+  );
+  const confirmDeliveryUrl = `${WEB_BASE_URL}/confirm-delivery`;
 
   const handleRelease = () => {
     const msg =
@@ -318,6 +349,36 @@ export default function EscrowDetailScreen() {
             <Text style={styles.infoValue}>{formatDate(escrow.createdAt)}</Text>
           </View>
 
+          {((escrow as any).deliveryRegion || (escrow as any).deliveryCity || (escrow as any).deliveryAddressLine) && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Ship to</Text>
+              <Text style={styles.infoValue}>
+                {[(escrow as any).deliveryAddressLine, (escrow as any).deliveryCity, (escrow as any).deliveryRegion]
+                  .filter(Boolean)
+                  .join(', ')}
+                {(escrow as any).deliveryPhone ? ` · ${(escrow as any).deliveryPhone}` : ''}
+              </Text>
+            </View>
+          )}
+
+          {isBuyer && firstShipmentWithCode && (
+            <View style={[styles.card, { backgroundColor: '#fef3c7', marginTop: 12, borderWidth: 1, borderColor: '#f59e0b' }]}>
+              <Text style={[styles.label, { color: '#92400e' }]}>Your delivery verification code</Text>
+              <Text style={[styles.helpText, { color: '#92400e', marginBottom: 8 }]}>
+                Give reference and code to the delivery person so they can confirm delivery.
+              </Text>
+              <Text style={{ fontFamily: 'monospace', fontSize: 18, fontWeight: 'bold', color: '#92400e' }}>
+                Ref: {firstShipmentWithCode.shortReference} · Code: {firstShipmentWithCode.deliveryCode}
+              </Text>
+              <TouchableOpacity
+                onPress={() => Linking.openURL(`${confirmDeliveryUrl}?ref=${encodeURIComponent(firstShipmentWithCode.shortReference)}`)}
+                style={{ marginTop: 8 }}
+              >
+                <Text style={{ color: '#b45309', fontWeight: '600', fontSize: 14 }}>Open confirm-delivery page →</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
           {escrow.buyer && (
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Buyer</Text>
@@ -389,17 +450,43 @@ export default function EscrowDetailScreen() {
         )}
 
         {canDeliver && (
-          <TouchableOpacity
-            style={[styles.actionButton, styles.actionButtonSuccess]}
-            onPress={handleDeliver}
-            disabled={deliverMutation.isPending}
-          >
-            {deliverMutation.isPending ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.actionButtonText}>Mark as Delivered</Text>
+          <>
+            <TouchableOpacity
+              style={[styles.actionButton, styles.actionButtonSuccess]}
+              onPress={handleDeliver}
+              disabled={deliverMutation.isPending}
+            >
+              {deliverMutation.isPending ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.actionButtonText}>Mark as Delivered (no code)</Text>
+              )}
+            </TouchableOpacity>
+            {firstShipmentWithCode && (
+              <View style={styles.card}>
+                <Text style={styles.label}>Confirm with delivery code</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter delivery code"
+                  value={deliveryCodeInput}
+                  onChangeText={(t) => setDeliveryCodeInput(t.toUpperCase())}
+                  maxLength={6}
+                  autoCapitalize="characters"
+                />
+                <TouchableOpacity
+                  style={[styles.actionButton, { backgroundColor: '#d97706', marginTop: 8 }]}
+                  onPress={handleConfirmDeliveryByCode}
+                  disabled={confirmDeliveryByCodeMutation.isPending || !deliveryCodeInput.trim()}
+                >
+                  {confirmDeliveryByCodeMutation.isPending ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.actionButtonText}>Confirm with code</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             )}
-          </TouchableOpacity>
+          </>
         )}
 
         {canRelease && (
@@ -582,6 +669,11 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 8,
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
   },
   input: {
     backgroundColor: '#f9fafb',

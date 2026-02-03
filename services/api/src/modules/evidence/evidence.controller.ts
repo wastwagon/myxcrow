@@ -32,6 +32,8 @@ export class EvidenceController {
       mimeType: string;
       type: string;
       description?: string;
+      latitude?: number;
+      longitude?: number;
     },
     @CurrentUser() user: any,
   ) {

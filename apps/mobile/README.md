@@ -23,6 +23,8 @@ pnpm install
 Create a `.env` file in `apps/mobile/`:
 ```bash
 EXPO_PUBLIC_API_BASE_URL=http://localhost:4000/api
+# Optional: web app URL for Terms, Privacy, Support links (default: https://myxcrow.com)
+# EXPO_PUBLIC_WEB_BASE_URL=http://localhost:3005
 ```
 
 3. Start the development server:

@@ -25,9 +25,7 @@ export class AutoReleaseService {
       include: {
         disputes: {
           where: {
-            status: {
-              not: 'CLOSED',
-            },
+            status: { notIn: ['RESOLVED', 'CLOSED'] },
           },
         },
       },

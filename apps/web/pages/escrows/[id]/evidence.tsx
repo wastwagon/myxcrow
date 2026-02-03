@@ -15,6 +15,7 @@ interface Evidence {
   mimeType: string;
   type: string;
   description?: string;
+  metadata?: { latitude?: number; longitude?: number; capturedAt?: string };
   createdAt: string;
 }
 
@@ -24,6 +25,8 @@ export default function EvidencePage() {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [includeLocation, setIncludeLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -54,10 +57,26 @@ export default function EvidencePage() {
   const handleUpload = async () => {
     if (!selectedFile || !escrowId) return;
 
+    let lat: number | undefined;
+    let lng: number | undefined;
+    if (includeLocation && navigator.geolocation) {
+      try {
+        const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000, maximumAge: 60000 });
+        });
+        lat = pos.coords.latitude;
+        lng = pos.coords.longitude;
+        setLocationError(null);
+      } catch (err: any) {
+        setLocationError(err.message || 'Could not get location');
+        toast.error('Location not available. Upload without location?');
+        return;
+      }
+    }
+
     try {
       setUploading(true);
 
-      // Step 1: Get presigned URL
       const presignedResponse = await apiClient.post('/evidence/presigned-url', {
         escrowId,
         fileName: selectedFile.name,
@@ -67,20 +86,14 @@ export default function EvidencePage() {
 
       const { uploadUrl, objectName } = presignedResponse.data;
 
-      // Step 2: Upload to MinIO
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
         body: selectedFile,
-        headers: {
-          'Content-Type': selectedFile.type,
-        },
+        headers: { 'Content-Type': selectedFile.type },
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Upload failed');
-      }
+      if (!uploadResponse.ok) throw new Error('Upload failed');
 
-      // Step 3: Verify and create evidence record
       await apiClient.post('/evidence/verify-upload', {
         escrowId,
         objectName,
@@ -89,10 +102,12 @@ export default function EvidencePage() {
         mimeType: selectedFile.type,
         type: 'SHIPPING',
         description: `Uploaded evidence: ${selectedFile.name}`,
+        ...(lat != null && lng != null ? { latitude: lat, longitude: lng } : {}),
       });
 
       toast.success('File uploaded successfully');
       setSelectedFile(null);
+      setIncludeLocation(false);
       queryClient.invalidateQueries({ queryKey: ['escrow', escrowId] });
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to upload file');
@@ -164,10 +179,20 @@ export default function EvidencePage() {
                 Select File
               </label>
               {selectedFile && (
-                <div className="mt-4">
+                <div className="mt-4 space-y-2">
                   <p className="text-sm text-gray-600">
                     Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
                   </p>
+                  <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <input
+                      type="checkbox"
+                      checked={includeLocation}
+                      onChange={(e) => setIncludeLocation(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    Include my location (proof of delivery)
+                  </label>
+                  {locationError && <p className="text-xs text-red-600">{locationError}</p>}
                   <button
                     onClick={handleUpload}
                     disabled={uploading}
@@ -220,6 +245,11 @@ export default function EvidencePage() {
                         </div>
                         {evidence.description && (
                           <p className="text-sm text-gray-500 mt-1">{evidence.description}</p>
+                        )}
+                        {evidence.metadata?.latitude != null && evidence.metadata?.longitude != null && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            Location: {evidence.metadata.latitude.toFixed(5)}, {evidence.metadata.longitude.toFixed(5)}
+                          </p>
                         )}
                       </div>
                     </div>

@@ -80,8 +80,8 @@ export class EscrowController {
 
   @Get(':id')
   @UseGuards(EscrowParticipantGuard)
-  async getOne(@Param('id') id: string) {
-    return this.escrowService.getEscrow(id);
+  async getOne(@Param('id') id: string, @CurrentUser() user: any) {
+    return this.escrowService.getEscrow(id, user?.id);
   }
 
   @Put(':id/fund')
@@ -104,6 +104,16 @@ export class EscrowController {
   @UseGuards(EscrowParticipantGuard)
   async deliver(@Param('id') id: string, @CurrentUser() user: any) {
     return this.escrowService.deliverEscrow(id, user.id);
+  }
+
+  @Put(':id/confirm-delivery')
+  @UseGuards(EscrowParticipantGuard)
+  async confirmDelivery(
+    @Param('id') id: string,
+    @Body() body: { deliveryCode: string },
+    @CurrentUser() user: any,
+  ) {
+    return this.escrowService.confirmDeliveryByCodeForBuyer(id, user.id, body.deliveryCode);
   }
 
   @Put(':id/service-completed')

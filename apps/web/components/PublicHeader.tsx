@@ -9,6 +9,8 @@ const navLinks = [
   { href: '/login', label: 'Sign In' },
   { href: '/register', label: 'Register' },
   { href: '/support', label: 'Support' },
+  { href: '/terms', label: 'Terms' },
+  { href: '/privacy', label: 'Privacy' },
 ];
 
 export default function PublicHeader() {

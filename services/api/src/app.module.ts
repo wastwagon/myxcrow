@@ -20,6 +20,7 @@ import { RiskModule } from './modules/risk/risk.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { ReputationModule } from './modules/reputation/reputation.module';
 import { KYCModule } from './modules/kyc/kyc.module';
+import { DeliveryModule } from './modules/delivery/delivery.module';
 import { CryptoModule } from './common/crypto/crypto.module';
 import { SecretsModule } from './common/secrets/secrets.module';
 import { QueueModule } from './common/queue/queue.module';
@@ -57,6 +58,7 @@ import paystackConfig from './config/paystack.config';
     ComplianceModule,
     ReputationModule,
     KYCModule,
+    DeliveryModule,
   ],
   controllers: [HealthController],
   providers: [PrismaService],

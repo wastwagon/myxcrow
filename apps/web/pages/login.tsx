@@ -140,9 +140,14 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-6 pt-6 border-t border-gray-200 text-center">
+          <div className="mt-6 pt-6 border-t border-gray-200 text-center space-y-2">
+            <p className="text-xs text-gray-500">
+              <Link href="/terms" className="text-brand-maroon font-semibold hover:underline">Terms</Link>
+              {' · '}
+              <Link href="/privacy" className="text-brand-maroon font-semibold hover:underline">Privacy</Link>
+            </p>
             <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/register" className="text-brand-maroon hover:text-brand-maroon-dark font-semibold transition-colors">
                 Sign up
               </Link>

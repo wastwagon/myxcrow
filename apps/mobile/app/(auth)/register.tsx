@@ -10,9 +10,11 @@ import {
   Platform,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
+import { WEB_BASE_URL } from '../../src/lib/constants';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -280,6 +282,18 @@ export default function RegisterScreen() {
             >
               <Text style={styles.buttonText}>Continue to KYC</Text>
             </TouchableOpacity>
+
+            <Text style={styles.legalText}>
+              By registering you agree to our{' '}
+              <Text style={styles.legalLink} onPress={() => Linking.openURL(`${WEB_BASE_URL}/terms`)}>
+                Terms and Conditions
+              </Text>
+              {' '}and{' '}
+              <Text style={styles.legalLink} onPress={() => Linking.openURL(`${WEB_BASE_URL}/privacy`)}>
+                Privacy Policy
+              </Text>
+              .
+            </Text>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -499,5 +513,16 @@ const styles = StyleSheet.create({
   removeButtonText: {
     color: '#dc2626',
     fontSize: 14,
+  },
+  legalText: {
+    marginTop: 20,
+    fontSize: 12,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  legalLink: {
+    color: '#3b82f6',
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });

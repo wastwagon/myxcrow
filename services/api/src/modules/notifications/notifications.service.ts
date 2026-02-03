@@ -122,6 +122,40 @@ export class NotificationsService {
   }
 
   /**
+   * Send delivery verification code to buyer only (recipient). Only buyer and system know this code;
+   * delivery person gets it from recipient and enters it to confirm delivery (signature validation).
+   */
+  async sendDeliveryCodeToBuyer(data: {
+    buyerEmail: string;
+    buyerPhone: string | null;
+    escrowId: string;
+    deliveryCode: string;
+    shortReference: string;
+    confirmDeliveryUrl: string;
+  }) {
+    const fullUrl = `${data.confirmDeliveryUrl}?ref=${encodeURIComponent(data.shortReference)}`;
+    await this.sendNotifications({
+      emails: {
+        to: data.buyerEmail,
+        subject: 'Your delivery verification code - MYXCROW',
+        html: `
+          <h2>Delivery verification code</h2>
+          <p>Escrow ${data.escrowId} has been shipped. Use this code to confirm delivery (give it to the delivery person so they can enter it, or confirm yourself).</p>
+          <p><strong>Reference:</strong> ${data.shortReference}</p>
+          <p><strong>Code:</strong> ${data.deliveryCode}</p>
+          <p>Confirm delivery here: <a href="${fullUrl}">${fullUrl}</a></p>
+        `,
+      },
+      sms: data.buyerPhone
+        ? {
+            to: [data.buyerPhone],
+            message: `MYXCROW: Delivery code for escrow ${data.escrowId}: Ref ${data.shortReference}, Code ${data.deliveryCode}. Give code to delivery person or confirm at ${data.confirmDeliveryUrl}`,
+          }
+        : undefined,
+    });
+  }
+
+  /**
    * Send escrow delivered notifications
    */
   async sendEscrowDeliveredNotifications(data: {

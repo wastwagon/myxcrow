@@ -19,6 +19,15 @@ import RatingModal from '@/components/RatingModal';
 import UserProfileLink from '@/components/UserProfileLink';
 import PageHeader from '@/components/PageHeader';
 
+interface Shipment {
+  id: string;
+  trackingNumber?: string;
+  carrier?: string;
+  deliveryCode?: string;
+  shortReference?: string;
+  status?: string;
+}
+
 interface Escrow {
   id: string;
   status: string;
@@ -32,7 +41,12 @@ interface Escrow {
   sellerWalletId?: string;
   feeCents: number;
   netAmountCents: number;
+  deliveryRegion?: string;
+  deliveryCity?: string;
+  deliveryAddressLine?: string;
+  deliveryPhone?: string;
   milestones?: any[];
+  shipments?: Shipment[];
   buyer?: {
     id: string;
     firstName?: string;
@@ -53,6 +67,7 @@ export default function EscrowDetailPage() {
   const queryClient = useQueryClient();
   const user = getUser();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deliveryCodeInput, setDeliveryCodeInput] = useState('');
   const [activeTab, setActiveTab] = useState<'timeline' | 'ledger' | 'milestones' | 'messages'>('timeline');
   const [ratingModal, setRatingModal] = useState<{ isOpen: boolean; rateeId?: string; rateeName?: string; role?: 'buyer' | 'seller' }>({ isOpen: false });
 
@@ -134,6 +149,21 @@ export default function EscrowDetailPage() {
     },
   });
 
+  const confirmDeliveryByCodeMutation = useMutation({
+    mutationFn: async (code: string) => {
+      return apiClient.put(`/escrows/${id}/confirm-delivery`, { deliveryCode: code });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['escrow', id] });
+      queryClient.invalidateQueries({ queryKey: ['escrows'] });
+      setDeliveryCodeInput('');
+      toast.success('Delivery confirmed with code');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Invalid code');
+    },
+  });
+
   const releaseMutation = useMutation({
     mutationFn: async () => {
       return apiClient.put(`/escrows/${id}/release`);
@@ -179,6 +209,18 @@ export default function EscrowDetailPage() {
       deliverMutation.mutate();
     }
   };
+
+  const handleConfirmDeliveryByCode = () => {
+    const code = deliveryCodeInput.trim();
+    if (!code) {
+      toast.error('Enter the delivery code');
+      return;
+    }
+    confirmDeliveryByCodeMutation.mutate(code);
+  };
+
+  const confirmDeliveryBaseUrl = typeof window !== 'undefined' ? `${window.location.origin}/confirm-delivery` : '/confirm-delivery';
+  const firstShipmentWithCode = escrow?.shipments?.find((s) => s.deliveryCode && s.shortReference);
 
   const handleRelease = () => {
     const msg =
@@ -307,6 +349,25 @@ export default function EscrowDetailPage() {
                 <p className="text-sm text-gray-600">Created</p>
                 <p className="font-medium text-gray-900">{formatDate(escrow.createdAt)}</p>
               </div>
+              {(escrow.deliveryRegion || escrow.deliveryCity || escrow.deliveryAddressLine) && (
+                <div>
+                  <p className="text-sm text-gray-600">Ship to</p>
+                  <p className="font-medium text-gray-900">
+                    {[escrow.deliveryAddressLine, escrow.deliveryCity, escrow.deliveryRegion].filter(Boolean).join(', ')}
+                    {escrow.deliveryPhone && ` · ${escrow.deliveryPhone}`}
+                  </p>
+                </div>
+              )}
+              {isBuyer && firstShipmentWithCode && (
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <p className="text-sm font-semibold text-amber-900 mb-1">Your delivery verification code</p>
+                  <p className="text-xs text-amber-800 mb-2">Give the reference and code to the delivery person so they can confirm delivery. Only you and the system know this code.</p>
+                  <p className="font-mono text-lg font-bold text-amber-900">Ref: {firstShipmentWithCode.shortReference} · Code: {firstShipmentWithCode.deliveryCode}</p>
+                  <a href={`${confirmDeliveryBaseUrl}?ref=${encodeURIComponent(firstShipmentWithCode.shortReference!)}`} target="_blank" rel="noopener noreferrer" className="text-sm text-amber-700 hover:underline mt-2 inline-block">
+                    Open confirm-delivery page (share with delivery person) →
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 
@@ -345,14 +406,35 @@ export default function EscrowDetailPage() {
                 </button>
               )}
               {canDeliver && (
-                <button
-                  onClick={handleDeliver}
-                  disabled={deliverMutation.isPending}
-                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  <Package className="w-4 h-4" />
-                  {deliverMutation.isPending ? 'Updating...' : 'Confirm Delivery'}
-                </button>
+                <>
+                  <button
+                    onClick={handleDeliver}
+                    disabled={deliverMutation.isPending}
+                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    <Package className="w-4 h-4" />
+                    {deliverMutation.isPending ? 'Updating...' : 'Confirm Delivery (no code)'}
+                  </button>
+                  {firstShipmentWithCode && (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Enter delivery code"
+                        value={deliveryCodeInput}
+                        onChange={(e) => setDeliveryCodeInput(e.target.value.toUpperCase())}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono uppercase"
+                        maxLength={6}
+                      />
+                      <button
+                        onClick={handleConfirmDeliveryByCode}
+                        disabled={confirmDeliveryByCodeMutation.isPending || !deliveryCodeInput.trim()}
+                        className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 text-sm"
+                      >
+                        {confirmDeliveryByCodeMutation.isPending ? 'Checking...' : 'Confirm with code'}
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
               {canRelease && (
                 <button

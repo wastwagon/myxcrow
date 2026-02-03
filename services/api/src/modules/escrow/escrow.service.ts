@@ -6,6 +6,7 @@ import {
   Inject,
   forwardRef,
 } from '@nestjs/common';
+import { randomBytes } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { EscrowStatus } from '@prisma/client';
 import { SettingsService } from '../settings/settings.service';
@@ -31,6 +32,15 @@ export class EscrowService {
     private rulesEngine?: RulesEngineService,
   ) {}
 
+  /** Generate 6-char uppercase alphanumeric code (avoid 0,O,1,I for readability) */
+  private generateDeliveryCode(): string {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const bytes = randomBytes(6);
+    let result = '';
+    for (let i = 0; i < 6; i++) result += chars[bytes[i]! % chars.length];
+    return result;
+  }
+
   async createEscrow(data: {
     buyerId: string;
     sellerId: string;
@@ -43,6 +53,10 @@ export class EscrowService {
     disputeWindowDays?: number;
     useWallet?: boolean;
     milestones?: Array<{ name: string; description?: string; amountCents: number }>;
+    deliveryRegion?: string;
+    deliveryCity?: string;
+    deliveryAddressLine?: string;
+    deliveryPhone?: string;
   }) {
     let sellerId = data.sellerId;
 
@@ -90,6 +104,10 @@ export class EscrowService {
         expectedDeliveryDate: data.expectedDeliveryDate,
         autoReleaseDays: data.autoReleaseDays || 7,
         disputeWindowDays: data.disputeWindowDays || 14,
+        deliveryRegion: data.deliveryRegion,
+        deliveryCity: data.deliveryCity,
+        deliveryAddressLine: data.deliveryAddressLine,
+        deliveryPhone: data.deliveryPhone,
       },
     });
 
@@ -236,32 +254,54 @@ export class EscrowService {
       },
     });
 
-    if (trackingNumber || carrier) {
-      const existingShipment = await this.prisma.shipment.findFirst({
-        where: { escrowId },
-      });
+    const deliveryCode = this.generateDeliveryCode();
+    let shortReference = this.generateDeliveryCode();
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const existing = await this.prisma.shipment.findUnique({ where: { shortReference } });
+      if (!existing) break;
+      shortReference = this.generateDeliveryCode();
+    }
 
-      if (existingShipment) {
-        await this.prisma.shipment.update({
-          where: { id: existingShipment.id },
-          data: {
-            carrier,
-            trackingNumber,
-            status: 'shipped',
-            shippedAt: new Date(),
-          },
-        });
-      } else {
-        await this.prisma.shipment.create({
-          data: {
-            escrowId,
-            carrier,
-            trackingNumber,
-            status: 'shipped',
-            shippedAt: new Date(),
-          },
-        });
-      }
+    const deliveryAddressJson =
+      escrow.deliveryRegion || escrow.deliveryCity || escrow.deliveryAddressLine
+        ? {
+            region: escrow.deliveryRegion,
+            city: escrow.deliveryCity,
+            addressLine: escrow.deliveryAddressLine,
+            phone: escrow.deliveryPhone,
+          }
+        : undefined;
+
+    const existingShipment = await this.prisma.shipment.findFirst({
+      where: { escrowId },
+    });
+
+    if (existingShipment) {
+      await this.prisma.shipment.update({
+        where: { id: existingShipment.id },
+        data: {
+          carrier: carrier ?? existingShipment.carrier,
+          trackingNumber: trackingNumber ?? existingShipment.trackingNumber,
+          status: 'shipped',
+          shippedAt: new Date(),
+          deliveryCode,
+          shortReference,
+          deliveryAddress: deliveryAddressJson ?? existingShipment.deliveryAddress,
+        },
+      });
+    } else {
+      await this.prisma.shipment.create({
+        data: {
+          escrowId,
+          carrier,
+          trackingNumber,
+          status: 'shipped',
+          shippedAt: new Date(),
+          deliveryCode,
+          shortReference,
+          deliveryAddress: deliveryAddressJson,
+        },
+      });
     }
 
     const buyer = await this.prisma.user.findUnique({ where: { id: escrow.buyerId } });
@@ -271,6 +311,15 @@ export class EscrowService {
       emails: [buyer!.email, seller!.email],
       phones: [buyer!.phone, seller!.phone].filter((p): p is string => !!p),
       escrowId: escrow.id,
+    });
+
+    await this.notificationsService.sendDeliveryCodeToBuyer({
+      buyerEmail: buyer!.email,
+      buyerPhone: buyer!.phone,
+      escrowId: escrow.id,
+      deliveryCode,
+      shortReference,
+      confirmDeliveryUrl: (process.env.CONFIRM_DELIVERY_BASE_URL || process.env.WEB_APP_URL || 'https://myxcrow.com').replace(/\/$/, '') + '/confirm-delivery',
     });
 
     await this.auditService.log({
@@ -334,6 +383,87 @@ export class EscrowService {
     });
 
     return this.getEscrow(escrowId);
+  }
+
+  /**
+   * Confirm delivery by verification code (public: delivery person enters ref + code; or buyer in app).
+   * Only the system and the recipient (buyer) know the code; delivery person gets it from recipient.
+   */
+  async confirmDeliveryByCode(shortReference: string, deliveryCode: string) {
+    const shipment = await this.prisma.shipment.findFirst({
+      where: { shortReference: shortReference.toUpperCase().trim(), deliveryCode: deliveryCode.toUpperCase().trim() },
+      include: { escrow: true },
+    });
+    if (!shipment) {
+      throw new BadRequestException('Invalid reference or code. Please check and try again.');
+    }
+    const escrowId = shipment.escrowId;
+    const escrow = shipment.escrow;
+    if (escrow.status !== EscrowStatus.SHIPPED && escrow.status !== EscrowStatus.IN_TRANSIT) {
+      throw new BadRequestException(`This delivery was already confirmed or escrow is in ${escrow.status} status.`);
+    }
+    await this.prisma.escrowAgreement.update({
+      where: { id: escrowId },
+      data: { status: EscrowStatus.DELIVERED, deliveredAt: new Date() },
+    });
+    await this.prisma.shipment.update({
+      where: { id: shipment.id },
+      data: { deliveredAt: new Date(), status: 'delivered' },
+    });
+    const buyer = await this.prisma.user.findUnique({ where: { id: escrow.buyerId } });
+    const seller = await this.prisma.user.findUnique({ where: { id: escrow.sellerId } });
+    await this.notificationsService.sendEscrowDeliveredNotifications({
+      emails: [buyer!.email, seller!.email],
+      phones: [buyer!.phone, seller!.phone].filter((p): p is string => !!p),
+      escrowId,
+    });
+    await this.auditService.log({
+      userId: null,
+      action: 'delivery_confirmed_by_code',
+      resource: 'escrow',
+      resourceId: escrowId,
+      details: { shortReference, shipmentId: shipment.id },
+    });
+    if (this.rulesEngine) {
+      await this.rulesEngine
+        .evaluateRules(
+          { type: 'escrow_status_changed', fromStatus: escrow.status, toStatus: EscrowStatus.DELIVERED },
+          { escrowId, userId: 'delivery_code', status: EscrowStatus.DELIVERED, buyerId: escrow.buyerId, sellerId: escrow.sellerId },
+        )
+        .catch((err) => this.logger.error(`Failed to evaluate rules: ${err.message}`));
+    }
+    const autoReleaseDays = escrow.autoReleaseDays ?? 7;
+    if (autoReleaseDays === 0) {
+      const activeDisputes = await this.prisma.dispute.count({
+        where: { escrowId, status: { notIn: ['RESOLVED', 'CLOSED'] } },
+      });
+      if (activeDisputes === 0) {
+        try {
+          await this.releaseFunds(escrowId, 'system');
+          this.logger.log(`Auto-settled escrow ${escrowId} on delivery (autoReleaseDays=0)`);
+        } catch (err: any) {
+          this.logger.warn(`Auto-settle on deliver failed for ${escrowId}: ${err.message}`);
+        }
+      }
+    }
+    return { success: true, escrowId, message: 'Delivery confirmed successfully.' };
+  }
+
+  /**
+   * Buyer confirms delivery in app by entering the delivery code (same code they received).
+   */
+  async confirmDeliveryByCodeForBuyer(escrowId: string, userId: string, deliveryCode: string) {
+    const escrow = await this.prisma.escrowAgreement.findUnique({
+      where: { id: escrowId },
+      include: { shipments: true },
+    });
+    if (!escrow) throw new NotFoundException('Escrow not found');
+    if (escrow.buyerId !== userId) throw new BadRequestException('Only the buyer can confirm delivery with the code.');
+    const shipment = escrow.shipments.find(
+      (s) => s.deliveryCode && s.deliveryCode.toUpperCase() === deliveryCode.toUpperCase().trim(),
+    );
+    if (!shipment) throw new BadRequestException('Invalid delivery code.');
+    return this.confirmDeliveryByCode(shipment.shortReference!, shipment.deliveryCode!);
   }
 
   async deliverEscrow(escrowId: string, userId: string) {
@@ -681,7 +811,7 @@ export class EscrowService {
     return this.getEscrow(escrowId);
   }
 
-  async getEscrow(id: string) {
+  async getEscrow(id: string, currentUserId?: string) {
     const escrow = await this.prisma.escrowAgreement.findUnique({
       where: { id },
       include: {
@@ -710,6 +840,7 @@ export class EscrowService {
             mimeType: true,
             type: true,
             description: true,
+            metadata: true,
             createdAt: true,
             uploadedBy: true,
           },
@@ -732,6 +863,15 @@ export class EscrowService {
 
     if (!escrow) {
       throw new NotFoundException('Escrow not found');
+    }
+
+    // Only buyer and system see delivery code/shortReference (recipient gives code to delivery person)
+    if (currentUserId && currentUserId !== escrow.buyerId) {
+      escrow.shipments = escrow.shipments.map((s) => ({
+        ...s,
+        deliveryCode: null,
+        shortReference: null,
+      })) as typeof escrow.shipments;
     }
 
     return escrow;

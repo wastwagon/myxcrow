@@ -24,6 +24,10 @@ const createEscrowSchema = z.object({
   useWallet: z.boolean().default(true),
   useMilestones: z.boolean().default(false),
   milestones: z.array(milestoneSchema).optional(),
+  deliveryRegion: z.string().optional(),
+  deliveryCity: z.string().optional(),
+  deliveryAddressLine: z.string().optional(),
+  deliveryPhone: z.string().optional(),
 }).refine((data) => {
   if (data.useMilestones && data.milestones && data.milestones.length > 0) {
     const totalMilestones = data.milestones.reduce((sum, m) => sum + m.amountCents, 0);
@@ -93,8 +97,11 @@ export default function CreateEscrowPage() {
       const payload: any = {
         ...data,
         amountCents: Math.round(data.amountCents * 100),
+        deliveryRegion: data.deliveryRegion || undefined,
+        deliveryCity: data.deliveryCity || undefined,
+        deliveryAddressLine: data.deliveryAddressLine || undefined,
+        deliveryPhone: data.deliveryPhone || undefined,
       };
-      
       if (data.useMilestones && data.milestones && data.milestones.length > 0) {
         payload.milestones = data.milestones.map(m => ({
           ...m,
@@ -103,7 +110,6 @@ export default function CreateEscrowPage() {
       } else {
         delete payload.milestones;
       }
-      
       delete payload.useMilestones;
       return apiClient.post('/escrows', payload);
     },
@@ -182,6 +188,50 @@ export default function CreateEscrowPage() {
             {errors.description && (
               <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
             )}
+          </div>
+
+          <div className="border-t border-gray-200 pt-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Delivery address (ship to)</h3>
+            <p className="text-xs text-gray-500 mb-3">Where the seller should send the item. Only you and the seller see this.</p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="deliveryRegion" className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                <input
+                  {...register('deliveryRegion')}
+                  id="deliveryRegion"
+                  placeholder="e.g. Greater Accra"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label htmlFor="deliveryCity" className="block text-sm font-medium text-gray-700 mb-1">City / Town</label>
+                <input
+                  {...register('deliveryCity')}
+                  id="deliveryCity"
+                  placeholder="e.g. Accra"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+            <div className="mt-4">
+              <label htmlFor="deliveryAddressLine" className="block text-sm font-medium text-gray-700 mb-1">Street address / Landmark</label>
+              <input
+                {...register('deliveryAddressLine')}
+                id="deliveryAddressLine"
+                placeholder="Street, area, or landmark"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            <div className="mt-4">
+              <label htmlFor="deliveryPhone" className="block text-sm font-medium text-gray-700 mb-1">Contact phone for delivery (optional)</label>
+              <input
+                {...register('deliveryPhone')}
+                id="deliveryPhone"
+                type="tel"
+                placeholder="+233XXXXXXXXX"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">

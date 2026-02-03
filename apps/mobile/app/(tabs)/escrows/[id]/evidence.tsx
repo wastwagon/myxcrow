@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Image, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView, Image, Linking, Switch } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import Toast from 'react-native-toast-message';
@@ -15,6 +15,7 @@ type Evidence = {
   mimeType?: string | null;
   type: string;
   description?: string | null;
+  metadata?: { latitude?: number; longitude?: number; capturedAt?: string };
   createdAt: string;
 };
 
@@ -36,6 +37,7 @@ export default function EscrowEvidenceScreen() {
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [includeLocation, setIncludeLocation] = useState(false);
 
   const { data: escrow, isLoading } = useQuery({
     queryKey: ['escrow', escrowId],
@@ -83,6 +85,25 @@ export default function EscrowEvidenceScreen() {
   const upload = async () => {
     if (!escrowId || !selected) return;
 
+    let latitude: number | undefined;
+    let longitude: number | undefined;
+    if (includeLocation) {
+      try {
+        const { getCurrentPositionAsync, requestForegroundPermissionsAsync } = await import('expo-location');
+        const { status } = await requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Toast.show({ type: 'error', text1: 'Location permission denied' });
+          return;
+        }
+        const location = await getCurrentPositionAsync({});
+        latitude = location.coords.latitude;
+        longitude = location.coords.longitude;
+      } catch (e: any) {
+        Toast.show({ type: 'error', text1: 'Could not get location', text2: e?.message });
+        return;
+      }
+    }
+
     try {
       setUploading(true);
 
@@ -91,7 +112,6 @@ export default function EscrowEvidenceScreen() {
       const blob = await fileResp.blob();
       const mimeType = blob.type || 'image/jpeg';
 
-      // Step 1: presigned URL
       const presigned = await apiClient.post('/evidence/presigned-url', {
         escrowId,
         fileName,
@@ -101,7 +121,6 @@ export default function EscrowEvidenceScreen() {
 
       const { uploadUrl, objectName } = presigned.data;
 
-      // Step 2: upload to storage
       const putResp = await fetch(uploadUrl, {
         method: 'PUT',
         body: blob,
@@ -111,18 +130,19 @@ export default function EscrowEvidenceScreen() {
         throw new Error('Upload failed');
       }
 
-      // Step 3: create evidence record
       await apiClient.post('/evidence/verify-upload', {
         escrowId,
         objectName,
         fileName,
         fileSize: blob.size,
         mimeType,
+        ...(latitude != null && longitude != null ? { latitude, longitude } : {}),
         type: 'PHOTO',
         description: 'Mobile upload',
       });
 
       setSelected(null);
+      setIncludeLocation(false);
       await queryClient.invalidateQueries({ queryKey: ['escrow', escrowId] });
       Toast.show({ type: 'success', text1: 'Uploaded' });
     } catch (error: any) {
@@ -170,6 +190,10 @@ export default function EscrowEvidenceScreen() {
             <Text style={styles.small}>
               {selected.fileName || 'Selected image'} • {selected.fileSize ? formatBytes(selected.fileSize) : '—'}
             </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, marginBottom: 8 }}>
+              <Text style={styles.small}>Include location (proof of delivery)</Text>
+              <Switch value={includeLocation} onValueChange={setIncludeLocation} />
+            </View>
             <TouchableOpacity style={[styles.uploadBtn, uploading && styles.disabled]} onPress={upload} disabled={uploading}>
               {uploading ? <ActivityIndicator color="#fff" /> : <Text style={styles.uploadBtnText}>Upload</Text>}
             </TouchableOpacity>
@@ -198,6 +222,9 @@ export default function EscrowEvidenceScreen() {
                   {formatBytes(e.fileSize)} • {e.type} • {formatDate(e.createdAt)}
                 </Text>
                 {e.description ? <Text style={styles.small}>{e.description}</Text> : null}
+                {e.metadata?.latitude != null && e.metadata?.longitude != null ? (
+                  <Text style={styles.small}>Location: {e.metadata.latitude.toFixed(5)}, {e.metadata.longitude.toFixed(5)}</Text>
+                ) : null}
               </View>
               <View style={styles.actions}>
                 <TouchableOpacity onPress={() => download(e.id)} style={styles.actionChip}>

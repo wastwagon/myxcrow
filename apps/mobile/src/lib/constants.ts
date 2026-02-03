@@ -1,6 +1,9 @@
 // API Configuration
 export const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
 
+// Web app base URL (for Terms, Privacy, Support links in mobile app)
+export const WEB_BASE_URL = process.env.EXPO_PUBLIC_WEB_BASE_URL || 'https://myxcrow.com';
+
 // App Configuration
 export const APP_NAME = 'MYXCROW';
 export const APP_VERSION = '1.0.0';

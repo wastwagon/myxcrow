@@ -27,6 +27,10 @@ const createEscrowSchema = z.object({
   currency: z.string().default('GHS'),
   description: z.string().min(1, 'Description is required'),
   useWallet: z.boolean().default(true),
+  deliveryRegion: z.string().optional(),
+  deliveryCity: z.string().optional(),
+  deliveryAddressLine: z.string().optional(),
+  deliveryPhone: z.string().optional(),
 });
 
 type CreateEscrowFormData = z.infer<typeof createEscrowSchema>;
@@ -52,9 +56,13 @@ export default function CreateEscrowScreen() {
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateEscrowFormData) => {
-      const payload = {
+      const payload: any = {
         ...data,
-        amountCents: Math.round(data.amountCents * 100), // Convert to cents
+        amountCents: Math.round(data.amountCents * 100),
+        deliveryRegion: data.deliveryRegion || undefined,
+        deliveryCity: data.deliveryCity || undefined,
+        deliveryAddressLine: data.deliveryAddressLine || undefined,
+        deliveryPhone: data.deliveryPhone || undefined,
       };
       return apiClient.post('/escrows', payload);
     },
@@ -136,6 +144,76 @@ export default function CreateEscrowScreen() {
               )}
             />
             {errors.description && <Text style={styles.errorText}>{errors.description.message}</Text>}
+          </View>
+
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Delivery address (ship to)</Text>
+            <Text style={styles.helpText}>Where the seller should send the item</Text>
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Region</Text>
+            <Controller
+              control={control}
+              name="deliveryRegion"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. Greater Accra"
+                  value={value || ''}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                />
+              )}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>City / Town</Text>
+            <Controller
+              control={control}
+              name="deliveryCity"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={styles.input}
+                  placeholder="e.g. Accra"
+                  value={value || ''}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                />
+              )}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Street / Landmark</Text>
+            <Controller
+              control={control}
+              name="deliveryAddressLine"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={styles.input}
+                  placeholder="Street, area, or landmark"
+                  value={value || ''}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                />
+              )}
+            />
+          </View>
+          <View style={styles.inputContainer}>
+            <Text style={styles.label}>Contact phone for delivery (optional)</Text>
+            <Controller
+              control={control}
+              name="deliveryPhone"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  style={styles.input}
+                  placeholder="+233XXXXXXXXX"
+                  keyboardType="phone-pad"
+                  value={value || ''}
+                  onChangeText={onChange}
+                  onBlur={onBlur}
+                />
+              )}
+            />
           </View>
 
           <View style={styles.inputContainer}>
@@ -227,6 +305,19 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: 20,
+  },
+  sectionHeader: {
+    marginTop: 16,
+    marginBottom: 8,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 4,
   },
   label: {
     fontSize: 14,

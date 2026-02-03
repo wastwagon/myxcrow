@@ -330,6 +330,12 @@ model EscrowAgreement {
   autoReleaseDays     Int?         @default(7) // Auto-release after X days if no dispute
   disputeWindowDays   Int?         @default(14) // Days buyer has to dispute after delivery
   
+  // Delivery address (ship to)
+  deliveryRegion      String?
+  deliveryCity        String?
+  deliveryAddressLine String?
+  deliveryPhone       String?
+  
   // Tracking
   fundedAt             DateTime?
   shippedAt            DateTime?
@@ -456,6 +462,9 @@ model Shipment {
   shippedAt       DateTime?
   deliveredAt     DateTime?
   deliveryAddress Json?
+  // Delivery verification: only buyer and system know the code; delivery person gets it from recipient and enters it to confirm
+  deliveryCode    String?  @unique // 6-char code shown to buyer; entered by delivery person or buyer to confirm delivery
+  shortReference  String?  @unique // 6-char reference for lookup on public confirm page (e.g. MV7K2A)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -494,6 +503,7 @@ model Evidence {
   mimeType    String?
   sha256      String?
   description String?
+  metadata    Json?    // optional: { latitude, longitude, capturedAt } for geo-tagged evidence
   createdAt   DateTime @default(now())
 
   escrow EscrowAgreement? @relation(fields: [escrowId], references: [id], onDelete: Cascade)
