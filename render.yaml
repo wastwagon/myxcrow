@@ -26,7 +26,7 @@ services:
     region: oregon
     rootDir: services/api
     buildCommand: pnpm install --no-frozen-lockfile && pnpm build
-    startCommand: pnpm start
+    startCommand: pnpm build && node dist/main.js
     preDeployCommand: pnpm prisma:deploy
     healthCheckPath: /api/health
     envVars:
