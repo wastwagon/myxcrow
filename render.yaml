@@ -26,7 +26,7 @@ services:
     region: oregon
     rootDir: services/api
     buildCommand: pnpm install --no-frozen-lockfile && pnpm build
-    startCommand: pnpm build && node dist/main.js
+    startCommand: pnpm start
     preDeployCommand: pnpm prisma:deploy
     healthCheckPath: /api/health
     envVars:
@@ -34,6 +34,8 @@ services:
         value: production
       - key: PORT
         value: 4000
+      - key: NODE_OPTIONS
+        value: --max-old-space-size=460
       - key: DATABASE_URL
         fromDatabase:
           name: myxcrow-bp-db
