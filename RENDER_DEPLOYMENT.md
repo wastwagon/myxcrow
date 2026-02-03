@@ -26,20 +26,20 @@ Deploy MYXCROW to production using **Render Blueprint** with managed PostgreSQL 
 3. Connect your Git provider and select the **myxcrow** repository.
 4. Render will detect `render.yaml` in the repo root.
 5. Click **Apply**. Render will create:
-   - PostgreSQL database: `myxcrow-db`
-   - Key Value (Redis): `myxcrow-redis`
-   - Web service: `myxcrow-api`
-   - Web service: `myxcrow-web`
+   - PostgreSQL database: `myxcrow-bp-db`
+   - Key Value (Redis): `myxcrow-bp-redis`
+   - Web service: `myxcrow-bp-api`
+   - Web service: `myxcrow-bp-web`
 
 ### 2. Set Secret Environment Variables
 
 During Blueprint creation, Render will prompt for variables marked `sync: false`. Provide:
 
-**API service (`myxcrow-api`):**
+**API service (`myxcrow-bp-api`):**
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `WEB_APP_URL` | Public URL of the web app | `https://myxcrow-web.onrender.com` or `https://myxcrow.com` |
+| `WEB_APP_URL` | Public URL of the web app | `https://myxcrow-bp-web.onrender.com` or `https://myxcrow.com` |
 | `WEB_BASE_URL` | Same as WEB_APP_URL (used for links) | Same as above |
 | `S3_ENDPOINT` | S3-compatible endpoint | `https://s3.amazonaws.com` or leave blank for later |
 | `S3_ACCESS_KEY` | S3 access key | Your AWS key |
@@ -51,25 +51,25 @@ During Blueprint creation, Render will prompt for variables marked `sync: false`
 | `EMAIL_USER` | SMTP user | `apikey` (SendGrid) |
 | `EMAIL_PASS` | SMTP password | Your SendGrid API key |
 
-**Web service (`myxcrow-web`):**
+**Web service (`myxcrow-bp-web`):**
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `NEXT_PUBLIC_API_BASE_URL` | Full API URL including `/api` | `https://myxcrow-api.onrender.com/api` |
+| `NEXT_PUBLIC_API_BASE_URL` | Full API URL including `/api` | `https://myxcrow-bp-api.onrender.com/api` |
 
-Use the **actual** API URL Render gives you (e.g. `https://myxcrow-api.onrender.com/api`). The web app needs this at **build time**.
+Use the **actual** API URL Render gives you (e.g. `https://myxcrow-bp-api.onrender.com/api`). The web app needs this at **build time**.
 
 ### 3. Redeploy Web After API URL Is Known
 
-1. Deploy the Blueprint once so the API gets its URL (e.g. `https://myxcrow-api.onrender.com`).
-2. In **myxcrow-web** → **Environment**, set:
-   - `NEXT_PUBLIC_API_BASE_URL` = `https://myxcrow-api.onrender.com/api`
-3. Trigger a **Manual Deploy** for **myxcrow-web** so the new value is baked into the build.
+1. Deploy the Blueprint once so the API gets its URL (e.g. `https://myxcrow-bp-api.onrender.com`).
+2. In **myxcrow-bp-web** → **Environment**, set:
+   - `NEXT_PUBLIC_API_BASE_URL` = `https://myxcrow-bp-api.onrender.com/api`
+3. Trigger a **Manual Deploy** for **myxcrow-bp-web** so the new value is baked into the build.
 
 ## Custom Domains (Optional)
 
-1. **API:** Dashboard → **myxcrow-api** → **Settings** → **Custom Domains** → Add e.g. `api.myxcrow.com`.
-2. **Web:** Dashboard → **myxcrow-web** → **Settings** → **Custom Domains** → Add e.g. `myxcrow.com`.
+1. **API:** Dashboard → **myxcrow-bp-api** → **Settings** → **Custom Domains** → Add e.g. `api.myxcrow.com`.
+2. **Web:** Dashboard → **myxcrow-bp-web** → **Settings** → **Custom Domains** → Add e.g. `myxcrow.com`.
 3. In your DNS provider, add CNAME records pointing to the URLs Render shows.
 4. Update env vars: set `WEB_APP_URL` / `WEB_BASE_URL` and `NEXT_PUBLIC_API_BASE_URL` to your custom domains, then redeploy.
 
@@ -77,7 +77,7 @@ Use the **actual** API URL Render gives you (e.g. `https://myxcrow-api.onrender.
 
 In Paystack Dashboard → Settings → Webhooks, set:
 
-- **URL:** `https://myxcrow-api.onrender.com/api/payments/webhook` (or your API custom domain + `/api/payments/webhook`)
+- **URL:** `https://myxcrow-bp-api.onrender.com/api/payments/webhook` (or your API custom domain + `/api/payments/webhook`)
 - **Secret:** Copy into `PAYSTACK_WEBHOOK_SECRET` in Render.
 
 ## S3 / File Storage
@@ -99,7 +99,7 @@ Render uses the Node version from `.nvmrc` (20) if present. The API and Web use 
 - **API health check fails:** Ensure `preDeployCommand` (Prisma migrate) succeeded. Check **Logs** for the API service.
 - **Web can’t reach API:** Confirm `NEXT_PUBLIC_API_BASE_URL` is set and that you redeployed the web service after setting it.
 - **CORS errors:** API uses `WEB_APP_URL` for CORS. Ensure it matches your web app’s origin (including custom domain if used).
-- **Database:** Connection string is injected by Render from the `myxcrow-db` database. No manual `DATABASE_URL` needed unless you use an external DB.
+- **Database:** Connection string is injected by Render from the `myxcrow-bp-db` database. No manual `DATABASE_URL` needed unless you use an external DB.
 
 ## Reference
 

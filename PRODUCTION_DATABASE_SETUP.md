@@ -4,7 +4,7 @@ This guide covers the production database when deploying MYXCROW on **Render** w
 
 ## Database connection
 
-The Blueprint creates a Render Postgres database (`myxcrow-db`) and injects `DATABASE_URL` into the API service. You do **not** set `DATABASE_URL` manually.
+The Blueprint creates a Render Postgres database (`myxcrow-bp-db`) and injects `DATABASE_URL` into the API service. You do **not** set `DATABASE_URL` manually.
 
 ## Migrations
 
@@ -22,7 +22,7 @@ So every deploy runs `prisma migrate deploy` before the app starts. No manual st
 
 If you need to run migrations manually (e.g. from Render Shell or with a one-off job):
 
-1. Get `DATABASE_URL` from Render Dashboard → **myxcrow-db** → **Info** (Internal Database URL).
+1. Get `DATABASE_URL` from Render Dashboard → **myxcrow-bp-db** → **Info** (Internal Database URL).
 2. From repo root with `DATABASE_URL` set:
 
 ```bash
@@ -39,7 +39,7 @@ Or use the project script (with `DATABASE_URL` set):
 
 ## Seeding
 
-From Render Dashboard → **myxcrow-api** → **Shell** (if available), or run locally with `DATABASE_URL` set:
+From Render Dashboard → **myxcrow-bp-api** → **Shell** (if available), or run locally with `DATABASE_URL` set:
 
 ```bash
 cd services/api
@@ -48,7 +48,7 @@ pnpm seed
 
 ## Backups
 
-Use Render’s managed Postgres backups (Dashboard → **myxcrow-db** → Backups). For extra safety, schedule your own dumps to external storage.
+Use Render’s managed Postgres backups (Dashboard → **myxcrow-bp-db** → Backups). For extra safety, schedule your own dumps to external storage.
 
 ## Security
 

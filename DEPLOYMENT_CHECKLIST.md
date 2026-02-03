@@ -16,18 +16,18 @@ Use this checklist before deploying MYXCROW to **Render** with the Blueprint.
 
 ## Secrets & Env (prepare before Apply)
 
-### API (`myxcrow-api`) – set when prompted or in Dashboard
+### API (`myxcrow-bp-api`) – set when prompted or in Dashboard
 
-- [ ] `WEB_APP_URL` (e.g. `https://myxcrow-web.onrender.com`)
+- [ ] `WEB_APP_URL` (e.g. `https://myxcrow-bp-web.onrender.com`)
 - [ ] `WEB_BASE_URL` (same as WEB_APP_URL)
 - [ ] `JWT_SECRET` (Blueprint can generate; or set manually)
 - [ ] `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` (or add after first deploy)
 - [ ] `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY`, `PAYSTACK_WEBHOOK_SECRET`
 - [ ] `EMAIL_HOST`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM`
 
-### Web (`myxcrow-web`)
+### Web (`myxcrow-bp-web`)
 
-- [ ] `NEXT_PUBLIC_API_BASE_URL` = `https://myxcrow-api.onrender.com/api` (set after first deploy, then redeploy web)
+- [ ] `NEXT_PUBLIC_API_BASE_URL` = `https://myxcrow-bp-api.onrender.com/api` (set after first deploy, then redeploy web)
 
 ## External Services
 
@@ -37,9 +37,9 @@ Use this checklist before deploying MYXCROW to **Render** with the Blueprint.
 
 ## After First Deploy
 
-- [ ] Set **myxcrow-web** → `NEXT_PUBLIC_API_BASE_URL` to your API URL
-- [ ] Trigger **Manual Deploy** on **myxcrow-web**
-- [ ] API health: `https://myxcrow-api.onrender.com/api/health` → 200
+- [ ] Set **myxcrow-bp-web** → `NEXT_PUBLIC_API_BASE_URL` to your API URL
+- [ ] Trigger **Manual Deploy** on **myxcrow-bp-web**
+- [ ] API health: `https://myxcrow-bp-api.onrender.com/api/health` → 200
 - [ ] Web loads and login works
 
 ## Optional: Custom domains

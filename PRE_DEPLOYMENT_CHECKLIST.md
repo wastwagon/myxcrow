@@ -15,17 +15,17 @@ Use this checklist before deploying MYXCROW to **Render** with the Blueprint.
 
 ## Secrets to Prepare (set when prompted or in Dashboard)
 
-### API (`myxcrow-api`)
+### API (`myxcrow-bp-api`)
 
-- [ ] `WEB_APP_URL` (e.g. `https://myxcrow-web.onrender.com`)
+- [ ] `WEB_APP_URL` (e.g. `https://myxcrow-bp-web.onrender.com`)
 - [ ] `WEB_BASE_URL` (same as WEB_APP_URL)
 - [ ] `S3_ENDPOINT`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` (or add after first deploy)
 - [ ] `PAYSTACK_SECRET_KEY`, `PAYSTACK_PUBLIC_KEY`, `PAYSTACK_WEBHOOK_SECRET`
 - [ ] `EMAIL_HOST`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM`
 
-### Web (`myxcrow-web`)
+### Web (`myxcrow-bp-web`)
 
-- [ ] `NEXT_PUBLIC_API_BASE_URL` = `https://myxcrow-api.onrender.com/api` (set after first deploy, then **Manual Deploy** web)
+- [ ] `NEXT_PUBLIC_API_BASE_URL` = `https://myxcrow-bp-api.onrender.com/api` (set after first deploy, then **Manual Deploy** web)
 
 ## External Services
 
@@ -37,7 +37,7 @@ Use this checklist before deploying MYXCROW to **Render** with the Blueprint.
 
 1. **Apply Blueprint** in Render (New → Blueprint → select repo).
 2. **Enter secrets** when prompted.
-3. After first deploy: set **myxcrow-web** → `NEXT_PUBLIC_API_BASE_URL` → **Manual Deploy**.
+3. After first deploy: set **myxcrow-bp-web** → `NEXT_PUBLIC_API_BASE_URL` → **Manual Deploy**.
 4. **Verify:** API health, web loads, login works.
 
 ## Notes

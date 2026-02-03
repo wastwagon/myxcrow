@@ -2,12 +2,12 @@
 
 Use this as a reference when setting or editing environment variables in the Render Dashboard. The Blueprint (`render.yaml`) injects **DATABASE_URL** and **REDIS_URL** automatically; set the rest in the Dashboard or during Blueprint creation.
 
-## API Service (`myxcrow-api`)
+## API Service (`myxcrow-bp-api`)
 
 ### Injected by Blueprint (do not set manually)
 
-- `DATABASE_URL` – from Render Postgres `myxcrow-db`
-- `REDIS_URL` – from Render Key Value `myxcrow-redis`
+- `DATABASE_URL` – from Render Postgres `myxcrow-bp-db`
+- `REDIS_URL` – from Render Key Value `myxcrow-bp-redis`
 - `JWT_SECRET` – generated
 - `ENCRYPTION_KEY` – generated
 
@@ -16,8 +16,8 @@ Use this as a reference when setting or editing environment variables in the Ren
 ```bash
 NODE_ENV=production
 PORT=4000
-WEB_APP_URL=https://myxcrow-web.onrender.com
-WEB_BASE_URL=https://myxcrow-web.onrender.com
+WEB_APP_URL=https://myxcrow-bp-web.onrender.com
+WEB_BASE_URL=https://myxcrow-bp-web.onrender.com
 
 # S3 (AWS or compatible)
 S3_ENDPOINT=https://s3.amazonaws.com
@@ -48,13 +48,13 @@ RATE_LIMIT_REQUESTS_PER_MINUTE=60
 SMS_ENABLED=false
 ```
 
-## Web Service (`myxcrow-web`)
+## Web Service (`myxcrow-bp-web`)
 
 ### Required
 
 ```bash
 NODE_ENV=production
-NEXT_PUBLIC_API_BASE_URL=https://myxcrow-api.onrender.com/api
+NEXT_PUBLIC_API_BASE_URL=https://myxcrow-bp-api.onrender.com/api
 NEXT_PUBLIC_ENV=production
 ```
 

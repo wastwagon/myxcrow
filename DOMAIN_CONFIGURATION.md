@@ -11,20 +11,20 @@ When using custom domains with Render, use **CNAME** records pointing to the URL
 
 ### Required
 
-1. **Web app** – In Render Dashboard → **myxcrow-web** → **Custom Domains**, add `myxcrow.com`. Render shows a target (e.g. `myxcrow-web.onrender.com`). In your DNS:
+1. **Web app** – In Render Dashboard → **myxcrow-bp-web** → **Custom Domains**, add `myxcrow.com`. Render shows a target (e.g. `myxcrow-bp-web.onrender.com`). In your DNS:
    - **Type:** CNAME  
    - **Name:** `@` (or `myxcrow.com` – depends on provider; some use `@`, some use root)  
-   - **Value:** `myxcrow-web.onrender.com` (or the host Render shows)  
+   - **Value:** `myxcrow-bp-web.onrender.com` (or the host Render shows)  
    - For root domains, some registrars require an A record to Render’s IP; check Render docs for “root domain”.
 
-2. **API** – In Render Dashboard → **myxcrow-api** → **Custom Domains**, add `api.myxcrow.com`. In your DNS:
+2. **API** – In Render Dashboard → **myxcrow-bp-api** → **Custom Domains**, add `api.myxcrow.com`. In your DNS:
    - **Type:** CNAME  
    - **Name:** `api`  
-   - **Value:** `myxcrow-api.onrender.com` (or the host Render shows)
+   - **Value:** `myxcrow-bp-api.onrender.com` (or the host Render shows)
 
 ### Optional
 
-3. **www** – Add `www.myxcrow.com` in Render for **myxcrow-web**; Render often adds a redirect from www to root. DNS: CNAME `www` → `myxcrow-web.onrender.com`.
+3. **www** – Add `www.myxcrow.com` in Render for **myxcrow-bp-web**; Render often adds a redirect from www to root. DNS: CNAME `www` → `myxcrow-bp-web.onrender.com`.
 
 ---
 
@@ -38,9 +38,9 @@ Render provides SSL (HTTPS) for your services. No manual certificate setup. Afte
 
 Update in Render Dashboard and redeploy:
 
-- **myxcrow-api:** `WEB_APP_URL` and `WEB_BASE_URL` = `https://myxcrow.com` (or your web domain)
-- **myxcrow-web:** `NEXT_PUBLIC_API_BASE_URL` = `https://api.myxcrow.com/api`  
-  Then trigger a **Manual Deploy** for **myxcrow-web** so the new value is baked into the build.
+- **myxcrow-bp-api:** `WEB_APP_URL` and `WEB_BASE_URL` = `https://myxcrow.com` (or your web domain)
+- **myxcrow-bp-web:** `NEXT_PUBLIC_API_BASE_URL` = `https://api.myxcrow.com/api`  
+  Then trigger a **Manual Deploy** for **myxcrow-bp-web** so the new value is baked into the build.
 
 ---
 
