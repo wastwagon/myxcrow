@@ -24,10 +24,9 @@ services:
     runtime: node
     plan: starter
     region: oregon
-    rootDir: services/api
-    buildCommand: pnpm build:render
-    startCommand: node dist/main.js
-    preDeployCommand: npx prisma migrate deploy
+    buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm build && ls -lah dist/
+    startCommand: cd services/api && node dist/main.js
+    preDeployCommand: cd services/api && npx prisma migrate deploy
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
@@ -94,9 +93,8 @@ services:
     runtime: node
     plan: starter
     region: oregon
-    rootDir: apps/web
-    buildCommand: pnpm build:render
-    startCommand: pnpm start
+    buildCommand: pnpm install --no-frozen-lockfile && cd apps/web && pnpm build
+    startCommand: cd apps/web && pnpm start
     envVars:
       - key: NODE_ENV
         value: production
