@@ -5,6 +5,7 @@ import * as MinIO from 'minio';
 const prisma = new PrismaClient();
 
 const USERS = [
+  { email: 'admin@escrow.com', firstName: 'Admin', lastName: 'User', role: UserRole.ADMIN },
   { email: 'buyer1@test.com', firstName: 'John', lastName: 'Buyer', role: UserRole.BUYER },
   { email: 'seller1@test.com', firstName: 'Jane', lastName: 'Seller', role: UserRole.SELLER },
   { email: 'buyer2@test.com', firstName: 'Mike', lastName: 'Customer', role: UserRole.BUYER },
