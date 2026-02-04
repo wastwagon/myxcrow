@@ -12,6 +12,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "tsx scripts/seed-users-and-transactions.ts",
+    "create-admin": "tsx scripts/create-admin.ts",
     "seed:bash": "bash scripts/seed.sh",
     "seed:verify": "tsx scripts/verify-seed.ts",
     "download-face-models": "bash scripts/download-face-models.sh",

@@ -7,9 +7,12 @@ async function bootstrap() {
     rawBody: true, // Required for webhook signature verification
   });
 
-  // CORS configuration
+  // CORS configuration: allow multiple origins (comma-separated CORS_ORIGINS, or single WEB_APP_URL)
+  const corsOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
+    : [process.env.WEB_APP_URL || 'http://localhost:3000'];
   app.enableCors({
-    origin: process.env.WEB_APP_URL || 'http://localhost:3000',
+    origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
     credentials: true,
   });
 

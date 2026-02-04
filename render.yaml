@@ -54,6 +54,9 @@ services:
         sync: false
       - key: WEB_BASE_URL
         sync: false
+      # Allow CORS from Render web URL and custom domain (comma-separated)
+      - key: CORS_ORIGINS
+        value: https://myxcrow-bp-web.onrender.com,https://www.myxcrow.com,https://myxcrow.com
       - key: S3_ENDPOINT
         sync: false
       - key: S3_ACCESS_KEY
