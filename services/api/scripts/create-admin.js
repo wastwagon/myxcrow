@@ -1,5 +1,9 @@
-import { PrismaClient, UserRole, KYCStatus } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+/**
+ * Create admin user (runs with node - no tsx needed on Render production).
+ * Usage: node scripts/create-admin.js
+ */
+const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcrypt');
 
 const prisma = new PrismaClient();
 
@@ -7,7 +11,7 @@ const ADMIN_EMAIL = 'admin@myxcrow.com';
 const ADMIN_PASSWORD = 'password123';
 
 async function main() {
-  console.log('🔐 Creating admin user...\n');
+  console.log('Creating admin user...\n');
 
   const passwordHash = await bcrypt.hash(ADMIN_PASSWORD, 10);
 
@@ -17,8 +21,8 @@ async function main() {
       passwordHash,
       firstName: 'Admin',
       lastName: 'User',
-      roles: [UserRole.ADMIN],
-      kycStatus: KYCStatus.VERIFIED,
+      roles: ['ADMIN'],
+      kycStatus: 'VERIFIED',
       isActive: true,
     },
     create: {
@@ -26,13 +30,13 @@ async function main() {
       passwordHash,
       firstName: 'Admin',
       lastName: 'User',
-      roles: [UserRole.ADMIN],
-      kycStatus: KYCStatus.VERIFIED,
+      roles: ['ADMIN'],
+      kycStatus: 'VERIFIED',
       isActive: true,
     },
   });
 
-  console.log(`  ✅ Admin user: ${admin.email} (ID: ${admin.id})`);
+  console.log('  Admin user:', admin.email, '(ID:', admin.id + ')');
 
   await prisma.wallet.upsert({
     where: { userId: admin.id },
@@ -45,10 +49,10 @@ async function main() {
     },
   });
 
-  console.log('  ✅ Wallet created for admin\n');
-  console.log('📧 Email:', ADMIN_EMAIL);
-  console.log('🔑 Password:', ADMIN_PASSWORD);
-  console.log('\n✅ Done. You can sign in at /login');
+  console.log('  Wallet created for admin\n');
+  console.log('Email:', ADMIN_EMAIL);
+  console.log('Password:', ADMIN_PASSWORD);
+  console.log('\nDone. You can sign in at /login');
 }
 
 main()
@@ -56,6 +60,4 @@ main()
     console.error(e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => prisma.$disconnect());

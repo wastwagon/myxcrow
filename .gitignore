@@ -36,6 +36,7 @@ logs/
 # Database
 *.db
 *.sqlite
+escrow_backup.sql
 
 # Temporary files
 tmp/
