@@ -13,10 +13,7 @@ export function IntercomChat() {
   const INTERCOM_APP_ID = process.env.NEXT_PUBLIC_INTERCOM_APP_ID;
 
   useEffect(() => {
-    if (!INTERCOM_APP_ID) {
-      console.warn('Intercom App ID not configured');
-      return;
-    }
+    if (!INTERCOM_APP_ID) return;
 
     if (typeof window !== 'undefined' && window.Intercom) {
       if (user) {

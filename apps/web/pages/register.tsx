@@ -131,7 +131,10 @@ export default function Register() {
 
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      const msg = err.response?.data?.message;
+      setError(
+        Array.isArray(msg) ? msg.join('. ') : typeof msg === 'string' ? msg : 'Registration failed. Please try again.'
+      );
     } finally {
       setLoading(false);
       setProcessing(false);

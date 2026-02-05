@@ -4,12 +4,16 @@ import {
   Body,
   Get,
   Put,
+  Req,
   UseGuards,
   UseInterceptors,
   UploadedFiles,
   BadRequestException,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { plainToClass } from 'class-transformer';
+import { validate } from 'class-validator';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -28,14 +32,21 @@ export class AuthController {
       limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max per file
     }),
   )
-  async register(@Body() data: RegisterDto, @UploadedFiles() files?: any[]) {
+  async register(@Req() req: Request, @UploadedFiles() files?: any[]) {
+    // Multipart/form-data: global ValidationPipe can leave @Body() empty; multer puts fields in req.body.
+    const raw = (req.body || {}) as Record<string, any>;
+    const data = plainToClass(RegisterDto, raw, { enableImplicitConversion: true });
+    const errors = await validate(data, { whitelist: true });
+    if (errors.length > 0) {
+      const messages = errors.flatMap((e) => (e.constraints ? Object.values(e.constraints) : []));
+      throw new BadRequestException(messages.length ? messages.join('; ') : 'Validation failed');
+    }
+
     // Parse files if provided
     let fileBuffers: { cardFront?: Buffer; cardBack?: Buffer; selfie?: Buffer } | undefined;
 
     if (files && files.length > 0) {
       fileBuffers = {};
-      // Files come in order: card-front, card-back, selfie (based on FormData append order)
-      // Or we can check the originalname
       for (const file of files) {
         const fileName = file.originalname?.toLowerCase() || '';
         if (fileName.includes('card-front') || fileName.includes('front')) {
@@ -45,7 +56,6 @@ export class AuthController {
         } else if (fileName.includes('selfie')) {
           fileBuffers.selfie = file.buffer;
         } else {
-          // If name doesn't match, assign by order
           if (!fileBuffers.cardFront) {
             fileBuffers.cardFront = file.buffer;
           } else if (!fileBuffers.cardBack) {
@@ -56,7 +66,6 @@ export class AuthController {
         }
       }
 
-      // Validate all required files are present
       if (!fileBuffers.cardFront || !fileBuffers.cardBack || !fileBuffers.selfie) {
         throw new BadRequestException(
           'All files are required: Ghana Card front, Ghana Card back, and selfie',
