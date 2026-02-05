@@ -112,9 +112,8 @@ export default function Register() {
 
       setProcessing(true);
       const response = await apiClient.post('/auth/register', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
       });
 
       const { user, accessToken, refreshToken, faceMatchScore } = response.data;

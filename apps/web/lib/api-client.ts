@@ -10,9 +10,12 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor to add auth token
+// Request interceptor: auth token + allow FormData (multipart) to set its own Content-Type
 apiClient.interceptors.request.use(
   (config) => {
+    if (typeof config.data !== 'undefined' && config.data instanceof FormData) {
+      delete config.headers['Content-Type']; // so axios sets multipart/form-data with boundary
+    }
     if (typeof window !== 'undefined') {
       const token = localStorage.getItem('accessToken');
       if (token) {

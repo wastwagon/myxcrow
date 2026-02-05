@@ -1,9 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { FileText, Wallet, LogOut, User, Menu, X, Settings, Users as UsersIcon, DollarSign, AlertCircle, BarChart3, CreditCard } from 'lucide-react';
+import { FileText, Wallet, LogOut, User, Menu, X, Settings, Users as UsersIcon, DollarSign, AlertCircle, BarChart3, CreditCard, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { isAuthenticated, getUser, clearAuth, isAdmin } from '@/lib/auth';
+
+const ADMIN_LINKS = [
+  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/users', label: 'Users', icon: UsersIcon },
+  { href: '/admin/kyc-review', label: 'KYC', icon: CreditCard },
+  { href: '/admin/withdrawals', label: 'Withdrawals', icon: DollarSign },
+  { href: '/admin/reconciliation', label: 'Reconciliation', icon: BarChart3 },
+  { href: '/admin/fees', label: 'Fees', icon: DollarSign },
+  { href: '/admin/settings', label: 'Settings', icon: Settings },
+];
 
 export default function Navigation() {
   const router = useRouter();
@@ -11,7 +21,9 @@ export default function Navigation() {
   const [user, setUser] = useState<any>(null);
   const [admin, setAdmin] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [adminDropdownOpen, setAdminDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const adminDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -19,6 +31,19 @@ export default function Navigation() {
     setUser(getUser());
     setAdmin(isAdmin());
   }, [router.pathname]);
+
+  // Close admin dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (adminDropdownRef.current && !adminDropdownRef.current.contains(e.target as Node)) {
+        setAdminDropdownOpen(false);
+      }
+    };
+    if (adminDropdownOpen) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [adminDropdownOpen]);
 
   const handleLogout = () => {
     clearAuth();
@@ -116,88 +141,41 @@ export default function Navigation() {
               Disputes
             </Link>
 
-            {/* Admin Menu Items */}
+            {/* Admin dropdown: one control, all admin links inside */}
             {admin && (
-              <>
+              <div className="relative flex items-center" ref={adminDropdownRef}>
                 <div className="h-6 w-px bg-white/30 mx-2" />
-                <Link
-                  href="/admin"
+                <button
+                  type="button"
+                  onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
                   className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                    isActive('/admin') && !router.pathname.startsWith('/admin/')
+                    router.pathname.startsWith('/admin')
                       ? 'bg-brand-maroon text-white shadow-md'
                       : 'text-white/90 hover:bg-white/10 hover:text-brand-gold'
                   }`}
                 >
-                  <Settings className="w-4 h-4" />
-                  Admin
-                </Link>
-                <Link
-                  href="/admin/users"
-                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                    isActive('/admin/users')
-                      ? 'bg-brand-maroon text-white shadow-md'
-                      : 'text-white/90 hover:bg-white/10 hover:text-brand-gold'
-                  }`}
-                >
-                  <UsersIcon className="w-4 h-4" />
-                  Users
-                </Link>
-                <Link
-                  href="/admin/kyc-review"
-                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                    isActive('/admin/kyc-review')
-                      ? 'bg-brand-maroon-rust text-white shadow-md'
-                      : 'text-white/90 hover:bg-white/10 hover:text-brand-gold'
-                  }`}
-                >
-                  <CreditCard className="w-4 h-4" />
-                  KYC
-                </Link>
-                <Link
-                  href="/admin/withdrawals"
-                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                    isActive('/admin/withdrawals')
-                      ? 'bg-brand-gold text-brand-maroon-black shadow-md'
-                      : 'text-white/90 hover:bg-white/10 hover:text-brand-gold'
-                  }`}
-                >
-                  <DollarSign className="w-4 h-4" />
-                  Withdrawals
-                </Link>
-                <Link
-                  href="/admin/reconciliation"
-                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                    isActive('/admin/reconciliation')
-                      ? 'bg-brand-maroon-dark text-white shadow-md'
-                      : 'text-white/90 hover:bg-white/10 hover:text-brand-gold'
-                  }`}
-                >
-                  <BarChart3 className="w-4 h-4" />
-                  Reconciliation
-                </Link>
-                <Link
-                  href="/admin/fees"
-                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                    isActive('/admin/fees')
-                      ? 'bg-brand-gold text-brand-maroon-black shadow-md'
-                      : 'text-white/90 hover:bg-white/10 hover:text-brand-gold'
-                  }`}
-                >
-                  <DollarSign className="w-4 h-4" />
-                  Fees
-                </Link>
-                <Link
-                  href="/admin/settings"
-                  className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
-                    isActive('/admin/settings')
-                      ? 'bg-brand-maroon-darker text-white shadow-md'
-                      : 'text-white/90 hover:bg-white/10 hover:text-brand-gold'
-                  }`}
-                >
-                  <Settings className="w-4 h-4" />
-                  Settings
-                </Link>
-              </>
+                  <Settings className="w-4 h-4 shrink-0" />
+                  <span>Admin</span>
+                  <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${adminDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {adminDropdownOpen && (
+                  <div className="absolute top-full left-0 mt-1 py-2 w-56 bg-[#1f1414] border border-brand-gold/30 rounded-xl shadow-xl z-50">
+                    {ADMIN_LINKS.map(({ href, label, icon: Icon }) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        onClick={() => setAdminDropdownOpen(false)}
+                        className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-white/10 ${
+                          isActive(href) ? 'bg-brand-gold/20 text-brand-gold' : 'text-white/90 hover:text-brand-gold'
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        {label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -228,9 +206,9 @@ export default function Navigation() {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - scrollable so all items (including admin) are visible */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-white/10 py-4 space-y-1">
+          <div className="md:hidden border-t border-white/10 py-4 space-y-1 max-h-[70vh] overflow-y-auto">
             {/* Hide Dashboard link for admins - they use Admin Dashboard instead */}
             {!admin && (
               <Link
@@ -296,83 +274,19 @@ export default function Navigation() {
                 <div className="px-4 py-2 text-xs font-semibold text-brand-gold uppercase tracking-wider">
                   Admin
                 </div>
-                <Link
-                  href="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg font-medium transition-all ${
-                    isActive('/admin') && !router.pathname.startsWith('/admin/')
-                      ? 'bg-brand-maroon text-white'
-                      : 'text-white/90 hover:bg-white/10'
-                  }`}
-                >
-                  Dashboard
-                </Link>
-                <Link
-                  href="/admin/users"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg font-medium transition-all ${
-                    isActive('/admin/users')
-                      ? 'bg-brand-maroon text-white'
-                      : 'text-white/90 hover:bg-white/10'
-                  }`}
-                >
-                  Users
-                </Link>
-                <Link
-                  href="/admin/kyc-review"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg font-medium transition-all ${
-                    isActive('/admin/kyc-review')
-                      ? 'bg-brand-maroon-rust text-white'
-                      : 'text-white/90 hover:bg-white/10'
-                  }`}
-                >
-                  KYC Review
-                </Link>
-                <Link
-                  href="/admin/withdrawals"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg font-medium transition-all ${
-                    isActive('/admin/withdrawals')
-                      ? 'bg-brand-gold text-brand-maroon-black'
-                      : 'text-white/90 hover:bg-white/10'
-                  }`}
-                >
-                  Withdrawals
-                </Link>
-                <Link
-                  href="/admin/reconciliation"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg font-medium transition-all ${
-                    isActive('/admin/reconciliation')
-                      ? 'bg-brand-maroon-dark text-white'
-                      : 'text-white/90 hover:bg-white/10'
-                  }`}
-                >
-                  Reconciliation
-                </Link>
-                <Link
-                  href="/admin/fees"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg font-medium transition-all ${
-                    isActive('/admin/fees')
-                      ? 'bg-brand-gold text-brand-maroon-black'
-                      : 'text-white/90 hover:bg-white/10'
-                  }`}
-                >
-                  Fees
-                </Link>
-                <Link
-                  href="/admin/settings"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg font-medium transition-all ${
-                    isActive('/admin/settings')
-                      ? 'bg-brand-maroon-darker text-white'
-                      : 'text-white/90 hover:bg-white/10'
-                  }`}
-                >
-                  Settings
-                </Link>
+                {ADMIN_LINKS.map(({ href, label, icon: Icon }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
+                      isActive(href) ? 'bg-brand-maroon text-white' : 'text-white/90 hover:bg-white/10'
+                    }`}
+                  >
+                    <Icon className="w-4 h-4 shrink-0" />
+                    {label}
+                  </Link>
+                ))}
               </>
             )}
             <div className="border-t border-white/10 pt-2 mt-2">
