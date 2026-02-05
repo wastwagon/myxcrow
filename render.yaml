@@ -90,14 +90,14 @@ services:
       - key: ENCRYPTION_KEY
         generateValue: true
 
-  # Next.js Web
+  # Next.js Web (uses output: standalone — run standalone server)
   - type: web
     name: myxcrow-bp-web
     runtime: node
     plan: starter
     region: oregon
     buildCommand: pnpm install --no-frozen-lockfile && cd apps/web && pnpm build
-    startCommand: cd apps/web && pnpm start
+    startCommand: cd apps/web && node .next/standalone/server.js
     envVars:
       - key: NODE_ENV
         value: production

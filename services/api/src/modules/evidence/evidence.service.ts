@@ -53,8 +53,11 @@ export class EvidenceService {
                       this.configService.get<string>('MINIO_BUCKET') || 
                       'evidence';
     
-    // Ensure bucket exists (async, but we'll handle errors in methods)
-    this.ensureBucketExists();
+    // Only ensure bucket when S3/MinIO is explicitly configured (skip when default "minio" host in production)
+    const hasStorageConfig = this.configService.get<string>('S3_ENDPOINT') || this.configService.get<string>('MINIO_ENDPOINT');
+    if (hasStorageConfig) {
+      this.ensureBucketExists();
+    }
   }
 
   private async ensureBucketExists() {
