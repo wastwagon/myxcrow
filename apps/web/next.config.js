@@ -9,8 +9,7 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api',
   },
-  // Production optimizations
-  output: 'standalone',
+  // Production optimizations (standalone disabled - causes styled-jsx MODULE_NOT_FOUND in pnpm monorepo on Render)
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
