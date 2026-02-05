@@ -24,7 +24,7 @@ services:
     runtime: node
     plan: starter
     region: oregon
-    buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm build && ls -lah dist/
+    buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm build && pnpm run download-face-models && cp -r models dist/models && ls -lah dist/
     startCommand: cd services/api && node dist/src/main.js
     preDeployCommand: cd services/api && npx prisma migrate deploy
     healthCheckPath: /api/health
