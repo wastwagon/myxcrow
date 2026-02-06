@@ -19,7 +19,11 @@ describe('EscrowService', () => {
 
   const mockPrisma = {
     user: { findUnique: jest.fn() },
-    escrowAgreement: { create: jest.fn() },
+    escrowAgreement: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
     escrowMilestone: { createMany: jest.fn() },
   };
 
@@ -33,9 +37,13 @@ describe('EscrowService', () => {
     reserveForEscrow: jest.fn().mockResolvedValue(undefined),
   };
 
-  const mockNotifications = { sendEscrowCreatedNotifications: jest.fn().mockResolvedValue(undefined) };
+  const mockNotifications = {
+    sendEscrowCreatedNotifications: jest.fn().mockResolvedValue(undefined),
+    sendEscrowFundedNotifications: jest.fn().mockResolvedValue(undefined),
+  };
   const mockAudit = { log: jest.fn().mockResolvedValue(undefined) };
   const mockRulesEngine = { evaluateRules: jest.fn().mockResolvedValue(undefined) };
+  const mockLedgerHelper = { createFundingLedgerEntry: jest.fn().mockResolvedValue(undefined) };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -68,7 +76,7 @@ describe('EscrowService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: SettingsService, useValue: mockSettings },
         { provide: WalletService, useValue: mockWallet },
-        { provide: LedgerHelperService, useValue: {} },
+        { provide: LedgerHelperService, useValue: mockLedgerHelper },
         { provide: NotificationsService, useValue: mockNotifications },
         { provide: AuditService, useValue: mockAudit },
         { provide: RulesEngineService, useValue: mockRulesEngine },
@@ -143,6 +151,69 @@ describe('EscrowService', () => {
           }),
         }),
       );
+    });
+  });
+
+  describe('fundEscrow', () => {
+    const escrowId = 'escrow-123';
+    const fundedEscrow = {
+      id: escrowId,
+      buyerId: mockBuyer.id,
+      sellerId: mockSeller.id,
+      status: 'AWAITING_FUNDING',
+      amountCents: 10000,
+      feeCents: 500,
+      netAmountCents: 9500,
+      currency: 'GHS',
+      fundingMethod: 'direct' as const,
+      buyerWalletId: null,
+    };
+
+    beforeEach(() => {
+      (mockPrisma.escrowAgreement.findUnique as jest.Mock).mockResolvedValue(fundedEscrow);
+      (mockPrisma.escrowAgreement.update as jest.Mock).mockImplementation((args: { where: any; data: any }) =>
+        Promise.resolve({ id: args.where.id, ...fundedEscrow, ...args.data }),
+      );
+      (mockPrisma.user.findUnique as jest.Mock).mockImplementation((args: { where: { id: string } }) => {
+        if (args.where.id === mockBuyer.id) return Promise.resolve(mockBuyer);
+        if (args.where.id === mockSeller.id) return Promise.resolve(mockSeller);
+        return Promise.resolve(null);
+      });
+    });
+
+    it('updates status to FUNDED and creates ledger entry when buyer funds', async () => {
+      await service.fundEscrow(escrowId, mockBuyer.id);
+
+      expect(mockPrisma.escrowAgreement.update).toHaveBeenCalledWith({
+        where: { id: escrowId },
+        data: expect.objectContaining({ status: 'FUNDED' }),
+      });
+      expect(mockLedgerHelper.createFundingLedgerEntry).toHaveBeenCalledWith(
+        escrowId,
+        expect.objectContaining({
+          amountCents: 10000,
+          feeCents: 500,
+          netAmountCents: 9500,
+          currency: 'GHS',
+        }),
+      );
+    });
+
+    it('throws when non-buyer tries to fund', async () => {
+      await expect(service.fundEscrow(escrowId, mockSeller.id)).rejects.toThrow('Only the buyer can fund');
+      expect(mockPrisma.escrowAgreement.update).not.toHaveBeenCalled();
+    });
+
+    it('throws when escrow is not in AWAITING_FUNDING', async () => {
+      (mockPrisma.escrowAgreement.findUnique as jest.Mock).mockResolvedValue({
+        ...fundedEscrow,
+        status: 'FUNDED',
+      });
+
+      await expect(service.fundEscrow(escrowId, mockBuyer.id)).rejects.toThrow(
+        /Escrow is in FUNDED status, cannot fund/,
+      );
+      expect(mockPrisma.escrowAgreement.update).not.toHaveBeenCalled();
     });
   });
 });

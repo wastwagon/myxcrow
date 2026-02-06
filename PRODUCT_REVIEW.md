@@ -13,7 +13,7 @@
 - ✅ **MinIO (S3 Storage)** - `localhost:9003` (API) / `localhost:9004` (Console)
 - ✅ **Mailpit (Email Testing)** - `localhost:8026` (Web UI) / `localhost:1026` (SMTP)
 - ✅ **API (NestJS)** - `localhost:4000`
-- ✅ **Frontend (Next.js)** - `localhost:3000`
+- ✅ **Frontend (Next.js)** - `localhost:3007` (Docker) / `localhost:3000` (local dev)
 
 ---
 
@@ -257,7 +257,7 @@ pnpm seed
 
 ## 🔗 Access URLs
 
-- **Frontend:** http://localhost:3000
+- **Frontend:** http://localhost:3007
 - **API:** http://localhost:4000/api
 - **API Health:** http://localhost:4000/api/health
 - **Mailpit (Email):** http://localhost:8026

@@ -25,6 +25,7 @@ import { CryptoModule } from './common/crypto/crypto.module';
 import { SecretsModule } from './common/secrets/secrets.module';
 import { QueueModule } from './common/queue/queue.module';
 import { SecurityModule } from './common/security/security.module';
+import { RateLimitModule } from './common/rate-limit/rate-limit.module';
 import { SimpleRateLimitMiddleware } from './common/middleware/simple-rate-limit.middleware';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
@@ -41,6 +42,7 @@ import paystackConfig from './config/paystack.config';
     SecretsModule, // Global secrets management
     QueueModule, // Global queue system
     SecurityModule, // Global security services (antivirus)
+    RateLimitModule.forRoot(),
     AuthModule,
     EscrowModule,
     PaymentsModule,

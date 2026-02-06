@@ -42,9 +42,9 @@ docker-compose -f infra/docker/docker-compose.dev.yml up -d
 
 ### Access the Application
 
-Once services are running:
+Once services are running (Docker maps web to port **3007**):
 
-- **Frontend:** http://localhost:3005 (Note: Port 3005 used due to port 3000 being in use)
+- **Frontend:** http://localhost:3007
 - **API:** http://localhost:4000/api
 - **API Health:** http://localhost:4000/api/health
 - **Mailpit (Email):** http://localhost:8026
@@ -75,16 +75,14 @@ Only the **frontends** differ: web (Next.js) and mobile (Expo/React Native) are 
 ## 📁 Project Structure
 
 ```
-myexrow/
+myxcrow/
 ├── apps/
 │   ├── web/              # Next.js frontend (includes admin dashboard)
 │   └── mobile/           # React Native mobile app (iOS + Android)
 ├── services/
 │   └── api/              # NestJS backend (shared by web + mobile)
-├── infra/
-│   └── docker/           # Docker configuration
-└── packages/
-    └── types/            # Shared TypeScript types
+└── infra/
+    └── docker/           # Docker configuration
 ```
 
 ## 🔑 Test Accounts
@@ -103,7 +101,6 @@ myexrow/
 - **[Shared Architecture](SHARED_ARCHITECTURE.md)** - One DB, one backend, one admin for web + mobile
 - **[Local Development Guide](LOCAL_DEVELOPMENT.md)** - Complete guide for local setup and development
 - [Product Review](PRODUCT_REVIEW.md) - Complete feature overview
-- [Implementation Summary](README_IMPLEMENTATION.md) - Detailed implementation guide
 
 ### Production Deployment
 - **[Render Deployment](RENDER_DEPLOYMENT.md)** - Deploy with Render Blueprint (start here!)

@@ -53,7 +53,7 @@ Once services are running, access them at:
 
 | Service | URL | Credentials |
 |---------|-----|-------------|
-| **Web Frontend** | http://localhost:3005 | - |
+| **Web Frontend** | http://localhost:3007 | - |
 | **API** | http://localhost:4000/api | - |
 | **API Health** | http://localhost:4000/api/health | - |
 | **Mailpit** | http://localhost:8026 | - |

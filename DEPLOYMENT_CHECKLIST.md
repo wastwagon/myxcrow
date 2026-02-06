@@ -8,6 +8,8 @@ Use this checklist before deploying MYXCROW to **Render** with the Blueprint.
 - [ ] `.gitignore` includes `.env` and secrets
 - [ ] No hardcoded secrets in code
 
+**Security:** See **[PRODUCTION_SECURITY.md](PRODUCTION_SECURITY.md)** for JWT, webhooks, HTTPS, and rate limiting.
+
 ## Render Setup
 
 - [ ] Render account created

@@ -13,7 +13,7 @@ Your terminal session can't access Docker daemon even though Docker Desktop is r
 3. **Run these commands:**
 
 ```bash
-cd /Users/OceanCyber/Downloads/myexrow
+cd /Users/OceanCyber/Downloads/myxcrow
 ./diagnose-docker.sh
 ```
 
@@ -23,7 +23,7 @@ cd /Users/OceanCyber/Downloads/myexrow
 ```
 
 5. **Wait 2-3 minutes** for everything to build and start
-6. **Access**: http://localhost:3000
+6. **Access**: http://localhost:3007
 
 ### Option 2: Restart Docker Desktop
 
@@ -42,7 +42,7 @@ docker ps
 
 4. **If `docker ps` works**, then:
 ```bash
-cd /Users/OceanCyber/Downloads/myexrow
+cd /Users/OceanCyber/Downloads/myxcrow
 ./fix-and-start.sh
 ```
 
@@ -82,7 +82,7 @@ After running `./fix-and-start.sh`, you should see:
 ```
 
 Then access:
-- **Web**: http://localhost:3000
+- **Web**: http://localhost:3007
 - **API**: http://localhost:4000/api
 
 ## Still Not Working?

@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import { PaystackService } from './paystack.service';
@@ -53,7 +54,7 @@ export class PaymentsController {
     const isValid = this.paystackService.verifyWebhookSignature(payload, signature);
 
     if (!isValid) {
-      throw new Error('Invalid webhook signature');
+      throw new UnauthorizedException('Invalid webhook signature');
     }
 
     const event = body.event || (req.body as any)?.event;
