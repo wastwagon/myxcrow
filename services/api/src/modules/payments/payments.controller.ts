@@ -27,7 +27,7 @@ export class PaymentsController {
   @Post('wallet/topup')
   @UseGuards(JwtAuthGuard)
   async initializeWalletTopup(
-    @Body() data: { amountCents: number; email: string; holdHours?: number },
+    @Body() data: { amountCents: number; email: string; holdHours?: number; callbackUrl?: string },
     @CurrentUser() user: any,
   ) {
     return this.paymentsService.initializeWalletTopup({
@@ -35,6 +35,7 @@ export class PaymentsController {
       email: data.email,
       amountCents: data.amountCents,
       holdHours: data.holdHours,
+      callbackUrl: data.callbackUrl,
     });
   }
 

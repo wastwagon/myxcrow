@@ -12,9 +12,18 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Project directory
+# Project directory (repo root)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+
+# Ensure .env exists for Paystack and other config (Docker Compose loads it from here)
+if [ ! -f .env ]; then
+    echo -e "${YELLOW}📄 No .env found. Copying from .env.example...${NC}"
+    cp .env.example .env
+    echo -e "${YELLOW}   Edit .env and add your PAYSTACK_SECRET_KEY and PAYSTACK_PUBLIC_KEY for wallet top-up.${NC}"
+    echo -e "${YELLOW}   See LOCAL_PAYSTACK_TESTING.md for details.${NC}"
+    echo ""
+fi
 
 echo -e "${BLUE}╔════════════════════════════════════════╗${NC}"
 echo -e "${BLUE}║   MYXCROW Local Development Setup     ║${NC}"
@@ -205,9 +214,9 @@ else
     echo -e "${YELLOW}⚠️  API may still be starting${NC}"
 fi
 
-# Test Web
+# Test Web (mapped to 3007 on host)
 echo -n "Testing Web frontend... "
-if curl -s -o /dev/null -w "%{http_code}" http://localhost:3000 | grep -q "200"; then
+if curl -s -o /dev/null -w "%{http_code}" http://localhost:3007 | grep -q "200"; then
     echo -e "${GREEN}✅ OK${NC}"
 else
     echo -e "${YELLOW}⚠️  Web may still be starting${NC}"
@@ -221,7 +230,7 @@ echo -e "${BLUE}║        Setup Complete! 🎉              ║${NC}"
 echo -e "${BLUE}╚════════════════════════════════════════╝${NC}"
 echo ""
 echo -e "${GREEN}📍 Access Points:${NC}"
-echo "   • Web Frontend:    http://localhost:3000"
+echo "   • Web Frontend:    http://localhost:3007"
 echo "   • API:             http://localhost:4000/api"
 echo "   • API Health:      http://localhost:4000/api/health"
 echo "   • Mailpit:         http://localhost:8026"
@@ -230,14 +239,14 @@ echo "   • MinIO API:       http://localhost:9003"
 echo ""
 echo -e "${GREEN}🔑 Default Credentials:${NC}"
 echo "   • MinIO:           minioadmin / minioadmin"
-echo "   • Database:       postgres / postgres (port 5434)"
+echo "   • Database:        postgres / postgres (port 5434)"
 echo ""
 echo -e "${GREEN}📝 Useful Commands:${NC}"
 echo "   • View logs:       $COMPOSE_CMD -f infra/docker/docker-compose.dev.yml logs -f"
-echo "   • Stop services:  $COMPOSE_CMD -f infra/docker/docker-compose.dev.yml down"
+echo "   • Stop services:   $COMPOSE_CMD -f infra/docker/docker-compose.dev.yml down"
 echo "   • Restart:         $COMPOSE_CMD -f infra/docker/docker-compose.dev.yml restart"
-echo "   • Seed database:   docker exec escrow_api pnpm seed"
+echo "   • Seed database:   ./scripts/db-seed.sh   (or: docker exec escrow_api pnpm seed)"
 echo ""
-echo -e "${YELLOW}💡 Tip: Run 'docker exec escrow_api pnpm seed' to seed test data${NC}"
+echo -e "${YELLOW}💡 Wallet top-up: Add PAYSTACK_SECRET_KEY and PAYSTACK_PUBLIC_KEY to .env, then seed and test at http://localhost:3007 (see LOCAL_PAYSTACK_TESTING.md)${NC}"
 echo ""
 

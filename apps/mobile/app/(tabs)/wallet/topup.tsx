@@ -19,7 +19,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '../../../src/lib/api-client';
 import { useAuth } from '../../../src/contexts/AuthContext';
-import { formatCurrency } from '../../../src/lib/constants';
+import { formatCurrency, WEB_BASE_URL } from '../../../src/lib/constants';
 import Toast from 'react-native-toast-message';
 import { WebView } from 'react-native-webview';
 
@@ -48,6 +48,7 @@ export default function WalletTopupScreen() {
       const response = await apiClient.post('/payments/wallet/topup', {
         amountCents: Math.round(data.amountCents * 100), // Convert to cents
         email: user?.email,
+        callbackUrl: `${WEB_BASE_URL.replace(/\/$/, '')}/wallet/topup/callback`,
       });
       return response.data;
     },
@@ -101,16 +102,23 @@ export default function WalletTopupScreen() {
 
   const handleWebViewNavigationStateChange = (navState: any) => {
     const { url } = navState;
-    
-    // Check if payment was successful (Paystack redirects to callback URL)
-    if (url.includes('callback') || url.includes('success')) {
-      // Extract reference from URL or use the funding reference
-      const urlParams = new URLSearchParams(url.split('?')[1]);
-      const reference = urlParams.get('reference');
-      
-      if (reference) {
+    if (!url || typeof url !== 'string') return;
+
+    // Paystack redirects to our callback URL with reference (or trxref) in query
+    const isCallback =
+      url.includes('/wallet/topup/callback') || url.includes('callback') || url.includes('success');
+    if (!isCallback) return;
+
+    try {
+      const queryStart = url.indexOf('?');
+      const queryString = queryStart >= 0 ? url.slice(queryStart + 1).split('#')[0] : '';
+      const urlParams = new URLSearchParams(queryString);
+      const reference = urlParams.get('reference') || urlParams.get('trxref');
+      if (reference && !verifyPaymentMutation.isPending) {
         verifyPaymentMutation.mutate(reference);
       }
+    } catch (_) {
+      // ignore parse errors
     }
   };
 

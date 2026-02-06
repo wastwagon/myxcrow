@@ -26,6 +26,7 @@ export class PaymentsService {
     email: string;
     amountCents: number;
     holdHours?: number;
+    callbackUrl?: string;
   }) {
     return this.walletTopupService.initializeTopUp({
       userId: data.userId,
@@ -33,6 +34,7 @@ export class PaymentsService {
       amountCents: data.amountCents,
       currency: 'GHS',
       holdHours: data.holdHours,
+      callbackUrl: data.callbackUrl,
     });
   }
 

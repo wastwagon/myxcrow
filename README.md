@@ -63,6 +63,8 @@ Or manually:
 docker exec escrow_api pnpm seed
 ```
 
+**Wallet top-up (Paystack):** To test payments locally, add your Paystack keys to `.env` and see **[LOCAL_PAYSTACK_TESTING.md](LOCAL_PAYSTACK_TESTING.md)**.
+
 ## 🏗️ Shared Architecture
 
 **Web and mobile use the same infrastructure:**

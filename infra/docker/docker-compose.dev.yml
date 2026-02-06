@@ -75,10 +75,12 @@ services:
       S3_SECRET_KEY: minioadmin
       S3_BUCKET: escrow-evidence
       JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
-      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-sk_test_xxx}
-      PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-pk_test_xxx}
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
+      PAYSTACK_PUBLIC_KEY: ${PAYSTACK_PUBLIC_KEY:-}
+      PAYSTACK_WEBHOOK_SECRET: ${PAYSTACK_WEBHOOK_SECRET:-}
       PORT: 4000
-      WEB_APP_URL: http://localhost:3007
+      WEB_APP_URL: ${WEB_APP_URL:-http://localhost:3007}
+      WEB_BASE_URL: ${WEB_BASE_URL:-http://localhost:3007}
       NODE_ENV: development
     volumes:
       - ../../services/api:/usr/src/app
