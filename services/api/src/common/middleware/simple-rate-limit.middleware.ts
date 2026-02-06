@@ -10,7 +10,15 @@ export class SimpleRateLimitMiddleware implements NestMiddleware {
   constructor(@Inject(RATE_LIMIT_STORE) private readonly store: IRateLimitStore) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
-    if (req.path === '/health' || req.path === '/api/health') {
+    const path = (req.path || req.originalUrl?.split('?')[0] || '').toLowerCase();
+    const isHealthCheck =
+      path === 'health' ||
+      path === '/health' ||
+      path === '/api/health' ||
+      path.endsWith('/health') ||
+      path.startsWith('/api/health') ||
+      path.startsWith('/health/');
+    if (isHealthCheck) {
       return next();
     }
 
