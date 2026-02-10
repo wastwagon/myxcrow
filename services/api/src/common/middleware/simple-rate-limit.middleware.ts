@@ -18,7 +18,15 @@ export class SimpleRateLimitMiddleware implements NestMiddleware {
       path.endsWith('/health') ||
       path.startsWith('/api/health') ||
       path.startsWith('/health/');
+    
+    // Skip rate limiting for health checks
     if (isHealthCheck) {
+      return next();
+    }
+
+    // Skip rate limiting for internal/private IPs (Render's health checks, internal services)
+    const clientIp = req.ip || req.socket.remoteAddress || '';
+    if (this.isInternalIp(clientIp)) {
       return next();
     }
 
@@ -40,6 +48,41 @@ export class SimpleRateLimitMiddleware implements NestMiddleware {
     }
 
     next();
+  }
+
+  /**
+   * Check if an IP address is internal/private
+   * Internal IPs include:
+   * - 10.0.0.0/8 (Render, AWS, etc.)
+   * - 172.16.0.0/12 (Docker, private networks)
+   * - 192.168.0.0/16 (Local networks)
+   * - 127.0.0.0/8 (Localhost)
+   */
+  private isInternalIp(ip: string): boolean {
+    if (!ip) return false;
+
+    // Extract IPv4 address from IPv6-mapped IPv4 (::ffff:10.x.x.x)
+    const ipv4Match = ip.match(/(?:::ffff:)?(\d+\.\d+\.\d+\.\d+)/);
+    if (!ipv4Match) return false;
+
+    const cleanIp = ipv4Match[1];
+    const parts = cleanIp.split('.').map(Number);
+
+    if (parts.length !== 4) return false;
+
+    // 10.0.0.0/8 (Render internal, AWS VPC, etc.)
+    if (parts[0] === 10) return true;
+
+    // 172.16.0.0/12 (Docker, private networks)
+    if (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) return true;
+
+    // 192.168.0.0/16 (Local networks)
+    if (parts[0] === 192 && parts[1] === 168) return true;
+
+    // 127.0.0.0/8 (Localhost)
+    if (parts[0] === 127) return true;
+
+    return false;
   }
 
   private getClientId(req: Request): string {
