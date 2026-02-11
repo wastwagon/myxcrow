@@ -24,13 +24,6 @@ export class RegisterDto {
   phone: string;
 
   @IsOptional()
-  @IsString()
-  @Matches(/^GHA-[0-9]{9}-[0-9]$/, {
-    message: 'Invalid Ghana Card format (e.g., GHA-123456789-1)',
-  })
-  ghanaCardNumber?: string;
-
-  @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
 }

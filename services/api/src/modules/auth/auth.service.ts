@@ -64,7 +64,7 @@ export class AuthService {
       },
     });
 
-    // Process KYC documents...
+    // Process KYC documents if provided (optional for MVP)
     let kycResult = null;
     if (files?.cardFront && files?.cardBack && files?.selfie) {
       if (!this.kycService) {
@@ -73,7 +73,7 @@ export class AuthService {
       try {
         kycResult = await this.kycService.processKYCRegistration({
           userId: user.id,
-          ghanaCardNumber: data.ghanaCardNumber,
+          ghanaCardNumber: undefined, // No Ghana Card number collected
           cardFrontBuffer: files.cardFront,
           cardBackBuffer: files.cardBack,
           selfieBuffer: files.selfie,
@@ -86,15 +86,6 @@ export class AuthService {
         await this.prisma.user.delete({ where: { id: user.id } }).catch(() => { });
         throw error;
       }
-    } else if (data.ghanaCardNumber) {
-      // Store card number only...
-      await this.prisma.kYCDetail.create({
-        data: {
-          userId: user.id,
-          documentType: 'GHANA_CARD',
-          ghanaCardNumber: data.ghanaCardNumber,
-        },
-      });
     }
 
     await this.auditService.log({
