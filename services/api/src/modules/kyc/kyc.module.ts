@@ -1,17 +1,16 @@
 import { Module } from '@nestjs/common';
 import { KYCService } from './kyc.service';
-import { FaceMatchingService } from './face-matching.service';
 import { KYCController } from './kyc.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [PrismaModule, ConfigModule],
-  providers: [KYCService, FaceMatchingService],
+  providers: [KYCService],
   controllers: [KYCController],
-  exports: [KYCService, FaceMatchingService],
+  exports: [KYCService],
 })
-export class KYCModule {}
+export class KYCModule { }
 
 
 

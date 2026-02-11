@@ -1,6 +1,5 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { FaceMatchingService } from './face-matching.service';
 import { ConfigService } from '@nestjs/config';
 import * as MinIO from 'minio';
 import { KYCStatus } from '@prisma/client';
@@ -12,7 +11,6 @@ export class KYCService {
 
   constructor(
     private prisma: PrismaService,
-    private faceMatchingService: FaceMatchingService,
     private configService: ConfigService,
   ) {
     // Initialize MinIO client (same as EvidenceService)
@@ -101,7 +99,7 @@ export class KYCService {
   }
 
   /**
-   * Process KYC registration with face matching
+   * Process KYC registration (NO face matching - admin review required)
    */
   async processKYCRegistration(data: {
     userId: string;
@@ -109,20 +107,13 @@ export class KYCService {
     cardFrontBuffer: Buffer;
     cardBackBuffer: Buffer;
     selfieBuffer: Buffer;
-  }): Promise<{ faceMatchScore: number; faceMatchPassed: boolean }> {
-    // Validate images
-    await this.faceMatchingService.validateImage(data.cardFrontBuffer, 'Ghana Card front');
-    await this.faceMatchingService.validateImage(data.selfieBuffer, 'Selfie');
-
-    // Perform face matching
-    const matchResult = await this.faceMatchingService.compareFaces(data.cardFrontBuffer, data.selfieBuffer);
-
-    // Upload files to MinIO
+  }): Promise<{ success: boolean; message: string }> {
+    // Upload files to MinIO (no face matching validation)
     const cardFrontUrl = await this.uploadFile(data.cardFrontBuffer, 'card-front.jpg', data.userId, 'card-front');
     const cardBackUrl = await this.uploadFile(data.cardBackBuffer, 'card-back.jpg', data.userId, 'card-back');
     const selfieUrl = await this.uploadFile(data.selfieBuffer, 'selfie.jpg', data.userId, 'selfie');
 
-    // Create or update KYC record
+    // Create or update KYC record (NO face matching)
     await this.prisma.kYCDetail.upsert({
       where: { userId: data.userId },
       create: {
@@ -131,17 +122,14 @@ export class KYCService {
         cardFrontUrl: cardFrontUrl,
         cardBackUrl: cardBackUrl,
         selfieUrl: selfieUrl,
-        faceMatchScore: matchResult.score,
-        faceMatchPassed: matchResult.passed,
         documentType: 'GHANA_CARD',
+        // NO faceMatchScore or faceMatchPassed
       },
       update: {
         ghanaCardNumber: data.ghanaCardNumber,
         cardFrontUrl: cardFrontUrl,
         cardBackUrl: cardBackUrl,
         selfieUrl: selfieUrl,
-        faceMatchScore: matchResult.score,
-        faceMatchPassed: matchResult.passed,
         adminApproved: false, // Reset approval on re-submission
         reviewedBy: null,
         reviewedAt: null,
@@ -150,23 +138,23 @@ export class KYCService {
       },
     });
 
-    // Update user KYC status
+    // Update user status to PENDING (always requires admin review)
     await this.prisma.user.update({
       where: { id: data.userId },
       data: {
-        kycStatus: matchResult.passed ? KYCStatus.IN_PROGRESS : KYCStatus.PENDING,
+        kycStatus: KYCStatus.PENDING, // Always PENDING, never auto-approved
       },
     });
 
     return {
-      faceMatchScore: matchResult.score,
-      faceMatchPassed: matchResult.passed,
+      success: true,
+      message: 'KYC documents submitted successfully. Admin will review your submission.',
     };
   }
 
   /**
    * Allow an authenticated user to resubmit KYC (e.g. after rejection).
-   * Uses the same self-hosted face matching and document storage flow as registration.
+   * Uses the same document storage flow as registration (NO face matching).
    */
   async resubmitKYC(data: {
     userId: string;
@@ -174,7 +162,7 @@ export class KYCService {
     cardFrontBuffer: Buffer;
     cardBackBuffer: Buffer;
     selfieBuffer: Buffer;
-  }): Promise<{ faceMatchScore: number; faceMatchPassed: boolean; kycStatus: KYCStatus }> {
+  }): Promise<{ success: boolean; message: string; kycStatus: KYCStatus }> {
     const user = await this.prisma.user.findUnique({ where: { id: data.userId } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -224,14 +212,13 @@ export class KYCService {
   }
 
   /**
-   * List pending KYC verifications (for admin)
+   * List pending KYC verifications (for admin) - ALL submissions require review
    */
   async listPendingVerifications(limit: number = 50, offset: number = 0) {
     const [kycDetails, total] = await Promise.all([
       this.prisma.kYCDetail.findMany({
         where: {
-          adminApproved: false,
-          faceMatchPassed: true, // Only show those that passed automatic check
+          adminApproved: false, // Show ALL pending (no face match filter)
         },
         include: {
           user: {
@@ -252,8 +239,7 @@ export class KYCService {
       }),
       this.prisma.kYCDetail.count({
         where: {
-          adminApproved: false,
-          faceMatchPassed: true,
+          adminApproved: false, // Count ALL pending
         },
       }),
     ]);
