@@ -13,17 +13,20 @@ Simplified the registration process to remove all KYC and face matching requirem
 - ✅ **Removed Step 2** (Identity Verification) - now single-step registration
 - ✅ **Removed Ghana Card upload fields** (front and back)
 - ✅ **Removed selfie capture** requirement
-- ✅ **Removed Ghana Card number field** from the form
+- ✅ **Removed Ghana Card number field** completely
 - ✅ **Simplified schema** - only requires: email, password, firstName, lastName, phone, role
 - ✅ **Changed to JSON submission** instead of FormData/multipart
 - ✅ **Removed face matching score** display logic
 - ✅ **Cleaner, simpler UI** - single form, no multi-step wizard
 
 ### 2. Backend DTO (`services/api/src/modules/auth/dto/register.dto.ts`)
-- ✅ Made `ghanaCardNumber` **optional** with `@IsOptional()` decorator
-- ✅ Users can register without providing Ghana Card number
+- ✅ **Removed `ghanaCardNumber` field** completely
+- ✅ Users register with just: email, password, firstName, lastName, phone, role
 
-### 3. Backend Controller (`services/api/src/modules/auth/auth.controller.ts`)
+### 3. Backend Service (`services/api/src/modules/auth/auth.service.ts`)
+- ✅ **Removed Ghana Card number handling**
+- ✅ Removed the else-if block that stored card number only
+- ✅ KYC processing no longer expects Ghana Card number
 - ✅ Made file uploads **optional**
 - ✅ Only processes KYC files if they are provided
 - ✅ Updated error message to clarify files are optional
