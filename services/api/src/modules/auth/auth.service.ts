@@ -21,7 +21,7 @@ export class AuthService {
     private configService: ConfigService,
     @Inject(forwardRef(() => KYCService))
     private kycService?: KYCService,
-  ) {}
+  ) { }
 
   async register(
     data: RegisterDto,
@@ -64,14 +64,14 @@ export class AuthService {
       },
     });
 
-    // Process KYC with face matching if files provided
-    let faceMatchResult = null;
+    // Process KYC documents...
+    let kycResult = null;
     if (files?.cardFront && files?.cardBack && files?.selfie) {
       if (!this.kycService) {
         throw new BadRequestException('KYC service not available. Please contact support.');
       }
       try {
-        faceMatchResult = await this.kycService.processKYCRegistration({
+        kycResult = await this.kycService.processKYCRegistration({
           userId: user.id,
           ghanaCardNumber: data.ghanaCardNumber,
           cardFrontBuffer: files.cardFront,
@@ -79,23 +79,15 @@ export class AuthService {
           selfieBuffer: files.selfie,
         });
 
-        // If face match failed, throw error to prevent registration
-        if (!faceMatchResult.faceMatchPassed) {
-          // Delete user since registration failed
-          await this.prisma.user.delete({ where: { id: user.id } });
-          throw new BadRequestException(
-            `Face verification failed. Similarity score: ${(faceMatchResult.faceMatchScore * 100).toFixed(1)}%. ` +
-              'Please ensure your selfie clearly shows your face and matches your Ghana Card photo. ' +
-              'Requirements: Good lighting, clear face, similar angle to card photo.',
-          );
-        }
+        // We no longer block registration on face matching.
+        // All submissions go to PENDING for admin review.
       } catch (error) {
-        // Clean up user if KYC processing fails
-        await this.prisma.user.delete({ where: { id: user.id } }).catch(() => {});
+        // Clean up user if KYC processing fails (e.g. upload error)
+        await this.prisma.user.delete({ where: { id: user.id } }).catch(() => { });
         throw error;
       }
     } else if (data.ghanaCardNumber) {
-      // Store card number only if no files (backward compatibility)
+      // Store card number only...
       await this.prisma.kYCDetail.create({
         data: {
           userId: user.id,
@@ -110,7 +102,7 @@ export class AuthService {
       action: 'user_register',
       resource: 'user',
       resourceId: user.id,
-      details: { email: user.email, faceMatchScore: faceMatchResult?.faceMatchScore },
+      details: { email: user.email, kycSubmitted: !!kycResult },
     });
 
     const tokens = await this.generateTokens(user.id, user.email);

@@ -216,6 +216,12 @@ model KYCDetail {
   selfieUrl         String?  // Selfie image URL in MinIO
   faceMatchScore    Float?   // 0-1 similarity score
   faceMatchPassed   Boolean  @default(false)
+  livenessVerified  Boolean  @default(false)
+  
+  // Smile ID Verification tracking
+  smileJobId        String?  @unique
+  smileResultCode   String?
+  smileResultText   String?
   
   // Admin Review
   reviewedBy        String?  // Admin user ID
@@ -233,6 +239,7 @@ model KYCDetail {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([userId])
+  @@index([smileJobId])
   @@index([faceMatchPassed])
   @@index([adminApproved])
 }

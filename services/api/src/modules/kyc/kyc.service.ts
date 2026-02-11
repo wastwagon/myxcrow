@@ -321,5 +321,41 @@ export class KYCService {
 
     return { success: true };
   }
+
+  /**
+   * Handle Smile ID job completion callback
+   */
+  async handleSmileIDCallback(result: {
+    userId: string;
+    jobId: string;
+    passed: boolean;
+    resultText: string;
+    resultCode: string;
+    raw: any;
+  }) {
+    // Update KYC details with Smile ID results
+    await this.prisma.kYCDetail.update({
+      where: { userId: result.userId },
+      data: {
+        smileJobId: result.jobId,
+        smileResultCode: result.resultCode,
+        smileResultText: result.resultText,
+        faceMatchPassed: result.passed,
+        livenessVerified: result.passed, // Assuming passed means liveness too for DOCUMENT_VERIFICATION
+        // faceMatchScore can be extracted from raw result if needed
+      },
+    });
+
+    // Update user status
+    // If it passed Smile verification, it still needs ADMIN review per user request
+    await this.prisma.user.update({
+      where: { id: result.userId },
+      data: {
+        kycStatus: result.passed ? KYCStatus.PENDING : KYCStatus.REJECTED,
+      },
+    });
+
+    return { success: true };
+  }
 }
 

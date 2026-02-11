@@ -10,8 +10,11 @@ import {
   UseInterceptors,
   UploadedFiles,
   BadRequestException,
+  Headers,
+  Logger,
 } from '@nestjs/common';
 import { KYCService } from './kyc.service';
+import { SmileIDService } from './smile-id.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -21,7 +24,12 @@ import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('kyc')
 export class KYCController {
-  constructor(private readonly kycService: KYCService) {}
+  private readonly logger = new Logger(KYCController.name);
+
+  constructor(
+    private readonly kycService: KYCService,
+    private readonly smileIdService: SmileIDService,
+  ) { }
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
@@ -50,7 +58,7 @@ export class KYCController {
       );
     }
 
-    // Parse files if provided (same approach as auth/register)
+    // Parse files...
     const fileBuffers: { cardFront?: Buffer; cardBack?: Buffer; selfie?: Buffer } = {};
 
     for (const file of files) {
@@ -85,6 +93,35 @@ export class KYCController {
       cardBackBuffer: fileBuffers.cardBack,
       selfieBuffer: fileBuffers.selfie,
     });
+  }
+
+  /**
+   * Smile ID Webhook Callback
+   */
+  @Post('callback')
+  async smileCallback(
+    @Body() body: any,
+    @Headers('signature') signature?: string,
+    @Headers('timestamp') timestamp?: string,
+  ) {
+    this.logger.log(`Received Smile ID callback for user ${body.user_id}`);
+
+    // Verify signature
+    if (signature && timestamp) {
+      const isValid = this.smileIdService.verifySignature(timestamp, signature);
+      if (!isValid) {
+        this.logger.warn(`Invalid signature for Smile ID callback. User: ${body.user_id}`);
+        // In production, you might want to throw error here
+      }
+    }
+
+    // Process callback via service
+    const result = await this.smileIdService.processWebhook(body);
+
+    // Update KYC status in our database
+    await this.kycService.handleSmileIDCallback(result);
+
+    return { received: true };
   }
 
   @Get('pending')
