@@ -24,7 +24,7 @@ import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   @UseInterceptors(
@@ -42,7 +42,7 @@ export class AuthController {
       throw new BadRequestException(messages.length ? messages.join('; ') : 'Validation failed');
     }
 
-    // Parse files if provided
+    // Parse files if provided (optional for MVP)
     let fileBuffers: { cardFront?: Buffer; cardBack?: Buffer; selfie?: Buffer } | undefined;
 
     if (files && files.length > 0) {
@@ -66,9 +66,10 @@ export class AuthController {
         }
       }
 
+      // Only validate all files are present if any files were uploaded
       if (!fileBuffers.cardFront || !fileBuffers.cardBack || !fileBuffers.selfie) {
         throw new BadRequestException(
-          'All files are required: Ghana Card front, Ghana Card back, and selfie',
+          'If uploading files, all three are required: Ghana Card front, Ghana Card back, and selfie',
         );
       }
     }
