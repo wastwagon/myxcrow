@@ -18,11 +18,7 @@ interface RegisterData {
   firstName: string;
   lastName: string;
   phone: string;
-  ghanaCardNumber: string;
   role?: 'BUYER' | 'SELLER';
-  cardFront?: any;
-  cardBack?: any;
-  selfie?: any;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -80,41 +76,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: RegisterData) => {
     try {
-      const formData = new FormData();
-      formData.append('email', data.email);
-      formData.append('password', data.password);
-      formData.append('firstName', data.firstName);
-      formData.append('lastName', data.lastName);
-      formData.append('phone', data.phone);
-      formData.append('ghanaCardNumber', data.ghanaCardNumber);
-      formData.append('role', data.role || 'BUYER');
-
-      if (data.cardFront) {
-        formData.append('files', {
-          uri: data.cardFront.uri,
-          type: 'image/jpeg',
-          name: 'card-front.jpg',
-        } as any);
-      }
-      if (data.cardBack) {
-        formData.append('files', {
-          uri: data.cardBack.uri,
-          type: 'image/jpeg',
-          name: 'card-back.jpg',
-        } as any);
-      }
-      if (data.selfie) {
-        formData.append('files', {
-          uri: data.selfie.uri,
-          type: 'image/jpeg',
-          name: 'selfie.jpg',
-        } as any);
-      }
-
-      const response = await apiClient.post('/auth/register', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
+      const response = await apiClient.post('/auth/register', {
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        phone: data.phone,
+        role: data.role || 'BUYER',
       });
 
       const { user, accessToken, refreshToken } = response.data;
