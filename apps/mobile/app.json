@@ -17,9 +17,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.myxcrow.app",
+      "buildNumber": "1",
       "infoPlist": {
-        "NSCameraUsageDescription": "This app needs access to your camera to capture KYC documents and selfies.",
-        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to upload KYC documents."
+        "NSCameraUsageDescription": "This app may need access to your camera for optional document verification.",
+        "NSPhotoLibraryUsageDescription": "This app may need access to your photo library for optional document uploads."
       }
     },
     "android": {
@@ -28,6 +29,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.myxcrow.app",
+      "versionCode": 1,
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
@@ -41,7 +43,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow MYXCROW to access your camera to capture KYC documents."
+          "cameraPermission": "Allow MYXCROW to access your camera for optional document verification."
         }
       ],
       [
