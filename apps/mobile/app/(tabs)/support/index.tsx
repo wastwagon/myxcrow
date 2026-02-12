@@ -37,9 +37,9 @@ export default function SupportScreen() {
         'Escrow protects both buyers and sellers by holding funds until both parties fulfill their obligations. Funds are only released when delivery is confirmed.',
     },
     {
-      question: 'How long does KYC verification take?',
+      question: 'How do I get started?',
       answer:
-        'KYC verification typically takes 1-2 business days. Make sure your Ghana Card and selfie are clear and readable.',
+        'Simply create an account with your email and phone number. You can start creating or accepting escrow transactions immediately after registration.',
     },
     {
       question: 'What are the fees?',
