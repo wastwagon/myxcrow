@@ -19,7 +19,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '../../../src/lib/api-client';
 import { useAuth } from '../../../src/contexts/AuthContext';
-import { formatCurrency } from '../../../src/lib/constants';
+import { formatCurrency, CURRENCY_SYMBOL } from '../../../src/lib/constants';
 import Toast from 'react-native-toast-message';
 
 const withdrawSchema = z.object({
@@ -89,7 +89,7 @@ export default function WithdrawScreen() {
   const onSubmit = (data: WithdrawFormData) => {
     Alert.alert(
       'Confirm',
-      `Request withdrawal of ${formatCurrency(Math.round(data.amountCents * 100), 'GHS')}?`,
+      `Request withdrawal of ${formatCurrency(Math.round(data.amountCents * 100))}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Confirm', onPress: () => withdrawMutation.mutate(data) },
@@ -136,7 +136,7 @@ export default function WithdrawScreen() {
           name="amountCents"
           render={({ field: { onChange, onBlur, value } }) => (
             <View style={styles.field}>
-              <Text style={styles.label}>Amount (GHS) *</Text>
+              <Text style={styles.label}>Amount ({CURRENCY_SYMBOL}) *</Text>
               <TextInput
                 style={styles.input}
                 placeholder="100"

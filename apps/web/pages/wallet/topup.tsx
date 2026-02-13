@@ -20,7 +20,7 @@ export default function WalletTopupPage() {
     mutationFn: async () => {
       const user = getUser();
       const amountCents = Math.round(parseFloat(amount || '0') * 100);
-      if (amountCents < 100) throw new Error('Amount must be at least 1.00 GHS');
+      if (amountCents < 100) throw new Error('Amount must be at least ₵1.00');
       const r = await apiClient.post('/payments/wallet/topup', {
         amountCents,
         email: user?.email,
@@ -53,7 +53,7 @@ export default function WalletTopupPage() {
         <div className="bg-white rounded-xl shadow p-6 space-y-4">
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-              Amount (GHS) *
+              Amount (₵) *
             </label>
             <input
               id="amount"

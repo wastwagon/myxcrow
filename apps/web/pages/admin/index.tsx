@@ -47,7 +47,9 @@ export default function AdminDashboard() {
       const response = await apiClient.get('/escrows');
       return response.data;
     },
-    enabled: mounted && isAuthenticated() && isAdmin(), // Only fetch when ready
+    enabled: mounted && isAuthenticated() && isAdmin(),
+    staleTime: 0,
+    refetchInterval: 30000,
   });
 
   // Extract escrows array from response (handle both formats)
@@ -80,10 +82,12 @@ export default function AdminDashboard() {
   const { data: walletsData, isLoading: walletsLoading } = useQuery<{ data?: any[]; wallets?: any[]; total?: number } | any[]>({
     queryKey: ['admin-wallets'],
     queryFn: async () => {
-      const response = await apiClient.get('/wallet/admin?limit=100');
+      const response = await apiClient.get('/wallet/admin?limit=500');
       return response.data;
     },
     enabled: mounted && isAuthenticated() && isAdmin(),
+    staleTime: 0, // Always fetch fresh data from database
+    refetchInterval: 30000, // Refetch every 30s when dashboard is visible
   });
 
   // Extract wallets array from response (handle both formats)

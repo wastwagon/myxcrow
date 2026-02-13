@@ -18,9 +18,12 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles } from './decorators/roles.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
+import { UserRole } from '@prisma/client';
 
 @Controller('auth')
 export class AuthController {
@@ -116,6 +119,13 @@ export class AuthController {
   @Post('refresh')
   async refresh(@Body() data: { refreshToken: string }) {
     return this.authService.refreshToken(data.refreshToken);
+  }
+
+  @Post('admin/impersonate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async adminImpersonate(@CurrentUser() admin: any, @Body() body: { userId: string }) {
+    return this.authService.adminImpersonate(admin.id, body.userId);
   }
 }
 

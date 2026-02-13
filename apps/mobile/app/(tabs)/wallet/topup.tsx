@@ -19,7 +19,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '../../../src/lib/api-client';
 import { useAuth } from '../../../src/contexts/AuthContext';
-import { formatCurrency, WEB_BASE_URL } from '../../../src/lib/constants';
+import { formatCurrency, CURRENCY_SYMBOL, WEB_BASE_URL } from '../../../src/lib/constants';
 import Toast from 'react-native-toast-message';
 import { WebView } from 'react-native-webview';
 
@@ -167,7 +167,7 @@ export default function WalletTopupScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Amount (GHS) *</Text>
+            <Text style={styles.label}>Amount ({CURRENCY_SYMBOL}) *</Text>
             <Controller
               control={control}
               name="amountCents"

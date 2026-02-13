@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { Loader2, Search, User, X, AlertTriangle } from 'lucide-react';
+import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 
 const debitSchema = z.object({
@@ -28,6 +29,7 @@ interface UserOption {
 export default function DebitWalletPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const userIdFromQuery = typeof router.query.userId === 'string' ? router.query.userId : undefined;
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserOption | null>(null);
@@ -38,15 +40,6 @@ export default function DebitWalletPage() {
     }
   }, [router]);
 
-  const { data: usersData, isLoading: usersLoading } = useQuery({
-    queryKey: ['users', searchTerm],
-    queryFn: async () => {
-      const response = await apiClient.get(`/users?search=${encodeURIComponent(searchTerm)}&limit=10`);
-      return response.data;
-    },
-    enabled: showUserSearch && searchTerm.length > 0,
-  });
-
   const {
     register,
     handleSubmit,
@@ -55,6 +48,38 @@ export default function DebitWalletPage() {
     setValue,
   } = useForm<DebitFormData>({
     resolver: zodResolver(debitSchema),
+    defaultValues: { userId: userIdFromQuery || '' },
+  });
+
+  // Fetch user when userId is in query (e.g. from admin users page)
+  const { data: userData } = useQuery({
+    queryKey: ['user', userIdFromQuery],
+    queryFn: async () => {
+      const r = await apiClient.get(`/users/${userIdFromQuery}`);
+      return r.data;
+    },
+    enabled: !!userIdFromQuery && isAuthenticated() && isAdmin(),
+  });
+
+  useEffect(() => {
+    if (userData && userIdFromQuery) {
+      setSelectedUser({
+        id: userData.id,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+      });
+      setValue('userId', userData.id);
+    }
+  }, [userData, userIdFromQuery, setValue]);
+
+  const { data: usersData, isLoading: usersLoading } = useQuery({
+    queryKey: ['users', searchTerm],
+    queryFn: async () => {
+      const response = await apiClient.get(`/users?search=${encodeURIComponent(searchTerm)}&limit=10`);
+      return response.data;
+    },
+    enabled: showUserSearch && searchTerm.length > 0,
   });
 
   const amountGHS = watch('amountCents');
@@ -200,10 +225,10 @@ export default function DebitWalletPage() {
           {/* Amount */}
           <div>
             <label htmlFor="amountCents" className="block text-sm font-semibold text-gray-700 mb-2">
-              Amount (GHS) *
+              Amount ({CURRENCY_SYMBOL}) *
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">GHS</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{CURRENCY_SYMBOL}</span>
               <input
                 {...register('amountCents', { valueAsNumber: true })}
                 type="number"

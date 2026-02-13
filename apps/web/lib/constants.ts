@@ -3,6 +3,9 @@
  * Centralized constants for consistent use across the application
  */
 
+/** Ghana Cedis symbol for display (₵) */
+export const CURRENCY_SYMBOL = '₵';
+
 /**
  * Escrow Status Colors
  * Consistent color mapping for escrow status badges

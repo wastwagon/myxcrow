@@ -11,6 +11,8 @@ export const APP_VERSION = '1.0.0';
 // Currency
 export const DEFAULT_CURRENCY = 'GHS';
 export const DEFAULT_COUNTRY = 'GH';
+/** Ghana Cedis symbol for display (₵) */
+export const CURRENCY_SYMBOL = '₵';
 
 // Escrow Status
 export enum EscrowStatus {

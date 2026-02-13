@@ -39,8 +39,14 @@ interface Escrow {
 export default function Dashboard() {
   const router = useRouter();
   const [userName, setUserName] = useState<string>('');
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     if (!isAuthenticated()) {
       router.push('/login');
     } else {
@@ -57,7 +63,7 @@ export default function Dashboard() {
         setUserName(name);
       }
     }
-  }, [router]);
+  }, [router, mounted]);
 
   const { data: wallet, isLoading: walletLoading } = useQuery<WalletData>({
     queryKey: ['wallet'],
@@ -65,6 +71,9 @@ export default function Dashboard() {
       const response = await apiClient.get('/wallet');
       return response.data;
     },
+    staleTime: 0,
+    refetchInterval: 30000,
+    enabled: mounted && isAuthenticated(),
   });
 
   const { data: escrowsData, isLoading: escrowsLoading } = useQuery<{ data?: Escrow[]; escrows?: Escrow[]; total?: number } | Escrow[]>({
@@ -73,6 +82,7 @@ export default function Dashboard() {
       const response = await apiClient.get('/escrows');
       return response.data;
     },
+    enabled: mounted && isAuthenticated(),
   });
 
   // Extract escrows array from response (handle both formats)
@@ -80,8 +90,13 @@ export default function Dashboard() {
     ? escrowsData 
     : (escrowsData?.data || escrowsData?.escrows || []);
 
-  if (!isAuthenticated()) {
-    return null;
+  // Render consistent placeholder until mounted to avoid hydration mismatch
+  if (!mounted || !isAuthenticated()) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
+      </div>
+    );
   }
 
   const statusColors: Record<string, string> = {

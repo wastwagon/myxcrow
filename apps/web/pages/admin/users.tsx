@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
-import { isAuthenticated, isAdmin } from '@/lib/auth';
+import { isAuthenticated, isAdmin, setAuthTokens, setUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Search, User, Mail, Shield, CheckCircle, XCircle, DollarSign, Eye, Edit, Save, X, Users as UsersIcon, AlertCircle } from 'lucide-react';
+import { Search, User, Mail, Shield, CheckCircle, XCircle, DollarSign, Eye, Edit, Save, X, Users as UsersIcon, AlertCircle, LogIn, Minus } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
@@ -101,6 +101,22 @@ export default function AdminUsersPage() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to update status');
+    },
+  });
+
+  const impersonateMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const res = await apiClient.post('/auth/admin/impersonate', { userId });
+      return res.data;
+    },
+    onSuccess: (data: { user: User; accessToken: string; refreshToken: string }) => {
+      setAuthTokens(data.accessToken, data.refreshToken);
+      setUser(data.user);
+      toast.success(`Logged in as ${data.user.email}`);
+      router.push('/dashboard');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to impersonate user');
     },
   });
 
@@ -354,12 +370,27 @@ export default function AdminUsersPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => impersonateMutation.mutate(user.id)}
+                            disabled={impersonateMutation.isPending || user.roles.includes('ADMIN')}
+                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Login as User"
+                          >
+                            <LogIn className="w-4 h-4" />
+                          </button>
                           <Link
                             href={`/admin/wallet/credit?userId=${user.id}`}
                             className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Credit Wallet"
+                            title="Credit (Top-up) Wallet"
                           >
                             <DollarSign className="w-4 h-4" />
+                          </Link>
+                          <Link
+                            href={`/admin/wallet/debit?userId=${user.id}`}
+                            className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                            title="Debit (Deduct) Wallet"
+                          >
+                            <Minus className="w-4 h-4" />
                           </Link>
                           <Link
                             href={`/wallet/admin/${user.id}`}

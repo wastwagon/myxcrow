@@ -183,7 +183,7 @@ export default function AdminSettingsPage() {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Fixed Fee (GHS)
+                        Fixed Fee (₵)
                       </label>
                       <input
                         type="number"

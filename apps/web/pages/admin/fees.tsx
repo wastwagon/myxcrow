@@ -76,9 +76,9 @@ export default function FeesConfigPage() {
     };
   };
 
-  const example1 = calculateExampleFee(10000); // 100 GHS
-  const example2 = calculateExampleFee(50000); // 500 GHS
-  const example3 = calculateExampleFee(100000); // 1000 GHS
+  const example1 = calculateExampleFee(10000); // 100 ₵
+  const example2 = calculateExampleFee(50000); // 500 ₵
+  const example3 = calculateExampleFee(100000); // 1000 ₵
 
   if (!isAuthenticated() || !isAdmin()) {
     return null;
@@ -129,7 +129,7 @@ export default function FeesConfigPage() {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   <DollarSign className="w-4 h-4 inline mr-1" />
-                  Fixed Fee (GHS)
+                  Fixed Fee (₵)
                 </label>
                 <input
                   type="number"
@@ -175,67 +175,67 @@ export default function FeesConfigPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Fee Examples</h2>
             <div className="space-y-4">
               <div className="border border-gray-200 rounded-lg p-4">
-                <p className="font-medium text-gray-900 mb-2">Escrow Amount: {example1.amount.toFixed(2)} GHS</p>
+                <p className="font-medium text-gray-900 mb-2">Escrow Amount: {example1.amount.toFixed(2)} ₵</p>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Percentage Fee ({percentage}%):</span>
-                    <span className="font-medium">{example1.percentageFee.toFixed(2)} GHS</span>
+                    <span className="font-medium">{example1.percentageFee.toFixed(2)} ₵</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Fixed Fee:</span>
-                    <span className="font-medium">{example1.fixedFee.toFixed(2)} GHS</span>
+                    <span className="font-medium">{example1.fixedFee.toFixed(2)} ₵</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t">
                     <span className="font-medium text-gray-900">Total Fee:</span>
-                    <span className="font-bold text-gray-900">{example1.totalFee.toFixed(2)} GHS</span>
+                    <span className="font-bold text-gray-900">{example1.totalFee.toFixed(2)} ₵</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Net Amount (to seller):</span>
-                    <span className="font-medium text-green-600">{example1.netAmount.toFixed(2)} GHS</span>
+                    <span className="font-medium text-green-600">{example1.netAmount.toFixed(2)} ₵</span>
                   </div>
                 </div>
               </div>
 
               <div className="border border-gray-200 rounded-lg p-4">
-                <p className="font-medium text-gray-900 mb-2">Escrow Amount: {example2.amount.toFixed(2)} GHS</p>
+                <p className="font-medium text-gray-900 mb-2">Escrow Amount: {example2.amount.toFixed(2)} ₵</p>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Percentage Fee ({percentage}%):</span>
-                    <span className="font-medium">{example2.percentageFee.toFixed(2)} GHS</span>
+                    <span className="font-medium">{example2.percentageFee.toFixed(2)} ₵</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Fixed Fee:</span>
-                    <span className="font-medium">{example2.fixedFee.toFixed(2)} GHS</span>
+                    <span className="font-medium">{example2.fixedFee.toFixed(2)} ₵</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t">
                     <span className="font-medium text-gray-900">Total Fee:</span>
-                    <span className="font-bold text-gray-900">{example2.totalFee.toFixed(2)} GHS</span>
+                    <span className="font-bold text-gray-900">{example2.totalFee.toFixed(2)} ₵</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Net Amount (to seller):</span>
-                    <span className="font-medium text-green-600">{example2.netAmount.toFixed(2)} GHS</span>
+                    <span className="font-medium text-green-600">{example2.netAmount.toFixed(2)} ₵</span>
                   </div>
                 </div>
               </div>
 
               <div className="border border-gray-200 rounded-lg p-4">
-                <p className="font-medium text-gray-900 mb-2">Escrow Amount: {example3.amount.toFixed(2)} GHS</p>
+                <p className="font-medium text-gray-900 mb-2">Escrow Amount: {example3.amount.toFixed(2)} ₵</p>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Percentage Fee ({percentage}%):</span>
-                    <span className="font-medium">{example3.percentageFee.toFixed(2)} GHS</span>
+                    <span className="font-medium">{example3.percentageFee.toFixed(2)} ₵</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Fixed Fee:</span>
-                    <span className="font-medium">{example3.fixedFee.toFixed(2)} GHS</span>
+                    <span className="font-medium">{example3.fixedFee.toFixed(2)} ₵</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t">
                     <span className="font-medium text-gray-900">Total Fee:</span>
-                    <span className="font-bold text-gray-900">{example3.totalFee.toFixed(2)} GHS</span>
+                    <span className="font-bold text-gray-900">{example3.totalFee.toFixed(2)} ₵</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Net Amount (to seller):</span>
-                    <span className="font-medium text-green-600">{example3.netAmount.toFixed(2)} GHS</span>
+                    <span className="font-medium text-green-600">{example3.netAmount.toFixed(2)} ₵</span>
                   </div>
                 </div>
               </div>

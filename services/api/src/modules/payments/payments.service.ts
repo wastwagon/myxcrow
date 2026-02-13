@@ -47,10 +47,132 @@ export class PaymentsService {
 
     if (event === 'charge.success') {
       const reference = data.reference;
-      await this.verifyWalletTopup(reference);
+      const payment = await this.prisma.payment.findFirst({
+        where: { providerId: reference, type: 'funding', escrowId: { not: null } },
+      });
+      if (payment) {
+        await this.verifyEscrowFunding(reference);
+      } else {
+        await this.verifyWalletTopup(reference);
+      }
     }
 
     return { received: true };
+  }
+
+  async initializeEscrowPayment(escrowId: string, userId: string, email: string) {
+    const escrow = await this.prisma.escrowAgreement.findUnique({
+      where: { id: escrowId },
+      include: { buyer: { select: { email: true } } },
+    });
+
+    if (!escrow) {
+      throw new NotFoundException('Escrow not found');
+    }
+
+    if (escrow.buyerId !== userId) {
+      throw new BadRequestException('Only the buyer can fund this escrow');
+    }
+
+    if (escrow.status !== 'AWAITING_FUNDING') {
+      throw new BadRequestException(
+        `Escrow is in ${escrow.status} status, cannot fund`,
+      );
+    }
+
+    if (escrow.fundingMethod !== 'direct') {
+      throw new BadRequestException(
+        'This escrow uses wallet funding. Use the Fund button instead.',
+      );
+    }
+
+    const reference = `ESCROW_${escrowId}_${Date.now()}`;
+
+    const paystackResponse = await this.paystackService.initializePayment({
+      email: email || escrow.buyer?.email,
+      amount: escrow.amountCents,
+      currency: escrow.currency || 'GHS',
+      reference,
+      metadata: {
+        type: 'escrow_fund',
+        escrowId,
+        userId,
+      },
+      callback_url: `${process.env.WEB_BASE_URL || process.env.WEB_APP_URL || 'http://localhost:3007'}/payments/escrow/callback?reference=${reference}`,
+      channels: ['card', 'bank', 'mobile_money', 'ussd'],
+    });
+
+    await this.prisma.payment.create({
+      data: {
+        escrowId,
+        userId,
+        type: 'funding',
+        amountCents: escrow.amountCents,
+        currency: escrow.currency || 'GHS',
+        status: 'PENDING',
+        provider: 'paystack',
+        providerId: reference,
+        metadata: {
+          authorization_url: paystackResponse.data.authorization_url,
+          access_code: paystackResponse.data.access_code,
+        },
+      },
+    });
+
+    return {
+      authorizationUrl: paystackResponse.data.authorization_url,
+      reference,
+    };
+  }
+
+  async verifyEscrowFunding(reference: string) {
+    const payment = await this.prisma.payment.findFirst({
+      where: { providerId: reference, type: 'funding' },
+      include: { escrow: true },
+    });
+
+    if (!payment || !payment.escrow) {
+      throw new NotFoundException('Escrow payment not found');
+    }
+
+    if (payment.status !== 'PENDING') {
+      return payment;
+    }
+
+    const paystackResponse = await this.paystackService.verifyPayment(reference);
+
+    if (paystackResponse.data.status !== 'success') {
+      await this.prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: 'FAILED',
+          failureReason: paystackResponse.message,
+        },
+      });
+      throw new BadRequestException(
+        paystackResponse.message || 'Payment verification failed',
+      );
+    }
+
+    await this.escrowService.fundEscrowFromDirectPayment(
+      payment.escrowId!,
+      payment.userId,
+      reference,
+    );
+
+    await this.prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: 'COMPLETED',
+        processedAt: new Date(),
+        metadata: {
+          ...(payment.metadata as any),
+          paystackData: paystackResponse.data,
+        },
+      } as any,
+    });
+
+    return payment;
   }
 
   async getPayment(id: string) {

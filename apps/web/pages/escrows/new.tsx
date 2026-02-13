@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { Loader2, AlertCircle, Plus, X } from 'lucide-react';
+import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 
 const milestoneSchema = z.object({
@@ -18,7 +19,7 @@ const milestoneSchema = z.object({
 
 const createEscrowSchema = z.object({
   sellerId: z.string().min(1, 'Seller is required'),
-  amountCents: z.number().min(100, 'Amount must be at least 1.00'),
+  amountCents: z.number().min(1, 'Amount must be at least ₵1.00'),
   currency: z.string().default('GHS'),
   description: z.string().min(1, 'Description is required'),
   useWallet: z.boolean().default(true),
@@ -146,12 +147,12 @@ export default function CreateEscrowPage() {
         <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-900 mb-4"
+            className="text-white/80 hover:text-white mb-4 flex items-center gap-2 transition-colors"
           >
             ← Back
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Create New Escrow</h1>
-          <p className="text-gray-600 mt-1">Set up a new escrow agreement</p>
+          <h1 className="text-3xl font-bold text-white">Create New Escrow</h1>
+          <p className="text-white/90 mt-1">Set up a new escrow agreement</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-6 space-y-6">
@@ -237,7 +238,7 @@ export default function CreateEscrowPage() {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="amountCents" className="block text-sm font-medium text-gray-700 mb-1">
-                Amount (GHS) *
+                Amount ({CURRENCY_SYMBOL}) *
               </label>
               <input
                 type="number"
@@ -249,7 +250,7 @@ export default function CreateEscrowPage() {
                 {...register('amountCents', { valueAsNumber: true })}
               />
               <p className="mt-1 text-xs text-gray-500">
-                Enter amount in GHS (Ghana Cedis)
+                Enter amount in Ghana Cedis
               </p>
               {errors.amountCents && (
                 <p className="mt-1 text-sm text-red-600">{errors.amountCents.message}</p>
@@ -341,7 +342,7 @@ export default function CreateEscrowPage() {
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">
-                          Amount (GHS) *
+                          Amount ({CURRENCY_SYMBOL}) *
                         </label>
                         <input
                           type="number"
@@ -374,12 +375,12 @@ export default function CreateEscrowPage() {
                   <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Total Milestones:</span>
-                      <span className="font-medium">GHS {totalMilestoneAmount.toFixed(2)}</span>
+                      <span className="font-medium">{CURRENCY_SYMBOL} {totalMilestoneAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm mt-2">
                       <span className="text-gray-600">Remaining Amount:</span>
                       <span className={`font-medium ${remainingAmount < 0 ? 'text-red-600' : 'text-green-600'}`}>
-                        GHS {remainingAmount.toFixed(2)}
+                        {CURRENCY_SYMBOL} {remainingAmount.toFixed(2)}
                       </span>
                     </div>
                     {remainingAmount < 0 && (

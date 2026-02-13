@@ -117,7 +117,7 @@ export default function WithdrawPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-6 space-y-6">
           <div>
             <label htmlFor="amountCents" className="block text-sm font-medium text-gray-700 mb-1">
-              Amount (GHS) *
+              Amount (₵) *
             </label>
             <input
               {...register('amountCents', { valueAsNumber: true })}

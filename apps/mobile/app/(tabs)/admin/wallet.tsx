@@ -10,10 +10,9 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useMutation, useQueryClient } from '@tantml:parameter>
-<parameter name="import { useQuery } from '../../../src/hooks/useQuery';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../../../src/lib/api-client';
-import { formatCurrency } from '../../../src/lib/constants';
+import { formatCurrency, CURRENCY_SYMBOL } from '../../../src/lib/constants';
 import Toast from 'react-native-toast-message';
 
 export default function WalletOperationsScreen() {
@@ -232,7 +231,7 @@ export default function WalletOperationsScreen() {
       {searchedUser && (
         <>
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Amount (GHS)</Text>
+            <Text style={styles.sectionTitle}>Amount ({CURRENCY_SYMBOL})</Text>
             <TextInput
               style={styles.amountInput}
               placeholder="0.00"

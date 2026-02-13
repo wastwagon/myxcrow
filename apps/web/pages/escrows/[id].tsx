@@ -39,6 +39,7 @@ interface Escrow {
   sellerId: string;
   buyerWalletId?: string;
   sellerWalletId?: string;
+  fundingMethod?: string;
   feeCents: number;
   netAmountCents: number;
   deliveryRegion?: string;
@@ -121,6 +122,23 @@ export default function EscrowDetailPage() {
     },
   });
 
+  const payWithPaystackMutation = useMutation({
+    mutationFn: async () => {
+      const r = await apiClient.post(`/payments/escrow/${id}/initialize`, {});
+      return r.data;
+    },
+    onSuccess: (data: { authorizationUrl: string }) => {
+      if (data?.authorizationUrl) {
+        window.location.href = data.authorizationUrl;
+      } else {
+        toast.error('Could not get payment URL');
+      }
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to start payment');
+    },
+  });
+
   const shipMutation = useMutation({
     mutationFn: async (data: { trackingNumber?: string }) => {
       return apiClient.put(`/escrows/${id}/ship`, data);
@@ -197,6 +215,10 @@ export default function EscrowDetailPage() {
     if (confirm('Fund this escrow from your wallet?')) {
       fundMutation.mutate();
     }
+  };
+
+  const handlePayWithPaystack = () => {
+    payWithPaystackMutation.mutate();
   };
 
   const handleShip = () => {
@@ -375,14 +397,24 @@ export default function EscrowDetailPage() {
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
             <div className="space-y-3">
-              {canFund && (
+              {canFund && escrow?.fundingMethod === 'direct' && (
+                <button
+                  onClick={handlePayWithPaystack}
+                  disabled={payWithPaystackMutation.isPending}
+                  className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  <DollarSign className="w-4 h-4" />
+                  {payWithPaystackMutation.isPending ? 'Redirecting…' : 'Pay with Paystack'}
+                </button>
+              )}
+              {canFund && escrow?.fundingMethod !== 'direct' && (
                 <button
                   onClick={handleFund}
                   disabled={fundMutation.isPending}
                   className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <DollarSign className="w-4 h-4" />
-                  {fundMutation.isPending ? 'Funding...' : 'Fund Escrow'}
+                  {fundMutation.isPending ? 'Funding...' : 'Fund from Wallet'}
                 </button>
               )}
               {canShip && (

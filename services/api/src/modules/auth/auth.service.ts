@@ -387,6 +387,67 @@ export class AuthService {
     return { success: true };
   }
 
+  async adminImpersonate(adminUserId: string, targetUserId: string) {
+    const admin = await this.prisma.user.findUnique({
+      where: { id: adminUserId },
+      select: { id: true, roles: true },
+    });
+
+    if (!admin || !admin.roles.includes(UserRole.ADMIN)) {
+      throw new UnauthorizedException('Only admins can impersonate users');
+    }
+
+    const targetUser = await this.prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        roles: true,
+        kycStatus: true,
+        isActive: true,
+      },
+    });
+
+    if (!targetUser) {
+      throw new BadRequestException('User not found');
+    }
+
+    if (!targetUser.isActive) {
+      throw new BadRequestException('Cannot impersonate inactive user');
+    }
+
+    if (targetUser.roles.includes(UserRole.ADMIN)) {
+      throw new BadRequestException('Cannot impersonate another admin');
+    }
+
+    await this.auditService.log({
+      userId: adminUserId,
+      action: 'admin_impersonate',
+      resource: 'user',
+      resourceId: targetUserId,
+      details: {
+        adminEmail: (await this.prisma.user.findUnique({ where: { id: adminUserId }, select: { email: true } }))?.email,
+        targetEmail: targetUser.email,
+      },
+    });
+
+    const tokens = await this.generateTokens(targetUser.id, targetUser.email);
+
+    return {
+      user: {
+        id: targetUser.id,
+        email: targetUser.email,
+        firstName: targetUser.firstName || undefined,
+        lastName: targetUser.lastName || undefined,
+        roles: targetUser.roles,
+        kycStatus: targetUser.kycStatus,
+      },
+      ...tokens,
+    };
+  }
+
   async confirmPasswordReset(token: string, newPassword: string) {
     const rawToken = (token || '').trim();
     if (!rawToken) {

@@ -45,6 +45,8 @@ export default function WalletPage() {
       const response = await apiClient.get('/wallet');
       return response.data;
     },
+    staleTime: 0,
+    refetchInterval: 30000,
   });
 
   const { data: fundingHistory, isLoading: fundingLoading } = useQuery<any[]>({

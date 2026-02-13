@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { FileText, Wallet, LogOut, User, Menu, X, Settings, Users as UsersIcon, DollarSign, AlertCircle, BarChart3, CreditCard, ChevronDown, LayoutDashboard } from 'lucide-react';
 import { isAuthenticated, getUser, clearAuth, isAdmin } from '@/lib/auth';
@@ -74,7 +73,8 @@ export default function Navigation() {
           <div className="flex items-center gap-3">
             <Link href={admin ? "/admin" : "/dashboard"} className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform overflow-hidden bg-brand-maroon-deep">
-                <Image src="/logo/website-logo.gif" alt="MYXCROW" width={40} height={40} className="object-contain" unoptimized />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo/website-logo.gif" alt="MYXCROW" width={40} height={40} className="object-contain" />
               </div>
               <span className="text-xl font-bold text-white group-hover:text-brand-gold transition-colors hidden sm:block">
                 MYXCROW

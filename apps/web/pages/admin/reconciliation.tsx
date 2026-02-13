@@ -251,7 +251,7 @@ export default function ReconciliationPage() {
                 <tbody>
                   {summary.escrowsByCurrency.map((item) => (
                     <tr key={item.currency} className="border-b hover:bg-gray-50">
-                      <td className="py-3 px-4 font-medium">GHS</td>
+                      <td className="py-3 px-4 font-medium">₵</td>
                       <td className="py-3 px-4 text-right">{item.count}</td>
                       <td className="py-3 px-4 text-right font-medium">
                         {formatCurrency(item.totalAmountCents, 'GHS')}

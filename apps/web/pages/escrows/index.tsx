@@ -180,7 +180,7 @@ export default function EscrowsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <DollarSign className="w-4 h-4 inline mr-1" />
-                    Min Amount (GHS)
+                    Min Amount (₵)
                   </label>
                   <input
                     type="number"
@@ -194,7 +194,7 @@ export default function EscrowsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     <DollarSign className="w-4 h-4 inline mr-1" />
-                    Max Amount (GHS)
+                    Max Amount (₵)
                   </label>
                   <input
                     type="number"
@@ -214,7 +214,7 @@ export default function EscrowsPage() {
                     disabled
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-100"
                   >
-                    <option value="GHS">GHS - Ghana Cedis</option>
+                    <option value="GHS">₵ Ghana Cedis</option>
                   </select>
                 </div>
                 <div>

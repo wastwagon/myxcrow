@@ -91,12 +91,18 @@ export default function AdminViewWalletPage() {
           </dl>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-3 flex-wrap">
           <Link
             href={`/admin/wallet/credit?userId=${userId}`}
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
           >
-            Credit Wallet
+            Credit (Top-up)
+          </Link>
+          <Link
+            href={`/admin/wallet/debit?userId=${userId}`}
+            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+          >
+            Debit (Deduct)
           </Link>
           <Link href="/admin/users" className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
             Back to Users

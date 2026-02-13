@@ -44,6 +44,25 @@ export class PaymentsController {
     return this.paymentsService.verifyWalletTopup(reference);
   }
 
+  @Post('escrow/:escrowId/initialize')
+  @UseGuards(JwtAuthGuard)
+  async initializeEscrowPayment(
+    @Param('escrowId') escrowId: string,
+    @Body() body: { email?: string },
+    @CurrentUser() user: any,
+  ) {
+    return this.paymentsService.initializeEscrowPayment(
+      escrowId,
+      user.id,
+      body.email || user.email,
+    );
+  }
+
+  @Get('escrow/verify/:reference')
+  async verifyEscrowPayment(@Param('reference') reference: string) {
+    return this.paymentsService.verifyEscrowFunding(reference);
+  }
+
   @Post('webhook/paystack')
   @HttpCode(HttpStatus.OK)
   async webhook(

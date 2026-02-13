@@ -18,7 +18,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '../../../src/lib/api-client';
-import { formatCurrency } from '../../../src/lib/constants';
+import { formatCurrency, CURRENCY_SYMBOL } from '../../../src/lib/constants';
 import Toast from 'react-native-toast-message';
 
 const createEscrowSchema = z.object({
@@ -217,7 +217,7 @@ export default function CreateEscrowScreen() {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Amount (GHS) *</Text>
+            <Text style={styles.label}>Amount ({CURRENCY_SYMBOL}) *</Text>
             <Controller
               control={control}
               name="amountCents"

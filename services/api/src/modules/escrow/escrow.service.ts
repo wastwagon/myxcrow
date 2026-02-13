@@ -175,6 +175,10 @@ export class EscrowService {
       if (!escrow.buyerWalletId) {
         throw new BadRequestException('Buyer wallet not found');
       }
+    } else if (escrow.fundingMethod === 'direct') {
+      throw new BadRequestException(
+        'This escrow uses direct payment. Please pay via Paystack using the "Pay with Paystack" button.',
+      );
     }
 
     await this.prisma.escrowAgreement.update({
@@ -225,6 +229,91 @@ export class EscrowService {
         },
       ).catch((err) => this.logger.error(`Failed to evaluate rules: ${err.message}`));
     }
+
+    return this.getEscrow(escrowId);
+  }
+
+  /**
+   * Fund escrow from direct Paystack payment (called after payment verification).
+   * Credits buyer wallet, sets up wallet IDs, reserves, and marks as funded.
+   */
+  async fundEscrowFromDirectPayment(escrowId: string, userId: string, _reference: string) {
+    const escrow = await this.prisma.escrowAgreement.findUnique({
+      where: { id: escrowId },
+    });
+
+    if (!escrow) {
+      throw new NotFoundException('Escrow not found');
+    }
+
+    if (escrow.buyerId !== userId) {
+      throw new BadRequestException('Only the buyer can fund this escrow');
+    }
+
+    if (escrow.status !== EscrowStatus.AWAITING_FUNDING) {
+      throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot fund`);
+    }
+
+    if (escrow.fundingMethod !== 'direct') {
+      throw new BadRequestException('This escrow does not use direct payment');
+    }
+
+    const currency = escrow.currency || 'GHS';
+    const buyerWallet = await this.walletService.getOrCreateWallet(escrow.buyerId, currency);
+    const sellerWallet = await this.walletService.getOrCreateWallet(escrow.sellerId, currency);
+
+    await this.walletService.topUpWallet({
+      userId: escrow.buyerId,
+      sourceType: 'PAYSTACK_TOPUP' as any,
+      amountCents: escrow.amountCents,
+      externalRef: _reference,
+      metadata: { escrowId, type: 'escrow_direct_fund' },
+    });
+
+    const updatedEscrow = await this.prisma.escrowAgreement.update({
+      where: { id: escrowId },
+      data: {
+        buyerWalletId: buyerWallet.id,
+        sellerWalletId: sellerWallet.id,
+        fundingMethod: 'wallet',
+      },
+    });
+
+    await this.walletService.reserveForEscrow(buyerWallet.id, escrow.amountCents, escrowId);
+
+    await this.prisma.escrowAgreement.update({
+      where: { id: escrowId },
+      data: {
+        status: EscrowStatus.FUNDED,
+        fundedAt: new Date(),
+      },
+    });
+
+    await this.ledgerHelper.createFundingLedgerEntry(escrowId, {
+      amountCents: escrow.amountCents,
+      feeCents: escrow.feeCents,
+      netAmountCents: escrow.netAmountCents,
+      currency: escrow.currency || 'GHS',
+    });
+
+    const buyer = await this.prisma.user.findUnique({ where: { id: escrow.buyerId } });
+    const seller = await this.prisma.user.findUnique({ where: { id: escrow.sellerId } });
+
+    await this.notificationsService.sendEscrowFundedNotifications({
+      emails: [buyer!.email, seller!.email],
+      phones: [buyer!.phone, seller!.phone].filter((p): p is string => !!p),
+      escrowId: escrow.id,
+      amount: `${escrow.amountCents / 100}`,
+      currency: escrow.currency || 'GHS',
+    });
+
+    await this.auditService.log({
+      userId,
+      action: 'escrow_funded_direct',
+      resource: 'escrow',
+      resourceId: escrowId,
+      details: { reference: _reference },
+    });
 
     return this.getEscrow(escrowId);
   }
