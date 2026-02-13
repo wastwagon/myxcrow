@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt';
 import { AuditService } from '../audit/audit.service';
 import { UserRole, KYCStatus } from '@prisma/client';
 import { EmailService } from '../email/email.service';
+import { SMSService } from '../notifications/sms.service';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { normalizeGhanaPhone } from '../../common/utils/phone.util';
@@ -18,26 +19,12 @@ export class AuthService {
     private jwtService: JwtService,
     private auditService: AuditService,
     private emailService: EmailService,
+    private smsService: SMSService,
     private configService: ConfigService,
   ) {}
 
-  async register(
-    data: RegisterDto,
-    files?: {
-      cardFront?: Buffer;
-      cardBack?: Buffer;
-      selfie?: Buffer;
-    },
-  ) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email: data.email },
-    });
-
-    if (existingUser) {
-      throw new BadRequestException('User with this email already exists');
-    }
-
-    const normalizedPhone = normalizeGhanaPhone(data.phone);
+  async sendPhoneOtp(phone: string) {
+    const normalizedPhone = normalizeGhanaPhone(phone);
     if (!normalizedPhone || !/^0[0-9]{9}$/.test(normalizedPhone)) {
       throw new BadRequestException('Invalid Ghana phone number (e.g. 0551234567)');
     }
@@ -49,7 +36,77 @@ export class AuthService {
       throw new BadRequestException('Phone number already registered');
     }
 
+    // Rate limit: 1 OTP per phone per 60 seconds
+    const recent = await this.prisma.phoneVerificationCode.findFirst({
+      where: { phone: normalizedPhone },
+      orderBy: { createdAt: 'desc' },
+    });
+    if (recent && Date.now() - recent.createdAt.getTime() < 60 * 1000) {
+      throw new BadRequestException('Please wait 60 seconds before requesting another code');
+    }
+
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+
+    await this.prisma.phoneVerificationCode.create({
+      data: { phone: normalizedPhone, codeHash, expiresAt },
+    });
+
+    const result = await this.smsService.sendVerificationOtpSms(normalizedPhone, code);
+    if (!result.success) {
+      throw new BadRequestException(
+        result.error || 'Failed to send verification code. Please check your phone number and try again.',
+      );
+    }
+
+    return { success: true, message: 'Verification code sent to your phone' };
+  }
+
+  async register(
+    data: RegisterDto,
+    files?: {
+      cardFront?: Buffer;
+      cardBack?: Buffer;
+      selfie?: Buffer;
+    },
+  ) {
+    const normalizedPhone = normalizeGhanaPhone(data.phone);
+    if (!normalizedPhone || !/^0[0-9]{9}$/.test(normalizedPhone)) {
+      throw new BadRequestException('Invalid Ghana phone number (e.g. 0551234567)');
+    }
+
+    // Verify OTP code
+    const codeHash = crypto.createHash('sha256').update(data.code.trim()).digest('hex');
+    const codeRecord = await this.prisma.phoneVerificationCode.findFirst({
+      where: { phone: normalizedPhone, codeHash },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    if (!codeRecord || codeRecord.usedAt || codeRecord.expiresAt < new Date()) {
+      throw new BadRequestException('Invalid or expired verification code. Please request a new code.');
+    }
+
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+    if (existingUser) {
+      throw new BadRequestException('User with this email already exists');
+    }
+
+    const existingPhone = await this.prisma.user.findFirst({
+      where: { phone: normalizedPhone },
+    });
+    if (existingPhone) {
+      throw new BadRequestException('Phone number already registered');
+    }
+
     const passwordHash = await bcrypt.hash(data.password, 10);
+
+    await this.prisma.phoneVerificationCode.update({
+      where: { id: codeRecord.id },
+      data: { usedAt: new Date() },
+    });
 
     const user = await this.prisma.user.create({
       data: {
@@ -59,7 +116,7 @@ export class AuthService {
         lastName: data.lastName,
         phone: normalizedPhone,
         roles: data.role ? [data.role] : [UserRole.BUYER],
-        kycStatus: KYCStatus.VERIFIED, // Auto-approved for now; Smile ID verification to be added later
+        kycStatus: KYCStatus.VERIFIED,
         isActive: true,
       },
     });
@@ -69,10 +126,10 @@ export class AuthService {
       action: 'user_register',
       resource: 'user',
       resourceId: user.id,
-      details: { email: user.email },
+      details: { email: user.email, phone: user.phone },
     });
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const tokens = await this.generateTokens(user.id, user.phone || user.email);
 
     return {
       user: {
@@ -261,16 +318,7 @@ export class AuthService {
 
     // Send email notification
     try {
-      await this.emailService.sendEmail(
-        user.email,
-        'Password Changed Successfully',
-        `
-          <h2>Password Changed</h2>
-          <p>Your MYXCROW account password has been changed successfully.</p>
-          <p>If you did not make this change, please contact support immediately.</p>
-          <p><strong>Time:</strong> ${new Date().toISOString()}</p>
-        `
-      );
+      await this.emailService.sendPasswordChangedEmail(user.email);
     } catch (error) {
       // Don't fail the request if email fails
       console.error('Failed to send password change email:', error);
@@ -336,19 +384,31 @@ export class AuthService {
     }
   }
 
-  async requestPasswordReset(email: string) {
-    const normalized = (email || '').trim().toLowerCase();
-    if (!normalized) {
+  async requestPasswordReset(identifier: string) {
+    const trimmed = (identifier || '').trim();
+    if (!trimmed) {
       return { success: true };
     }
 
-    const user = await this.prisma.user.findUnique({
-      where: { email: normalized },
-      select: { id: true, email: true, isActive: true },
-    });
+    const isPhone = /^0[0-9]{9}$/.test(normalizeGhanaPhone(trimmed));
+    const isEmail = trimmed.includes('@');
+
+    let user = null;
+    if (isPhone) {
+      const normalizedPhone = normalizeGhanaPhone(trimmed);
+      user = await this.prisma.user.findFirst({
+        where: { phone: normalizedPhone },
+        select: { id: true, email: true, isActive: true },
+      });
+    } else if (isEmail) {
+      user = await this.prisma.user.findUnique({
+        where: { email: trimmed.toLowerCase() },
+        select: { id: true, email: true, isActive: true },
+      });
+    }
 
     // Always return success to avoid account enumeration
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive || !user.email) {
       return { success: true };
     }
 
@@ -371,15 +431,7 @@ export class AuthService {
 
     const resetLink = `${webBase.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(rawToken)}`;
 
-    const html = `
-      <h2>Reset your MYXCROW password</h2>
-      <p>We received a request to reset your password.</p>
-      <p><a href="${resetLink}">Click here to reset your password</a></p>
-      <p>If you didn't request this, you can safely ignore this email.</p>
-      <p>This link expires in 1 hour.</p>
-    `;
-
-    await this.emailService.sendEmail(user.email, 'Reset your MYXCROW password', html);
+    await this.emailService.sendPasswordResetEmail(user.email, resetLink, '1 hour');
 
     await this.auditService.log({
       userId: user.id,

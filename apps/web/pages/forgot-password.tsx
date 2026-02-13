@@ -10,7 +10,10 @@ import { Loader2, AlertCircle, Mail } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 
 const schema = z.object({
-  email: z.string().email('Invalid email address'),
+  identifier: z.string().min(1, 'Enter email or phone').refine(
+    (val) => /^(\+?233[0-9]{9}|0[0-9]{9})$/.test(val.replace(/\s/g, '')) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+    'Enter email or Ghana phone (e.g. 0551234567)',
+  ),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -27,14 +30,14 @@ export default function ForgotPasswordPage() {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { email: '' },
+    defaultValues: { identifier: '' },
   });
 
   const onSubmit = async (data: FormData) => {
     try {
       setLoading(true);
       setError(null);
-      await apiClient.post('/auth/password-reset/request', { email: data.email });
+      await apiClient.post('/auth/password-reset/request', { identifier: data.identifier.trim() });
       setSent(true);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to request password reset. Please try again.');
@@ -83,19 +86,20 @@ export default function ForgotPasswordPage() {
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="identifier" className="block text-sm font-semibold text-gray-700 mb-2">
                   <Mail className="w-4 h-4 inline mr-1" />
-                  Email Address
+                  Email or Phone
                 </label>
                 <input
-                  {...register('email')}
-                  type="email"
-                  id="email"
+                  {...register('identifier')}
+                  type="text"
+                  id="identifier"
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
-                  placeholder="you@example.com"
+                  placeholder="you@example.com or 0551234567"
                 />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                <p className="mt-1 text-xs text-gray-500">Reset link will be sent to your email</p>
+                {errors.identifier && (
+                  <p className="mt-1 text-sm text-red-600">{errors.identifier.message}</p>
                 )}
               </div>
 

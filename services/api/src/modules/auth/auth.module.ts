@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuditModule } from '../audit/audit.module';
 import { RolesGuard } from './guards/roles.guard';
 import { EmailModule } from '../email/email.module';
+import { SMSModule } from '../notifications/sms.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { EmailModule } from '../email/email.module';
     }),
     forwardRef(() => AuditModule),
     forwardRef(() => EmailModule),
+    SMSModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, LocalStrategy, PrismaService, RolesGuard],

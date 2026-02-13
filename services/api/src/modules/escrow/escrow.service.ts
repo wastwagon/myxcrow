@@ -959,6 +959,7 @@ export class EscrowService {
   async cancelEscrow(escrowId: string, userId: string) {
     const escrow = await this.prisma.escrowAgreement.findUnique({
       where: { id: escrowId },
+      include: { buyer: true, seller: true },
     });
 
     if (!escrow) {
@@ -980,6 +981,14 @@ export class EscrowService {
     if (escrow.buyerWalletId && escrow.status === EscrowStatus.AWAITING_FUNDING) {
       await this.walletService.refundToBuyer(escrow.buyerWalletId, escrow.amountCents, escrowId);
     }
+
+    const buyer = escrow.buyer;
+    const seller = escrow.seller;
+    await this.notificationsService.sendEscrowCancelledNotifications({
+      emails: [buyer.email, seller.email],
+      phones: [buyer.phone, seller.phone].filter((p): p is string => !!p),
+      escrowId,
+    });
 
     await this.auditService.log({
       userId,

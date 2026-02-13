@@ -140,13 +140,14 @@ export class DisputesService {
   async addMessage(disputeId: string, userId: string, content: string) {
     const dispute = await this.prisma.dispute.findUnique({
       where: { id: disputeId },
+      include: { escrow: { select: { buyerId: true, sellerId: true } } },
     });
 
     if (!dispute) {
       throw new NotFoundException('Dispute not found');
     }
 
-    return this.prisma.disputeMessage.create({
+    const message = await this.prisma.disputeMessage.create({
       data: {
         disputeId,
         senderId: userId,
@@ -154,6 +155,23 @@ export class DisputesService {
         isSystem: false,
       },
     });
+
+    // Notify the other party (buyer or seller who didn't send)
+    const recipientId = userId === dispute.escrow.buyerId ? dispute.escrow.sellerId : dispute.escrow.buyerId;
+    const recipient = await this.prisma.user.findUnique({
+      where: { id: recipientId },
+      select: { email: true, phone: true },
+    });
+    if (recipient) {
+      this.notificationsService.sendDisputeMessageNotifications({
+        email: recipient.email,
+        phone: recipient.phone,
+        escrowId: dispute.escrowId,
+        disputeId,
+      }).catch((err) => console.error('Failed to send dispute message notification:', err));
+    }
+
+    return message;
   }
 
   async resolveDispute(

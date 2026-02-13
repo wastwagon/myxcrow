@@ -9,9 +9,10 @@ import { AuditModule } from '../audit/audit.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { EscrowModule } from '../escrow/escrow.module';
 import { AuthModule } from '../auth/auth.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [AuditModule, forwardRef(() => WalletModule), forwardRef(() => EscrowModule), AuthModule],
+  imports: [AuditModule, forwardRef(() => WalletModule), forwardRef(() => EscrowModule), AuthModule, NotificationsModule],
   controllers: [PaymentsController],
   providers: [PaymentsService, PaystackService, WalletTopupService, LedgerHelperService, PrismaService],
   exports: [PaymentsService, PaystackService, WalletTopupService, LedgerHelperService],

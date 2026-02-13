@@ -425,7 +425,7 @@ export class WalletService {
 
     const user = (withdrawal.wallet as any).user;
     const email = user?.email ?? '';
-    const phone = user?.phone ?? '';
+    const phone = user?.phone ?? null;
     const amount = `${withdrawal.amountCents / 100}`;
     const currency = withdrawal.wallet.currency ?? 'GHS';
 
@@ -495,10 +495,9 @@ export class WalletService {
       throw new BadRequestException('Amount must be greater than zero');
     }
 
-    // Get user to verify existence and get email
     const user = await this.prisma.user.findUnique({
       where: { id: data.userId },
-      select: { id: true, email: true, firstName: true, lastName: true },
+      select: { id: true, email: true, phone: true, firstName: true, lastName: true },
     });
 
     if (!user) {
@@ -560,15 +559,16 @@ export class WalletService {
       },
     });
 
-    // Send email notification
     const amount = (data.amountCents / 100).toFixed(2);
-    await this.emailService.sendWalletCreditEmail({
-      to: user.email,
+    const newBalance = ((wallet.availableCents + data.amountCents) / 100).toFixed(2);
+    await this.notificationsService.sendWalletCreditNotifications({
+      email: user.email,
+      phone: user.phone || null,
       amount,
       currency: wallet.currency,
       description: data.description || 'Manual wallet credit',
       reference: data.reference,
-      newBalance: ((wallet.availableCents + data.amountCents) / 100).toFixed(2),
+      newBalance,
     });
 
     return {
@@ -601,7 +601,7 @@ export class WalletService {
     // Get user to verify existence and get email
     const user = await this.prisma.user.findUnique({
       where: { id: data.userId },
-      select: { id: true, email: true, firstName: true, lastName: true },
+      select: { id: true, email: true, phone: true, firstName: true, lastName: true },
     });
 
     if (!user) {
@@ -670,15 +670,16 @@ export class WalletService {
       },
     });
 
-    // Send email notification
     const amount = (data.amountCents / 100).toFixed(2);
-    await this.emailService.sendWalletDebitEmail({
-      to: user.email,
+    const newBalance = (updatedWallet.availableCents / 100).toFixed(2);
+    await this.notificationsService.sendWalletDebitNotifications({
+      email: user.email,
+      phone: user.phone || null,
       amount,
       currency: wallet.currency,
       description: data.description,
       reference: data.reference,
-      newBalance: (updatedWallet.availableCents / 100).toFixed(2),
+      newBalance,
     });
 
     return {

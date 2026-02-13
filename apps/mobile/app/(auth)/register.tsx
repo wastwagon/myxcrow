@@ -15,6 +15,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { WEB_BASE_URL } from '../../src/lib/constants';
+import apiClient from '../../src/lib/api-client';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,6 +26,7 @@ const registerSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
   phone: z.string().regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
+  code: z.string().length(6, 'Enter the 6-digit code').optional(),
   role: z.enum(['BUYER', 'SELLER']).default('BUYER'),
 });
 
@@ -34,10 +36,12 @@ export default function RegisterScreen() {
   const router = useRouter();
   const { register } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
 
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -46,10 +50,33 @@ export default function RegisterScreen() {
     },
   });
 
-  const onSubmit = async (data: RegisterFormData) => {
+  const phone = watch('phone');
+
+  const onSendCode = async () => {
+    const p = phone?.trim();
+    if (!p || !/^0[0-9]{9}$/.test(p)) {
+      Alert.alert('Error', 'Enter a valid Ghana phone number first');
+      return;
+    }
     try {
       setLoading(true);
-      await register(data);
+      await apiClient.post('/auth/send-phone-otp', { phone: p });
+      setCodeSent(true);
+    } catch (error: any) {
+      Alert.alert('Error', error.response?.data?.message || 'Failed to send code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSubmit = async (data: RegisterFormData) => {
+    if (!codeSent || !data.code || data.code.length !== 6) {
+      Alert.alert('Error', 'Please request and enter the 6-digit verification code first');
+      return;
+    }
+    try {
+      setLoading(true);
+      await register({ ...data, code: data.code });
       router.replace('/(tabs)/dashboard');
     } catch (error: any) {
       Alert.alert('Registration Failed', error.message || 'Please try again');
@@ -132,7 +159,7 @@ export default function RegisterScreen() {
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={[styles.input, errors.phone && styles.inputError]}
-                  placeholder="+233XXXXXXXXX or 0XXXXXXXXX"
+                  placeholder="0551234567"
                   keyboardType="phone-pad"
                   value={value}
                   onChangeText={onChange}
@@ -141,7 +168,48 @@ export default function RegisterScreen() {
               )}
             />
             {errors.phone && <Text style={styles.errorText}>{errors.phone.message}</Text>}
+            <Text style={styles.helpText}>Ghana phone (e.g. 0551234567)</Text>
+            {codeSent ? (
+              <View style={styles.codeSentBox}>
+                <Text style={styles.codeSentText}>Code sent! Check your phone.</Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.sendCodeButton, (!phone || !/^0[0-9]{9}$/.test(phone) || loading) && styles.buttonDisabled]}
+                onPress={onSendCode}
+                disabled={!phone || !/^0[0-9]{9}$/.test(phone) || loading}
+              >
+                <Text style={styles.sendCodeButtonText}>
+                  {loading ? 'Sending...' : 'Send verification code'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
+
+          {codeSent && (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Verification Code</Text>
+              <Controller
+                control={control}
+                name="code"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    style={[styles.input, styles.codeInput, errors.code && styles.inputError]}
+                    placeholder="000000"
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    value={value}
+                    onChangeText={onChange}
+                    onBlur={onBlur}
+                  />
+                )}
+              />
+              {errors.code && <Text style={styles.errorText}>{errors.code.message}</Text>}
+              <TouchableOpacity onPress={onSendCode} disabled={loading} style={styles.resendLink}>
+                <Text style={styles.resendLinkText}>Resend code</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <View style={styles.inputContainer}>
             <Text style={styles.label}>Account Type</Text>
@@ -193,9 +261,9 @@ export default function RegisterScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
+            style={[styles.button, (loading || !codeSent) && styles.buttonDisabled]}
             onPress={handleSubmit(onSubmit)}
-            disabled={loading}
+            disabled={loading || !codeSent}
           >
             {loading ? (
               <ActivityIndicator color="#fff" />
@@ -342,5 +410,47 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
     fontWeight: '600',
     textDecorationLine: 'underline',
+  },
+  helpText: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: 4,
+  },
+  sendCodeButton: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#6b2d2d',
+    alignItems: 'center',
+  },
+  sendCodeButtonText: {
+    color: '#6b2d2d',
+    fontWeight: '600',
+  },
+  codeSentBox: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: '#dcfce7',
+    borderRadius: 8,
+  },
+  codeSentText: {
+    color: '#166534',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  codeInput: {
+    textAlign: 'center',
+    fontSize: 20,
+    letterSpacing: 8,
+  },
+  resendLink: {
+    marginTop: 8,
+  },
+  resendLinkText: {
+    color: '#6b2d2d',
+    fontSize: 14,
+    fontWeight: '600',
   },
 });

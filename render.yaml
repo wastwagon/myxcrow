@@ -87,6 +87,15 @@ services:
         sync: false
       - key: EMAIL_FROM
         value: noreply@myxcrow.com
+      # SMS (Arkesel) - set SMS_ENABLED=true and add ARKESEL_API_KEY in Render dashboard
+      - key: SMS_ENABLED
+        value: "false"
+      - key: SMS_PROVIDER
+        value: arkesel
+      - key: ARKESEL_API_KEY
+        sync: false
+      - key: SMS_SENDER_ID
+        sync: false
       - key: ENCRYPTION_KEY
         generateValue: true
 

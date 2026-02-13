@@ -115,6 +115,7 @@ enum WithdrawalStatus {
 model User {
   id            String      @id @default(uuid())
   email         String      @unique
+  emailVerified Boolean    @default(false)
   passwordHash  String?
   firstName     String?
   lastName      String?
@@ -139,6 +140,7 @@ model User {
   profile           UserProfile?
   kycDetails        KYCDetail?
   passwordResetTokens PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
   ratingsGiven      EscrowRating[]    @relation("RatingsGiven")
   ratingsReceived   EscrowRating[]    @relation("RatingsReceived")
 
@@ -158,6 +160,32 @@ model PasswordResetToken {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([expiresAt])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PhoneVerificationCode {
+  id        String   @id @default(uuid())
+  phone     String
+  codeHash  String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([phone])
   @@index([expiresAt])
 }
 

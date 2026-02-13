@@ -6,6 +6,7 @@ import { QueueService } from '../../common/queue/queue.service';
 export enum SMSProvider {
   AFRICAS_TALKING = 'africas_talking',
   TWILIO = 'twilio',
+  ARKESEL = 'arkesel',
   NONE = 'none',
 }
 
@@ -97,9 +98,71 @@ export class SMSService {
         return this.sendViaAfricasTalking(to, message);
       case SMSProvider.TWILIO:
         return this.sendViaTwilio(to, message);
+      case SMSProvider.ARKESEL:
+        return this.sendViaArkesel(to, message);
       default:
         this.logger.warn(`Unknown SMS provider: ${this.provider}`);
         return { success: false, error: 'Unknown provider' };
+    }
+  }
+
+  /**
+   * Send SMS via Arkesel (Ghana) - SMS API v2
+   * Phone format: 233XXXXXXXXX (international, no +)
+   * Falls back to sender "Arkesel" if configured sender (e.g. MYXCROW) fails with invalid sender error (status 106)
+   */
+  private async sendViaArkesel(to: string, message: string): Promise<SMSResponse> {
+    const apiKey = this.configService.get<string>('ARKESEL_API_KEY') || this.configService.get<string>('SMS_API_KEY');
+    const primarySender = this.configService.get<string>('SMS_SENDER_ID') || 'MYXCROW';
+
+    if (!apiKey) {
+      return { success: false, error: 'Arkesel API key not configured (ARKESEL_API_KEY or SMS_API_KEY)' };
+    }
+
+    const result = await this.arkeselSend(to, message, apiKey, primarySender);
+    if (result.success) return result;
+
+    // Fallback: retry with "Arkesel" if primary sender failed (e.g. MYXCROW not registered, status 106)
+    const errLower = (result.error || '').toLowerCase();
+    const isSenderError =
+      errLower.includes('sender') ||
+      errLower.includes('106') ||
+      (primarySender !== 'Arkesel' && errLower.includes('invalid'));
+
+    if (isSenderError && primarySender !== 'Arkesel') {
+      this.logger.warn(`Arkesel sender "${primarySender}" failed, retrying with "Arkesel"`);
+      return this.arkeselSend(to, message, apiKey, 'Arkesel');
+    }
+
+    return result;
+  }
+
+  private async arkeselSend(
+    to: string,
+    message: string,
+    apiKey: string,
+    sender: string,
+  ): Promise<SMSResponse> {
+    try {
+      const recipient = to.replace(/^\+/, '');
+      const response = await axios.post(
+        'https://sms.arkesel.com/api/v2/sms/send',
+        { sender, message, recipients: [recipient] },
+        {
+          headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
+        },
+      );
+
+      if (response.data?.status === 'success' && response.data?.data?.[0]?.id) {
+        return { success: true, messageId: response.data.data[0].id };
+      }
+
+      const errMsg = response.data?.message || response.data?.status || 'Unknown error';
+      return { success: false, error: String(errMsg) };
+    } catch (error: any) {
+      const errMsg = error.response?.data?.message || error.response?.data?.status || error.message;
+      this.logger.error(`Arkesel SMS error: ${errMsg}`);
+      return { success: false, error: String(errMsg) };
     }
   }
 
@@ -223,6 +286,15 @@ export class SMSService {
 
     // Add + prefix
     return '+' + normalized;
+  }
+
+  /**
+   * Send phone verification OTP via SMS (Ghana format only)
+   */
+  async sendVerificationOtpSms(to: string, code: string): Promise<SMSResponse> {
+    const message = `Your MYXCROW verification code is: ${code}. Valid for 5 minutes. Do not share with anyone.`;
+    const result = await this.sendSMS(to, message, false);
+    return Array.isArray(result) ? result[0] : result;
   }
 
   /**

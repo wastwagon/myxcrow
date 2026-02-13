@@ -7,18 +7,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '@/lib/api-client';
 import { setAuthTokens, setUser } from '@/lib/auth';
-import { Loader2, AlertCircle, X, Check, User, Mail, Lock, Phone } from 'lucide-react';
+import { Loader2, AlertCircle, X, Check, User, Mail, Lock, Phone, MessageCircle } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 
-// Simplified schema - no Ghana Card or KYC requirements
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
-  phone: z
-    .string()
-    .regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
+  phone: z.string().regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
+  code: z.string().length(6, 'Enter the 6-digit code').optional(),
   role: z.enum(['BUYER', 'SELLER']).default('BUYER'),
 });
 
@@ -28,28 +26,55 @@ export default function Register() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [codeSent, setCodeSent] = useState(false);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
     mode: 'onChange',
   });
 
+  const phone = watch('phone');
+
+  const onSendCode = async () => {
+    const p = phone?.trim();
+    if (!p || !/^0[0-9]{9}$/.test(p)) {
+      setError('Enter a valid Ghana phone number first');
+      return;
+    }
+    try {
+      setLoading(true);
+      setError(null);
+      await apiClient.post('/auth/send-phone-otp', { phone: p });
+      setCodeSent(true);
+    } catch (err: any) {
+      const msg = err.response?.data?.message;
+      setError(Array.isArray(msg) ? msg.join('. ') : typeof msg === 'string' ? msg : 'Failed to send code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const onSubmit = async (data: RegisterFormData) => {
+    if (!codeSent || !data.code || data.code.length !== 6) {
+      setError('Please request and enter the 6-digit verification code first');
+      return;
+    }
     try {
       setLoading(true);
       setError(null);
 
-      // Simple JSON registration - no files
       const response = await apiClient.post('/auth/register', {
         email: data.email,
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
+        code: data.code,
         role: data.role || 'BUYER',
       });
 
@@ -180,13 +205,58 @@ export default function Register() {
                     type="tel"
                     id="phone"
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
-                    placeholder="+233XXXXXXXXX or 0XXXXXXXXX"
+                    placeholder="0551234567"
                   />
                   {errors.phone && (
                     <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
                   )}
                   <p className="mt-1 text-xs text-gray-500">Ghana phone number (MTN, Vodafone, or AirtelTigo)</p>
+                  {codeSent ? (
+                    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
+                      Code sent! Check your phone for the 6-digit verification code.
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={onSendCode}
+                      disabled={loading || !phone || !/^0[0-9]{9}$/.test(phone)}
+                      className="mt-3 w-full py-2 px-4 border-2 border-brand-maroon text-brand-maroon rounded-xl hover:bg-brand-maroon/5 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      {loading ? 'Sending...' : 'Send verification code'}
+                    </button>
+                  )}
                 </div>
+
+                {/* Verification Code - shown after code sent */}
+                {codeSent && (
+                  <div>
+                    <label htmlFor="code" className="block text-sm font-semibold text-gray-700 mb-2">
+                      Verification Code
+                    </label>
+                    <input
+                      {...register('code')}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      id="code"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none text-center text-lg tracking-widest"
+                      placeholder="000000"
+                    />
+                    {errors.code && (
+                      <p className="mt-1 text-sm text-red-600">{errors.code.message}</p>
+                    )}
+                    <p className="mt-1 text-xs text-gray-500">Enter the 6-digit code sent to your phone</p>
+                    <button
+                      type="button"
+                      onClick={onSendCode}
+                      disabled={loading}
+                      className="mt-2 text-xs text-brand-maroon hover:underline font-medium disabled:opacity-50"
+                    >
+                      Resend code
+                    </button>
+                  </div>
+                )}
 
                 {/* Account Type */}
                 <div>
@@ -228,7 +298,7 @@ export default function Register() {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !codeSent}
                   className="w-full py-3 px-6 bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white rounded-xl hover:from-brand-maroon-dark hover:to-brand-maroon-darker focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl"
                 >
                   {loading ? (

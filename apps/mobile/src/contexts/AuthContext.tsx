@@ -18,6 +18,7 @@ interface RegisterData {
   firstName: string;
   lastName: string;
   phone: string;
+  code: string;
   role?: 'BUYER' | 'SELLER';
 }
 
@@ -78,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await apiClient.post('/auth/register', {
         email: data.email,
+        code: data.code,
         password: data.password,
         firstName: data.firstName,
         lastName: data.lastName,

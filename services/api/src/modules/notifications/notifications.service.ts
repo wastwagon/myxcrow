@@ -44,6 +44,30 @@ export class NotificationsService {
   }
 
   /**
+   * Send escrow cancelled notifications (buyer + seller)
+   */
+  async sendEscrowCancelledNotifications(data: {
+    emails: string[];
+    phones: string[];
+    escrowId: string;
+  }) {
+    await this.sendNotifications({
+      emails: {
+        to: data.emails,
+        subject: 'Escrow Cancelled',
+        html: `
+          <h2>Escrow Cancelled</h2>
+          <p>Escrow ${data.escrowId} has been cancelled.</p>
+        `,
+      },
+      sms: data.phones.length > 0 ? {
+        to: data.phones,
+        message: `MYXCROW: Escrow ${data.escrowId} has been cancelled. Check your dashboard for details.`,
+      } : undefined,
+    });
+  }
+
+  /**
    * Send escrow created notifications
    */
   async sendEscrowCreatedNotifications(data: {
@@ -262,7 +286,7 @@ export class NotificationsService {
    */
   async sendWalletTopUpNotifications(data: {
     email: string;
-    phone: string;
+    phone: string | null;
     amount: string;
     currency: string;
     status: string;
@@ -277,10 +301,10 @@ export class NotificationsService {
           <p>Status: ${data.status}</p>
         `,
       },
-      sms: {
+      sms: data.phone ? {
         to: data.phone,
         message: `MYXCROW: Wallet top-up ${data.status === 'SUCCEEDED' ? 'successful' : 'pending'}. Amount: ${data.amount} ${data.currency}.`,
-      },
+      } : undefined,
     });
   }
 
@@ -289,7 +313,7 @@ export class NotificationsService {
    */
   async sendWithdrawalApprovedNotifications(data: {
     email: string;
-    phone: string;
+    phone: string | null;
     amount: string;
     currency: string;
   }) {
@@ -303,10 +327,10 @@ export class NotificationsService {
           <p>Amount: ${data.amount} ${data.currency}</p>
         `,
       },
-      sms: {
+      sms: data.phone ? {
         to: data.phone,
         message: `MYXCROW: Your withdrawal of ${data.amount} ${data.currency} has been approved. Funds will be processed shortly.`,
-      },
+      } : undefined,
     });
   }
 
@@ -315,7 +339,7 @@ export class NotificationsService {
    */
   async sendWithdrawalDeniedNotifications(data: {
     email: string;
-    phone: string;
+    phone: string | null;
     amount: string;
     currency: string;
     reason: string;
@@ -331,10 +355,10 @@ export class NotificationsService {
           <p>Reason: ${data.reason}</p>
         `,
       },
-      sms: {
+      sms: data.phone ? {
         to: data.phone,
         message: `MYXCROW: Your withdrawal of ${data.amount} ${data.currency} was denied. Reason: ${data.reason}. Contact support for assistance.`,
-      },
+      } : undefined,
     });
   }
 
@@ -360,6 +384,94 @@ export class NotificationsService {
         to: data.phone,
         message: `MYXCROW: Your KYC verification has been ${statusText}. Check your dashboard for details.`,
       },
+    });
+  }
+
+  /**
+   * Send wallet credit notifications (admin manual credit)
+   */
+  async sendWalletCreditNotifications(data: {
+    email: string;
+    phone: string | null;
+    amount: string;
+    currency: string;
+    description: string;
+    reference?: string;
+    newBalance: string;
+  }) {
+    await this.sendNotifications({
+      emails: {
+        to: data.email,
+        subject: 'Wallet Credited',
+        html: `
+          <h2>Wallet Credited</h2>
+          <p>Your wallet has been credited with <strong>${data.amount} ${data.currency}</strong>.</p>
+          <p><strong>Description:</strong> ${data.description}</p>
+          ${data.reference ? `<p><strong>Reference:</strong> ${data.reference}</p>` : ''}
+          <p><strong>New Balance:</strong> ${data.newBalance} ${data.currency}</p>
+        `,
+      },
+      sms: data.phone ? {
+        to: data.phone,
+        message: `MYXCROW: Wallet credited ${data.amount} ${data.currency}. New balance: ${data.newBalance} ${data.currency}.`,
+      } : undefined,
+    });
+  }
+
+  /**
+   * Send wallet debit notifications (admin manual debit)
+   */
+  async sendWalletDebitNotifications(data: {
+    email: string;
+    phone: string | null;
+    amount: string;
+    currency: string;
+    description: string;
+    reference?: string;
+    newBalance: string;
+  }) {
+    await this.sendNotifications({
+      emails: {
+        to: data.email,
+        subject: 'Wallet Debited',
+        html: `
+          <h2>Wallet Debited</h2>
+          <p>Your wallet has been debited <strong>${data.amount} ${data.currency}</strong>.</p>
+          <p><strong>Description:</strong> ${data.description}</p>
+          ${data.reference ? `<p><strong>Reference:</strong> ${data.reference}</p>` : ''}
+          <p><strong>New Balance:</strong> ${data.newBalance} ${data.currency}</p>
+        `,
+      },
+      sms: data.phone ? {
+        to: data.phone,
+        message: `MYXCROW: Wallet debited ${data.amount} ${data.currency}. New balance: ${data.newBalance} ${data.currency}.`,
+      } : undefined,
+    });
+  }
+
+  /**
+   * Send dispute message notifications (notify the other party when someone adds a message)
+   */
+  async sendDisputeMessageNotifications(data: {
+    email: string;
+    phone: string | null;
+    escrowId: string;
+    disputeId: string;
+  }) {
+    await this.sendNotifications({
+      emails: {
+        to: data.email,
+        subject: 'New Dispute Message',
+        html: `
+          <h2>New Dispute Message</h2>
+          <p>A new message has been added to dispute ${data.disputeId} for escrow ${data.escrowId}.</p>
+          <p>Check your dashboard to view and respond.</p>
+        `,
+      },
+      sms: data.phone ? {
+        to: data.phone,
+        message: `MYXCROW: New message on dispute ${data.disputeId} for escrow ${data.escrowId}. Check your dashboard.`,
+      } : undefined,
     });
   }
 

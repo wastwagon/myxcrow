@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { EmailService } from '../email/email.service';
 import * as MinIO from 'minio';
 import { KYCStatus } from '@prisma/client';
 
@@ -12,6 +13,7 @@ export class KYCService {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private emailService: EmailService,
   ) {
     // Initialize MinIO client (same as EvidenceService)
     const endpoint =
@@ -145,6 +147,18 @@ export class KYCService {
         kycStatus: KYCStatus.PENDING, // Always PENDING, never auto-approved
       },
     });
+
+    // Notify admin of KYC pending (non-blocking)
+    const user = await this.prisma.user.findUnique({
+      where: { id: data.userId },
+      select: { email: true },
+    });
+    if (user?.email) {
+      this.emailService.sendAdminKycPendingNotification({
+        userEmail: user.email,
+        userId: data.userId,
+      }).catch((err) => console.error('Failed to send admin KYC notification:', err));
+    }
 
     return {
       success: true,

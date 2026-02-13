@@ -2,6 +2,7 @@ import { Injectable, Logger, BadRequestException, NotFoundException, Inject, for
 import { PrismaService } from '../prisma/prisma.service';
 import { PaystackService } from './paystack.service';
 import { WalletService } from '../wallet/wallet.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { WalletFundingSource, WalletFundingStatus } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 
@@ -14,6 +15,7 @@ export class WalletTopupService {
     private paystackService: PaystackService,
     @Inject(forwardRef(() => WalletService))
     private walletService: WalletService,
+    private notificationsService: NotificationsService,
     private auditService: AuditService,
   ) {}
 
@@ -122,6 +124,22 @@ export class WalletTopupService {
         ...updatedFunding,
         wallet: funding.wallet,
       });
+
+      // Send wallet top-up notification (SMS + email)
+      const user = await this.prisma.user.findUnique({
+        where: { id: funding.wallet.userId },
+        select: { email: true, phone: true },
+      });
+      if (user) {
+        const amount = (funding.amountCents / 100).toFixed(2);
+        this.notificationsService.sendWalletTopUpNotifications({
+          email: user.email,
+          phone: user.phone,
+          amount,
+          currency: funding.currency || 'GHS',
+          status: 'SUCCEEDED',
+        }).catch((err) => this.logger.warn(`Failed to send wallet top-up notification: ${err?.message}`));
+      }
     } else if (!isSuccess) {
       await this.auditService.log({
         userId: funding.wallet.userId,

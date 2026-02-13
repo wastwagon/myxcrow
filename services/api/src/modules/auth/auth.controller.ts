@@ -23,6 +23,7 @@ import { Roles } from './decorators/roles.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
+import { SendPhoneOtpDto } from './dto/send-phone-otp.dto';
 import { UserRole } from '@prisma/client';
 
 @Controller('auth')
@@ -87,12 +88,17 @@ export class AuthController {
 
   @Post('password-reset/request')
   async requestPasswordReset(@Body() data: RequestPasswordResetDto) {
-    return this.authService.requestPasswordReset(data.email);
+    return this.authService.requestPasswordReset(data.identifier);
   }
 
   @Post('password-reset/confirm')
   async confirmPasswordReset(@Body() data: ConfirmPasswordResetDto) {
     return this.authService.confirmPasswordReset(data.token, data.newPassword);
+  }
+
+  @Post('send-phone-otp')
+  async sendPhoneOtp(@Body() data: SendPhoneOtpDto) {
+    return this.authService.sendPhoneOtp(data.phone);
   }
 
   @Get('profile')
