@@ -22,7 +22,6 @@ const createEscrowSchema = z.object({
   amountCents: z.number().min(1, 'Amount must be at least ₵1.00'),
   currency: z.string().default('GHS'),
   description: z.string().min(1, 'Description is required'),
-  useWallet: z.boolean().default(true),
   useMilestones: z.boolean().default(false),
   milestones: z.array(milestoneSchema).optional(),
   deliveryRegion: z.string().optional(),
@@ -88,7 +87,6 @@ export default function CreateEscrowPage() {
     name: 'milestones',
   });
 
-  const useWallet = watch('useWallet');
   const useMilestones = watch('useMilestones');
   const amountCents = watch('amountCents');
   const milestones = watch('milestones');
@@ -97,6 +95,7 @@ export default function CreateEscrowPage() {
     mutationFn: async (data: CreateEscrowFormData) => {
       const payload: any = {
         ...data,
+        useWallet: true, // Always use wallet for escrow funding - Paystack is only for wallet top-up
         amountCents: Math.round(data.amountCents * 100),
         deliveryRegion: data.deliveryRegion || undefined,
         deliveryCity: data.deliveryCity || undefined,
@@ -262,26 +261,12 @@ export default function CreateEscrowPage() {
             </div>
           </div>
 
-          <div className="flex items-center">
-            <input
-              {...register('useWallet')}
-              type="checkbox"
-              id="useWallet"
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="useWallet" className="ml-2 text-sm text-gray-700">
-              Fund from wallet (if unchecked, will use external payment)
-            </label>
-          </div>
-
-          {useWallet && (
-            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
                 <strong>Note:</strong> The escrow will be funded immediately from your wallet balance.
                 Make sure you have sufficient funds.
               </p>
-            </div>
-          )}
+          </div>
 
           <div className="border-t pt-6">
             <div className="flex items-center mb-4">

@@ -13,33 +13,29 @@ export class AutoReleaseService {
   ) {}
 
   async processAutoRelease() {
-    this.logger.log('Processing auto-release for delivered escrows...');
+    this.logger.log('Processing auto-release for completed escrows (no dispute)...');
 
-    const deliveredEscrows = await this.prisma.escrowAgreement.findMany({
+    const completedEscrows = await this.prisma.escrowAgreement.findMany({
       where: {
         status: { in: [EscrowStatus.DELIVERED, EscrowStatus.AWAITING_RELEASE] },
-        deliveredAt: {
-          not: null,
-        },
+        deliveredAt: { not: null },
       },
       include: {
         disputes: {
-          where: {
-            status: { notIn: ['RESOLVED', 'CLOSED'] },
-          },
+          where: { status: { notIn: ['RESOLVED', 'CLOSED'] } },
         },
       },
     });
 
     let processed = 0;
 
-    for (const escrow of deliveredEscrows) {
+    for (const escrow of completedEscrows) {
       if (escrow.disputes.length > 0) {
         this.logger.log(`Skipping escrow ${escrow.id} - has active dispute`);
         continue;
       }
 
-      const autoReleaseDays = escrow.autoReleaseDays || 7;
+      const autoReleaseDays = escrow.autoReleaseDays ?? 0;
       const deliveredAt = escrow.deliveredAt!;
       const releaseDate = new Date(deliveredAt);
       releaseDate.setDate(releaseDate.getDate() + autoReleaseDays);
@@ -48,7 +44,7 @@ export class AutoReleaseService {
         try {
           await this.escrowService.releaseFunds(escrow.id, 'system');
           processed++;
-          this.logger.log(`Auto-released escrow ${escrow.id}`);
+          this.logger.log(`Auto-released escrow ${escrow.id} (complete, no dispute)`);
         } catch (error: any) {
           this.logger.error(`Failed to auto-release escrow ${escrow.id}: ${error.message}`);
         }

@@ -76,10 +76,13 @@ export class EscrowService {
     const feeCalculation = await this.settingsService.calculateFee(data.amountCents);
     const feePaidBy = (await this.settingsService.getFeeSettings()).paidBy;
 
+    // Wallet is used for all escrow funding. Paystack is only for wallet top-up.
+    const useWallet = data.useWallet !== false;
+
     let buyerWalletId: string | null = null;
     let sellerWalletId: string | null = null;
 
-    if (data.useWallet) {
+    if (useWallet) {
       const buyerWallet = await this.walletService.getOrCreateWallet(data.buyerId, currency);
       const sellerWallet = await this.walletService.getOrCreateWallet(sellerId, currency);
       buyerWalletId = buyerWallet.id;
@@ -100,9 +103,9 @@ export class EscrowService {
         netAmountCents: feeCalculation.netAmountCents,
         description: data.description,
         status: EscrowStatus.AWAITING_FUNDING,
-        fundingMethod: data.useWallet ? 'wallet' : 'direct',
+        fundingMethod: useWallet ? 'wallet' : 'direct',
         expectedDeliveryDate: data.expectedDeliveryDate,
-        autoReleaseDays: data.autoReleaseDays || 7,
+        autoReleaseDays: data.autoReleaseDays ?? 0,
         disputeWindowDays: data.disputeWindowDays || 14,
         deliveryRegion: data.deliveryRegion,
         deliveryCity: data.deliveryCity,
@@ -123,7 +126,7 @@ export class EscrowService {
       });
     }
 
-    if (data.useWallet) {
+    if (useWallet) {
       await this.walletService.reserveForEscrow(buyerWalletId!, data.amountCents, escrow.id);
     }
 
@@ -135,7 +138,7 @@ export class EscrowService {
       details: {
         amountCents: data.amountCents,
         currency,
-        useWallet: data.useWallet,
+        useWallet,
         milestones: data.milestones?.length || 0,
       },
     });
@@ -163,6 +166,10 @@ export class EscrowService {
       throw new NotFoundException('Escrow not found');
     }
 
+    if (escrow.status === EscrowStatus.FUNDED) {
+      return this.getEscrow(escrowId);
+    }
+
     if (escrow.buyerId !== userId) {
       throw new BadRequestException('Only the buyer can fund this escrow');
     }
@@ -171,14 +178,22 @@ export class EscrowService {
       throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot fund`);
     }
 
-    if (escrow.fundingMethod === 'wallet') {
-      if (!escrow.buyerWalletId) {
-        throw new BadRequestException('Buyer wallet not found');
-      }
-    } else if (escrow.fundingMethod === 'direct') {
-      throw new BadRequestException(
-        'This escrow uses direct payment. Please pay via Paystack using the "Pay with Paystack" button.',
-      );
+    // Wallet is used for all escrow funding. Paystack is only for wallet top-up.
+    let buyerWalletId = escrow.buyerWalletId;
+    if (!buyerWalletId) {
+      // Escrow was created as "direct" - set up wallets and reserve now
+      const buyerWallet = await this.walletService.getOrCreateWallet(escrow.buyerId, escrow.currency);
+      const sellerWallet = await this.walletService.getOrCreateWallet(escrow.sellerId, escrow.currency);
+      buyerWalletId = buyerWallet.id;
+      await this.walletService.reserveForEscrow(buyerWalletId, escrow.amountCents, escrowId);
+      await this.prisma.escrowAgreement.update({
+        where: { id: escrowId },
+        data: {
+          buyerWalletId,
+          sellerWalletId: sellerWallet.id,
+          fundingMethod: 'wallet',
+        },
+      });
     }
 
     await this.prisma.escrowAgreement.update({
@@ -521,7 +536,7 @@ export class EscrowService {
         )
         .catch((err) => this.logger.error(`Failed to evaluate rules: ${err.message}`));
     }
-    const autoReleaseDays = escrow.autoReleaseDays ?? 7;
+    const autoReleaseDays = escrow.autoReleaseDays ?? 0;
     if (autoReleaseDays === 0) {
       const activeDisputes = await this.prisma.dispute.count({
         where: { escrowId, status: { notIn: ['RESOLVED', 'CLOSED'] } },
@@ -613,7 +628,7 @@ export class EscrowService {
     }
 
     // Auto-settlement: immediate release when autoReleaseDays is 0 and no active dispute
-    const autoReleaseDays = escrow.autoReleaseDays ?? 7;
+    const autoReleaseDays = escrow.autoReleaseDays ?? 0;
     if (autoReleaseDays === 0) {
       const activeDisputes = await this.prisma.dispute.count({
         where: {
@@ -643,6 +658,11 @@ export class EscrowService {
       throw new NotFoundException('Escrow not found');
     }
 
+    // Idempotency: already released
+    if (escrow.status === EscrowStatus.RELEASED) {
+      return this.getEscrow(escrowId);
+    }
+
     // Safety: only buyer (or system jobs) can release funds.
     if (userId !== 'system' && escrow.buyerId !== userId) {
       throw new BadRequestException('Only the buyer can release funds');
@@ -653,6 +673,34 @@ export class EscrowService {
       throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot release funds`);
     }
 
+    // Dispute freeze: block release when active dispute exists (best practice)
+    const activeDisputes = await this.prisma.dispute.count({
+      where: {
+        escrowId,
+        status: { notIn: ['RESOLVED', 'CLOSED'] },
+      },
+    });
+    if (activeDisputes > 0) {
+      throw new BadRequestException('Cannot release funds while an active dispute is open. Please wait for resolution.');
+    }
+
+    // Ensure seller has wallet (handle legacy escrows)
+    let sellerWalletId = escrow.sellerWalletId;
+    if (!sellerWalletId) {
+      const sellerWallet = await this.walletService.getOrCreateWallet(escrow.sellerId, escrow.currency);
+      sellerWalletId = sellerWallet.id;
+      await this.prisma.escrowAgreement.update({
+        where: { id: escrowId },
+        data: { sellerWalletId },
+      });
+    }
+
+    // Best practice: wallet credit first, then ledger, then status (ensures money moves before marking complete)
+    await this.walletService.releaseToSeller(sellerWalletId!, escrow.netAmountCents, escrowId);
+    await this.ledgerHelper.createReleaseLedgerEntry(escrowId, {
+      netAmountCents: escrow.netAmountCents,
+      currency: escrow.currency,
+    });
     await this.prisma.escrowAgreement.update({
       where: { id: escrowId },
       data: {
@@ -660,15 +708,6 @@ export class EscrowService {
         releasedAt: new Date(),
       },
     });
-
-    await this.ledgerHelper.createReleaseLedgerEntry(escrowId, {
-      netAmountCents: escrow.netAmountCents,
-      currency: escrow.currency,
-    });
-
-    if (escrow.sellerWalletId) {
-      await this.walletService.releaseToSeller(escrow.sellerWalletId, escrow.netAmountCents, escrowId);
-    }
 
     const buyer = await this.prisma.user.findUnique({ where: { id: escrow.buyerId } });
     const seller = await this.prisma.user.findUnique({ where: { id: escrow.sellerId } });
@@ -705,6 +744,10 @@ export class EscrowService {
       throw new NotFoundException('Escrow not found');
     }
 
+    if (escrow.status === EscrowStatus.RELEASED) {
+      return this.getEscrow(escrowId);
+    }
+
     const validStatuses: EscrowStatus[] = [
       EscrowStatus.DELIVERED,
       EscrowStatus.AWAITING_RELEASE,
@@ -714,6 +757,21 @@ export class EscrowService {
       throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot release from dispute`);
     }
 
+    let sellerWalletId = escrow.sellerWalletId;
+    if (!sellerWalletId) {
+      const sellerWallet = await this.walletService.getOrCreateWallet(escrow.sellerId, escrow.currency);
+      sellerWalletId = sellerWallet.id;
+      await this.prisma.escrowAgreement.update({
+        where: { id: escrowId },
+        data: { sellerWalletId },
+      });
+    }
+
+    await this.walletService.releaseToSeller(sellerWalletId!, escrow.netAmountCents, escrowId);
+    await this.ledgerHelper.createReleaseLedgerEntry(escrowId, {
+      netAmountCents: escrow.netAmountCents,
+      currency: escrow.currency,
+    });
     await this.prisma.escrowAgreement.update({
       where: { id: escrowId },
       data: {
@@ -721,15 +779,6 @@ export class EscrowService {
         releasedAt: new Date(),
       },
     });
-
-    await this.ledgerHelper.createReleaseLedgerEntry(escrowId, {
-      netAmountCents: escrow.netAmountCents,
-      currency: escrow.currency,
-    });
-
-    if (escrow.sellerWalletId) {
-      await this.walletService.releaseToSeller(escrow.sellerWalletId, escrow.netAmountCents, escrowId);
-    }
 
     const buyer = await this.prisma.user.findUnique({ where: { id: escrow.buyerId } });
     const seller = await this.prisma.user.findUnique({ where: { id: escrow.sellerId } });
@@ -766,6 +815,10 @@ export class EscrowService {
       throw new NotFoundException('Escrow not found');
     }
 
+    if (escrow.status === EscrowStatus.REFUNDED) {
+      return this.getEscrow(escrowId);
+    }
+
     const refundableStatuses: EscrowStatus[] = [
       EscrowStatus.AWAITING_FUNDING,
       EscrowStatus.FUNDED,
@@ -779,6 +832,24 @@ export class EscrowService {
       throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot refund from dispute`);
     }
 
+    // Only move funds if escrow was funded (best practice: no ledger for unfunded)
+    if (escrow.fundedAt) {
+      let buyerWalletId = escrow.buyerWalletId;
+      if (!buyerWalletId) {
+        const buyerWallet = await this.walletService.getOrCreateWallet(escrow.buyerId, escrow.currency);
+        buyerWalletId = buyerWallet.id;
+        await this.prisma.escrowAgreement.update({
+          where: { id: escrowId },
+          data: { buyerWalletId },
+        });
+      }
+      await this.walletService.refundToBuyer(buyerWalletId!, escrow.amountCents, escrowId);
+      await this.ledgerHelper.createRefundLedgerEntry(escrowId, {
+        amountCents: escrow.amountCents,
+        feeCents: escrow.feeCents,
+        currency: escrow.currency,
+      });
+    }
     await this.prisma.escrowAgreement.update({
       where: { id: escrowId },
       data: {
@@ -786,16 +857,6 @@ export class EscrowService {
         refundedAt: new Date(),
       },
     });
-
-    await this.ledgerHelper.createRefundLedgerEntry(escrowId, {
-      amountCents: escrow.amountCents,
-      feeCents: escrow.feeCents,
-      currency: escrow.currency,
-    });
-
-    if (escrow.buyerWalletId) {
-      await this.walletService.refundToBuyer(escrow.buyerWalletId, escrow.amountCents, escrowId);
-    }
 
     await this.auditService.log({
       userId: adminId,
@@ -819,6 +880,10 @@ export class EscrowService {
       throw new NotFoundException('Escrow not found');
     }
 
+    if (escrow.status === EscrowStatus.REFUNDED) {
+      return this.getEscrow(escrowId);
+    }
+
     const refundableStatuses: EscrowStatus[] = [
       EscrowStatus.AWAITING_FUNDING,
       EscrowStatus.FUNDED,
@@ -832,6 +897,24 @@ export class EscrowService {
       throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot refund`);
     }
 
+    // Wallet first, then ledger, then status
+    if (escrow.fundedAt) {
+      let buyerWalletId = escrow.buyerWalletId;
+      if (!buyerWalletId) {
+        const buyerWallet = await this.walletService.getOrCreateWallet(escrow.buyerId, escrow.currency);
+        buyerWalletId = buyerWallet.id;
+        await this.prisma.escrowAgreement.update({
+          where: { id: escrowId },
+          data: { buyerWalletId },
+        });
+      }
+      await this.walletService.refundToBuyer(buyerWalletId!, escrow.amountCents, escrowId);
+      await this.ledgerHelper.createRefundLedgerEntry(escrowId, {
+        amountCents: escrow.amountCents,
+        feeCents: escrow.feeCents,
+        currency: escrow.currency,
+      });
+    }
     await this.prisma.escrowAgreement.update({
       where: { id: escrowId },
       data: {
@@ -839,16 +922,6 @@ export class EscrowService {
         refundedAt: new Date(),
       },
     });
-
-    await this.ledgerHelper.createRefundLedgerEntry(escrowId, {
-      amountCents: escrow.amountCents,
-      feeCents: escrow.feeCents,
-      currency: escrow.currency,
-    });
-
-    if (escrow.buyerWalletId) {
-      await this.walletService.refundToBuyer(escrow.buyerWalletId, escrow.amountCents, escrowId);
-    }
 
     await this.auditService.log({
       userId,

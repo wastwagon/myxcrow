@@ -334,7 +334,7 @@ model EscrowAgreement {
   
   // Terms
   expectedDeliveryDate DateTime?
-  autoReleaseDays     Int?         @default(7) // Auto-release after X days if no dispute
+  autoReleaseDays     Int?         @default(0) // Auto-release when complete + no dispute (0=immediate, N=days after deliveredAt)
   disputeWindowDays   Int?         @default(14) // Days buyer has to dispute after delivery
   
   // Delivery address (ship to)
