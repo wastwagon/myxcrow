@@ -10,7 +10,10 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 
 const loginSchema = z.object({
-  phone: z.string().regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
+  identifier: z.string().min(1, 'Enter email or phone').refine(
+    (val) => /^(\+?233[0-9]{9}|0[0-9]{9})$/.test(val.replace(/\s/g, '')) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+    'Enter email or Ghana phone (e.g. 0551234567)',
+  ),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -33,7 +36,10 @@ export default function Login() {
     try {
       setLoading(true);
       setError(null);
-      const response = await apiClient.post('/auth/login', data);
+      const response = await apiClient.post('/auth/login', {
+        identifier: data.identifier.trim(),
+        password: data.password,
+      });
       const { user, accessToken, refreshToken } = response.data;
 
       setAuthTokens(accessToken, refreshToken);
@@ -85,19 +91,19 @@ export default function Login() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
-                Phone Number
+              <label htmlFor="identifier" className="block text-sm font-semibold text-gray-700 mb-2">
+                Email or Phone
               </label>
               <input
-                {...register('phone')}
-                type="tel"
-                id="phone"
+                {...register('identifier')}
+                type="text"
+                id="identifier"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
-                placeholder="0551234567"
+                placeholder="you@example.com or 0551234567"
               />
-              <p className="mt-1 text-xs text-gray-500">Ghana format: 0XXXXXXXXX (no +233)</p>
-              {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+              <p className="mt-1 text-xs text-gray-500">Enter your email or Ghana phone number</p>
+              {errors.identifier && (
+                <p className="mt-1 text-sm text-red-600">{errors.identifier.message}</p>
               )}
             </div>
 

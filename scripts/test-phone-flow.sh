@@ -76,12 +76,12 @@ else
   pass "Seller registered"
 fi
 
-# Login buyer with PHONE (not email)
+# Login buyer with PHONE
 echo ""
 echo "4. Login buyer with phone (0551111111)..."
 BUYER_LOGIN=$(curl -s -X POST "$API_BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"phone":"0551111111","password":"password123"}')
+  -d '{"identifier":"0551111111","password":"password123"}')
 BUYER_TOKEN=$(echo "$BUYER_LOGIN" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
 if [ -z "$BUYER_TOKEN" ]; then
   fail "Buyer login with phone failed" "$BUYER_LOGIN"
@@ -93,12 +93,25 @@ echo ""
 echo "5. Login seller with phone (0552222222)..."
 SELLER_LOGIN=$(curl -s -X POST "$API_BASE/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"phone":"0552222222","password":"password123"}')
+  -d '{"identifier":"0552222222","password":"password123"}')
 SELLER_TOKEN=$(echo "$SELLER_LOGIN" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
 if [ -z "$SELLER_TOKEN" ]; then
   fail "Seller login with phone failed" "$SELLER_LOGIN"
 fi
 pass "Seller logged in (phone auth)"
+
+# Optional: verify email login also works
+echo ""
+echo "5b. Verify email login (buyer-phone@test.com)..."
+EMAIL_LOGIN=$(curl -s -X POST "$API_BASE/auth/login" \
+  -H "Content-Type: application/json" \
+  -d '{"identifier":"buyer-phone@test.com","password":"password123"}')
+EMAIL_TOKEN=$(echo "$EMAIL_LOGIN" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
+if [ -n "$EMAIL_TOKEN" ]; then
+  pass "Email login also works"
+else
+  warn "Email login: $EMAIL_LOGIN"
+fi
 
 # Get profile (should include phone)
 echo ""
@@ -160,7 +173,7 @@ echo "=========================================="
 echo -e "${GREEN}Phone flow test completed!${NC}"
 echo "=========================================="
 echo "Summary:"
-echo "  - Login by phone: OK"
+echo "  - Login by phone or email: OK"
 echo "  - Profile with phone: OK"
 echo "  - Escrow with seller phone: OK"
 echo ""

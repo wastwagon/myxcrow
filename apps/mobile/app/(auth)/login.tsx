@@ -19,7 +19,10 @@ import { z } from 'zod';
 import { authenticateWithBiometrics, checkBiometricAvailability, isBiometricEnabled, setBiometricEnabled } from '../../src/services/biometric';
 
 const loginSchema = z.object({
-  phone: z.string().regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
+  identifier: z.string().min(1, 'Enter email or phone').refine(
+    (val) => /^(\+?233[0-9]{9}|0[0-9]{9})$/.test(val.replace(/\s/g, '')) || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+    'Enter email or Ghana phone (e.g. 0551234567)',
+  ),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -48,7 +51,7 @@ export default function LoginScreen() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      phone: '',
+      identifier: '',
       password: '',
     },
   });
@@ -67,7 +70,7 @@ export default function LoginScreen() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setLoading(true);
-      await login(data.phone, data.password);
+      await login(data.identifier, data.password);
       
       // Register push token after successful login
       const { sendPushTokenToServer, getStoredPushToken } = await import('../../src/services/notifications');
@@ -100,25 +103,26 @@ export default function LoginScreen() {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Phone</Text>
+            <Text style={styles.label}>Email or Phone</Text>
             <Controller
               control={control}
-              name="phone"
+              name="identifier"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[styles.input, errors.phone && styles.inputError]}
-                  placeholder="0551234567"
+                  style={[styles.input, errors.identifier && styles.inputError]}
+                  placeholder="you@example.com or 0551234567"
                   placeholderTextColor="#999"
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
-                  keyboardType="phone-pad"
-                  autoComplete="tel"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
                 />
               )}
             />
-            <Text style={styles.helpText}>Ghana format: 0XXXXXXXXX</Text>
-            {errors.phone && <Text style={styles.errorText}>{errors.phone.message}</Text>}
+            <Text style={styles.helpText}>Enter your email or Ghana phone number</Text>
+            {errors.identifier && <Text style={styles.errorText}>{errors.identifier.message}</Text>}
           </View>
 
           <View style={styles.inputContainer}>

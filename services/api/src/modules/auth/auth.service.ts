@@ -89,8 +89,7 @@ export class AuthService {
   }
 
   async login(data: LoginDto) {
-    const normalizedPhone = normalizeGhanaPhone(data.phone);
-    const user = await this.validateUser(normalizedPhone, data.password);
+    const user = await this.validateUser(data.identifier, data.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -123,10 +122,22 @@ export class AuthService {
     };
   }
 
-  async validateUser(phone: string, password: string): Promise<any> {
-    const user = await this.prisma.user.findFirst({
-      where: { phone },
-    });
+  async validateUser(identifier: string, password: string): Promise<any> {
+    const trimmed = (identifier || '').trim();
+    const normalizedPhone = normalizeGhanaPhone(trimmed);
+    const isPhone = /^0[0-9]{9}$/.test(normalizedPhone);
+    const isEmail = trimmed.includes('@');
+
+    let user = null;
+    if (isPhone) {
+      user = await this.prisma.user.findFirst({
+        where: { phone: normalizedPhone },
+      });
+    } else if (isEmail) {
+      user = await this.prisma.user.findUnique({
+        where: { email: trimmed.toLowerCase() },
+      });
+    }
 
     if (!user || !user.passwordHash || !user.isActive) {
       return null;
