@@ -76,7 +76,6 @@ export default function CreateEscrowPage() {
     resolver: zodResolver(createEscrowSchema),
     defaultValues: {
       currency: 'GHS',
-      useWallet: true,
       useMilestones: false,
       milestones: [],
     },
