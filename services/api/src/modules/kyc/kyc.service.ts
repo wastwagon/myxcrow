@@ -212,13 +212,17 @@ export class KYCService {
   }
 
   /**
-   * List pending KYC verifications (for admin) - ALL submissions require review
+   * List pending KYC verifications (for admin) - aligns with User Management PENDING status
+   * Returns:
+   * - kycDetails: users who submitted documents (can approve/reject)
+   * - awaitingSubmission: users with PENDING status but no KYC documents yet
    */
   async listPendingVerifications(limit: number = 50, offset: number = 0) {
-    const [kycDetails, total] = await Promise.all([
+    const [kycDetails, awaitingSubmission, totalAwaitingReview] = await Promise.all([
       this.prisma.kYCDetail.findMany({
         where: {
-          adminApproved: false, // Show ALL pending (no face match filter)
+          adminApproved: false,
+          user: { kycStatus: KYCStatus.PENDING },
         },
         include: {
           user: {
@@ -237,16 +241,38 @@ export class KYCService {
         take: limit,
         skip: offset,
       }),
+      this.prisma.user.findMany({
+        where: {
+          kycStatus: KYCStatus.PENDING,
+          kycDetails: { is: null }, // No KYCDetail - never submitted documents
+        },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          phone: true,
+          kycStatus: true,
+          createdAt: true,
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
       this.prisma.kYCDetail.count({
         where: {
-          adminApproved: false, // Count ALL pending
+          adminApproved: false,
+          user: { kycStatus: KYCStatus.PENDING },
         },
       }),
     ]);
 
+    const total = totalAwaitingReview + awaitingSubmission.length;
+
     return {
       kycDetails,
+      awaitingSubmission,
       total,
+      totalAwaitingReview,
       limit,
       offset,
     };

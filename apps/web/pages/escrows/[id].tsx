@@ -302,12 +302,11 @@ export default function EscrowDetailPage() {
         <PageHeader
           title="Escrow Details"
           subtitle={`ID: ${escrow.id}`}
-          icon={<FileText className="w-6 h-6 text-white" />}
-          gradient="blue"
+          icon={<FileText className="w-6 h-6" />}
           action={
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg border border-white/30">
-              <StatusIcon className="w-5 h-5 text-white" />
-              <span className="text-sm font-medium text-white">
+            <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg border border-gray-200">
+              <StatusIcon className="w-5 h-5 text-gray-600" />
+              <span className="text-sm font-medium text-gray-700">
                 {statusConfig[escrow.status]?.label || escrow.status}
               </span>
             </div>

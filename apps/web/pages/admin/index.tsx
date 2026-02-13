@@ -90,6 +90,28 @@ export default function AdminDashboard() {
     refetchInterval: 30000, // Refetch every 30s when dashboard is visible
   });
 
+  const { data: statsData } = useQuery<{
+    last24Hours?: {
+      topUpAmountCents?: number;
+      topUpCount?: number;
+      escrowsCreated?: number;
+      escrowValueCents?: number;
+      feesRevenueCents?: number;
+    };
+    totals?: { walletBalanceCents?: number };
+    recentTransactions?: any[];
+    recentEscrows?: any[];
+  }>({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      const response = await apiClient.get('/admin/stats');
+      return response.data;
+    },
+    enabled: mounted && isAuthenticated() && isAdmin(),
+    staleTime: 0,
+    refetchInterval: 30000,
+  });
+
   // Extract wallets array from response (handle both formats)
   const wallets: any[] = extractArrayData(walletsData, 'wallets');
 
@@ -135,12 +157,11 @@ export default function AdminDashboard() {
         <PageHeader
           title="Admin Dashboard"
           subtitle="Platform overview and management"
-          icon={<Settings className="w-6 h-6 text-white" />}
-          gradient="purple"
+          icon={<Settings className="w-6 h-6" />}
           action={
             <Link
               href="/admin/users"
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 font-medium shadow-lg transition-all border border-white/30"
+              className="px-4 py-2 bg-brand-maroon text-white rounded-lg hover:bg-brand-maroon-dark font-medium shadow-sm transition-all"
             >
               <Users className="w-4 h-4 inline mr-2" />
               Manage Users
@@ -222,6 +243,43 @@ export default function AdminDashboard() {
             <p className="text-xs text-gray-500 mt-1">Awaiting completion</p>
           </div>
         </div>
+
+        {/* Last 24 Hours Stats */}
+        {statsData && (
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Last 24 Hours</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="bg-white rounded-xl shadow p-4 border-l-4 border-emerald-500">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase">Wallet Top-ups</h3>
+                <p className="text-xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(statsData.last24Hours?.topUpAmountCents ?? 0, 'GHS')}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">{statsData.last24Hours?.topUpCount ?? 0} transactions</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase">Escrows Created</h3>
+                <p className="text-xl font-bold text-gray-900 mt-1">{statsData.last24Hours?.escrowsCreated ?? 0}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {formatCurrency(statsData.last24Hours?.escrowValueCents ?? 0, 'GHS')} value
+                </p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4 border-l-4 border-amber-500">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase">System Earnings</h3>
+                <p className="text-xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(statsData.last24Hours?.feesRevenueCents ?? 0, 'GHS')}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Fees last 24h</p>
+              </div>
+              <div className="bg-white rounded-xl shadow p-4 border-l-4 border-purple-500">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase">Total Wallet Balance</h3>
+                <p className="text-xl font-bold text-gray-900 mt-1">
+                  {formatCurrency(statsData.totals?.walletBalanceCents ?? 0, 'GHS')}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Across all users</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Quick Actions */}
         <div>
@@ -335,7 +393,33 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Recent Top-ups */}
+          {statsData?.recentTransactions && statsData.recentTransactions.length > 0 && (
+            <div className="bg-white rounded-xl shadow-lg">
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-900">Recent Top-ups</h2>
+                </div>
+              </div>
+              <div className="p-6 max-h-64 overflow-y-auto">
+                <div className="space-y-3">
+                  {statsData.recentTransactions.slice(0, 8).map((tx: any) => (
+                    <div key={tx.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                      <div>
+                        <p className="font-medium text-gray-900">{formatCurrency(tx.amountCents, 'GHS')}</p>
+                        <p className="text-xs text-gray-500">{tx.userEmail || '—'} • {new Date(tx.createdAt).toLocaleString()}</p>
+                      </div>
+                      <span className={`px-2 py-1 text-xs font-medium rounded ${tx.status === 'SUCCEEDED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                        {tx.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Recent Escrows */}
           <div className="bg-white rounded-xl shadow-lg">
             <div className="p-6 border-b border-gray-200">

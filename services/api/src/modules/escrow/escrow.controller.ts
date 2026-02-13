@@ -13,7 +13,6 @@ import { MilestoneEscrowService } from './milestone-escrow.service';
 import { EscrowMessageService } from './escrow-message.service';
 import { EscrowExportService } from './escrow-export.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { KYCVerifiedGuard } from '../auth/guards/kyc-verified.guard';
 import { EscrowParticipantGuard } from './guards/escrow-participant.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { EscrowStatus } from '@prisma/client';
@@ -31,7 +30,6 @@ export class EscrowController {
   ) {}
 
   @Post()
-  @UseGuards(KYCVerifiedGuard)
   async create(@Body() data: any, @CurrentUser() user: any) {
     return this.escrowService.createEscrow({
       ...data,
@@ -85,7 +83,7 @@ export class EscrowController {
   }
 
   @Put(':id/fund')
-  @UseGuards(KYCVerifiedGuard, EscrowParticipantGuard)
+  @UseGuards(EscrowParticipantGuard)
   async fund(@Param('id') id: string, @CurrentUser() user: any) {
     return this.escrowService.fundEscrow(id, user.id);
   }
@@ -123,13 +121,13 @@ export class EscrowController {
   }
 
   @Put(':id/release')
-  @UseGuards(KYCVerifiedGuard, EscrowParticipantGuard)
+  @UseGuards(EscrowParticipantGuard)
   async release(@Param('id') id: string, @CurrentUser() user: any) {
     return this.escrowService.releaseFunds(id, user.id);
   }
 
   @Put(':id/refund')
-  @UseGuards(KYCVerifiedGuard, EscrowParticipantGuard)
+  @UseGuards(EscrowParticipantGuard)
   async refund(
     @Param('id') id: string,
     @Body() data: { reason?: string },

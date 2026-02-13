@@ -75,8 +75,7 @@ export default function WalletPage() {
         <PageHeader
           title="Wallet"
           subtitle="Manage your wallet balance and transactions"
-          icon={<WalletIcon className="w-6 h-6 text-white" />}
-          gradient="blue"
+          icon={<WalletIcon className="w-6 h-6" />}
         />
 
         {/* Balance Cards */}

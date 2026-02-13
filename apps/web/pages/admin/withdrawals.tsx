@@ -146,11 +146,10 @@ export default function AdminWithdrawalsPage() {
         <PageHeader
           title="Withdrawal Management"
           subtitle="Approve or deny withdrawal requests"
-          icon={<ArrowUpCircle className="w-6 h-6 text-white" />}
-          gradient="yellow"
+          icon={<ArrowUpCircle className="w-6 h-6" />}
           action={
             pendingWithdrawals.length > 0 ? (
-              <div className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg border border-white/30">
+              <div className="px-4 py-2 bg-amber-100 text-amber-800 rounded-lg border border-amber-200">
                 <p className="text-sm font-semibold">
                   {pendingWithdrawals.length} pending withdrawal{pendingWithdrawals.length !== 1 ? 's' : ''}
                 </p>

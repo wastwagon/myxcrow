@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -56,7 +55,8 @@ export default function Login() {
           {/* Branding Header */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg overflow-hidden bg-brand-maroon-deep">
-              <Image src="/logo/website-logo.gif" alt="MYXCROW" width={64} height={64} className="object-contain" unoptimized />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo/website-logo.gif" alt="MYXCROW" width={64} height={64} className="object-contain" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-2 text-white">
               MYXCROW

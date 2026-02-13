@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -6,7 +6,6 @@ import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { AuditService } from '../audit/audit.service';
 import { UserRole, KYCStatus } from '@prisma/client';
-import { KYCService } from '../kyc/kyc.service';
 import { EmailService } from '../email/email.service';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
@@ -19,9 +18,7 @@ export class AuthService {
     private auditService: AuditService,
     private emailService: EmailService,
     private configService: ConfigService,
-    @Inject(forwardRef(() => KYCService))
-    private kycService?: KYCService,
-  ) { }
+  ) {}
 
   async register(
     data: RegisterDto,
@@ -59,41 +56,17 @@ export class AuthService {
         lastName: data.lastName,
         phone: data.phone,
         roles: data.role ? [data.role] : [UserRole.BUYER],
-        kycStatus: KYCStatus.PENDING, // Will be updated after KYC processing
-        isActive: true, // Ensure new users are active
+        kycStatus: KYCStatus.VERIFIED, // Auto-approved for now; Smile ID verification to be added later
+        isActive: true,
       },
     });
-
-    // Process KYC documents if provided (optional for MVP)
-    let kycResult = null;
-    if (files?.cardFront && files?.cardBack && files?.selfie) {
-      if (!this.kycService) {
-        throw new BadRequestException('KYC service not available. Please contact support.');
-      }
-      try {
-        kycResult = await this.kycService.processKYCRegistration({
-          userId: user.id,
-          ghanaCardNumber: undefined, // No Ghana Card number collected
-          cardFrontBuffer: files.cardFront,
-          cardBackBuffer: files.cardBack,
-          selfieBuffer: files.selfie,
-        });
-
-        // We no longer block registration on face matching.
-        // All submissions go to PENDING for admin review.
-      } catch (error) {
-        // Clean up user if KYC processing fails (e.g. upload error)
-        await this.prisma.user.delete({ where: { id: user.id } }).catch(() => { });
-        throw error;
-      }
-    }
 
     await this.auditService.log({
       userId: user.id,
       action: 'user_register',
       resource: 'user',
       resourceId: user.id,
-      details: { email: user.email, kycSubmitted: !!kycResult },
+      details: { email: user.email },
     });
 
     const tokens = await this.generateTokens(user.id, user.email);

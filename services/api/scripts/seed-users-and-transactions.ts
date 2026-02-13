@@ -71,6 +71,15 @@ async function main() {
   const PASSWORD_HASH = await bcrypt.hash('password123', 10);
   console.log('🌱 Starting seed script...\n');
 
+  // Auto-approve any existing PENDING users (KYC disabled for now)
+  const pendingResult = await prisma.user.updateMany({
+    where: { kycStatus: KYCStatus.PENDING },
+    data: { kycStatus: KYCStatus.VERIFIED },
+  });
+  if (pendingResult.count > 0) {
+    console.log(`  ✅ Auto-approved ${pendingResult.count} pending user(s)\n`);
+  }
+
   // Create users
   console.log('👥 Creating 10 users...');
   const createdUsers = [];

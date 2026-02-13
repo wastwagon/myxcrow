@@ -268,25 +268,6 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {displayUser?.kycStatus && (
-                    <div className="flex items-start gap-4">
-                      <Shield className="w-5 h-5 text-gray-400 mt-1" />
-                      <div>
-                        <p className="text-sm text-gray-600">KYC Status</p>
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded mt-1 inline-block ${
-                            displayUser.kycStatus === 'VERIFIED'
-                              ? 'bg-green-100 text-green-800'
-                              : displayUser.kycStatus === 'PENDING'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}
-                        >
-                          {displayUser.kycStatus}
-                        </span>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
 

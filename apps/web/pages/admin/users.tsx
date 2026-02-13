@@ -104,6 +104,19 @@ export default function AdminUsersPage() {
     },
   });
 
+  const approveMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      return apiClient.put(`/users/${userId}/approve`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success('User approved successfully');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to approve user');
+    },
+  });
+
   const impersonateMutation = useMutation({
     mutationFn: async (userId: string) => {
       const res = await apiClient.post('/auth/admin/impersonate', { userId });
@@ -328,17 +341,29 @@ export default function AdminUsersPage() {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded ${
-                            user.kycStatus === 'VERIFIED'
-                              ? 'bg-green-100 text-green-800'
-                              : user.kycStatus === 'PENDING'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}
-                        >
-                          {user.kycStatus}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-1 text-xs font-medium rounded ${
+                              user.kycStatus === 'VERIFIED'
+                                ? 'bg-green-100 text-green-800'
+                                : user.kycStatus === 'PENDING'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            {user.kycStatus}
+                          </span>
+                          {user.kycStatus === 'PENDING' && (
+                            <button
+                              onClick={() => approveMutation.mutate(user.id)}
+                              disabled={approveMutation.isPending}
+                              className="px-2 py-1 text-xs font-medium bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              title="Approve user"
+                            >
+                              {approveMutation.isPending ? '...' : 'Approve'}
+                            </button>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <button

@@ -1,7 +1,6 @@
 import { Controller, Get, Post, Put, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { KYCVerifiedGuard } from '../auth/guards/kyc-verified.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -51,7 +50,6 @@ export class WalletController {
   }
 
   @Post('withdraw')
-  @UseGuards(KYCVerifiedGuard)
   async requestWithdrawal(
     @CurrentUser() user: any,
     @Body() data: { amountCents: number; methodType: WithdrawalMethod; methodDetails: any; feeCents?: number },

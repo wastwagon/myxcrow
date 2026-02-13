@@ -117,13 +117,10 @@ export class WalletTopupService {
     });
 
     if (isSuccess && !holdUntil) {
-      await this.walletService.topUpWallet({
-        userId: funding.wallet.userId,
-        sourceType: funding.sourceType,
-        amountCents: funding.amountCents,
-        externalRef: funding.externalRef,
-        feeCents: funding.feeCents,
-        holdHours: 0,
+      // Credit wallet from existing funding (do NOT create duplicate funding record)
+      await this.walletService.creditWalletFromFunding({
+        ...updatedFunding,
+        wallet: funding.wallet,
       });
     } else if (!isSuccess) {
       await this.auditService.log({

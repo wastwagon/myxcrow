@@ -23,7 +23,7 @@ echo ""
 echo "✅ Database seeded successfully!"
 echo ""
 echo "📝 Test Accounts:"
-echo "   Admin: admin@myxcrow.com / Admin123!"
+echo "   Admin: admin@myxcrow.com / password123"
 echo "   Users: buyer1@test.com through buyer5@test.com (password: password123)"
 echo "   Users: seller1@test.com through seller5@test.com (password: password123)"
 

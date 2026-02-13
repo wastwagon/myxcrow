@@ -117,12 +117,11 @@ export default function EscrowsPage() {
         <PageHeader
           title="Escrows"
           subtitle="Manage your escrow agreements"
-          icon={<FileText className="w-6 h-6 text-white" />}
-          gradient="blue"
+          icon={<FileText className="w-6 h-6" />}
           action={
             <Link
               href="/escrows/new"
-              className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 font-medium shadow-lg transition-all border border-white/30 flex items-center gap-2"
+              className="px-4 py-2 bg-brand-maroon text-white rounded-lg hover:bg-brand-maroon-dark font-medium shadow-sm transition-all flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
               New Escrow

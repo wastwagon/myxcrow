@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
@@ -24,14 +23,8 @@ export default function PublicHeader() {
           {/* Logo & Brand */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-10 h-10 flex-shrink-0">
-              <Image
-                src="/logo/website-logo.gif"
-                alt="MYXCROW"
-                width={40}
-                height={40}
-                className="object-contain"
-                unoptimized
-              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo/website-logo.gif" alt="MYXCROW" width={40} height={40} className="object-contain" />
             </div>
             <span className="text-xl font-bold text-white hidden sm:inline group-hover:text-brand-gold transition-colors">
               MYXCROW

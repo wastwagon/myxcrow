@@ -130,6 +130,34 @@ export class WalletService {
   }
 
   /**
+   * Credit wallet from an existing funding record (e.g. after Paystack verification).
+   * Does NOT create a new funding - prevents duplicate entries when both webhook and callback run.
+   */
+  async creditWalletFromFunding(funding: { id: string; walletId: string; wallet: { userId: string; currency: string }; amountCents: number; feeCents: number; sourceType: any }) {
+    await this.prisma.wallet.update({
+      where: { id: funding.walletId },
+      data: {
+        availableCents: { increment: funding.amountCents - funding.feeCents },
+      },
+    });
+
+    await this.ledgerHelper.createWalletTopUpEntry(funding.walletId, {
+      amountCents: funding.amountCents,
+      feeCents: funding.feeCents,
+      currency: funding.wallet.currency,
+      fundingId: funding.id,
+    });
+
+    await this.auditService.log({
+      userId: funding.wallet.userId,
+      action: 'wallet_topup',
+      resource: 'wallet_funding',
+      resourceId: funding.id,
+      details: { amountCents: funding.amountCents, sourceType: funding.sourceType, status: 'SUCCEEDED' },
+    });
+  }
+
+  /**
    * Transfer pending to available (after hold period)
    */
   async transferPendingToAvailable(walletFundingId: string, adminId: string) {

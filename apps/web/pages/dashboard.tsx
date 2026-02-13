@@ -120,8 +120,7 @@ export default function Dashboard() {
         <PageHeader
           title={`Welcome Back${userName ? `, ${userName}` : ''}!`}
           subtitle="Here's your account overview"
-          icon={<FileText className="w-6 h-6 text-white" />}
-          gradient="blue"
+          icon={<FileText className="w-6 h-6" />}
         />
 
         {/* Wallet Summary Cards */}
