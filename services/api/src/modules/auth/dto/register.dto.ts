@@ -18,8 +18,8 @@ export class RegisterDto {
   lastName?: string;
 
   @IsString()
-  @Matches(/^(\+233|0)[0-9]{9}$/, {
-    message: 'Invalid Ghana phone number format (e.g., +233XXXXXXXXX or 0XXXXXXXXX)',
+  @Matches(/^0[0-9]{9}$/, {
+    message: 'Enter Ghana phone number (e.g. 0551234567)',
   })
   phone: string;
 

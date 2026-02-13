@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards } from '@nestjs/common';
+import { Controller, Put, Body, UseGuards } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -11,11 +11,6 @@ import { UserRole } from '@prisma/client';
 export class FeesConfigController {
   constructor(private readonly settingsService: SettingsService) {}
 
-  @Get()
-  async getFeeSettings() {
-    return this.settingsService.getFeeSettings();
-  }
-
   @Put()
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -24,17 +19,19 @@ export class FeesConfigController {
       percentage?: number;
       fixedCents?: number;
       feePaidBy?: 'buyer' | 'seller' | 'split';
+      paidBy?: 'buyer' | 'seller' | 'split'; // Frontend sends paidBy
     },
     @CurrentUser() admin: any,
   ) {
+    const paidBy = data.feePaidBy ?? data.paidBy;
     if (data.percentage !== undefined) {
       await this.settingsService.updateSetting('fees.percentage', data.percentage, admin.id);
     }
     if (data.fixedCents !== undefined) {
       await this.settingsService.updateSetting('fees.fixedCents', data.fixedCents, admin.id);
     }
-    if (data.feePaidBy) {
-      await this.settingsService.updateSetting('fees.paidBy', data.feePaidBy, admin.id);
+    if (paidBy) {
+      await this.settingsService.updateSetting('fees.paidBy', paidBy, admin.id);
     }
 
     return this.settingsService.getFeeSettings();

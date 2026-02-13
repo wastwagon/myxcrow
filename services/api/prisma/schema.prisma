@@ -118,7 +118,7 @@ model User {
   passwordHash  String?
   firstName     String?
   lastName      String?
-  phone         String?
+  phone         String?     @unique // Ghana format: 0XXXXXXXXX (no +233)
   roles         UserRole[]  @default([BUYER])
   kycStatus     KYCStatus   @default(PENDING)
   kycVerifiedAt DateTime?
@@ -143,6 +143,7 @@ model User {
   ratingsReceived   EscrowRating[]    @relation("RatingsReceived")
 
   @@index([email])
+  @@index([phone])
   @@index([kycStatus])
 }
 

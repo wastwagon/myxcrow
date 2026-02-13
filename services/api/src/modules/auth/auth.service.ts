@@ -9,6 +9,7 @@ import { UserRole, KYCStatus } from '@prisma/client';
 import { EmailService } from '../email/email.service';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
+import { normalizeGhanaPhone } from '../../common/utils/phone.util';
 
 @Injectable()
 export class AuthService {
@@ -36,14 +37,16 @@ export class AuthService {
       throw new BadRequestException('User with this email already exists');
     }
 
-    // Check if phone number already exists
-    if (data.phone) {
-      const existingPhone = await this.prisma.user.findFirst({
-        where: { phone: data.phone },
-      });
-      if (existingPhone) {
-        throw new BadRequestException('Phone number already registered');
-      }
+    const normalizedPhone = normalizeGhanaPhone(data.phone);
+    if (!normalizedPhone || !/^0[0-9]{9}$/.test(normalizedPhone)) {
+      throw new BadRequestException('Invalid Ghana phone number (e.g. 0551234567)');
+    }
+
+    const existingPhone = await this.prisma.user.findFirst({
+      where: { phone: normalizedPhone },
+    });
+    if (existingPhone) {
+      throw new BadRequestException('Phone number already registered');
     }
 
     const passwordHash = await bcrypt.hash(data.password, 10);
@@ -54,7 +57,7 @@ export class AuthService {
         passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
-        phone: data.phone,
+        phone: normalizedPhone,
         roles: data.role ? [data.role] : [UserRole.BUYER],
         kycStatus: KYCStatus.VERIFIED, // Auto-approved for now; Smile ID verification to be added later
         isActive: true,
@@ -75,6 +78,7 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
+        phone: user.phone || undefined,
         firstName: user.firstName || undefined,
         lastName: user.lastName || undefined,
         roles: user.roles,
@@ -85,7 +89,8 @@ export class AuthService {
   }
 
   async login(data: LoginDto) {
-    const user = await this.validateUser(data.email, data.password);
+    const normalizedPhone = normalizeGhanaPhone(data.phone);
+    const user = await this.validateUser(normalizedPhone, data.password);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -102,12 +107,13 @@ export class AuthService {
       resourceId: user.id,
     });
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const tokens = await this.generateTokens(user.id, user.phone || user.email);
 
     return {
       user: {
         id: user.id,
         email: user.email,
+        phone: user.phone || undefined,
         firstName: user.firstName || undefined,
         lastName: user.lastName || undefined,
         roles: user.roles,
@@ -117,9 +123,9 @@ export class AuthService {
     };
   }
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
+  async validateUser(phone: string, password: string): Promise<any> {
+    const user = await this.prisma.user.findFirst({
+      where: { phone },
     });
 
     if (!user || !user.passwordHash || !user.isActive) {
@@ -135,8 +141,8 @@ export class AuthService {
     return result;
   }
 
-  private async generateTokens(userId: string, email: string) {
-    const payload = { sub: userId, email };
+  private async generateTokens(userId: string, identifier: string) {
+    const payload = { sub: userId, identifier };
     const accessToken = this.jwtService.sign(payload, { expiresIn: '7d' });
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
 
@@ -146,10 +152,23 @@ export class AuthService {
     };
   }
 
-  async updateProfile(userId: string, data: { firstName?: string; lastName?: string }) {
-    const updateData: any = {};
+  async updateProfile(userId: string, data: { firstName?: string; lastName?: string; phone?: string }) {
+    const updateData: Record<string, any> = {};
     if (data.firstName !== undefined) updateData.firstName = data.firstName;
     if (data.lastName !== undefined) updateData.lastName = data.lastName;
+    if (data.phone !== undefined) {
+      const normalized = normalizeGhanaPhone(data.phone);
+      if (!normalized || !/^0[0-9]{9}$/.test(normalized)) {
+        throw new BadRequestException('Invalid Ghana phone number (e.g. 0551234567)');
+      }
+      const existing = await this.prisma.user.findFirst({
+        where: { phone: normalized, NOT: { id: userId } },
+      });
+      if (existing) {
+        throw new BadRequestException('Phone number already in use');
+      }
+      updateData.phone = normalized;
+    }
 
     const user = await this.prisma.user.update({
       where: { id: userId },
@@ -157,6 +176,7 @@ export class AuthService {
       select: {
         id: true,
         email: true,
+        phone: true,
         firstName: true,
         lastName: true,
         roles: true,
@@ -285,6 +305,7 @@ export class AuthService {
         select: {
           id: true,
           email: true,
+          phone: true,
           isActive: true,
         },
       });
@@ -293,7 +314,7 @@ export class AuthService {
         throw new UnauthorizedException('Invalid or expired refresh token');
       }
 
-      const tokens = await this.generateTokens(user.id, user.email);
+      const tokens = await this.generateTokens(user.id, user.phone || user.email);
 
       return {
         accessToken: tokens.accessToken,
@@ -375,6 +396,7 @@ export class AuthService {
       select: {
         id: true,
         email: true,
+        phone: true,
         firstName: true,
         lastName: true,
         roles: true,
@@ -406,12 +428,13 @@ export class AuthService {
       },
     });
 
-    const tokens = await this.generateTokens(targetUser.id, targetUser.email);
+    const tokens = await this.generateTokens(targetUser.id, targetUser.phone || targetUser.email);
 
     return {
       user: {
         id: targetUser.id,
         email: targetUser.email,
+        phone: targetUser.phone || undefined,
         firstName: targetUser.firstName || undefined,
         lastName: targetUser.lastName || undefined,
         roles: targetUser.roles,

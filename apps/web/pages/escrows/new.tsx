@@ -18,7 +18,7 @@ const milestoneSchema = z.object({
 });
 
 const createEscrowSchema = z.object({
-  sellerId: z.string().min(1, 'Seller is required'),
+  sellerId: z.string().regex(/^0[0-9]{9}$/, 'Enter seller Ghana phone (e.g. 0551234567)'),
   amountCents: z.number().min(1, 'Amount must be at least ₵1.00'),
   currency: z.string().default('GHS'),
   description: z.string().min(1, 'Description is required'),
@@ -94,6 +94,7 @@ export default function CreateEscrowPage() {
     mutationFn: async (data: CreateEscrowFormData) => {
       const payload: any = {
         ...data,
+        sellerPhone: data.sellerId,
         useWallet: true, // Always use wallet for escrow funding - Paystack is only for wallet top-up
         amountCents: Math.round(data.amountCents * 100),
         deliveryRegion: data.deliveryRegion || undefined,
@@ -156,17 +157,17 @@ export default function CreateEscrowPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-6 space-y-6">
           <div>
             <label htmlFor="sellerId" className="block text-sm font-medium text-gray-700 mb-1">
-              Seller Email *
+              Seller Phone *
             </label>
             <input
               {...register('sellerId')}
-              type="email"
+              type="tel"
               id="sellerId"
-              placeholder="seller@example.com"
+              placeholder="0551234567"
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
             <p className="mt-1 text-xs text-gray-500">
-              Enter the seller's email address. They will be notified.
+              Enter the seller&apos;s Ghana phone number. They must be registered.
             </p>
             {errors.sellerId && (
               <p className="mt-1 text-sm text-red-600">{errors.sellerId.message}</p>
@@ -227,7 +228,7 @@ export default function CreateEscrowPage() {
                 {...register('deliveryPhone')}
                 id="deliveryPhone"
                 type="tel"
-                placeholder="+233XXXXXXXXX"
+                placeholder="0551234567"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>

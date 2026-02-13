@@ -15,6 +15,7 @@ import {
 import { PaymentsService } from './payments.service';
 import { PaystackService } from './paystack.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @Controller('payments')
@@ -25,7 +26,7 @@ export class PaymentsController {
   ) {}
 
   @Post('wallet/topup')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PhoneRequiredGuard)
   async initializeWalletTopup(
     @Body() data: { amountCents: number; email: string; holdHours?: number; callbackUrl?: string },
     @CurrentUser() user: any,
@@ -45,7 +46,7 @@ export class PaymentsController {
   }
 
   @Post('escrow/:escrowId/initialize')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PhoneRequiredGuard)
   async initializeEscrowPayment(
     @Param('escrowId') escrowId: string,
     @Body() body: { email?: string },

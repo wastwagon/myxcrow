@@ -13,6 +13,7 @@ import { MilestoneEscrowService } from './milestone-escrow.service';
 import { EscrowMessageService } from './escrow-message.service';
 import { EscrowExportService } from './escrow-export.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { EscrowParticipantGuard } from './guards/escrow-participant.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { EscrowStatus } from '@prisma/client';
@@ -20,7 +21,7 @@ import { Res } from '@nestjs/common';
 import { Response } from 'express';
 
 @Controller('escrows')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PhoneRequiredGuard)
 export class EscrowController {
   constructor(
     private readonly escrowService: EscrowService,

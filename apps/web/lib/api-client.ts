@@ -150,6 +150,16 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // Handle 403 Phone Required - redirect to profile to add phone
+    if (error.response?.status === 403 && typeof window !== 'undefined') {
+      const msg = (error.response?.data as any)?.message || '';
+      if (msg.toLowerCase().includes('phone number required') || msg.toLowerCase().includes('add your ghana phone')) {
+        if (window.location.pathname !== '/profile') {
+          window.location.href = '/profile?phone_required=1';
+        }
+      }
+    }
+
     return Promise.reject(error);
   }
 );

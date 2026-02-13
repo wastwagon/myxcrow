@@ -22,7 +22,7 @@ import { formatCurrency, CURRENCY_SYMBOL } from '../../../src/lib/constants';
 import Toast from 'react-native-toast-message';
 
 const createEscrowSchema = z.object({
-  sellerId: z.string().email('Invalid seller email'),
+  sellerId: z.string().regex(/^0[0-9]{9}$/, 'Enter seller Ghana phone (e.g. 0551234567)'),
   amountCents: z.number().min(1, 'Amount must be at least 1.00'),
   currency: z.string().default('GHS'),
   description: z.string().min(1, 'Description is required'),
@@ -58,6 +58,7 @@ export default function CreateEscrowScreen() {
     mutationFn: async (data: CreateEscrowFormData) => {
       const payload: any = {
         ...data,
+        sellerPhone: data.sellerId,
         amountCents: Math.round(data.amountCents * 100),
         deliveryRegion: data.deliveryRegion || undefined,
         deliveryCity: data.deliveryCity || undefined,
@@ -105,16 +106,15 @@ export default function CreateEscrowScreen() {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Seller Email *</Text>
+            <Text style={styles.label}>Seller Phone *</Text>
             <Controller
               control={control}
               name="sellerId"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={[styles.input, errors.sellerId && styles.inputError]}
-                  placeholder="seller@example.com"
-                  keyboardType="email-address"
-                  autoCapitalize="none"
+                  placeholder="0551234567"
+                  keyboardType="phone-pad"
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
@@ -122,7 +122,7 @@ export default function CreateEscrowScreen() {
               )}
             />
             {errors.sellerId && <Text style={styles.errorText}>{errors.sellerId.message}</Text>}
-            <Text style={styles.helpText}>Enter the seller's email address</Text>
+            <Text style={styles.helpText}>Enter the seller's Ghana phone. They must be registered.</Text>
           </View>
 
           <View style={styles.inputContainer}>
@@ -206,7 +206,7 @@ export default function CreateEscrowScreen() {
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
                   style={styles.input}
-                  placeholder="+233XXXXXXXXX"
+                  placeholder="0551234567"
                   keyboardType="phone-pad"
                   value={value || ''}
                   onChangeText={onChange}

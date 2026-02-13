@@ -24,10 +24,7 @@ const registerSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
-  phone: z
-    .string()
-    .min(10, 'Phone number must be at least 10 digits')
-    .regex(/^(\+233|0)[0-9]{9}$/, 'Invalid Ghana phone number format'),
+  phone: z.string().regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
   role: z.enum(['BUYER', 'SELLER']).default('BUYER'),
 });
 

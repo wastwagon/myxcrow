@@ -11,13 +11,14 @@ import {
 } from '@nestjs/common';
 import { DisputesService } from './disputes.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole, DisputeStatus, DisputeReason, DisputeResolutionOutcome } from '@prisma/client';
 
 @Controller('disputes')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PhoneRequiredGuard)
 export class DisputesController {
   constructor(private readonly disputesService: DisputesService) {}
 

@@ -28,15 +28,15 @@ export default function ProfileScreen() {
       <View style={styles.header}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {user?.firstName?.[0] || user?.email?.[0] || 'U'}
+            {user?.firstName?.[0] || user?.phone?.[0] || user?.email?.[0] || 'U'}
           </Text>
         </View>
         <Text style={styles.name}>
           {user?.firstName && user?.lastName
             ? `${user.firstName} ${user.lastName}`
-            : user?.email}
+            : user?.phone || user?.email}
         </Text>
-        <Text style={styles.email}>{user?.email}</Text>
+        <Text style={styles.email}>{user?.phone || user?.email}</Text>
       </View>
 
       <View style={styles.section}>
@@ -44,7 +44,7 @@ export default function ProfileScreen() {
 
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Phone</Text>
-          <Text style={styles.infoValue}>{user?.phone || 'Not provided'}</Text>
+          <Text style={styles.infoValue}>{user?.phone || 'Not set - add to use escrows'}</Text>
         </View>
 
         <View style={styles.infoRow}>
@@ -62,6 +62,14 @@ export default function ProfileScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Actions</Text>
+
+        <TouchableOpacity
+          style={styles.actionItem}
+          onPress={() => router.push('/(tabs)/profile/edit-profile')}
+        >
+          <Text style={styles.actionText}>✏️ Edit Profile (Phone)</Text>
+          <Text style={styles.actionArrow}>→</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.actionItem}

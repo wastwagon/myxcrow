@@ -1,11 +1,12 @@
 import { Controller, Get, Post, Delete, Body, Param, UseGuards } from '@nestjs/common';
 import { EvidenceService } from './evidence.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { EscrowParticipantGuard } from '../escrow/guards/escrow-participant.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @Controller('evidence')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, PhoneRequiredGuard)
 export class EvidenceController {
   constructor(private readonly evidenceService: EvidenceService) {}
 

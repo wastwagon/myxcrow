@@ -111,15 +111,22 @@ export class SettingsService implements OnModuleInit {
   }
 
   async getFeeSettings() {
-    const percentage = await this.getSetting('fees.percentage');
-    const fixedCents = await this.getSetting('fees.fixedCents');
-    const paidBy = await this.getSetting('fees.paidBy');
-
-    return {
-      percentage: percentage.value as number,
-      fixedCents: fixedCents.value as number,
-      paidBy: paidBy.value as string,
-    };
+    const defaults = { percentage: 2, fixedCents: 0, paidBy: 'buyer' };
+    try {
+      const [percentage, fixedCents, paidBy] = await Promise.all([
+        this.prisma.platformSettings.findUnique({ where: { key: 'fees.percentage' } }),
+        this.prisma.platformSettings.findUnique({ where: { key: 'fees.fixedCents' } }),
+        this.prisma.platformSettings.findUnique({ where: { key: 'fees.paidBy' } }),
+      ]);
+      return {
+        percentage: (percentage?.value as number) ?? defaults.percentage,
+        fixedCents: (fixedCents?.value as number) ?? defaults.fixedCents,
+        paidBy: (paidBy?.value as string) ?? defaults.paidBy,
+      };
+    } catch (err) {
+      this.logger.warn(`getFeeSettings failed, using defaults: ${(err as Error).message}`);
+      return defaults;
+    }
   }
 
   async calculateFee(amountCents: number) {

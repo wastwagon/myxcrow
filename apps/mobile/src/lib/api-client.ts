@@ -135,6 +135,7 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // 403 Phone Required: error message will prompt user to add phone in profile
     return Promise.reject(error);
   }
 );

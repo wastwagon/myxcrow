@@ -10,7 +10,7 @@ import { Loader2, AlertCircle } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  phone: z.string().regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -85,18 +85,19 @@ export default function Login() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
-                Email Address
+              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                Phone Number
               </label>
               <input
-                {...register('email')}
-                type="email"
-                id="email"
+                {...register('phone')}
+                type="tel"
+                id="phone"
                 className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
-                placeholder="you@example.com"
+                placeholder="0551234567"
               />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+              <p className="mt-1 text-xs text-gray-500">Ghana format: 0XXXXXXXXX (no +233)</p>
+              {errors.phone && (
+                <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
               )}
             </div>
 

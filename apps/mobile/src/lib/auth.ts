@@ -3,7 +3,7 @@ import * as SecureStore from 'expo-secure-store';
 
 export interface User {
   id: string;
-  email: string;
+  email?: string;
   firstName?: string;
   lastName?: string;
   phone?: string;

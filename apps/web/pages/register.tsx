@@ -18,8 +18,7 @@ const registerSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   phone: z
     .string()
-    .min(10, 'Phone number must be at least 10 digits')
-    .regex(/^(\+233|0)[0-9]{9}$/, 'Invalid Ghana phone number format (e.g., +233XXXXXXXXX or 0XXXXXXXXX)'),
+    .regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
   role: z.enum(['BUYER', 'SELLER']).default('BUYER'),
 });
 

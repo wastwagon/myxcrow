@@ -15,6 +15,7 @@ import { LedgerHelperService } from '../payments/ledger-helper.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
 import { RulesEngineService } from '../automation/rules-engine.service';
+import { normalizeGhanaPhone } from '../../common/utils/phone.util';
 
 @Injectable()
 export class EscrowService {
@@ -44,6 +45,7 @@ export class EscrowService {
   async createEscrow(data: {
     buyerId: string;
     sellerId: string;
+    sellerPhone?: string;
     sellerEmail?: string;
     amountCents: number;
     currency?: string;
@@ -60,8 +62,24 @@ export class EscrowService {
   }) {
     let sellerId = data.sellerId;
 
-    if (data.sellerEmail ?? (typeof sellerId === 'string' && sellerId.includes('@'))) {
-      const email = (data.sellerEmail ?? sellerId).trim().toLowerCase();
+    // Resolve seller by phone (primary) or email
+    const phoneInput = data.sellerPhone ?? (typeof sellerId === 'string' && /^0[0-9]{9}$/.test(normalizeGhanaPhone(sellerId)) ? sellerId : null);
+    const emailInput = data.sellerEmail ?? (typeof sellerId === 'string' && sellerId.includes('@') ? sellerId : null);
+
+    if (phoneInput) {
+      const normalizedPhone = normalizeGhanaPhone(phoneInput);
+      if (/^0[0-9]{9}$/.test(normalizedPhone)) {
+        const seller = await this.prisma.user.findFirst({
+          where: { phone: normalizedPhone },
+          select: { id: true },
+        });
+        if (!seller) {
+          throw new NotFoundException(`Seller not found with phone ${normalizedPhone}. They must register first.`);
+        }
+        sellerId = seller.id;
+      }
+    } else if (emailInput) {
+      const email = emailInput.trim().toLowerCase();
       const seller = await this.prisma.user.findUnique({
         where: { email },
         select: { id: true },
@@ -584,8 +602,8 @@ export class EscrowService {
     }
 
     // Allow FUNDED for in-person meetup/handoff (no shipping step)
-    const deliverableStatuses = [EscrowStatus.SHIPPED, EscrowStatus.IN_TRANSIT, EscrowStatus.FUNDED];
-    if (!deliverableStatuses.includes(escrow.status as EscrowStatus)) {
+    const deliverableStatuses: EscrowStatus[] = [EscrowStatus.SHIPPED, EscrowStatus.IN_TRANSIT, EscrowStatus.FUNDED];
+    if (!deliverableStatuses.includes(escrow.status)) {
       throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot deliver`);
     }
 

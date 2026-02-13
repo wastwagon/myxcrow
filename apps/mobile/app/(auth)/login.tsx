@@ -19,7 +19,7 @@ import { z } from 'zod';
 import { authenticateWithBiometrics, checkBiometricAvailability, isBiometricEnabled, setBiometricEnabled } from '../../src/services/biometric';
 
 const loginSchema = z.object({
-  email: z.string().email('Invalid email address'),
+  phone: z.string().regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
@@ -48,7 +48,7 @@ export default function LoginScreen() {
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: '',
+      phone: '',
       password: '',
     },
   });
@@ -67,7 +67,7 @@ export default function LoginScreen() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       setLoading(true);
-      await login(data.email, data.password);
+      await login(data.phone, data.password);
       
       // Register push token after successful login
       const { sendPushTokenToServer, getStoredPushToken } = await import('../../src/services/notifications');
@@ -100,25 +100,25 @@ export default function LoginScreen() {
 
         <View style={styles.form}>
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Email</Text>
+            <Text style={styles.label}>Phone</Text>
             <Controller
               control={control}
-              name="email"
+              name="phone"
               render={({ field: { onChange, onBlur, value } }) => (
                 <TextInput
-                  style={[styles.input, errors.email && styles.inputError]}
-                  placeholder="Enter your email"
+                  style={[styles.input, errors.phone && styles.inputError]}
+                  placeholder="0551234567"
                   placeholderTextColor="#999"
                   value={value}
                   onChangeText={onChange}
                   onBlur={onBlur}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoComplete="email"
+                  keyboardType="phone-pad"
+                  autoComplete="tel"
                 />
               )}
             />
-            {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+            <Text style={styles.helpText}>Ghana format: 0XXXXXXXXX</Text>
+            {errors.phone && <Text style={styles.errorText}>{errors.phone.message}</Text>}
           </View>
 
           <View style={styles.inputContainer}>
@@ -246,6 +246,11 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#ef4444',
     fontSize: 12,
+    marginTop: 4,
+  },
+  helpText: {
+    fontSize: 11,
+    color: '#666',
     marginTop: 4,
   },
   button: {
