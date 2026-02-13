@@ -91,7 +91,7 @@ export default function EscrowDetailPage() {
   const isSeller = escrow?.sellerId === user?.id;
   const canFund = isBuyer && escrow?.status === 'AWAITING_FUNDING';
   const canShip = isSeller && escrow?.status === 'FUNDED';
-  const canDeliver = isBuyer && escrow?.status === 'SHIPPED';
+  const canDeliver = isBuyer && ['SHIPPED', 'IN_TRANSIT', 'FUNDED'].includes(escrow?.status || '');
   const canRelease = isBuyer && (escrow?.status === 'DELIVERED' || escrow?.status === 'AWAITING_RELEASE');
   const canMarkServiceCompleted = isSeller && escrow?.status === 'FUNDED';
   const canRate = (isBuyer || isSeller) && escrow && ['RELEASED', 'REFUNDED'].includes(escrow.status);
@@ -206,7 +206,11 @@ export default function EscrowDetailPage() {
   };
 
   const handleDeliver = () => {
-    if (confirm('Confirm that you have received the item?')) {
+    const msg =
+      escrow?.status === 'FUNDED'
+        ? 'Confirm that you have received the item and release funds to the seller? This action cannot be undone.'
+        : 'Confirm that you have received the item?';
+    if (confirm(msg)) {
       deliverMutation.mutate();
     }
   };
@@ -413,7 +417,11 @@ export default function EscrowDetailPage() {
                     className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <Package className="w-4 h-4" />
-                    {deliverMutation.isPending ? 'Updating...' : 'Confirm Delivery (no code)'}
+                    {deliverMutation.isPending
+                      ? 'Updating...'
+                      : escrow?.status === 'FUNDED'
+                      ? 'Confirm Received & Release Funds'
+                      : 'Confirm Delivery (no code)'}
                   </button>
                   {firstShipmentWithCode && (
                     <div className="flex gap-2">

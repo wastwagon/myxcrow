@@ -583,7 +583,9 @@ export class EscrowService {
       throw new BadRequestException('Only the buyer can mark escrow as delivered');
     }
 
-    if (escrow.status !== EscrowStatus.SHIPPED && escrow.status !== EscrowStatus.IN_TRANSIT) {
+    // Allow FUNDED for in-person meetup/handoff (no shipping step)
+    const deliverableStatuses = [EscrowStatus.SHIPPED, EscrowStatus.IN_TRANSIT, EscrowStatus.FUNDED];
+    if (!deliverableStatuses.includes(escrow.status as EscrowStatus)) {
       throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot deliver`);
     }
 

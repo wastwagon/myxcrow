@@ -41,7 +41,7 @@ export default function EscrowDetailScreen() {
   const isSeller = escrow?.sellerId === user?.id;
   const canFund = isBuyer && escrow?.status === 'AWAITING_FUNDING';
   const canShip = isSeller && escrow?.status === 'FUNDED';
-  const canDeliver = isBuyer && escrow?.status === 'SHIPPED';
+  const canDeliver = isBuyer && ['SHIPPED', 'IN_TRANSIT', 'FUNDED'].includes(escrow?.status || '');
   const canRelease = isBuyer && (escrow?.status === 'DELIVERED' || escrow?.status === 'AWAITING_RELEASE');
   const canMarkServiceCompleted = isSeller && escrow?.status === 'FUNDED';
 
@@ -204,7 +204,11 @@ export default function EscrowDetailScreen() {
   };
 
   const handleDeliver = () => {
-    Alert.alert('Confirm Delivery', 'Confirm that you have received the item?', [
+    const msg =
+      escrow?.status === 'FUNDED'
+        ? 'Confirm that you have received the item and release funds to the seller? This action cannot be undone.'
+        : 'Confirm that you have received the item?';
+    Alert.alert('Confirm Delivery', msg, [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Confirm',
@@ -459,7 +463,9 @@ export default function EscrowDetailScreen() {
               {deliverMutation.isPending ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.actionButtonText}>Mark as Delivered (no code)</Text>
+                <Text style={styles.actionButtonText}>
+                  {escrow?.status === 'FUNDED' ? 'Confirm Received & Release Funds' : 'Mark as Delivered (no code)'}
+                </Text>
               )}
             </TouchableOpacity>
             {firstShipmentWithCode && (
