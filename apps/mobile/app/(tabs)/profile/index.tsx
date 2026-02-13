@@ -1,13 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '../../../src/contexts/AuthContext';
 import { formatStatus } from '../../../src/lib/constants';
 import { showMessenger } from '../../../src/services/intercom';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { phone_required } = useLocalSearchParams<{ phone_required?: string }>();
   const { user, logout } = useAuth();
+  const phoneRequired = phone_required === '1';
+
+  useEffect(() => {
+    if (phoneRequired && !user?.phone) {
+      router.replace('/(tabs)/profile/edit-profile?phone_required=1');
+    }
+  }, [phoneRequired, user?.phone, router]);
 
   const handleLogout = () => {
     Alert.alert('Logout', 'Are you sure you want to logout?', [
@@ -25,6 +33,15 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView style={styles.container}>
+      {phoneRequired && !user?.phone && (
+        <View style={styles.phoneRequiredBanner}>
+          <Text style={styles.phoneRequiredText}>Phone number required</Text>
+          <Text style={styles.phoneRequiredSubtext}>Add your Ghana phone number to use escrows</Text>
+          <TouchableOpacity style={styles.phoneRequiredButton} onPress={() => router.push('/(tabs)/profile/edit-profile?phone_required=1')}>
+            <Text style={styles.phoneRequiredButtonText}>Add Phone</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       <View style={styles.header}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
@@ -216,6 +233,34 @@ const styles = StyleSheet.create({
   logoutButtonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  phoneRequiredBanner: {
+    backgroundColor: '#fef3c7',
+    borderBottomWidth: 1,
+    borderBottomColor: '#fcd34d',
+    padding: 16,
+  },
+  phoneRequiredText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#92400e',
+  },
+  phoneRequiredSubtext: {
+    fontSize: 14,
+    color: '#b45309',
+    marginTop: 4,
+  },
+  phoneRequiredButton: {
+    marginTop: 12,
+    backgroundColor: '#d97706',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  phoneRequiredButtonText: {
+    color: '#fff',
     fontWeight: '600',
   },
 });

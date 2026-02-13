@@ -3,6 +3,7 @@ import { WalletService } from './wallet.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUser as ICurrentUser } from '../auth/interfaces/current-user.interface';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole, WithdrawalMethod } from '@prisma/client';
@@ -13,7 +14,7 @@ export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
   @Get()
-  async getWallet(@CurrentUser() user: any) {
+  async getWallet(@CurrentUser() user: ICurrentUser) {
     const wallet = await this.walletService.getWallet(user.id);
     return {
       id: wallet.id,
@@ -27,17 +28,17 @@ export class WalletController {
   }
 
   @Get('funding-history')
-  async getFundingHistory(@CurrentUser() user: any, @Query('limit') limit?: string) {
+  async getFundingHistory(@CurrentUser() user: ICurrentUser, @Query('limit') limit?: string) {
     return this.walletService.getFundingHistory(user.id, limit ? parseInt(limit, 10) : 50);
   }
 
   @Get('withdrawal-history')
-  async getWithdrawalHistory(@CurrentUser() user: any, @Query('limit') limit?: string) {
+  async getWithdrawalHistory(@CurrentUser() user: ICurrentUser, @Query('limit') limit?: string) {
     return this.walletService.getWithdrawalHistory(user.id, limit ? parseInt(limit, 10) : 50);
   }
 
   @Get('transactions')
-  async getTransactions(@CurrentUser() user: any, @Query('limit') limit?: string) {
+  async getTransactions(@CurrentUser() user: ICurrentUser, @Query('limit') limit?: string) {
     const raw = await this.walletService.getWalletTransactions(user.id, limit ? parseInt(limit, 10) : 50);
     return raw.map((t: any) => ({
       id: t.id,
@@ -52,7 +53,7 @@ export class WalletController {
 
   @Post('withdraw')
   async requestWithdrawal(
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
     @Body() data: { amountCents: number; methodType: WithdrawalMethod; methodDetails: any; feeCents?: number },
   ) {
     return this.walletService.requestWithdrawal({
@@ -85,7 +86,7 @@ export class WalletController {
   async processWithdrawal(
     @Param('id') id: string,
     @Body() data: { succeeded: boolean; reason?: string },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.walletService.processWithdrawal(id, user.id, data.succeeded, data.reason);
   }
@@ -93,7 +94,7 @@ export class WalletController {
   @Put('funding/:id/transfer-pending-to-available')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
-  async transferPendingToAvailable(@Param('id') id: string, @CurrentUser() user: any) {
+  async transferPendingToAvailable(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     return this.walletService.transferPendingToAvailable(id, user.id);
   }
 
@@ -113,7 +114,7 @@ export class WalletController {
       description?: string;
       reference?: string;
     },
-    @CurrentUser() admin: any,
+    @CurrentUser() admin: ICurrentUser,
   ) {
     return this.walletService.creditWallet({
       userId: data.userId,
@@ -137,7 +138,7 @@ export class WalletController {
       description: string;
       reference?: string;
     },
-    @CurrentUser() admin: any,
+    @CurrentUser() admin: ICurrentUser,
   ) {
     return this.walletService.debitWallet({
       userId: data.userId,

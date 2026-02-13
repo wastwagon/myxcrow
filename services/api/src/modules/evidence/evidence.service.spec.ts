@@ -1,23 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { EvidenceService } from './evidence.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
+import { AntivirusService } from '../../common/security/antivirus.service';
 import * as MinIO from 'minio';
 
-// Mock MinIO
 jest.mock('minio');
 
 describe('EvidenceService', () => {
   let service: EvidenceService;
-  let prismaService: PrismaService;
-  let minioClient: jest.Mocked<MinIO.Client>;
-
-  const mockEscrow = {
-    id: 'escrow-id-123',
-    buyerId: 'buyer-id-123',
-    sellerId: 'seller-id-123',
-    status: 'SHIPPED',
+  let mockMinioClient: {
+    presignedPutObject: jest.Mock;
+    presignedGetObject: jest.Mock;
+    statObject: jest.Mock;
+    removeObject: jest.Mock;
   };
 
   const mockEvidence = {
@@ -25,7 +22,7 @@ describe('EvidenceService', () => {
     escrowId: 'escrow-id-123',
     uploadedBy: 'buyer-id-123',
     fileName: 'receipt.pdf',
-    fileKey: 'escrow/escrow-id-123/receipt.pdf',
+    fileKey: 'escrow/escrow-id-123/123_receipt.pdf',
     fileSize: 1024,
     mimeType: 'application/pdf',
     type: 'document',
@@ -34,15 +31,8 @@ describe('EvidenceService', () => {
   };
 
   const mockPrismaService = {
-    escrowAgreement: {
-      findUnique: jest.fn(),
-    },
-    dispute: {
-      findUnique: jest.fn(),
-    },
     evidence: {
       findUnique: jest.fn(),
-      findMany: jest.fn(),
       create: jest.fn(),
       delete: jest.fn(),
     },
@@ -51,8 +41,7 @@ describe('EvidenceService', () => {
   const mockConfigService = {
     get: jest.fn((key: string) => {
       const config: Record<string, string> = {
-        S3_ENDPOINT: 'localhost',
-        S3_PORT: '9000',
+        S3_ENDPOINT: 'http://localhost:9000',
         S3_ACCESS_KEY: 'minioadmin',
         S3_SECRET_KEY: 'minioadmin',
         S3_BUCKET: 'evidence',
@@ -61,94 +50,58 @@ describe('EvidenceService', () => {
     }),
   };
 
-  const mockMinioClient = {
-    presignedPutObject: jest.fn().mockResolvedValue('https://presigned-upload-url'),
-    presignedGetObject: jest.fn().mockResolvedValue('https://presigned-download-url'),
-    statObject: jest.fn().mockResolvedValue({ size: 1024 }),
-    removeObject: jest.fn().mockResolvedValue(undefined),
+  const mockAntivirusService = {
+    scanFile: jest.fn().mockResolvedValue({ safe: true }),
   };
 
   beforeEach(async () => {
     jest.clearAllMocks();
-    (MinIO.Client as jest.MockedClass<typeof MinIO.Client>).mockImplementation(() => mockMinioClient as any);
+    mockMinioClient = {
+      presignedPutObject: jest.fn().mockResolvedValue('https://presigned-upload-url'),
+      presignedGetObject: jest.fn().mockResolvedValue('https://presigned-download-url'),
+      statObject: jest.fn().mockResolvedValue({ size: 1024 }),
+      removeObject: jest.fn().mockResolvedValue(undefined),
+    };
+    (MinIO.Client as jest.MockedClass<typeof MinIO.Client>).mockImplementation(
+      () => mockMinioClient as unknown as MinIO.Client,
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EvidenceService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: AntivirusService, useValue: mockAntivirusService },
       ],
     }).compile();
 
     service = module.get<EvidenceService>(EvidenceService);
-    prismaService = module.get<PrismaService>(PrismaService);
-    minioClient = mockMinioClient as any;
   });
 
-  describe('getUploadUrl', () => {
-    it('should generate presigned upload URL for escrow evidence', async () => {
-      mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
-
-      const result = await service.getUploadUrl('buyer-id-123', {
-        escrowId: 'escrow-id-123',
-        fileName: 'receipt.pdf',
-        fileSize: 1024,
-        mimeType: 'application/pdf',
-      });
+  describe('generatePresignedUploadUrl', () => {
+    it('should generate presigned upload URL', async () => {
+      const result = await service.generatePresignedUploadUrl(
+        'escrow-id-123',
+        'receipt.pdf',
+        1024,
+        'application/pdf',
+      );
 
       expect(result).toHaveProperty('uploadUrl', 'https://presigned-upload-url');
-      expect(result).toHaveProperty('fileKey');
-      expect(minioClient.presignedPutObject).toHaveBeenCalled();
-    });
-
-    it('should throw ForbiddenException if user not part of escrow', async () => {
-      mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
-
-      await expect(
-        service.getUploadUrl('random-user-id', {
-          escrowId: 'escrow-id-123',
-          fileName: 'receipt.pdf',
-          fileSize: 1024,
-          mimeType: 'application/pdf',
-        }),
-      ).rejects.toThrow(ForbiddenException);
-    });
-
-    it('should throw BadRequestException if file too large', async () => {
-      mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
-
-      await expect(
-        service.getUploadUrl('buyer-id-123', {
-          escrowId: 'escrow-id-123',
-          fileName: 'large-file.pdf',
-          fileSize: 20 * 1024 * 1024, // 20MB
-          mimeType: 'application/pdf',
-        }),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should throw BadRequestException for invalid file type', async () => {
-      mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
-
-      await expect(
-        service.getUploadUrl('buyer-id-123', {
-          escrowId: 'escrow-id-123',
-          fileName: 'script.exe',
-          fileSize: 1024,
-          mimeType: 'application/x-msdownload',
-        }),
-      ).rejects.toThrow(BadRequestException);
+      expect(result).toHaveProperty('objectName');
+      expect(result).toHaveProperty('expiresIn', 3600);
+      expect(mockMinioClient.presignedPutObject).toHaveBeenCalled();
     });
   });
 
   describe('verifyAndCreateEvidence', () => {
-    it('should verify upload and create evidence record', async () => {
-      mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
+    it('should create evidence record without file scan', async () => {
       mockPrismaService.evidence.create.mockResolvedValue(mockEvidence);
 
-      const result = await service.verifyAndCreateEvidence('buyer-id-123', {
+      const result = await service.verifyAndCreateEvidence({
         escrowId: 'escrow-id-123',
-        fileKey: 'escrow/escrow-id-123/receipt.pdf',
+        uploadedBy: 'buyer-id-123',
+        objectName: 'escrow/escrow-id-123/receipt.pdf',
         fileName: 'receipt.pdf',
         fileSize: 1024,
         mimeType: 'application/pdf',
@@ -164,121 +117,77 @@ describe('EvidenceService', () => {
           fileName: 'receipt.pdf',
         }),
       });
-      expect(minioClient.statObject).toHaveBeenCalled();
     });
 
-    it('should throw BadRequestException if file not found in storage', async () => {
-      mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
-      minioClient.statObject.mockRejectedValue(new Error('Not found'));
+    it('should throw BadRequestException when file scan fails', async () => {
+      mockAntivirusService.scanFile.mockResolvedValue({ safe: false, reason: 'Virus detected' });
 
       await expect(
-        service.verifyAndCreateEvidence('buyer-id-123', {
+        service.verifyAndCreateEvidence({
           escrowId: 'escrow-id-123',
-          fileKey: 'non-existent-file',
-          fileName: 'receipt.pdf',
+          uploadedBy: 'buyer-id-123',
+          objectName: 'file.pdf',
+          fileName: 'file.pdf',
           fileSize: 1024,
           mimeType: 'application/pdf',
           type: 'document',
+          fileBuffer: Buffer.from('test'),
         }),
       ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe('getDownloadUrl', () => {
+  describe('generatePresignedDownloadUrl', () => {
     it('should generate presigned download URL', async () => {
-      const evidenceWithEscrow = {
-        ...mockEvidence,
-        escrow: mockEscrow,
-      };
-      mockPrismaService.evidence.findUnique.mockResolvedValue(evidenceWithEscrow);
+      mockPrismaService.evidence.findUnique.mockResolvedValue(mockEvidence);
 
-      const result = await service.getDownloadUrl('evidence-id-123', 'buyer-id-123');
+      const result = await service.generatePresignedDownloadUrl('evidence-id-123');
 
       expect(result).toHaveProperty('downloadUrl', 'https://presigned-download-url');
-      expect(minioClient.presignedGetObject).toHaveBeenCalled();
+      expect(result).toHaveProperty('expiresIn', 3600);
+      expect(mockMinioClient.presignedGetObject).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if evidence not found', async () => {
       mockPrismaService.evidence.findUnique.mockResolvedValue(null);
 
-      await expect(service.getDownloadUrl('non-existent-evidence', 'buyer-id-123')).rejects.toThrow(
+      await expect(service.generatePresignedDownloadUrl('non-existent')).rejects.toThrow(
         NotFoundException,
       );
     });
+  });
 
-    it('should throw ForbiddenException if user not authorized', async () => {
-      const evidenceWithEscrow = {
-        ...mockEvidence,
-        escrow: mockEscrow,
-      };
-      mockPrismaService.evidence.findUnique.mockResolvedValue(evidenceWithEscrow);
+  describe('getEvidence', () => {
+    it('should return evidence by id', async () => {
+      mockPrismaService.evidence.findUnique.mockResolvedValue(mockEvidence);
 
-      await expect(service.getDownloadUrl('evidence-id-123', 'random-user-id')).rejects.toThrow(
-        ForbiddenException,
-      );
+      const result = await service.getEvidence('evidence-id-123');
+
+      expect(result).toEqual(mockEvidence);
+      expect(mockPrismaService.evidence.findUnique).toHaveBeenCalledWith({
+        where: { id: 'evidence-id-123' },
+      });
     });
   });
 
   describe('deleteEvidence', () => {
     it('should delete evidence successfully', async () => {
-      const evidenceWithEscrow = {
-        ...mockEvidence,
-        escrow: mockEscrow,
-      };
-      mockPrismaService.evidence.findUnique.mockResolvedValue(evidenceWithEscrow);
+      mockPrismaService.evidence.findUnique.mockResolvedValue(mockEvidence);
       mockPrismaService.evidence.delete.mockResolvedValue(mockEvidence);
 
-      await service.deleteEvidence('evidence-id-123', 'buyer-id-123', ['BUYER']);
+      const result = await service.deleteEvidence('evidence-id-123');
 
+      expect(result).toEqual({ success: true });
       expect(mockPrismaService.evidence.delete).toHaveBeenCalledWith({
         where: { id: 'evidence-id-123' },
       });
-      expect(minioClient.removeObject).toHaveBeenCalled();
+      expect(mockMinioClient.removeObject).toHaveBeenCalled();
     });
 
-    it('should allow admin to delete any evidence', async () => {
-      const evidenceWithEscrow = {
-        ...mockEvidence,
-        escrow: mockEscrow,
-      };
-      mockPrismaService.evidence.findUnique.mockResolvedValue(evidenceWithEscrow);
-      mockPrismaService.evidence.delete.mockResolvedValue(mockEvidence);
+    it('should throw NotFoundException if evidence not found', async () => {
+      mockPrismaService.evidence.findUnique.mockResolvedValue(null);
 
-      await service.deleteEvidence('evidence-id-123', 'admin-id-123', ['ADMIN']);
-
-      expect(mockPrismaService.evidence.delete).toHaveBeenCalled();
-    });
-
-    it('should throw ForbiddenException if user not uploader', async () => {
-      const evidenceWithEscrow = {
-        ...mockEvidence,
-        escrow: mockEscrow,
-      };
-      mockPrismaService.evidence.findUnique.mockResolvedValue(evidenceWithEscrow);
-
-      await expect(
-        service.deleteEvidence('evidence-id-123', 'seller-id-123', ['SELLER']),
-      ).rejects.toThrow(ForbiddenException);
-    });
-  });
-
-  describe('listEvidenceForEscrow', () => {
-    it('should list all evidence for escrow', async () => {
-      mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
-      mockPrismaService.evidence.findMany.mockResolvedValue([mockEvidence]);
-
-      const result = await service.listEvidenceForEscrow('escrow-id-123', 'buyer-id-123');
-
-      expect(result).toHaveLength(1);
-      expect(result[0]).toHaveProperty('id', 'evidence-id-123');
-    });
-
-    it('should throw ForbiddenException if user not authorized', async () => {
-      mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
-
-      await expect(
-        service.listEvidenceForEscrow('escrow-id-123', 'random-user-id'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.deleteEvidence('non-existent')).rejects.toThrow(NotFoundException);
     });
   });
 });

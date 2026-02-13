@@ -283,8 +283,10 @@ export class EscrowService {
       throw new BadRequestException('Only the buyer can fund this escrow');
     }
 
+    // Idempotent: if already funded (e.g. duplicate webhook), return success
     if (escrow.status !== EscrowStatus.AWAITING_FUNDING) {
-      throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot fund`);
+      this.logger.log(`Escrow ${escrowId} already in ${escrow.status}, skipping fund (idempotent)`);
+      return this.getEscrow(escrowId);
     }
 
     if (escrow.fundingMethod !== 'direct') {
@@ -295,38 +297,47 @@ export class EscrowService {
     const buyerWallet = await this.walletService.getOrCreateWallet(escrow.buyerId, currency);
     const sellerWallet = await this.walletService.getOrCreateWallet(escrow.sellerId, currency);
 
-    await this.walletService.topUpWallet({
-      userId: escrow.buyerId,
-      sourceType: 'PAYSTACK_TOPUP' as any,
-      amountCents: escrow.amountCents,
-      externalRef: _reference,
-      metadata: { escrowId, type: 'escrow_direct_fund' },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      await this.walletService.topUpWallet(
+        {
+          userId: escrow.buyerId,
+          sourceType: 'PAYSTACK_TOPUP' as any,
+          amountCents: escrow.amountCents,
+          externalRef: _reference,
+          metadata: { escrowId, type: 'escrow_direct_fund' },
+        },
+        tx,
+      );
 
-    const updatedEscrow = await this.prisma.escrowAgreement.update({
-      where: { id: escrowId },
-      data: {
-        buyerWalletId: buyerWallet.id,
-        sellerWalletId: sellerWallet.id,
-        fundingMethod: 'wallet',
-      },
-    });
+      await tx.escrowAgreement.update({
+        where: { id: escrowId },
+        data: {
+          buyerWalletId: buyerWallet.id,
+          sellerWalletId: sellerWallet.id,
+          fundingMethod: 'wallet',
+        },
+      });
 
-    await this.walletService.reserveForEscrow(buyerWallet.id, escrow.amountCents, escrowId);
+      await this.walletService.reserveForEscrow(buyerWallet.id, escrow.amountCents, escrowId, tx);
 
-    await this.prisma.escrowAgreement.update({
-      where: { id: escrowId },
-      data: {
-        status: EscrowStatus.FUNDED,
-        fundedAt: new Date(),
-      },
-    });
+      await tx.escrowAgreement.update({
+        where: { id: escrowId },
+        data: {
+          status: EscrowStatus.FUNDED,
+          fundedAt: new Date(),
+        },
+      });
 
-    await this.ledgerHelper.createFundingLedgerEntry(escrowId, {
-      amountCents: escrow.amountCents,
-      feeCents: escrow.feeCents,
-      netAmountCents: escrow.netAmountCents,
-      currency: escrow.currency || 'GHS',
+      await this.ledgerHelper.createFundingLedgerEntry(
+        escrowId,
+        {
+          amountCents: escrow.amountCents,
+          feeCents: escrow.feeCents,
+          netAmountCents: escrow.netAmountCents,
+          currency: escrow.currency || 'GHS',
+        },
+        tx,
+      );
     });
 
     const buyer = await this.prisma.user.findUnique({ where: { id: escrow.buyerId } });
@@ -715,18 +726,32 @@ export class EscrowService {
       });
     }
 
-    // Best practice: wallet credit first, then ledger, then status (ensures money moves before marking complete)
-    await this.walletService.releaseToSeller(sellerWalletId!, escrow.netAmountCents, escrowId);
-    await this.ledgerHelper.createReleaseLedgerEntry(escrowId, {
-      netAmountCents: escrow.netAmountCents,
-      currency: escrow.currency,
-    });
-    await this.prisma.escrowAgreement.update({
-      where: { id: escrowId },
-      data: {
-        status: EscrowStatus.RELEASED,
-        releasedAt: new Date(),
-      },
+    // Transaction: buyer release hold + seller credit + ledger + status (atomic)
+    const buyerWalletId = escrow.buyerWalletId;
+    await this.prisma.$transaction(async (tx) => {
+      if (buyerWalletId) {
+        await tx.wallet.update({
+          where: { id: buyerWalletId },
+          data: { pendingCents: { decrement: escrow.amountCents } },
+        });
+      }
+      await tx.wallet.update({
+        where: { id: sellerWalletId! },
+        data: {
+          availableCents: { increment: escrow.netAmountCents },
+        },
+      });
+      await this.ledgerHelper.createReleaseLedgerEntry(escrowId, {
+        netAmountCents: escrow.netAmountCents,
+        currency: escrow.currency,
+      }, tx);
+      await tx.escrowAgreement.update({
+        where: { id: escrowId },
+        data: {
+          status: EscrowStatus.RELEASED,
+          releasedAt: new Date(),
+        },
+      });
     });
 
     const buyer = await this.prisma.user.findUnique({ where: { id: escrow.buyerId } });
@@ -787,17 +812,29 @@ export class EscrowService {
       });
     }
 
-    await this.walletService.releaseToSeller(sellerWalletId!, escrow.netAmountCents, escrowId);
-    await this.ledgerHelper.createReleaseLedgerEntry(escrowId, {
-      netAmountCents: escrow.netAmountCents,
-      currency: escrow.currency,
-    });
-    await this.prisma.escrowAgreement.update({
-      where: { id: escrowId },
-      data: {
-        status: EscrowStatus.RELEASED,
-        releasedAt: new Date(),
-      },
+    const buyerWalletId = escrow.buyerWalletId;
+    await this.prisma.$transaction(async (tx) => {
+      if (buyerWalletId) {
+        await tx.wallet.update({
+          where: { id: buyerWalletId },
+          data: { pendingCents: { decrement: escrow.amountCents } },
+        });
+      }
+      await tx.wallet.update({
+        where: { id: sellerWalletId! },
+        data: { availableCents: { increment: escrow.netAmountCents } },
+      });
+      await this.ledgerHelper.createReleaseLedgerEntry(escrowId, {
+        netAmountCents: escrow.netAmountCents,
+        currency: escrow.currency,
+      }, tx);
+      await tx.escrowAgreement.update({
+        where: { id: escrowId },
+        data: {
+          status: EscrowStatus.RELEASED,
+          releasedAt: new Date(),
+        },
+      });
     });
 
     const buyer = await this.prisma.user.findUnique({ where: { id: escrow.buyerId } });
@@ -852,7 +889,7 @@ export class EscrowService {
       throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot refund from dispute`);
     }
 
-    // Only move funds if escrow was funded (best practice: no ledger for unfunded)
+    // Transaction: wallet + ledger + status (atomic)
     if (escrow.fundedAt) {
       let buyerWalletId = escrow.buyerWalletId;
       if (!buyerWalletId) {
@@ -863,20 +900,36 @@ export class EscrowService {
           data: { buyerWalletId },
         });
       }
-      await this.walletService.refundToBuyer(buyerWalletId!, escrow.amountCents, escrowId);
-      await this.ledgerHelper.createRefundLedgerEntry(escrowId, {
-        amountCents: escrow.amountCents,
-        feeCents: escrow.feeCents,
-        currency: escrow.currency,
+      await this.prisma.$transaction(async (tx) => {
+        await tx.wallet.update({
+          where: { id: buyerWalletId! },
+          data: {
+            pendingCents: { decrement: escrow.amountCents },
+            availableCents: { increment: escrow.amountCents },
+          },
+        });
+        await this.ledgerHelper.createRefundLedgerEntry(escrowId, {
+          amountCents: escrow.amountCents,
+          feeCents: escrow.feeCents,
+          currency: escrow.currency,
+        }, tx);
+        await tx.escrowAgreement.update({
+          where: { id: escrowId },
+          data: {
+            status: EscrowStatus.REFUNDED,
+            refundedAt: new Date(),
+          },
+        });
+      });
+    } else {
+      await this.prisma.escrowAgreement.update({
+        where: { id: escrowId },
+        data: {
+          status: EscrowStatus.REFUNDED,
+          refundedAt: new Date(),
+        },
       });
     }
-    await this.prisma.escrowAgreement.update({
-      where: { id: escrowId },
-      data: {
-        status: EscrowStatus.REFUNDED,
-        refundedAt: new Date(),
-      },
-    });
 
     await this.auditService.log({
       userId: adminId,
@@ -917,7 +970,7 @@ export class EscrowService {
       throw new BadRequestException(`Escrow is in ${escrow.status} status, cannot refund`);
     }
 
-    // Wallet first, then ledger, then status
+    // Transaction: wallet + ledger + status (atomic)
     if (escrow.fundedAt) {
       let buyerWalletId = escrow.buyerWalletId;
       if (!buyerWalletId) {
@@ -928,20 +981,36 @@ export class EscrowService {
           data: { buyerWalletId },
         });
       }
-      await this.walletService.refundToBuyer(buyerWalletId!, escrow.amountCents, escrowId);
-      await this.ledgerHelper.createRefundLedgerEntry(escrowId, {
-        amountCents: escrow.amountCents,
-        feeCents: escrow.feeCents,
-        currency: escrow.currency,
+      await this.prisma.$transaction(async (tx) => {
+        await tx.wallet.update({
+          where: { id: buyerWalletId! },
+          data: {
+            pendingCents: { decrement: escrow.amountCents },
+            availableCents: { increment: escrow.amountCents },
+          },
+        });
+        await this.ledgerHelper.createRefundLedgerEntry(escrowId, {
+          amountCents: escrow.amountCents,
+          feeCents: escrow.feeCents,
+          currency: escrow.currency,
+        }, tx);
+        await tx.escrowAgreement.update({
+          where: { id: escrowId },
+          data: {
+            status: EscrowStatus.REFUNDED,
+            refundedAt: new Date(),
+          },
+        });
+      });
+    } else {
+      await this.prisma.escrowAgreement.update({
+        where: { id: escrowId },
+        data: {
+          status: EscrowStatus.REFUNDED,
+          refundedAt: new Date(),
+        },
       });
     }
-    await this.prisma.escrowAgreement.update({
-      where: { id: escrowId },
-      data: {
-        status: EscrowStatus.REFUNDED,
-        refundedAt: new Date(),
-      },
-    });
 
     await this.auditService.log({
       userId,

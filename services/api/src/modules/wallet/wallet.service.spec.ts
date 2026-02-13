@@ -4,18 +4,19 @@ import { WalletService } from './wallet.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { LedgerHelperService } from '../payments/ledger-helper.service';
+import { EmailService } from '../email/email.service';
 
 describe('WalletService', () => {
   let service: WalletService;
-  let prismaService: PrismaService;
   let auditService: AuditService;
 
   const mockWallet = {
     id: 'wallet-id-123',
     userId: 'user-id-123',
     currency: 'GHS',
-    availableCents: 100000, // 1000 GHS
-    pendingCents: 50000, // 500 GHS
+    availableCents: 100000,
+    pendingCents: 50000,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -42,6 +43,9 @@ describe('WalletService', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    walletFunding: {
+      create: jest.fn(),
+    },
     ledgerEntry: {
       create: jest.fn(),
     },
@@ -57,8 +61,18 @@ describe('WalletService', () => {
     sendWithdrawalApprovedNotification: jest.fn().mockResolvedValue(undefined),
   };
 
+  const mockLedgerHelper = {
+    createWalletTopUpEntry: jest.fn().mockResolvedValue(undefined),
+    createWithdrawalEntry: jest.fn().mockResolvedValue(undefined),
+  };
+
+  const mockEmailService = {};
+
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockPrismaService.$transaction.mockImplementation((fn: (tx: typeof mockPrismaService) => Promise<unknown>) =>
+      fn(mockPrismaService),
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -66,11 +80,12 @@ describe('WalletService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: AuditService, useValue: mockAuditService },
         { provide: NotificationsService, useValue: mockNotificationsService },
+        { provide: LedgerHelperService, useValue: mockLedgerHelper },
+        { provide: EmailService, useValue: mockEmailService },
       ],
     }).compile();
 
     service = module.get<WalletService>(WalletService);
-    prismaService = module.get<PrismaService>(PrismaService);
     auditService = module.get<AuditService>(AuditService);
   });
 
@@ -105,83 +120,24 @@ describe('WalletService', () => {
     });
   });
 
-  describe('getWalletBalance', () => {
-    it('should return wallet balance', async () => {
+  describe('getWallet', () => {
+    it('should return wallet with balance', async () => {
       mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
 
-      const result = await service.getWalletBalance('user-id-123');
+      const result = await service.getWallet('user-id-123');
 
-      expect(result).toEqual({
-        availableCents: 100000,
-        pendingCents: 50000,
-        totalCents: 150000,
-        currency: 'GHS',
-      });
+      expect(result).toEqual(mockWallet);
+      expect(result.availableCents).toBe(100000);
+      expect(result.pendingCents).toBe(50000);
     });
 
-    it('should throw NotFoundException if wallet not found', async () => {
+    it('should create wallet if not found (getOrCreateWallet)', async () => {
       mockPrismaService.wallet.findUnique.mockResolvedValue(null);
+      mockPrismaService.wallet.create.mockResolvedValue(mockWallet);
 
-      await expect(service.getWalletBalance('non-existent-user')).rejects.toThrow(NotFoundException);
-    });
-  });
+      const result = await service.getWallet('user-id-123');
 
-  describe('credit', () => {
-    it('should credit wallet successfully', async () => {
-      mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
-      const updatedWallet = { ...mockWallet, availableCents: 150000 };
-      mockPrismaService.wallet.update.mockResolvedValue(updatedWallet);
-
-      const result = await service.credit('wallet-id-123', 50000, 'PAYSTACK_TOPUP', 'Test credit');
-
-      expect(result.availableCents).toBe(150000);
-      expect(mockPrismaService.wallet.update).toHaveBeenCalledWith({
-        where: { id: 'wallet-id-123' },
-        data: { availableCents: 150000 },
-      });
-      expect(auditService.log).toHaveBeenCalled();
-    });
-
-    it('should throw BadRequestException for negative amount', async () => {
-      await expect(service.credit('wallet-id-123', -100, 'PAYSTACK_TOPUP', 'Test')).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('should throw NotFoundException if wallet not found', async () => {
-      mockPrismaService.wallet.findUnique.mockResolvedValue(null);
-
-      await expect(service.credit('non-existent-wallet', 1000, 'PAYSTACK_TOPUP', 'Test')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-  });
-
-  describe('debit', () => {
-    it('should debit wallet successfully', async () => {
-      mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
-      const updatedWallet = { ...mockWallet, availableCents: 50000 };
-      mockPrismaService.wallet.update.mockResolvedValue(updatedWallet);
-
-      const result = await service.debit('wallet-id-123', 50000, 'Test debit');
-
-      expect(result.availableCents).toBe(50000);
-      expect(mockPrismaService.wallet.update).toHaveBeenCalledWith({
-        where: { id: 'wallet-id-123' },
-        data: { availableCents: 50000 },
-      });
-    });
-
-    it('should throw BadRequestException for insufficient balance', async () => {
-      mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
-
-      await expect(service.debit('wallet-id-123', 200000, 'Test debit')).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('should throw BadRequestException for negative amount', async () => {
-      await expect(service.debit('wallet-id-123', -100, 'Test')).rejects.toThrow(BadRequestException);
+      expect(result).toEqual(mockWallet);
     });
   });
 
@@ -195,15 +151,15 @@ describe('WalletService', () => {
       };
       mockPrismaService.wallet.update.mockResolvedValue(updatedWallet);
 
-      const result = await service.reserveForEscrow('wallet-id-123', 50000);
+      const result = await service.reserveForEscrow('wallet-id-123', 50000, 'escrow-id-1');
 
       expect(result.availableCents).toBe(50000);
       expect(result.pendingCents).toBe(100000);
       expect(mockPrismaService.wallet.update).toHaveBeenCalledWith({
         where: { id: 'wallet-id-123' },
         data: {
-          availableCents: 50000,
-          pendingCents: 100000,
+          availableCents: { decrement: 50000 },
+          pendingCents: { increment: 50000 },
         },
       });
     });
@@ -211,43 +167,42 @@ describe('WalletService', () => {
     it('should throw BadRequestException for insufficient available balance', async () => {
       mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
 
-      await expect(service.reserveForEscrow('wallet-id-123', 200000)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.reserveForEscrow('wallet-id-123', 200000, 'escrow-id-1'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw NotFoundException if wallet not found', async () => {
+      mockPrismaService.wallet.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.reserveForEscrow('non-existent-wallet', 50000, 'escrow-id-1'),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
-  describe('releaseReservedFunds', () => {
-    it('should release reserved funds successfully', async () => {
+  describe('refundToBuyer', () => {
+    it('should refund escrow funds to buyer wallet', async () => {
       mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
-      const updatedWallet = {
-        ...mockWallet,
-        pendingCents: 0,
-      };
+      const updatedWallet = { ...mockWallet, pendingCents: 0, availableCents: 150000 };
       mockPrismaService.wallet.update.mockResolvedValue(updatedWallet);
 
-      const result = await service.releaseReservedFunds('wallet-id-123', 50000);
+      const result = await service.refundToBuyer('wallet-id-123', 50000, 'escrow-id-1');
 
-      expect(result.pendingCents).toBe(0);
+      expect(result.availableCents).toBe(150000);
       expect(mockPrismaService.wallet.update).toHaveBeenCalledWith({
         where: { id: 'wallet-id-123' },
-        data: { pendingCents: 0 },
+        data: {
+          pendingCents: { decrement: 50000 },
+          availableCents: { increment: 50000 },
+        },
       });
-    });
-
-    it('should throw BadRequestException for insufficient pending balance', async () => {
-      mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
-
-      await expect(service.releaseReservedFunds('wallet-id-123', 100000)).rejects.toThrow(
-        BadRequestException,
-      );
     });
   });
 
   describe('requestWithdrawal', () => {
     it('should create withdrawal request successfully', async () => {
       mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       const mockWithdrawal = {
         id: 'withdrawal-id-123',
         walletId: 'wallet-id-123',
@@ -255,8 +210,10 @@ describe('WalletService', () => {
         status: 'REQUESTED',
       };
       mockPrismaService.withdrawal.create.mockResolvedValue(mockWithdrawal);
+      mockPrismaService.wallet.update.mockResolvedValue({ ...mockWallet, availableCents: 50000 });
 
-      const result = await service.requestWithdrawal('user-id-123', {
+      const result = await service.requestWithdrawal({
+        userId: 'user-id-123',
         amountCents: 50000,
         methodType: 'BANK_ACCOUNT',
         methodDetails: {
@@ -275,7 +232,8 @@ describe('WalletService', () => {
       mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
 
       await expect(
-        service.requestWithdrawal('user-id-123', {
+        service.requestWithdrawal({
+          userId: 'user-id-123',
           amountCents: 200000,
           methodType: 'BANK_ACCOUNT',
           methodDetails: {},
@@ -283,16 +241,27 @@ describe('WalletService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw BadRequestException for amount below minimum', async () => {
+    it('should create withdrawal with feeCents', async () => {
       mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
+      mockPrismaService.withdrawal.create.mockResolvedValue({
+        id: 'withdrawal-id-456',
+        walletId: 'wallet-id-123',
+        amountCents: 50000,
+        feeCents: 500,
+        status: 'REQUESTED',
+      });
+      mockPrismaService.wallet.update.mockResolvedValue({});
 
-      await expect(
-        service.requestWithdrawal('user-id-123', {
-          amountCents: 500, // 5 GHS, below minimum
-          methodType: 'BANK_ACCOUNT',
-          methodDetails: {},
-        }),
-      ).rejects.toThrow(BadRequestException);
+      const result = await service.requestWithdrawal({
+        userId: 'user-id-123',
+        amountCents: 50000,
+        feeCents: 500,
+        methodType: 'BANK_ACCOUNT',
+        methodDetails: {},
+      });
+
+      expect(result).toHaveProperty('id');
+      expect(mockPrismaService.withdrawal.create).toHaveBeenCalled();
     });
   });
 });

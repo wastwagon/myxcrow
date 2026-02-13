@@ -19,7 +19,6 @@ interface RegisterData {
   lastName: string;
   phone: string;
   code: string;
-  role?: 'BUYER' | 'SELLER';
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -84,7 +83,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: data.phone,
-        role: data.role || 'BUYER',
       });
 
       const { user, accessToken, refreshToken } = response.data;

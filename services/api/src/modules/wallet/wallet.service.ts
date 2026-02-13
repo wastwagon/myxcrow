@@ -62,61 +62,70 @@ export class WalletService {
   }
 
   /**
-   * Top up wallet (funding)
+   * Top up wallet (funding). Uses transaction for atomicity.
+   * Pass tx when called from within another transaction.
    */
-  async topUpWallet(data: {
-    userId: string;
-    sourceType: WalletFundingSource;
-    amountCents: number;
-    feeCents?: number;
-    externalRef?: string;
-    metadata?: any;
-    holdHours?: number; // Chargeback risk hold period
-  }) {
+  async topUpWallet(
+    data: {
+      userId: string;
+      sourceType: WalletFundingSource;
+      amountCents: number;
+      feeCents?: number;
+      externalRef?: string;
+      metadata?: any;
+      holdHours?: number; // Chargeback risk hold period
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tx?: any,
+  ) {
     const wallet = await this.getOrCreateWallet(data.userId);
 
     const holdUntil = data.holdHours
       ? new Date(Date.now() + data.holdHours * 60 * 60 * 1000)
       : null;
 
-    const funding = await this.prisma.walletFunding.create({
-      data: {
-        walletId: wallet.id,
-        sourceType: data.sourceType,
-        externalRef: data.externalRef,
+    const run = async (client: Parameters<Parameters<PrismaService['$transaction']>[0]>[0]) => {
+      const f = await client.walletFunding.create({
+        data: {
+          walletId: wallet.id,
+          sourceType: data.sourceType,
+          externalRef: data.externalRef,
+          amountCents: data.amountCents,
+          feeCents: data.feeCents || 0,
+          currency: wallet.currency,
+          status: holdUntil ? WalletFundingStatus.PENDING : WalletFundingStatus.SUCCEEDED,
+          metadata: data.metadata,
+          holdUntil,
+        },
+      });
+
+      if (f.status === WalletFundingStatus.SUCCEEDED) {
+        await client.wallet.update({
+          where: { id: wallet.id },
+          data: {
+            availableCents: { increment: data.amountCents - (data.feeCents || 0) },
+          },
+        });
+      } else if (f.status === WalletFundingStatus.PENDING) {
+        await client.wallet.update({
+          where: { id: wallet.id },
+          data: {
+            pendingCents: { increment: data.amountCents - (data.feeCents || 0) },
+          },
+        });
+      }
+
+      await this.ledgerHelper.createWalletTopUpEntry(wallet.id, {
         amountCents: data.amountCents,
         feeCents: data.feeCents || 0,
         currency: wallet.currency,
-        status: holdUntil ? WalletFundingStatus.PENDING : WalletFundingStatus.SUCCEEDED,
-        metadata: data.metadata,
-        holdUntil,
-      },
-    });
+        fundingId: f.id,
+      }, client);
 
-    // Update wallet balances
-    if (funding.status === WalletFundingStatus.SUCCEEDED) {
-      await this.prisma.wallet.update({
-        where: { id: wallet.id },
-        data: {
-          availableCents: { increment: data.amountCents - (data.feeCents || 0) },
-        },
-      });
-    } else if (funding.status === WalletFundingStatus.PENDING) {
-      await this.prisma.wallet.update({
-        where: { id: wallet.id },
-        data: {
-          pendingCents: { increment: data.amountCents - (data.feeCents || 0) },
-        },
-      });
-    }
+      return f;
+    };
 
-    // Create ledger entry
-    await this.ledgerHelper.createWalletTopUpEntry(wallet.id, {
-      amountCents: data.amountCents,
-      feeCents: data.feeCents || 0,
-      currency: wallet.currency,
-      fundingId: funding.id,
-    });
+    const funding = tx ? await run(tx) : await this.prisma.$transaction(run);
 
     await this.auditService.log({
       userId: data.userId,
@@ -132,20 +141,23 @@ export class WalletService {
   /**
    * Credit wallet from an existing funding record (e.g. after Paystack verification).
    * Does NOT create a new funding - prevents duplicate entries when both webhook and callback run.
+   * Uses transaction for atomicity.
    */
   async creditWalletFromFunding(funding: { id: string; walletId: string; wallet: { userId: string; currency: string }; amountCents: number; feeCents: number; sourceType: any }) {
-    await this.prisma.wallet.update({
-      where: { id: funding.walletId },
-      data: {
-        availableCents: { increment: funding.amountCents - funding.feeCents },
-      },
-    });
+    await this.prisma.$transaction(async (tx) => {
+      await tx.wallet.update({
+        where: { id: funding.walletId },
+        data: {
+          availableCents: { increment: funding.amountCents - funding.feeCents },
+        },
+      });
 
-    await this.ledgerHelper.createWalletTopUpEntry(funding.walletId, {
-      amountCents: funding.amountCents,
-      feeCents: funding.feeCents,
-      currency: funding.wallet.currency,
-      fundingId: funding.id,
+      await this.ledgerHelper.createWalletTopUpEntry(funding.walletId, {
+        amountCents: funding.amountCents,
+        feeCents: funding.feeCents,
+        currency: funding.wallet.currency,
+        fundingId: funding.id,
+      }, tx);
     });
 
     await this.auditService.log({
@@ -201,10 +213,17 @@ export class WalletService {
   }
 
   /**
-   * Reserve funds for escrow
+   * Reserve funds for escrow. Pass tx when called from within another transaction.
    */
-  async reserveForEscrow(walletId: string, amountCents: number, escrowId: string) {
-    const wallet = await this.prisma.wallet.findUnique({
+  async reserveForEscrow(
+    walletId: string,
+    amountCents: number,
+    escrowId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tx?: any,
+  ) {
+    const client = tx ?? this.prisma;
+    const wallet = await client.wallet.findUnique({
       where: { id: walletId },
     });
 
@@ -216,7 +235,7 @@ export class WalletService {
       throw new BadRequestException('Insufficient available balance in wallet');
     }
 
-    const updated = await this.prisma.wallet.update({
+    const updated = await client.wallet.update({
       where: { id: walletId },
       data: {
         availableCents: { decrement: amountCents },
@@ -308,7 +327,7 @@ export class WalletService {
   }
 
   /**
-   * Request withdrawal
+   * Request withdrawal. Uses transaction for atomicity.
    */
   async requestWithdrawal(data: {
     userId: string;
@@ -324,30 +343,34 @@ export class WalletService {
       throw new BadRequestException('Insufficient available balance for withdrawal');
     }
 
-    const withdrawal = await this.prisma.withdrawal.create({
-      data: {
-        walletId: wallet.id,
-        methodType: data.methodType,
-        methodDetails: data.methodDetails,
+    const withdrawal = await this.prisma.$transaction(async (tx) => {
+      const w = await tx.withdrawal.create({
+        data: {
+          walletId: wallet.id,
+          methodType: data.methodType,
+          methodDetails: data.methodDetails,
+          amountCents: data.amountCents,
+          feeCents,
+          status: WithdrawalStatus.REQUESTED,
+          requestedBy: data.userId,
+        },
+      });
+
+      await tx.wallet.update({
+        where: { id: wallet.id },
+        data: {
+          availableCents: { decrement: data.amountCents + feeCents },
+        },
+      });
+
+      await this.ledgerHelper.createWithdrawalEntry(wallet.id, {
         amountCents: data.amountCents,
         feeCents,
-        status: WithdrawalStatus.REQUESTED,
-        requestedBy: data.userId,
-      },
-    });
+        currency: wallet.currency,
+        withdrawalId: w.id,
+      }, tx);
 
-    await this.prisma.wallet.update({
-      where: { id: wallet.id },
-      data: {
-        availableCents: { decrement: data.amountCents + feeCents },
-      },
-    });
-
-    await this.ledgerHelper.createWithdrawalEntry(wallet.id, {
-      amountCents: data.amountCents,
-      feeCents,
-      currency: wallet.currency,
-      withdrawalId: withdrawal.id,
+      return w;
     });
 
     await this.auditService.log({

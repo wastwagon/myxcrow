@@ -6,6 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '@/lib/api-client';
+import { getErrorMessage } from '@/lib/error-messages';
 import { setAuthTokens, setUser } from '@/lib/auth';
 import { Loader2, AlertCircle, X, Check, User, Mail, Lock, Phone, MessageCircle } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
@@ -17,7 +18,6 @@ const registerSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   phone: z.string().regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
   code: z.string().length(6, 'Enter the 6-digit code').optional(),
-  role: z.enum(['BUYER', 'SELLER']).default('BUYER'),
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -52,8 +52,7 @@ export default function Register() {
       await apiClient.post('/auth/send-phone-otp', { phone: p });
       setCodeSent(true);
     } catch (err: any) {
-      const msg = err.response?.data?.message;
-      setError(Array.isArray(msg) ? msg.join('. ') : typeof msg === 'string' ? msg : 'Failed to send code');
+      setError(getErrorMessage(err, 'Failed to send code'));
     } finally {
       setLoading(false);
     }
@@ -75,7 +74,6 @@ export default function Register() {
         lastName: data.lastName,
         phone: data.phone,
         code: data.code,
-        role: data.role || 'BUYER',
       });
 
       const { user, accessToken, refreshToken } = response.data;
@@ -85,10 +83,7 @@ export default function Register() {
 
       router.push('/dashboard');
     } catch (err: any) {
-      const msg = err.response?.data?.message;
-      setError(
-        Array.isArray(msg) ? msg.join('. ') : typeof msg === 'string' ? msg : 'Registration failed. Please try again.'
-      );
+      setError(getErrorMessage(err, 'Registration failed. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -257,24 +252,6 @@ export default function Register() {
                     </button>
                   </div>
                 )}
-
-                {/* Account Type */}
-                <div>
-                  <label htmlFor="role" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Account Type
-                  </label>
-                  <select
-                    {...register('role')}
-                    id="role"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none bg-white"
-                  >
-                    <option value="BUYER">Buyer - I want to purchase goods/services</option>
-                    <option value="SELLER">Seller - I want to sell goods/services</option>
-                  </select>
-                  {errors.role && (
-                    <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>
-                  )}
-                </div>
 
                 {/* Password */}
                 <div>

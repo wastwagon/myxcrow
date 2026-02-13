@@ -314,6 +314,7 @@ model WalletFunding {
   @@index([walletId])
   @@index([externalRef])
   @@index([status])
+  @@index([externalRef, status])
   @@index([createdAt])
 }
 
@@ -399,6 +400,8 @@ model EscrowAgreement {
 
   @@index([buyerId])
   @@index([sellerId])
+  @@index([buyerId, status])
+  @@index([sellerId, status])
   @@index([buyerWalletId])
   @@index([sellerWalletId])
   @@index([status])
@@ -483,6 +486,7 @@ model Payment {
   @@index([escrowId])
   @@index([userId])
   @@index([status])
+  @@index([providerId, type])
 }
 
 // ============================================
@@ -572,6 +576,7 @@ model Dispute {
   messages  DisputeMessage[]
 
   @@index([escrowId])
+  @@index([escrowId, status])
   @@index([initiatorId])
   @@index([status])
 }

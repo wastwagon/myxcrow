@@ -1,15 +1,16 @@
 /** @type {import('jest').Config} */
 module.exports = {
   moduleFileExtensions: ['js', 'json', 'ts'],
-  rootDir: 'src',
-  testRegex: '\\.spec\\.ts$',
+  rootDir: '.',
+  setupFiles: ['<rootDir>/test/jest-e2e-setup.ts'],
+  testRegex: '.e2e.spec.ts$',
   transform: {
     '^.+\\.(t|j)s$': ['ts-jest', { tsconfig: 'tsconfig.spec.json' }],
   },
-  collectCoverageFrom: ['**/*.(t|j)s'],
-  coverageDirectory: '../coverage',
   testEnvironment: 'node',
+  testTimeout: 15000,
+  forceExit: true,
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/$1',
+    '^@/(.*)$': '<rootDir>/src/$1',
   },
 };

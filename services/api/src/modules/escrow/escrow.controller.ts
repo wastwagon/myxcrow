@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { EscrowParticipantGuard } from './guards/escrow-participant.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUser as ICurrentUser } from '../auth/interfaces/current-user.interface';
 import { EscrowStatus } from '@prisma/client';
 import { Res } from '@nestjs/common';
 import { Response } from 'express';
@@ -31,7 +32,7 @@ export class EscrowController {
   ) {}
 
   @Post()
-  async create(@Body() data: any, @CurrentUser() user: any) {
+  async create(@Body() data: any, @CurrentUser() user: ICurrentUser) {
     return this.escrowService.createEscrow({
       ...data,
       buyerId: user.id,
@@ -73,19 +74,19 @@ export class EscrowController {
   }
 
   @Get('stats')
-  async stats(@CurrentUser() user: any) {
+  async stats(@CurrentUser() user: ICurrentUser) {
     return this.escrowService.getEscrowStats(user.id);
   }
 
   @Get(':id')
   @UseGuards(EscrowParticipantGuard)
-  async getOne(@Param('id') id: string, @CurrentUser() user: any) {
+  async getOne(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     return this.escrowService.getEscrow(id, user?.id);
   }
 
   @Put(':id/fund')
   @UseGuards(EscrowParticipantGuard)
-  async fund(@Param('id') id: string, @CurrentUser() user: any) {
+  async fund(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     return this.escrowService.fundEscrow(id, user.id);
   }
 
@@ -94,14 +95,14 @@ export class EscrowController {
   async ship(
     @Param('id') id: string,
     @Body() data: { trackingNumber?: string; carrier?: string },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.escrowService.shipEscrow(id, user.id, data.trackingNumber, data.carrier);
   }
 
   @Put(':id/deliver')
   @UseGuards(EscrowParticipantGuard)
-  async deliver(@Param('id') id: string, @CurrentUser() user: any) {
+  async deliver(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     return this.escrowService.deliverEscrow(id, user.id);
   }
 
@@ -110,20 +111,20 @@ export class EscrowController {
   async confirmDelivery(
     @Param('id') id: string,
     @Body() body: { deliveryCode: string },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.escrowService.confirmDeliveryByCodeForBuyer(id, user.id, body.deliveryCode);
   }
 
   @Put(':id/service-completed')
   @UseGuards(EscrowParticipantGuard)
-  async serviceCompleted(@Param('id') id: string, @CurrentUser() user: any) {
+  async serviceCompleted(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     return this.escrowService.markServiceCompleted(id, user.id);
   }
 
   @Put(':id/release')
   @UseGuards(EscrowParticipantGuard)
-  async release(@Param('id') id: string, @CurrentUser() user: any) {
+  async release(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     return this.escrowService.releaseFunds(id, user.id);
   }
 
@@ -132,14 +133,14 @@ export class EscrowController {
   async refund(
     @Param('id') id: string,
     @Body() data: { reason?: string },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.escrowService.refundEscrow(id, user.id, data.reason);
   }
 
   @Put(':id/cancel')
   @UseGuards(EscrowParticipantGuard)
-  async cancel(@Param('id') id: string, @CurrentUser() user: any) {
+  async cancel(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     return this.escrowService.cancelEscrow(id, user.id);
   }
 
@@ -163,7 +164,7 @@ export class EscrowController {
   async completeMilestone(
     @Param('id') id: string,
     @Param('milestoneId') milestoneId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.milestoneService.completeMilestone(id, milestoneId, user.id);
   }
@@ -173,14 +174,14 @@ export class EscrowController {
   async releaseMilestone(
     @Param('id') id: string,
     @Param('milestoneId') milestoneId: string,
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.milestoneService.releaseMilestone(id, milestoneId, user.id);
   }
 
   @Get(':id/messages')
   @UseGuards(EscrowParticipantGuard)
-  async getMessages(@Param('id') id: string, @CurrentUser() user: any) {
+  async getMessages(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     return this.messageService.getMessages(id, user.id);
   }
 
@@ -189,7 +190,7 @@ export class EscrowController {
   async sendMessage(
     @Param('id') id: string,
     @Body() data: { content: string },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.messageService.sendMessage(id, user.id, data.content);
   }

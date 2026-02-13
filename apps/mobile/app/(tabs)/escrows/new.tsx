@@ -9,29 +9,42 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  Alert,
   Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '../../../src/lib/api-client';
-import { formatCurrency, CURRENCY_SYMBOL } from '../../../src/lib/constants';
+import { getErrorMessage } from '../../../src/lib/error-messages';
+import { CURRENCY_SYMBOL } from '../../../src/lib/constants';
 import Toast from 'react-native-toast-message';
+
+const milestoneSchema = z.object({
+  name: z.string().min(1, 'Milestone name is required'),
+  description: z.string().optional(),
+  amountCents: z.number().min(0.01, 'Amount must be at least 0.01'),
+});
 
 const createEscrowSchema = z.object({
   sellerId: z.string().regex(/^0[0-9]{9}$/, 'Enter seller Ghana phone (e.g. 0551234567)'),
   amountCents: z.number().min(1, 'Amount must be at least 1.00'),
   currency: z.string().default('GHS'),
   description: z.string().min(1, 'Description is required'),
-  useWallet: z.boolean().default(true),
+  useMilestones: z.boolean().default(false),
+  milestones: z.array(milestoneSchema).optional(),
   deliveryRegion: z.string().optional(),
   deliveryCity: z.string().optional(),
   deliveryAddressLine: z.string().optional(),
   deliveryPhone: z.string().optional(),
-});
+}).refine((data) => {
+  if (data.useMilestones && data.milestones && data.milestones.length > 0) {
+    const totalMilestones = data.milestones.reduce((sum, m) => sum + (m.amountCents || 0), 0);
+    return totalMilestones <= data.amountCents;
+  }
+  return true;
+}, { message: 'Total milestone amounts cannot exceed escrow amount', path: ['milestones'] });
 
 type CreateEscrowFormData = z.infer<typeof createEscrowSchema>;
 
@@ -48,23 +61,37 @@ export default function CreateEscrowScreen() {
     resolver: zodResolver(createEscrowSchema),
     defaultValues: {
       currency: 'GHS',
-      useWallet: true,
+      useMilestones: false,
+      milestones: [],
     },
   });
 
-  const useWallet = watch('useWallet');
+  const { fields, append, remove } = useFieldArray({ control, name: 'milestones' });
+  const useMilestones = watch('useMilestones');
+  const amountCents = watch('amountCents') || 0;
+  const milestones = watch('milestones') || [];
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateEscrowFormData) => {
       const payload: any = {
-        ...data,
         sellerPhone: data.sellerId,
+        sellerId: data.sellerId,
         amountCents: Math.round(data.amountCents * 100),
+        currency: data.currency,
+        description: data.description,
+        useWallet: true,
         deliveryRegion: data.deliveryRegion || undefined,
         deliveryCity: data.deliveryCity || undefined,
         deliveryAddressLine: data.deliveryAddressLine || undefined,
         deliveryPhone: data.deliveryPhone || undefined,
       };
+      if (data.useMilestones && data.milestones && data.milestones.length > 0) {
+        payload.milestones = data.milestones.map((m) => ({
+          name: m.name,
+          description: m.description,
+          amountCents: Math.round(m.amountCents * 100),
+        }));
+      }
       return apiClient.post('/escrows', payload);
     },
     onSuccess: (response) => {
@@ -82,7 +109,7 @@ export default function CreateEscrowScreen() {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: error.response?.data?.message || 'Failed to create escrow',
+        text2: getErrorMessage(error, 'Failed to create escrow'),
       });
     },
   });
@@ -236,24 +263,87 @@ export default function CreateEscrowScreen() {
               )}
             />
             {errors.amountCents && <Text style={styles.errorText}>{errors.amountCents.message}</Text>}
+            <Text style={styles.helpText}>Enter amount in Ghana Cedis</Text>
           </View>
 
-          <View style={styles.switchContainer}>
-            <Text style={styles.label}>Fund from Wallet</Text>
-            <Controller
-              control={control}
-              name="useWallet"
-              render={({ field: { onChange, value } }) => (
-                <Switch value={value} onValueChange={onChange} />
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>
+              The escrow will be funded from your wallet balance. Make sure you have sufficient funds.
+            </Text>
+          </View>
+
+          <View style={[styles.sectionHeader, { marginTop: 24 }]}>
+            <View style={styles.switchContainer}>
+              <Text style={styles.sectionTitle}>Use Milestone Payments</Text>
+              <Controller
+                control={control}
+                name="useMilestones"
+                render={({ field: { onChange, value } }) => (
+                  <Switch value={value} onValueChange={onChange} />
+                )}
+              />
+            </View>
+            <Text style={styles.helpText}>
+              Split the escrow into multiple milestone payments. Funds released incrementally as milestones complete.
+            </Text>
+          </View>
+
+          {useMilestones && (
+            <View style={styles.milestonesSection}>
+              {fields.map((field, index) => (
+                <View key={field.id} style={styles.milestoneCard}>
+                  <View style={styles.milestoneHeader}>
+                    <Text style={styles.milestoneTitle}>Milestone {index + 1}</Text>
+                    <TouchableOpacity onPress={() => remove(index)}>
+                      <Text style={styles.removeText}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <Controller
+                    control={control}
+                    name={`milestones.${index}.name`}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <TextInput
+                        style={[styles.input, errors.milestones?.[index]?.name && styles.inputError]}
+                        placeholder="e.g. Phase 1, Design Complete"
+                        value={value || ''}
+                        onChangeText={onChange}
+                        onBlur={onBlur}
+                      />
+                    )}
+                  />
+                  {errors.milestones?.[index]?.name && (
+                    <Text style={styles.errorText}>{errors.milestones[index]?.name?.message}</Text>
+                  )}
+                  <Controller
+                    control={control}
+                    name={`milestones.${index}.amountCents`}
+                    render={({ field: { onChange, onBlur, value } }) => (
+                      <TextInput
+                        style={[styles.input, errors.milestones?.[index]?.amountCents && styles.inputError]}
+                        placeholder="Amount (GHS)"
+                        keyboardType="decimal-pad"
+                        value={value ? String(value) : ''}
+                        onChangeText={(text) => onChange(parseFloat(text) || 0)}
+                        onBlur={onBlur}
+                      />
+                    )}
+                  />
+                  {errors.milestones?.[index]?.amountCents && (
+                    <Text style={styles.errorText}>{errors.milestones[index]?.amountCents?.message}</Text>
+                  )}
+                </View>
+              ))}
+              <TouchableOpacity style={styles.addMilestoneButton} onPress={() => append({ name: '', description: '', amountCents: 0 })}>
+                <Text style={styles.addMilestoneText}>+ Add Milestone</Text>
+              </TouchableOpacity>
+              {milestones.length > 0 && (
+                <Text style={styles.helpText}>
+                  Total milestones: {CURRENCY_SYMBOL}{(milestones.reduce((s, m) => s + (m.amountCents || 0), 0)).toFixed(2)} / {CURRENCY_SYMBOL}{amountCents.toFixed(2)}
+                </Text>
               )}
-            />
-          </View>
-
-          {useWallet && (
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                The escrow will be funded immediately from your wallet balance. Make sure you have sufficient funds.
-              </Text>
+              {errors.milestones && typeof errors.milestones === 'object' && 'message' in errors.milestones && (
+                <Text style={styles.errorText}>{errors.milestones.message}</Text>
+              )}
             </View>
           )}
 
@@ -384,6 +474,44 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  milestonesSection: {
+    marginTop: 12,
+  },
+  milestoneCard: {
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+  },
+  milestoneHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  milestoneTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  removeText: {
+    color: '#dc2626',
+    fontSize: 14,
+  },
+  addMilestoneButton: {
+    padding: 12,
+    borderWidth: 2,
+    borderColor: '#3b82f6',
+    borderRadius: 8,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  addMilestoneText: {
+    color: '#3b82f6',
     fontWeight: '600',
   },
 });

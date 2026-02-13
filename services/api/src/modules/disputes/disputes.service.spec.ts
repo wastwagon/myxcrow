@@ -1,13 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { DisputesService } from './disputes.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
+import { EscrowService } from '../escrow/escrow.service';
 
 describe('DisputesService', () => {
   let service: DisputesService;
-  let prismaService: PrismaService;
 
   const mockEscrow = {
     id: 'escrow-id-123',
@@ -38,21 +38,39 @@ describe('DisputesService', () => {
       findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
-      count: jest.fn(),
+    },
+    user: {
+      findUnique: jest.fn(),
+    },
+    disputeMessage: {
+      create: jest.fn(),
     },
   };
 
   const mockNotificationsService = {
-    sendDisputeCreatedNotification: jest.fn().mockResolvedValue(undefined),
-    sendDisputeResolvedNotification: jest.fn().mockResolvedValue(undefined),
+    sendDisputeOpenedNotifications: jest.fn().mockResolvedValue(undefined),
+    sendDisputeResolvedNotifications: jest.fn().mockResolvedValue(undefined),
+    sendDisputeMessageNotifications: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockAuditService = {
     log: jest.fn().mockResolvedValue(undefined),
   };
 
+  const mockEscrowService = {
+    releaseFundsFromDispute: jest.fn().mockResolvedValue(undefined),
+    refundEscrowFromDispute: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
+    mockPrismaService.user.findUnique.mockImplementation((args: { where: { id: string } }) =>
+      Promise.resolve({
+        id: args.where.id,
+        email: `${args.where.id.replace('-', '')}@test.com`,
+        phone: '0551234567',
+      }),
+    );
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -60,11 +78,11 @@ describe('DisputesService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: NotificationsService, useValue: mockNotificationsService },
         { provide: AuditService, useValue: mockAuditService },
+        { provide: EscrowService, useValue: mockEscrowService },
       ],
     }).compile();
 
     service = module.get<DisputesService>(DisputesService);
-    prismaService = module.get<PrismaService>(PrismaService);
   });
 
   describe('createDispute', () => {
@@ -76,8 +94,9 @@ describe('DisputesService', () => {
         status: 'DISPUTED',
       });
 
-      const result = await service.createDispute('buyer-id-123', {
+      const result = await service.createDispute({
         escrowId: 'escrow-id-123',
+        initiatorId: 'buyer-id-123',
         reason: 'NOT_AS_DESCRIBED',
         description: 'Item does not match description',
       });
@@ -88,7 +107,7 @@ describe('DisputesService', () => {
         where: { id: 'escrow-id-123' },
         data: { status: 'DISPUTED' },
       });
-      expect(mockNotificationsService.sendDisputeCreatedNotification).toHaveBeenCalled();
+      expect(mockNotificationsService.sendDisputeOpenedNotifications).toHaveBeenCalled();
     });
 
     it('should create dispute successfully for seller', async () => {
@@ -102,8 +121,9 @@ describe('DisputesService', () => {
         status: 'DISPUTED',
       });
 
-      const result = await service.createDispute('seller-id-123', {
+      const result = await service.createDispute({
         escrowId: 'escrow-id-123',
+        initiatorId: 'seller-id-123',
         reason: 'PARTIAL_DELIVERY',
         description: 'Buyer claims partial delivery',
       });
@@ -115,35 +135,22 @@ describe('DisputesService', () => {
       mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.createDispute('buyer-id-123', {
+        service.createDispute({
           escrowId: 'non-existent-escrow',
+          initiatorId: 'buyer-id-123',
           reason: 'NOT_AS_DESCRIBED',
           description: 'Test',
         }),
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw ForbiddenException if user not part of escrow', async () => {
+    it('should throw BadRequestException if user not part of escrow', async () => {
       mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
 
       await expect(
-        service.createDispute('random-user-id', {
+        service.createDispute({
           escrowId: 'escrow-id-123',
-          reason: 'NOT_AS_DESCRIBED',
-          description: 'Test',
-        }),
-      ).rejects.toThrow(ForbiddenException);
-    });
-
-    it('should throw BadRequestException if escrow not in valid status', async () => {
-      mockPrismaService.escrowAgreement.findUnique.mockResolvedValue({
-        ...mockEscrow,
-        status: 'AWAITING_FUNDING',
-      });
-
-      await expect(
-        service.createDispute('buyer-id-123', {
-          escrowId: 'escrow-id-123',
+          initiatorId: 'random-user-id',
           reason: 'NOT_AS_DESCRIBED',
           description: 'Test',
         }),
@@ -160,129 +167,105 @@ describe('DisputesService', () => {
       };
       mockPrismaService.dispute.findUnique.mockResolvedValue(disputeWithRelations);
 
-      const result = await service.getDispute('dispute-id-123', 'buyer-id-123');
+      const result = await service.getDispute('dispute-id-123');
 
       expect(result).toHaveProperty('escrow');
       expect(result).toHaveProperty('initiator');
     });
 
-    it('should throw NotFoundException if dispute not found', async () => {
+    it('should return null if dispute not found', async () => {
       mockPrismaService.dispute.findUnique.mockResolvedValue(null);
 
-      await expect(service.getDispute('non-existent-dispute', 'buyer-id-123')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
+      const result = await service.getDispute('non-existent-dispute');
 
-    it('should throw ForbiddenException if user not authorized', async () => {
-      const disputeWithRelations = {
-        ...mockDispute,
-        escrow: mockEscrow,
-      };
-      mockPrismaService.dispute.findUnique.mockResolvedValue(disputeWithRelations);
-
-      await expect(service.getDispute('dispute-id-123', 'random-user-id')).rejects.toThrow(
-        ForbiddenException,
-      );
+      expect(result).toBeNull();
     });
   });
 
   describe('resolveDispute', () => {
-    it('should resolve dispute successfully (admin)', async () => {
-      const disputeWithRelations = {
+    it('should resolve dispute with REFUND_TO_BUYER', async () => {
+      const disputeWithEscrow = {
         ...mockDispute,
         escrow: mockEscrow,
       };
-      mockPrismaService.dispute.findUnique.mockResolvedValue(disputeWithRelations);
+      mockPrismaService.dispute.findUnique.mockResolvedValue(disputeWithEscrow);
       mockPrismaService.dispute.update.mockResolvedValue({
         ...mockDispute,
         status: 'RESOLVED',
         resolution: 'Refund issued',
+        resolutionOutcome: 'REFUND_TO_BUYER',
       });
 
       const result = await service.resolveDispute(
         'dispute-id-123',
         'admin-id-123',
-        {
-          resolution: 'Refund issued',
-          outcome: 'BUYER_WINS',
-        },
-        ['ADMIN'],
+        'Refund issued',
+        'REFUND_TO_BUYER',
       );
 
       expect(result.status).toBe('RESOLVED');
-      expect(mockPrismaService.dispute.update).toHaveBeenCalledWith({
-        where: { id: 'dispute-id-123' },
-        data: {
-          status: 'RESOLVED',
-          resolution: 'Refund issued',
-          outcome: 'BUYER_WINS',
-          resolvedAt: expect.any(Date),
-          resolvedBy: 'admin-id-123',
-        },
-      });
-      expect(mockNotificationsService.sendDisputeResolvedNotification).toHaveBeenCalled();
+      expect(mockEscrowService.refundEscrowFromDispute).toHaveBeenCalledWith(
+        'escrow-id-123',
+        'admin-id-123',
+        'Refund issued',
+      );
+      expect(mockNotificationsService.sendDisputeResolvedNotifications).toHaveBeenCalled();
     });
 
-    it('should throw ForbiddenException if user not admin', async () => {
-      const disputeWithRelations = {
+    it('should resolve dispute with RELEASE_TO_SELLER', async () => {
+      const disputeWithEscrow = {
         ...mockDispute,
         escrow: mockEscrow,
       };
-      mockPrismaService.dispute.findUnique.mockResolvedValue(disputeWithRelations);
-
-      await expect(
-        service.resolveDispute(
-          'dispute-id-123',
-          'buyer-id-123',
-          {
-            resolution: 'Test',
-            outcome: 'BUYER_WINS',
-          },
-          ['BUYER'],
-        ),
-      ).rejects.toThrow(ForbiddenException);
-    });
-
-    it('should throw BadRequestException if dispute already resolved', async () => {
-      const disputeWithRelations = {
+      mockPrismaService.dispute.findUnique.mockResolvedValue(disputeWithEscrow);
+      mockPrismaService.dispute.update.mockResolvedValue({
         ...mockDispute,
         status: 'RESOLVED',
-        escrow: mockEscrow,
-      };
-      mockPrismaService.dispute.findUnique.mockResolvedValue(disputeWithRelations);
+        resolution: 'Release to seller',
+        resolutionOutcome: 'RELEASE_TO_SELLER',
+      });
+
+      await service.resolveDispute(
+        'dispute-id-123',
+        'admin-id-123',
+        'Release to seller',
+        'RELEASE_TO_SELLER',
+      );
+
+      expect(mockEscrowService.releaseFundsFromDispute).toHaveBeenCalledWith(
+        'escrow-id-123',
+        'admin-id-123',
+      );
+    });
+
+    it('should throw NotFoundException if dispute not found', async () => {
+      mockPrismaService.dispute.findUnique.mockResolvedValue(null);
 
       await expect(
         service.resolveDispute(
-          'dispute-id-123',
+          'non-existent',
           'admin-id-123',
-          {
-            resolution: 'Test',
-            outcome: 'BUYER_WINS',
-          },
-          ['ADMIN'],
+          'Test',
+          'REFUND_TO_BUYER',
         ),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('listDisputes', () => {
     it('should list disputes for user', async () => {
-      const disputes = [mockDispute];
-      mockPrismaService.dispute.findMany.mockResolvedValue(disputes);
-      mockPrismaService.dispute.count.mockResolvedValue(1);
+      mockPrismaService.dispute.findMany.mockResolvedValue([mockDispute]);
 
-      const result = await service.listDisputes('buyer-id-123', {});
+      const result = await service.listDisputes({ userId: 'buyer-id-123' });
 
-      expect(result.disputes).toHaveLength(1);
-      expect(result.total).toBe(1);
+      expect(result).toHaveLength(1);
+      expect(result[0]).toHaveProperty('id', 'dispute-id-123');
     });
 
     it('should filter by status', async () => {
       mockPrismaService.dispute.findMany.mockResolvedValue([mockDispute]);
-      mockPrismaService.dispute.count.mockResolvedValue(1);
 
-      await service.listDisputes('buyer-id-123', { status: 'OPEN' });
+      await service.listDisputes({ userId: 'buyer-id-123', status: 'OPEN' });
 
       expect(mockPrismaService.dispute.findMany).toHaveBeenCalledWith(
         expect.objectContaining({

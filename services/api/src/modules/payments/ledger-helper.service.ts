@@ -1,13 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+/** Transaction client from Prisma $transaction - compatible with PrismaClient delegates */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type TxClient = any;
+
 @Injectable()
 export class LedgerHelperService {
   constructor(private prisma: PrismaService) {}
 
+  private client(tx?: TxClient) {
+    return tx ?? this.prisma;
+  }
+
   async createFundingLedgerEntry(
     escrowId: string,
     escrow: { amountCents: number; feeCents: number; netAmountCents: number; currency: string },
+    tx?: TxClient,
   ) {
     const entries: any[] = [
       {
@@ -30,7 +39,7 @@ export class LedgerHelperService {
       });
     }
 
-    const journal = await this.prisma.ledgerJournal.create({
+    const journal = await this.client(tx).ledgerJournal.create({
       data: {
         escrowId,
         type: 'escrow_funding',
@@ -47,8 +56,9 @@ export class LedgerHelperService {
   async createReleaseLedgerEntry(
     escrowId: string,
     escrow: { netAmountCents: number; currency: string },
+    tx?: TxClient,
   ) {
-    const journal = await this.prisma.ledgerJournal.create({
+    const journal = await this.client(tx).ledgerJournal.create({
       data: {
         escrowId,
         type: 'escrow_release',
@@ -76,8 +86,9 @@ export class LedgerHelperService {
   async createRefundLedgerEntry(
     escrowId: string,
     escrow: { amountCents: number; feeCents: number; currency: string },
+    tx?: TxClient,
   ) {
-    const journal = await this.prisma.ledgerJournal.create({
+    const journal = await this.client(tx).ledgerJournal.create({
       data: {
         escrowId,
         type: 'escrow_refund',
@@ -105,8 +116,9 @@ export class LedgerHelperService {
   async createWalletTopUpEntry(
     walletId: string,
     data: { amountCents: number; feeCents: number; currency: string; fundingId: string },
+    tx?: TxClient,
   ) {
-    const journal = await this.prisma.ledgerJournal.create({
+    const journal = await this.client(tx).ledgerJournal.create({
       data: {
         type: 'wallet_topup',
         description: `Wallet top-up (funding ${data.fundingId})`,
@@ -154,8 +166,9 @@ export class LedgerHelperService {
   async createWithdrawalEntry(
     walletId: string,
     data: { amountCents: number; feeCents: number; currency: string; withdrawalId: string },
+    tx?: TxClient,
   ) {
-    const journal = await this.prisma.ledgerJournal.create({
+    const journal = await this.client(tx).ledgerJournal.create({
       data: {
         type: 'withdrawal',
         description: `Withdrawal (${data.withdrawalId})`,

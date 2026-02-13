@@ -21,7 +21,7 @@ import Toast from 'react-native-toast-message';
 const editProfileSchema = z.object({
   firstName: z.string().optional(),
   lastName: z.string().optional(),
-  phone: z.string().regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
+  phone: z.string().min(1, 'Phone is required').regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
 });
 
 type EditProfileFormData = z.infer<typeof editProfileSchema>;

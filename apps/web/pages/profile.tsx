@@ -5,6 +5,7 @@ import Layout from '@/components/Layout';
 import { isAuthenticated, getUser, setUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
+import { getErrorMessage } from '@/lib/error-messages';
 import { User, Mail, Phone, Calendar, Shield, Edit2, Save, X, Loader2, Key } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
@@ -84,7 +85,7 @@ export default function ProfilePage() {
       toast.success('Profile updated successfully');
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to update profile');
+      toast.error(getErrorMessage(error, 'Failed to update profile'));
     },
   });
 

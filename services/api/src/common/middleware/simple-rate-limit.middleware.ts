@@ -30,10 +30,29 @@ export class SimpleRateLimitMiddleware implements NestMiddleware {
       return next();
     }
 
-    const limit = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MINUTE || '60', 10);
-    const windowMs = 60000;
+    // Stricter limits for auth endpoints (brute-force protection)
+    let limit: number;
+    let windowMs: number;
+    let clientId: string;
 
-    const clientId = this.getClientId(req);
+    const pathNorm = path.replace(/\/$/, '');
+    if (pathNorm === '/api/auth/send-phone-otp') {
+      limit = parseInt(process.env.RATE_LIMIT_OTP_PER_IP || '3', 10);
+      windowMs = 15 * 60 * 1000; // 15 minutes
+      clientId = `otp_ip_${req.ip || req.socket.remoteAddress}`;
+    } else if (pathNorm === '/api/auth/login') {
+      limit = parseInt(process.env.RATE_LIMIT_LOGIN_PER_IP || '5', 10);
+      windowMs = 15 * 60 * 1000; // 15 minutes
+      clientId = `login_ip_${req.ip || req.socket.remoteAddress}`;
+    } else if (pathNorm === '/api/auth/register') {
+      limit = parseInt(process.env.RATE_LIMIT_REGISTER_PER_IP || '3', 10);
+      windowMs = 60 * 60 * 1000; // 1 hour
+      clientId = `register_ip_${req.ip || req.socket.remoteAddress}`;
+    } else {
+      limit = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MINUTE || '60', 10);
+      windowMs = 60000;
+      clientId = this.getClientId(req);
+    }
     const { count, resetTime } = await this.store.increment(clientId, windowMs);
 
     const remaining = limit - count;

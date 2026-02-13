@@ -5,17 +5,17 @@ import * as MinIO from 'minio';
 const prisma = new PrismaClient();
 
 const USERS = [
-  { email: 'admin@myxcrow.com', firstName: 'Admin', lastName: 'User', role: UserRole.ADMIN },
-  { email: 'buyer1@test.com', firstName: 'John', lastName: 'Buyer', role: UserRole.BUYER },
-  { email: 'seller1@test.com', firstName: 'Jane', lastName: 'Seller', role: UserRole.SELLER },
-  { email: 'buyer2@test.com', firstName: 'Mike', lastName: 'Customer', role: UserRole.BUYER },
-  { email: 'seller2@test.com', firstName: 'Sarah', lastName: 'Merchant', role: UserRole.SELLER },
-  { email: 'buyer3@test.com', firstName: 'David', lastName: 'Client', role: UserRole.BUYER },
-  { email: 'seller3@test.com', firstName: 'Emma', lastName: 'Vendor', role: UserRole.SELLER },
-  { email: 'buyer4@test.com', firstName: 'Chris', lastName: 'Purchaser', role: UserRole.BUYER },
-  { email: 'seller4@test.com', firstName: 'Lisa', lastName: 'Provider', role: UserRole.SELLER },
-  { email: 'buyer5@test.com', firstName: 'Tom', lastName: 'Acquirer', role: UserRole.BUYER },
-  { email: 'seller5@test.com', firstName: 'Anna', lastName: 'Supplier', role: UserRole.SELLER },
+  { email: 'admin@myxcrow.com', firstName: 'Admin', lastName: 'User', role: UserRole.ADMIN, phone: '0551000001' },
+  { email: 'buyer1@test.com', firstName: 'John', lastName: 'Buyer', role: UserRole.BUYER, phone: '0551000002' },
+  { email: 'seller1@test.com', firstName: 'Jane', lastName: 'Seller', role: UserRole.SELLER, phone: '0551000003' },
+  { email: 'buyer2@test.com', firstName: 'Mike', lastName: 'Customer', role: UserRole.BUYER, phone: '0551000004' },
+  { email: 'seller2@test.com', firstName: 'Sarah', lastName: 'Merchant', role: UserRole.SELLER, phone: '0551000005' },
+  { email: 'buyer3@test.com', firstName: 'David', lastName: 'Client', role: UserRole.BUYER, phone: '0551000006' },
+  { email: 'seller3@test.com', firstName: 'Emma', lastName: 'Vendor', role: UserRole.SELLER, phone: '0551000007' },
+  { email: 'buyer4@test.com', firstName: 'Chris', lastName: 'Purchaser', role: UserRole.BUYER, phone: '0551000008' },
+  { email: 'seller4@test.com', firstName: 'Lisa', lastName: 'Provider', role: UserRole.SELLER, phone: '0551000009' },
+  { email: 'buyer5@test.com', firstName: 'Tom', lastName: 'Acquirer', role: UserRole.BUYER, phone: '0551000010' },
+  { email: 'seller5@test.com', firstName: 'Anna', lastName: 'Supplier', role: UserRole.SELLER, phone: '0551000011' },
 ];
 
 function buildMinioClientFromEnv() {
@@ -86,12 +86,13 @@ async function main() {
   for (const userData of USERS) {
     const user = await prisma.user.upsert({
       where: { email: userData.email },
-      update: {},
+      update: { phone: userData.phone },
       create: {
         email: userData.email,
         passwordHash: PASSWORD_HASH,
         firstName: userData.firstName,
         lastName: userData.lastName,
+        phone: userData.phone,
         roles: [userData.role],
         kycStatus: KYCStatus.VERIFIED,
         isActive: true,

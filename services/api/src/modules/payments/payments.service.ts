@@ -42,18 +42,45 @@ export class PaymentsService {
     return this.walletTopupService.verifyTopUp(reference);
   }
 
+  /**
+   * Handle Paystack webhook. Idempotent: duplicate webhooks return success without side effects.
+   */
   async handleWebhook(event: string, data: any) {
     this.logger.log(`Received webhook event: ${event}`);
 
     if (event === 'charge.success') {
       const reference = data.reference;
-      const payment = await this.prisma.payment.findFirst({
+      if (!reference) {
+        this.logger.warn('Webhook charge.success missing reference');
+        return { received: true };
+      }
+
+      // Escrow funding: Payment with escrowId
+      const escrowPayment = await this.prisma.payment.findFirst({
         where: { providerId: reference, type: 'funding', escrowId: { not: null } },
       });
-      if (payment) {
+      if (escrowPayment) {
+        // Idempotent: skip if already completed
+        if (escrowPayment.status === 'COMPLETED') {
+          this.logger.log(`Webhook idempotent: escrow payment ${reference} already completed`);
+          return { received: true };
+        }
         await this.verifyEscrowFunding(reference);
-      } else {
+        return { received: true };
+      }
+
+      // Wallet top-up: WalletFunding with externalRef
+      const funding = await this.prisma.walletFunding.findFirst({
+        where: { externalRef: reference },
+      });
+      if (funding) {
+        if (funding.status === 'SUCCEEDED') {
+          this.logger.log(`Webhook idempotent: wallet funding ${reference} already succeeded`);
+          return { received: true };
+        }
         await this.verifyWalletTopup(reference);
+      } else {
+        this.logger.warn(`Webhook charge.success: no matching escrow payment or wallet funding for reference ${reference}`);
       }
     }
 
@@ -125,6 +152,9 @@ export class PaymentsService {
     };
   }
 
+  /**
+   * Verify escrow funding. Idempotent: uses atomic claim to prevent double-fund race.
+   */
   async verifyEscrowFunding(reference: string) {
     const payment = await this.prisma.payment.findFirst({
       where: { providerId: reference, type: 'funding' },
@@ -136,43 +166,73 @@ export class PaymentsService {
     }
 
     if (payment.status !== 'PENDING') {
+      this.logger.log(`Escrow payment ${reference} already processed (status: ${payment.status}), idempotent skip`);
       return payment;
     }
 
-    const paystackResponse = await this.paystackService.verifyPayment(reference);
+    // Atomic claim: only process if still PENDING (prevents double-fund when webhook + callback race)
+    const claimResult = await this.prisma.payment.updateMany({
+      where: { id: payment.id, status: 'PENDING' },
+      data: { status: 'PROCESSING' },
+    });
 
-    if (paystackResponse.data.status !== 'success') {
+    if (claimResult.count === 0) {
+      this.logger.warn(`Escrow payment ${reference} already claimed by another request`);
+      return this.prisma.payment.findFirstOrThrow({
+        where: { providerId: reference, type: 'funding' },
+        include: { escrow: true },
+      });
+    }
+
+    try {
+      const paystackResponse = await this.paystackService.verifyPayment(reference);
+
+      if (paystackResponse.data.status !== 'success') {
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: 'FAILED',
+            failureReason: paystackResponse.message,
+          },
+        });
+        throw new BadRequestException(
+          paystackResponse.message || 'Payment verification failed',
+        );
+      }
+
+      await this.escrowService.fundEscrowFromDirectPayment(
+        payment.escrowId!,
+        payment.userId,
+        reference,
+      );
+
       await this.prisma.payment.update({
         where: { id: payment.id },
         data: {
+          status: 'COMPLETED',
+          processedAt: new Date(),
+          metadata: {
+            ...(payment.metadata as any),
+            paystackData: paystackResponse.data,
+          },
+        } as any,
+      });
+
+      return this.prisma.payment.findUniqueOrThrow({
+        where: { id: payment.id },
+        include: { escrow: true },
+      });
+    } catch (err) {
+      // On failure, set FAILED so retry doesn't double-process
+      await this.prisma.payment.updateMany({
+        where: { id: payment.id, status: 'PROCESSING' },
+        data: {
           status: 'FAILED',
-          failureReason: paystackResponse.message,
+          failureReason: err instanceof Error ? err.message : 'Unknown error',
         },
       });
-      throw new BadRequestException(
-        paystackResponse.message || 'Payment verification failed',
-      );
+      throw err;
     }
-
-    await this.escrowService.fundEscrowFromDirectPayment(
-      payment.escrowId!,
-      payment.userId,
-      reference,
-    );
-
-    await this.prisma.payment.update({
-      where: { id: payment.id },
-      data: {
-        status: 'COMPLETED',
-        processedAt: new Date(),
-        metadata: {
-          ...(payment.metadata as any),
-          paystackData: paystackResponse.data,
-        },
-      } as any,
-    });
-
-    return payment;
   }
 
   async getPayment(id: string) {

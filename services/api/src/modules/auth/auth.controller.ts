@@ -21,6 +21,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
+import type { CurrentUser as ICurrentUser } from './interfaces/current-user.interface';
 import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
 import { SendPhoneOtpDto } from './dto/send-phone-otp.dto';
@@ -103,20 +104,20 @@ export class AuthController {
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
-  async getProfile(@CurrentUser() user: any) {
+  async getProfile(@CurrentUser() user: ICurrentUser) {
     return this.authService.getProfile(user.id);
   }
 
   @Put('profile')
   @UseGuards(JwtAuthGuard)
-  async updateProfile(@CurrentUser() user: any, @Body() data: { firstName?: string; lastName?: string; phone?: string }) {
+  async updateProfile(@CurrentUser() user: ICurrentUser, @Body() data: { firstName?: string; lastName?: string; phone?: string }) {
     return this.authService.updateProfile(user.id, data);
   }
 
   @Put('change-password')
   @UseGuards(JwtAuthGuard)
   async changePassword(
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
     @Body() data: { currentPassword: string; newPassword: string },
   ) {
     return this.authService.changePassword(user.id, data.currentPassword, data.newPassword);
@@ -130,7 +131,7 @@ export class AuthController {
   @Post('admin/impersonate')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async adminImpersonate(@CurrentUser() admin: any, @Body() body: { userId: string }) {
+  async adminImpersonate(@CurrentUser() admin: ICurrentUser, @Body() body: { userId: string }) {
     return this.authService.adminImpersonate(admin.id, body.userId);
   }
 }

@@ -4,6 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { EscrowParticipantGuard } from '../escrow/guards/escrow-participant.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUser as ICurrentUser } from '../auth/interfaces/current-user.interface';
 
 @Controller('evidence')
 @UseGuards(JwtAuthGuard, PhoneRequiredGuard)
@@ -36,7 +37,7 @@ export class EvidenceController {
       latitude?: number;
       longitude?: number;
     },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.evidenceService.verifyAndCreateEvidence({
       ...data,

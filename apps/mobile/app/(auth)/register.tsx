@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
 import { WEB_BASE_URL } from '../../src/lib/constants';
 import apiClient from '../../src/lib/api-client';
+import { getErrorMessage } from '../../src/lib/error-messages';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -27,7 +28,6 @@ const registerSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   phone: z.string().regex(/^0[0-9]{9}$/, 'Enter Ghana phone (e.g. 0551234567)'),
   code: z.string().length(6, 'Enter the 6-digit code').optional(),
-  role: z.enum(['BUYER', 'SELLER']).default('BUYER'),
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -45,9 +45,6 @@ export default function RegisterScreen() {
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
-    defaultValues: {
-      role: 'BUYER',
-    },
   });
 
   const phone = watch('phone');
@@ -63,7 +60,7 @@ export default function RegisterScreen() {
       await apiClient.post('/auth/send-phone-otp', { phone: p });
       setCodeSent(true);
     } catch (error: any) {
-      Alert.alert('Error', error.response?.data?.message || 'Failed to send code');
+      Alert.alert('Error', getErrorMessage(error, 'Failed to send code'));
     } finally {
       setLoading(false);
     }
@@ -79,7 +76,7 @@ export default function RegisterScreen() {
       await register({ ...data, code: data.code });
       router.replace('/(tabs)/dashboard');
     } catch (error: any) {
-      Alert.alert('Registration Failed', error.message || 'Please try again');
+      Alert.alert('Registration Failed', getErrorMessage(error, 'Please try again'));
     } finally {
       setLoading(false);
     }
@@ -212,36 +209,6 @@ export default function RegisterScreen() {
           )}
 
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>Account Type</Text>
-            <View style={styles.roleContainer}>
-              <Controller
-                control={control}
-                name="role"
-                render={({ field: { onChange, value } }) => (
-                  <>
-                    <TouchableOpacity
-                      style={[styles.roleButton, value === 'BUYER' && styles.roleButtonActive]}
-                      onPress={() => onChange('BUYER')}
-                    >
-                      <Text style={[styles.roleButtonText, value === 'BUYER' && styles.roleButtonTextActive]}>
-                        👤 Buyer
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[styles.roleButton, value === 'SELLER' && styles.roleButtonActive]}
-                      onPress={() => onChange('SELLER')}
-                    >
-                      <Text style={[styles.roleButtonText, value === 'SELLER' && styles.roleButtonTextActive]}>
-                        🏪 Seller
-                      </Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-              />
-            </View>
-          </View>
-
-          <View style={styles.inputContainer}>
             <Text style={styles.label}>Password</Text>
             <Controller
               control={control}
@@ -347,31 +314,6 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     fontSize: 12,
     marginTop: 4,
-  },
-  roleContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  roleButton: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#ddd',
-  },
-  roleButtonActive: {
-    borderColor: '#3b82f6',
-    backgroundColor: '#eff6ff',
-  },
-  roleButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-  },
-  roleButtonTextActive: {
-    color: '#3b82f6',
   },
   button: {
     backgroundColor: '#3b82f6',

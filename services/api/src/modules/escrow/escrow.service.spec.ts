@@ -204,14 +204,26 @@ describe('EscrowService', () => {
       expect(mockPrisma.escrowAgreement.update).not.toHaveBeenCalled();
     });
 
-    it('throws when escrow is not in AWAITING_FUNDING', async () => {
+    it('returns escrow idempotently when already FUNDED', async () => {
       (mockPrisma.escrowAgreement.findUnique as jest.Mock).mockResolvedValue({
         ...fundedEscrow,
         status: 'FUNDED',
       });
 
+      const result = await service.fundEscrow(escrowId, mockBuyer.id);
+
+      expect(result.status).toBe('FUNDED');
+      expect(mockPrisma.escrowAgreement.update).not.toHaveBeenCalled();
+    });
+
+    it('throws when escrow is in DISPUTED status', async () => {
+      (mockPrisma.escrowAgreement.findUnique as jest.Mock).mockResolvedValue({
+        ...fundedEscrow,
+        status: 'DISPUTED',
+      });
+
       await expect(service.fundEscrow(escrowId, mockBuyer.id)).rejects.toThrow(
-        /Escrow is in FUNDED status, cannot fund/,
+        /Escrow is in DISPUTED status, cannot fund/,
       );
       expect(mockPrisma.escrowAgreement.update).not.toHaveBeenCalled();
     });

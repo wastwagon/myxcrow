@@ -4,6 +4,7 @@ import {
   Post,
   Param,
   Body,
+  Query,
   Headers,
   RawBodyRequest,
   Req,
@@ -17,6 +18,7 @@ import { PaystackService } from './paystack.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUser as ICurrentUser } from '../auth/interfaces/current-user.interface';
 
 @Controller('payments')
 export class PaymentsController {
@@ -29,7 +31,7 @@ export class PaymentsController {
   @UseGuards(JwtAuthGuard, PhoneRequiredGuard)
   async initializeWalletTopup(
     @Body() data: { amountCents: number; email: string; holdHours?: number; callbackUrl?: string },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.paymentsService.initializeWalletTopup({
       userId: user.id,
@@ -50,7 +52,7 @@ export class PaymentsController {
   async initializeEscrowPayment(
     @Param('escrowId') escrowId: string,
     @Body() body: { email?: string },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.paymentsService.initializeEscrowPayment(
       escrowId,
@@ -89,21 +91,29 @@ export class PaymentsController {
     return this.paystackService.getBanks();
   }
 
-  @Get(':id')
-  async getOne(@Param('id') id: string) {
-    return this.paymentsService.getPayment(id);
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async list(
+    @CurrentUser() user: ICurrentUser,
+    @Query('escrowId') escrowId?: string,
+    @Query('type') type?: string,
+    @Query('status') status?: string,
+  ) {
+    return this.paymentsService.listPayments(user.id, {
+      escrowId,
+      type,
+      status: status as any,
+    });
   }
 
-  @Get()
-  async list(@Body() filters: { userId?: string; escrowId?: string; type?: string; status?: string }) {
-    if (!filters.userId) {
-      throw new Error('userId is required');
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getOne(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
+    const payment = await this.paymentsService.getPayment(id);
+    if (payment && payment.userId !== user.id) {
+      throw new UnauthorizedException('Payment not found');
     }
-    return this.paymentsService.listPayments(filters.userId, {
-      escrowId: filters.escrowId,
-      type: filters.type,
-      status: filters.status as any,
-    });
+    return payment;
   }
 }
 

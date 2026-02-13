@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/contexts/AuthContext';
+import { getErrorMessage } from '../../src/lib/error-messages';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -81,7 +82,7 @@ export default function LoginScreen() {
       
       router.replace('/(tabs)/dashboard');
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Please check your credentials and try again.');
+      Alert.alert('Login Failed', getErrorMessage(error, 'Please check your credentials and try again.'));
     } finally {
       setLoading(false);
     }

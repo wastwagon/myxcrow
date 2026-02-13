@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
+const REFRESH_TIMEOUT_MS = 10000; // 10s - avoid indefinite hang on refresh
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -12,9 +13,12 @@ export const apiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
-// Request interceptor to add auth token
+// Request interceptor: auth token + allow FormData (multipart) to set its own Content-Type
 apiClient.interceptors.request.use(
   async (config) => {
+    if (config.data && typeof config.data.append === 'function') {
+      delete config.headers['Content-Type']; // so axios sets multipart/form-data with boundary
+    }
     try {
       const token = await SecureStore.getItemAsync('accessToken');
       if (token) {
@@ -98,14 +102,12 @@ apiClient.interceptors.response.use(
           return Promise.reject(error);
         }
 
-        // Try to refresh the token
         const response = await axios.post(
           `${API_BASE_URL}/auth/refresh`,
           { refreshToken },
           {
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
+            timeout: REFRESH_TIMEOUT_MS,
           },
         );
 
@@ -126,16 +128,27 @@ apiClient.interceptors.response.use(
 
         // Retry the original request
         return apiClient(originalRequest);
-      } catch (refreshError) {
-        // Refresh failed, clear auth
+      } catch (refreshError: any) {
         processQueue(refreshError, null);
         isRefreshing = false;
         await clearAuth();
+        if (refreshError?.code === 'ECONNABORTED' || refreshError?.message?.includes('timeout')) {
+          return Promise.reject(new Error('Session expired. Please sign in again.'));
+        }
         return Promise.reject(refreshError);
       }
     }
 
-    // 403 Phone Required: error message will prompt user to add phone in profile
+    // Handle 403 Phone Required - navigate to profile to add phone (parity with web)
+    if (error.response?.status === 403) {
+      const msg = (error.response?.data as any)?.message || '';
+      if (msg.toLowerCase().includes('phone number required') || msg.toLowerCase().includes('add your ghana phone')) {
+        import('expo-router').then(({ router }) => {
+          router.replace('/(tabs)/profile?phone_required=1');
+        }).catch(() => {});
+      }
+    }
+
     return Promise.reject(error);
   }
 );

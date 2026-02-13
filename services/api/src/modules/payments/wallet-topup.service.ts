@@ -83,9 +83,11 @@ export class WalletTopupService {
     };
   }
 
+  /**
+   * Verify wallet top-up. Idempotent: safe to call multiple times (webhook + callback).
+   * Uses atomic update to prevent double-credit race.
+   */
   async verifyTopUp(reference: string) {
-    const paystackResponse = await this.paystackService.verifyPayment(reference);
-
     const funding = await this.prisma.walletFunding.findFirst({
       where: { externalRef: reference },
       include: { wallet: true },
@@ -95,19 +97,21 @@ export class WalletTopupService {
       throw new NotFoundException('Wallet funding record not found');
     }
 
+    // Idempotent: already processed
     if (funding.status !== WalletFundingStatus.PENDING) {
       this.logger.warn(`Wallet funding ${funding.id} already processed with status ${funding.status}`);
       return funding;
     }
 
+    const paystackResponse = await this.paystackService.verifyPayment(reference);
     const isSuccess = paystackResponse.data.status === 'success';
     const holdHours = (funding.metadata as any)?.holdHours || 0;
     const holdUntil = holdHours > 0 && isSuccess ? new Date(Date.now() + holdHours * 60 * 60 * 1000) : null;
-
     const newStatus = isSuccess && holdUntil ? WalletFundingStatus.PENDING : (isSuccess ? WalletFundingStatus.SUCCEEDED : WalletFundingStatus.FAILED);
 
-    const updatedFunding = await this.prisma.walletFunding.update({
-      where: { id: funding.id },
+    // Atomic claim: only update if still PENDING (prevents double-credit when webhook + callback race)
+    const updateResult = await this.prisma.walletFunding.updateMany({
+      where: { id: funding.id, status: WalletFundingStatus.PENDING },
       data: {
         status: newStatus,
         holdUntil: isSuccess ? holdUntil : null,
@@ -116,6 +120,19 @@ export class WalletTopupService {
           paystackData: paystackResponse.data,
         } as any,
       },
+    });
+
+    if (updateResult.count === 0) {
+      this.logger.warn(`Wallet funding ${funding.id} already claimed by another request (idempotent)`);
+      return this.prisma.walletFunding.findUniqueOrThrow({
+        where: { id: funding.id },
+        include: { wallet: true },
+      });
+    }
+
+    const updatedFunding = await this.prisma.walletFunding.findUniqueOrThrow({
+      where: { id: funding.id },
+      include: { wallet: true },
     });
 
     if (isSuccess && !holdUntil) {

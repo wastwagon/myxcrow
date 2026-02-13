@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '@/lib/api-client';
+import { getErrorMessage } from '@/lib/error-messages';
 import { setAuthTokens, setUser } from '@/lib/auth';
 import { Loader2, AlertCircle } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
@@ -47,7 +48,7 @@ export default function Login() {
 
       router.push('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.');
+      setError(getErrorMessage(err, 'Login failed. Please try again.'));
     } finally {
       setLoading(false);
     }

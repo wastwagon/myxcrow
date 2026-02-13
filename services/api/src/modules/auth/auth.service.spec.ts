@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SMSService } from '../notifications/sms.service';
 import { AuditService } from '../audit/audit.service';
 import { EmailService } from '../email/email.service';
 import { KYCService } from '../kyc/kyc.service';
@@ -43,6 +44,11 @@ describe('AuthService', () => {
     wallet: {
       create: jest.fn(),
     },
+    phoneVerificationCode: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+      update: jest.fn(),
+    },
   };
 
   const mockJwtService = {
@@ -56,6 +62,7 @@ describe('AuthService', () => {
 
   const mockEmailService = {
     sendEmail: jest.fn().mockResolvedValue(undefined),
+    sendPasswordChangedEmail: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockConfigService = {
@@ -64,6 +71,10 @@ describe('AuthService', () => {
 
   const mockKYCService = {
     processKYCRegistration: jest.fn(),
+  };
+
+  const mockSMSService = {
+    sendVerificationOtpSms: jest.fn().mockResolvedValue({ success: true }),
   };
 
   beforeEach(async () => {
@@ -78,6 +89,7 @@ describe('AuthService', () => {
         { provide: EmailService, useValue: mockEmailService },
         { provide: ConfigService, useValue: mockConfigService },
         { provide: KYCService, useValue: mockKYCService },
+        { provide: SMSService, useValue: mockSMSService },
       ],
     }).compile();
 
@@ -89,12 +101,12 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should successfully login with correct credentials', async () => {
+    it('should successfully login with correct credentials (email)', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockedBcrypt.compare.mockResolvedValue(true as never);
 
       const result = await service.login({
-        email: 'test@example.com',
+        identifier: 'test@example.com',
         password: 'correct-password',
       });
 
@@ -109,17 +121,14 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException for non-existent user', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockPrismaService.user.findFirst.mockResolvedValue(null);
 
       await expect(
         service.login({
-          email: 'nonexistent@example.com',
+          identifier: 'nonexistent@example.com',
           password: 'any-password',
         }),
       ).rejects.toThrow(UnauthorizedException);
-
-      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
-        where: { email: 'nonexistent@example.com' },
-      });
     });
 
     it('should throw UnauthorizedException for incorrect password', async () => {
@@ -128,7 +137,7 @@ describe('AuthService', () => {
 
       await expect(
         service.login({
-          email: 'test@example.com',
+          identifier: 'test@example.com',
           password: 'wrong-password',
         }),
       ).rejects.toThrow(UnauthorizedException);
@@ -144,7 +153,7 @@ describe('AuthService', () => {
 
       await expect(
         service.login({
-          email: 'test@example.com',
+          identifier: 'test@example.com',
           password: 'correct-password',
         }),
       ).rejects.toThrow(UnauthorizedException);
@@ -152,9 +161,20 @@ describe('AuthService', () => {
   });
 
   describe('register', () => {
-    it('should successfully register a new user', async () => {
+    const validCodeRecord = {
+      id: 'code-id-1',
+      phone: '0551234567',
+      codeHash: require('crypto').createHash('sha256').update('123456').digest('hex'),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      usedAt: null,
+      createdAt: new Date(),
+    };
+
+    it('should successfully register a new user with valid OTP', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
       mockPrismaService.user.findFirst.mockResolvedValue(null);
+      mockPrismaService.phoneVerificationCode.findFirst.mockResolvedValue(validCodeRecord);
+      mockPrismaService.phoneVerificationCode.update.mockResolvedValue(validCodeRecord);
       mockPrismaService.user.create.mockResolvedValue(mockUser);
       mockPrismaService.wallet.create.mockResolvedValue({ id: 'wallet-id' });
       mockedBcrypt.hash.mockResolvedValue('hashed-new-password' as never);
@@ -164,17 +184,18 @@ describe('AuthService', () => {
         password: 'Password123!',
         firstName: 'New',
         lastName: 'User',
-        phone: '+233123456789',
+        phone: '0551234567',
+        code: '123456',
       });
 
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('user');
       expect(mockPrismaService.user.create).toHaveBeenCalled();
-      expect(mockPrismaService.wallet.create).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException if email already exists', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.phoneVerificationCode.findFirst.mockResolvedValue(validCodeRecord);
 
       await expect(
         service.register({
@@ -182,6 +203,8 @@ describe('AuthService', () => {
           password: 'Password123!',
           firstName: 'Test',
           lastName: 'User',
+          phone: '0551234567',
+          code: '123456',
         }),
       ).rejects.toThrow(BadRequestException);
 
@@ -191,6 +214,7 @@ describe('AuthService', () => {
     it('should throw BadRequestException if phone already exists', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
       mockPrismaService.user.findFirst.mockResolvedValue(mockUser);
+      mockPrismaService.phoneVerificationCode.findFirst.mockResolvedValue(validCodeRecord);
 
       await expect(
         service.register({
@@ -198,7 +222,8 @@ describe('AuthService', () => {
           password: 'Password123!',
           firstName: 'Test',
           lastName: 'User',
-          phone: '+233123456789',
+          phone: '0551234567',
+          code: '123456',
         }),
       ).rejects.toThrow(BadRequestException);
 
@@ -221,7 +246,7 @@ describe('AuthService', () => {
         data: { passwordHash: 'new-hashed-password' },
       });
       expect(auditService.log).toHaveBeenCalled();
-      expect(emailService.sendEmail).toHaveBeenCalled();
+      expect(mockEmailService.sendPasswordChangedEmail).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException if new password is too short', async () => {

@@ -3,11 +3,14 @@ import { setAuthTokens } from './auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
 
+const REFRESH_TIMEOUT_MS = 10000; // 10s - avoid indefinite hang on refresh
+
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000,
 });
 
 // Request interceptor: auth token + allow FormData (multipart) to set its own Content-Type
@@ -105,14 +108,12 @@ apiClient.interceptors.response.use(
       }
 
       try {
-        // Try to refresh the token
         const response = await axios.post(
           `${API_BASE_URL}/auth/refresh`,
           { refreshToken },
           {
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
+            timeout: REFRESH_TIMEOUT_MS,
           },
         );
 
@@ -132,19 +133,19 @@ apiClient.interceptors.response.use(
 
         // Retry the original request
         return apiClient(originalRequest);
-      } catch (refreshError) {
-        // Refresh failed, clear auth and redirect
+      } catch (refreshError: any) {
         processQueue(refreshError, null);
         isRefreshing = false;
-
         if (typeof window !== 'undefined') {
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
-          // Only redirect if not already on login page
           if (window.location.pathname !== '/login') {
             window.location.href = '/login';
           }
+        }
+        if (refreshError?.code === 'ECONNABORTED' || refreshError?.message?.includes('timeout')) {
+          return Promise.reject(new Error('Session expired. Please sign in again.'));
         }
         return Promise.reject(refreshError);
       }

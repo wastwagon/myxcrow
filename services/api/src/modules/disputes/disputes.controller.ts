@@ -15,6 +15,7 @@ import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import type { CurrentUser as ICurrentUser } from '../auth/interfaces/current-user.interface';
 import { UserRole, DisputeStatus, DisputeReason, DisputeResolutionOutcome } from '@prisma/client';
 
 @Controller('disputes')
@@ -25,7 +26,7 @@ export class DisputesController {
   @Post()
   async create(
     @Body() data: { escrowId: string; reason: DisputeReason; description?: string },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.disputesService.createDispute({
       ...data,
@@ -37,7 +38,7 @@ export class DisputesController {
   async list(
     @Query('escrowId') escrowId?: string,
     @Query('status') status?: DisputeStatus,
-    @CurrentUser() user?: any,
+    @CurrentUser() user?: ICurrentUser,
   ) {
     const roles: string[] = user?.roles || [];
     const isStaff = roles.includes(UserRole.ADMIN) || roles.includes(UserRole.SUPPORT);
@@ -69,7 +70,7 @@ export class DisputesController {
   async addMessage(
     @Param('id') id: string,
     @Body() data: { content: string },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.disputesService.addMessage(id, user.id, data.content);
   }
@@ -80,7 +81,7 @@ export class DisputesController {
   async resolve(
     @Param('id') id: string,
     @Body() data: { resolution: string; outcome: DisputeResolutionOutcome },
-    @CurrentUser() user: any,
+    @CurrentUser() user: ICurrentUser,
   ) {
     if (!data.outcome || !['RELEASE_TO_SELLER', 'REFUND_TO_BUYER'].includes(data.outcome)) {
       throw new BadRequestException(
@@ -98,7 +99,7 @@ export class DisputesController {
   @Put(':id/close')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPPORT)
-  async close(@Param('id') id: string, @CurrentUser() user: any) {
+  async close(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     return this.disputesService.closeDispute(id, user.id);
   }
 }
