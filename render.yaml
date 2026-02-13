@@ -25,7 +25,7 @@ services:
     plan: starter
     region: oregon
     buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm build && ls -lah dist/
-    startCommand: cd services/api && node dist/main.js
+    startCommand: cd services/api && node dist/src/main.js
     preDeployCommand: cd services/api && npx prisma migrate deploy
     healthCheckPath: /api/health/readiness
     envVars:
