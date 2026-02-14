@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -27,6 +27,21 @@ export default function Register() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (countdown <= 0 && countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+  }, [countdown]);
 
   const {
     register,
@@ -55,6 +70,9 @@ export default function Register() {
       setDevCode(null);
       const res = await apiClient.post('/auth/send-phone-otp', { phone: p });
       setCodeSent(true);
+      setCountdown(60);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+      countdownRef.current = setInterval(() => setCountdown((c) => Math.max(0, c - 1)), 1000);
       if (res.data?.devCode) {
         setDevCode(res.data.devCode);
         setValue('code', res.data.devCode);
@@ -239,11 +257,11 @@ export default function Register() {
                     <button
                       type="button"
                       onClick={onSendCode}
-                      disabled={loading || !phone || !/^0[0-9]{9}$/.test(phone)}
+                      disabled={loading || countdown > 0 || !phone || !/^0[0-9]{9}$/.test(phone)}
                       className="mt-3 w-full py-2 px-4 border-2 border-brand-maroon text-brand-maroon rounded-xl hover:bg-brand-maroon/5 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       <MessageCircle className="w-4 h-4" />
-                      {loading ? 'Sending...' : 'Send verification code'}
+                      {loading ? 'Sending...' : countdown > 0 ? `Resend in ${countdown}s` : 'Send verification code'}
                     </button>
                   )}
                 </div>
@@ -270,10 +288,10 @@ export default function Register() {
                     <button
                       type="button"
                       onClick={onSendCode}
-                      disabled={loading}
-                      className="mt-2 text-xs text-brand-maroon hover:underline font-medium disabled:opacity-50"
+                      disabled={loading || countdown > 0}
+                      className="mt-2 text-xs text-brand-maroon hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Resend code
+                      {countdown > 0 ? `Resend code in ${countdown}s` : 'Resend code'}
                     </button>
                   </div>
                 )}

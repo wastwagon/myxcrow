@@ -57,7 +57,6 @@ export class AuthService {
 
     const result = await this.smsService.sendVerificationOtpSms(normalizedPhone, code || '000000');
     if (!result.success) {
-      // Dev bypass: when SMS fails but OTP_DEV_BYPASS=true, return code so user can test (e.g. SMS not configured)
       if (devBypass) {
         return { success: true, message: 'Verification code (dev bypass - SMS not sent)', devCode: code };
       }

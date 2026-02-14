@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,21 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [devCode, setDevCode] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(0);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (countdown <= 0 && countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+  }, [countdown]);
 
   const {
     control,
@@ -62,6 +77,9 @@ export default function RegisterScreen() {
       setDevCode(null);
       const res = await apiClient.post('/auth/send-phone-otp', { phone: p });
       setCodeSent(true);
+      setCountdown(60);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+      countdownRef.current = setInterval(() => setCountdown((c) => Math.max(0, c - 1)), 1000);
       if (res.data?.devCode) {
         setDevCode(res.data.devCode);
         setValue('code', res.data.devCode);
@@ -186,12 +204,12 @@ export default function RegisterScreen() {
               </View>
             ) : (
               <TouchableOpacity
-                style={[styles.sendCodeButton, (!phone || !/^0[0-9]{9}$/.test(phone) || loading) && styles.buttonDisabled]}
+                style={[styles.sendCodeButton, (!phone || !/^0[0-9]{9}$/.test(phone) || loading || countdown > 0) && styles.buttonDisabled]}
                 onPress={onSendCode}
-                disabled={!phone || !/^0[0-9]{9}$/.test(phone) || loading}
+                disabled={!phone || !/^0[0-9]{9}$/.test(phone) || loading || countdown > 0}
               >
                 <Text style={styles.sendCodeButtonText}>
-                  {loading ? 'Sending...' : 'Send verification code'}
+                  {loading ? 'Sending...' : countdown > 0 ? `Resend in ${countdown}s` : 'Send verification code'}
                 </Text>
               </TouchableOpacity>
             )}
@@ -216,8 +234,10 @@ export default function RegisterScreen() {
                 )}
               />
               {errors.code && <Text style={styles.errorText}>{errors.code.message}</Text>}
-              <TouchableOpacity onPress={onSendCode} disabled={loading} style={styles.resendLink}>
-                <Text style={styles.resendLinkText}>Resend code</Text>
+              <TouchableOpacity onPress={onSendCode} disabled={loading || countdown > 0} style={styles.resendLink}>
+                <Text style={[styles.resendLinkText, (loading || countdown > 0) && styles.resendLinkDisabled]}>
+                  {countdown > 0 ? `Resend code in ${countdown}s` : 'Resend code'}
+                </Text>
               </TouchableOpacity>
             </View>
           )}
@@ -416,5 +436,8 @@ const styles = StyleSheet.create({
     color: '#6b2d2d',
     fontSize: 14,
     fontWeight: '600',
+  },
+  resendLinkDisabled: {
+    opacity: 0.6,
   },
 });

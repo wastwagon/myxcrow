@@ -295,8 +295,8 @@ export class SMSService {
 
   /**
    * Send phone verification OTP via SMS (Ghana format only).
-   * When provider is Arkesel, uses Arkesel OTP API (generate + verify) for better reliability.
-   * Otherwise falls back to custom SMS with our generated code.
+   * When provider is Arkesel, uses Arkesel OTP API (generate + verify) for user verification.
+   * Otherwise uses custom SMS with our generated code.
    */
   async sendVerificationOtpSms(to: string, code: string): Promise<SMSResponse> {
     if (this.provider === SMSProvider.ARKESEL && this.enabled) {
@@ -309,32 +309,33 @@ export class SMSService {
 
   /**
    * Arkesel OTP API: Generate and send OTP via SMS.
+   * Endpoint: POST /api/otp/generate
    * Uses %otp_code% placeholder; Arkesel generates the code and sends it.
-   * Docs: https://developers.arkesel.com/ (OTP section)
    */
   async sendArkeselOtp(to: string): Promise<SMSResponse> {
     const apiKey = this.configService.get<string>('ARKESEL_API_KEY') || this.configService.get<string>('SMS_API_KEY');
-    const sender = this.configService.get<string>('SMS_SENDER_ID') || 'MYXCROW';
+    const senderId = (this.configService.get<string>('SMS_SENDER_ID') || 'MYXCROW').slice(0, 11);
 
     if (!apiKey) {
       return { success: false, error: 'Arkesel API key not configured (ARKESEL_API_KEY or SMS_API_KEY)' };
     }
 
-    const recipient = to.replace(/^\+/, '').replace(/^0/, '233');
-    if (!recipient.startsWith('233')) {
+    const number = to.replace(/^\+/, '').replace(/^0/, '233');
+    if (!number.startsWith('233')) {
       return { success: false, error: 'Phone must be in Ghana format (0XXXXXXXXX or 233XXXXXXXXX)' };
     }
 
     try {
       const response = await axios.post(
-        'https://sms.arkesel.com/api/v2/otp/generate',
+        'https://sms.arkesel.com/api/otp/generate',
         {
-          sender: sender.slice(0, 11),
+          sender_id: senderId,
           message: 'Your MYXCROW verification code is: %otp_code%. Valid for 5 minutes. Do not share with anyone.',
-          recipients: [recipient],
+          number,
           expiry: 5,
-          otp_type: 'numeric',
-          otp_length: 6,
+          type: 'numeric',
+          length: 6,
+          medium: 'sms',
         },
         {
           headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
@@ -342,8 +343,8 @@ export class SMSService {
       );
 
       const resCode = response.data?.code ?? response.data?.status;
-      if (resCode === 1000 || resCode === '1000' || response.data?.status === 'success') {
-        return { success: true, messageId: response.data?.otp_id ?? response.data?.id };
+      if (resCode === 1000 || resCode === '1000') {
+        return { success: true, messageId: response.data?.ussd_code };
       }
 
       const errMsg = this.mapArkeselOtpError(resCode, response.data?.message);
@@ -373,8 +374,8 @@ export class SMSService {
 
     try {
       const response = await axios.post(
-        'https://sms.arkesel.com/api/v2/otp/verify',
-        { recipient, code: code.trim() },
+        'https://sms.arkesel.com/api/otp/verify',
+        { number: recipient, code: code.trim() },
         {
           headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
         },
@@ -401,6 +402,8 @@ export class SMSService {
     const map: Record<string, string> = {
       '1000': 'OTP sent successfully',
       '1100': 'Verification successful',
+      '1101': 'Validation error - check required fields',
+      '1104': 'Invalid or expired verification code',
       '1001': 'Validation error - check required fields',
       '1005': 'Invalid phone number',
       '1007': 'Insufficient balance - top up your Arkesel Main Balance',
