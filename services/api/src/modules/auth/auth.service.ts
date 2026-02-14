@@ -45,16 +45,22 @@ export class AuthService {
       throw new BadRequestException('Please wait 60 seconds before requesting another code');
     }
 
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    const devBypass = this.configService.get<string>('OTP_DEV_BYPASS') === 'true';
+    const useArkeselOtp = this.smsService.usesArkeselOtp() && !devBypass;
+    const code = useArkeselOtp ? '' : String(Math.floor(100000 + Math.random() * 900000));
+    const codeHash = useArkeselOtp ? 'arkesel' : crypto.createHash('sha256').update(code).digest('hex');
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     await this.prisma.phoneVerificationCode.create({
       data: { phone: normalizedPhone, codeHash, expiresAt },
     });
 
-    const result = await this.smsService.sendVerificationOtpSms(normalizedPhone, code);
+    const result = await this.smsService.sendVerificationOtpSms(normalizedPhone, code || '000000');
     if (!result.success) {
+      // Dev bypass: when SMS fails but OTP_DEV_BYPASS=true, return code so user can test (e.g. SMS not configured)
+      if (devBypass) {
+        return { success: true, message: 'Verification code (dev bypass - SMS not sent)', devCode: code };
+      }
       throw new BadRequestException(
         result.error || 'Failed to send verification code. Please check your phone number and try again.',
       );
@@ -76,15 +82,26 @@ export class AuthService {
       throw new BadRequestException('Invalid Ghana phone number (e.g. 0551234567)');
     }
 
-    // Verify OTP code
-    const codeHash = crypto.createHash('sha256').update(data.code.trim()).digest('hex');
+    // Verify OTP code (Arkesel OTP API or our DB)
     const codeRecord = await this.prisma.phoneVerificationCode.findFirst({
-      where: { phone: normalizedPhone, codeHash },
+      where: { phone: normalizedPhone },
       orderBy: { createdAt: 'desc' },
     });
 
     if (!codeRecord || codeRecord.usedAt || codeRecord.expiresAt < new Date()) {
       throw new BadRequestException('Invalid or expired verification code. Please request a new code.');
+    }
+
+    if (codeRecord.codeHash === 'arkesel') {
+      const verifyResult = await this.smsService.verifyArkeselOtp(normalizedPhone, data.code);
+      if (!verifyResult.success) {
+        throw new BadRequestException(verifyResult.error || 'Invalid or expired verification code. Please request a new code.');
+      }
+    } else {
+      const codeHash = crypto.createHash('sha256').update(data.code.trim()).digest('hex');
+      if (codeRecord.codeHash !== codeHash) {
+        throw new BadRequestException('Invalid or expired verification code. Please request a new code.');
+      }
     }
 
     const existingUser = await this.prisma.user.findUnique({

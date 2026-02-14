@@ -288,13 +288,130 @@ export class SMSService {
     return '+' + normalized;
   }
 
+  /** Whether we use Arkesel OTP API (generate/verify) vs custom SMS with our own code */
+  usesArkeselOtp(): boolean {
+    return this.enabled && this.provider === SMSProvider.ARKESEL;
+  }
+
   /**
-   * Send phone verification OTP via SMS (Ghana format only)
+   * Send phone verification OTP via SMS (Ghana format only).
+   * When provider is Arkesel, uses Arkesel OTP API (generate + verify) for better reliability.
+   * Otherwise falls back to custom SMS with our generated code.
    */
   async sendVerificationOtpSms(to: string, code: string): Promise<SMSResponse> {
+    if (this.provider === SMSProvider.ARKESEL && this.enabled) {
+      return this.sendArkeselOtp(to);
+    }
     const message = `Your MYXCROW verification code is: ${code}. Valid for 5 minutes. Do not share with anyone.`;
     const result = await this.sendSMS(to, message, false);
     return Array.isArray(result) ? result[0] : result;
+  }
+
+  /**
+   * Arkesel OTP API: Generate and send OTP via SMS.
+   * Uses %otp_code% placeholder; Arkesel generates the code and sends it.
+   * Docs: https://developers.arkesel.com/ (OTP section)
+   */
+  async sendArkeselOtp(to: string): Promise<SMSResponse> {
+    const apiKey = this.configService.get<string>('ARKESEL_API_KEY') || this.configService.get<string>('SMS_API_KEY');
+    const sender = this.configService.get<string>('SMS_SENDER_ID') || 'MYXCROW';
+
+    if (!apiKey) {
+      return { success: false, error: 'Arkesel API key not configured (ARKESEL_API_KEY or SMS_API_KEY)' };
+    }
+
+    const recipient = to.replace(/^\+/, '').replace(/^0/, '233');
+    if (!recipient.startsWith('233')) {
+      return { success: false, error: 'Phone must be in Ghana format (0XXXXXXXXX or 233XXXXXXXXX)' };
+    }
+
+    try {
+      const response = await axios.post(
+        'https://sms.arkesel.com/api/v2/otp/generate',
+        {
+          sender: sender.slice(0, 11),
+          message: 'Your MYXCROW verification code is: %otp_code%. Valid for 5 minutes. Do not share with anyone.',
+          recipients: [recipient],
+          expiry: 5,
+          otp_type: 'numeric',
+          otp_length: 6,
+        },
+        {
+          headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
+        },
+      );
+
+      const resCode = response.data?.code ?? response.data?.status;
+      if (resCode === 1000 || resCode === '1000' || response.data?.status === 'success') {
+        return { success: true, messageId: response.data?.otp_id ?? response.data?.id };
+      }
+
+      const errMsg = this.mapArkeselOtpError(resCode, response.data?.message);
+      return { success: false, error: errMsg };
+    } catch (error: any) {
+      const code = error.response?.data?.code ?? error.response?.data?.status;
+      const errMsg = this.mapArkeselOtpError(code, error.response?.data?.message ?? error.message);
+      this.logger.error(`Arkesel OTP error: ${errMsg}`);
+      return { success: false, error: errMsg };
+    }
+  }
+
+  /**
+   * Arkesel OTP API: Verify user-entered OTP.
+   * Returns true if verification successful.
+   */
+  async verifyArkeselOtp(phone: string, code: string): Promise<{ success: boolean; error?: string }> {
+    const apiKey = this.configService.get<string>('ARKESEL_API_KEY') || this.configService.get<string>('SMS_API_KEY');
+    if (!apiKey) {
+      return { success: false, error: 'Arkesel API key not configured' };
+    }
+
+    const recipient = phone.replace(/^\+/, '').replace(/^0/, '233');
+    if (!recipient.startsWith('233')) {
+      return { success: false, error: 'Invalid phone format' };
+    }
+
+    try {
+      const response = await axios.post(
+        'https://sms.arkesel.com/api/v2/otp/verify',
+        { recipient, code: code.trim() },
+        {
+          headers: { 'api-key': apiKey, 'Content-Type': 'application/json' },
+        },
+      );
+
+      const codeVal = response.data?.code ?? response.data?.status;
+      if (codeVal === 1100 || codeVal === '1100' || response.data?.status === 'success') {
+        return { success: true };
+      }
+      return {
+        success: false,
+        error: this.mapArkeselOtpError(codeVal, response.data?.message) || 'Invalid or expired code',
+      };
+    } catch (error: any) {
+      const codeVal = error.response?.data?.code ?? error.response?.data?.status;
+      const errMsg = this.mapArkeselOtpError(codeVal, error.response?.data?.message ?? error.message);
+      this.logger.error(`Arkesel OTP verify error: ${errMsg}`);
+      return { success: false, error: errMsg };
+    }
+  }
+
+  private mapArkeselOtpError(code: string | number | undefined, fallback?: string): string {
+    const c = String(code ?? '');
+    const map: Record<string, string> = {
+      '1000': 'OTP sent successfully',
+      '1100': 'Verification successful',
+      '1001': 'Validation error - check required fields',
+      '1005': 'Invalid phone number',
+      '1007': 'Insufficient balance - top up your Arkesel Main Balance',
+      '102': 'Authentication failed - check API key',
+      '401': 'Authentication failed',
+      '402': 'Insufficient balance',
+      '403': 'Inactive gateway',
+      '422': 'Validation error',
+      '500': 'Arkesel server error',
+    };
+    return map[c] || fallback || `Arkesel error (${c})`;
   }
 
   /**

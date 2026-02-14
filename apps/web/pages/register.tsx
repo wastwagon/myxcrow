@@ -32,6 +32,7 @@ export default function Register() {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -39,6 +40,8 @@ export default function Register() {
   });
 
   const phone = watch('phone');
+
+  const [devCode, setDevCode] = useState<string | null>(null);
 
   const onSendCode = async () => {
     const p = phone?.trim();
@@ -49,10 +52,17 @@ export default function Register() {
     try {
       setLoading(true);
       setError(null);
-      await apiClient.post('/auth/send-phone-otp', { phone: p });
+      setDevCode(null);
+      const res = await apiClient.post('/auth/send-phone-otp', { phone: p });
       setCodeSent(true);
+      if (res.data?.devCode) {
+        setDevCode(res.data.devCode);
+        setValue('code', res.data.devCode);
+      }
     } catch (err: any) {
-      setError(getErrorMessage(err, 'Failed to send code'));
+      const message = getErrorMessage(err, 'Failed to send code');
+      setError(message);
+      setTimeout(() => document.getElementById('register-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
     } finally {
       setLoading(false);
     }
@@ -212,8 +222,18 @@ export default function Register() {
                   )}
                   <p className="mt-1 text-xs text-gray-500">Ghana phone number (MTN, Vodafone, or AirtelTigo)</p>
                   {codeSent ? (
-                    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
-                      Code sent! Check your phone for the 6-digit verification code.
+                    <div className="mt-3 space-y-2">
+                      {devCode ? (
+                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-sm">
+                          <p className="font-medium">SMS not configured – use this code to test:</p>
+                          <p className="mt-1 font-mono text-lg tracking-widest">{devCode}</p>
+                          <p className="mt-1 text-xs">Set OTP_DEV_BYPASS=false and configure Arkesel for real SMS.</p>
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
+                          Code sent! Check your phone for the 6-digit verification code.
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <button

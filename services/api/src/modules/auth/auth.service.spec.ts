@@ -75,6 +75,8 @@ describe('AuthService', () => {
 
   const mockSMSService = {
     sendVerificationOtpSms: jest.fn().mockResolvedValue({ success: true }),
+    usesArkeselOtp: jest.fn().mockReturnValue(false),
+    verifyArkeselOtp: jest.fn().mockResolvedValue({ success: true }),
   };
 
   beforeEach(async () => {

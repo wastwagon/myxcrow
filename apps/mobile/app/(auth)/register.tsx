@@ -37,11 +37,13 @@ export default function RegisterScreen() {
   const { register } = useAuth();
   const [loading, setLoading] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
+  const [devCode, setDevCode] = useState<string | null>(null);
 
   const {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -57,8 +59,13 @@ export default function RegisterScreen() {
     }
     try {
       setLoading(true);
-      await apiClient.post('/auth/send-phone-otp', { phone: p });
+      setDevCode(null);
+      const res = await apiClient.post('/auth/send-phone-otp', { phone: p });
       setCodeSent(true);
+      if (res.data?.devCode) {
+        setDevCode(res.data.devCode);
+        setValue('code', res.data.devCode);
+      }
     } catch (error: any) {
       Alert.alert('Error', getErrorMessage(error, 'Failed to send code'));
     } finally {
@@ -168,7 +175,14 @@ export default function RegisterScreen() {
             <Text style={styles.helpText}>Ghana phone (e.g. 0551234567)</Text>
             {codeSent ? (
               <View style={styles.codeSentBox}>
-                <Text style={styles.codeSentText}>Code sent! Check your phone.</Text>
+                {devCode ? (
+                  <>
+                    <Text style={styles.codeSentText}>SMS not configured – use this code:</Text>
+                    <Text style={styles.devCodeText}>{devCode}</Text>
+                  </>
+                ) : (
+                  <Text style={styles.codeSentText}>Code sent! Check your phone.</Text>
+                )}
               </View>
             ) : (
               <TouchableOpacity
@@ -381,6 +395,14 @@ const styles = StyleSheet.create({
     color: '#166534',
     fontSize: 14,
     textAlign: 'center',
+  },
+  devCodeText: {
+    marginTop: 8,
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 8,
+    textAlign: 'center',
+    color: '#92400e',
   },
   codeInput: {
     textAlign: 'center',

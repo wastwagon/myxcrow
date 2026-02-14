@@ -40,6 +40,17 @@ DATABASE_URL="postgresql://..." pnpm seed
 | buyer2@test.com … buyer5@test.com | Buyers |
 | seller2@test.com … seller5@test.com | Sellers |
 
+## OTP / SMS Not Working?
+
+**If no OTP arrives on your phone:**
+
+1. **Enable SMS on Render:** Set `SMS_ENABLED=true` and `ARKESEL_API_KEY` (from [Arkesel](https://sms.arkesel.com)).
+2. **Temporary workaround:** Set `OTP_DEV_BYPASS=true` – the API will return the code in the response so you can complete registration when SMS isn't configured. Set back to `false` for production.
+3. **Check Arkesel:** Verify your API key, sender ID (e.g. `MYXCROW` or `Arkesel`), and delivery logs.
+4. **Phone format:** Use Ghana format `0XXXXXXXXX` (e.g. `0242565695`).
+
+---
+
 ## Required Environment Variables (Render Dashboard)
 
 Set these for the API service (sync: false = you provide the value):

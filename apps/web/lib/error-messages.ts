@@ -24,7 +24,7 @@ export function getErrorMessage(error: unknown, fallback = 'Something went wrong
   if (status === 401) return 'Session expired. Please sign in again.';
   if (status === 403) return msg || 'You do not have permission to perform this action.';
 
-  // Registration-specific: map API messages to clear, actionable text
+  // Registration / OTP: map API messages to clear, actionable text
   if (status === 400 && msg) {
     const lower = msg.toLowerCase();
     if (lower.includes('invalid') && lower.includes('verification code')) {
@@ -37,10 +37,19 @@ export function getErrorMessage(error: unknown, fallback = 'Something went wrong
       return 'This phone number is already registered. Sign in instead, or use a different phone.';
     }
     if (lower.includes('sms disabled')) {
-      return 'SMS verification is currently unavailable. Please try again later or contact support.';
+      return 'SMS is not configured. Set OTP_DEV_BYPASS=true on the server to get a code for testing, or configure Arkesel for real SMS.';
+    }
+    if (lower.includes('arkesel') && lower.includes('api key')) {
+      return 'SMS is not configured. Add ARKESEL_API_KEY on the server, or set OTP_DEV_BYPASS=true for testing.';
     }
     if (lower.includes('wait') && lower.includes('seconds')) {
       return msg; // e.g. "Please wait 60 seconds before requesting another code"
+    }
+    if (lower.includes('ghana phone') || lower.includes('0551234567')) {
+      return 'Enter a valid Ghana phone number (e.g. 0242565695). Must start with 0 and have 10 digits.';
+    }
+    if (lower.includes('failed to send') || lower.includes('verification code')) {
+      return msg;
     }
   }
 
