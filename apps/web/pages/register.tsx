@@ -83,7 +83,12 @@ export default function Register() {
 
       router.push('/dashboard');
     } catch (err: any) {
-      setError(getErrorMessage(err, 'Registration failed. Please try again.'));
+      const message = getErrorMessage(err, 'Registration failed. Please try again.');
+      setError(message);
+      // Scroll error into view so user sees why registration didn't progress
+      setTimeout(() => {
+        document.getElementById('register-error')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
     } finally {
       setLoading(false);
     }
@@ -121,7 +126,7 @@ export default function Register() {
               </div>
 
               {error && (
-                <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3">
+                <div id="register-error" className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3" role="alert">
                   <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-red-800">{error}</p>
@@ -236,7 +241,7 @@ export default function Register() {
                       maxLength={6}
                       id="code"
                       className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none text-center text-lg tracking-widest"
-                      placeholder="000000"
+                      placeholder="123456"
                     />
                     {errors.code && (
                       <p className="mt-1 text-sm text-red-600">{errors.code.message}</p>
