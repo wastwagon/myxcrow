@@ -3,7 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { Shield, Lock, Zap, Users, TrendingUp, ArrowRight, Star, FileText, Wallet, MessageSquare } from 'lucide-react';
+import { Shield, Lock, Zap, Users, ArrowRight, Star } from 'lucide-react';
 import { isAuthenticated } from '@/lib/auth';
 import PublicHeader from '@/components/PublicHeader';
 
@@ -161,30 +161,6 @@ export default function Home() {
                   <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-brand-maroon transition-colors" />
                 </div>
               </Link>
-            </div>
-
-            {/* Platform Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white/95 rounded-xl shadow-lg p-6 text-center border border-brand-gold/20">
-                <FileText className="w-8 h-8 text-brand-maroon mx-auto mb-2" />
-                <p className="text-2xl font-bold text-brand-maroon-black">Secure</p>
-                <p className="text-sm text-gray-600">Escrow System</p>
-              </div>
-              <div className="bg-white/95 rounded-xl shadow-lg p-6 text-center border border-brand-gold/20">
-                <Wallet className="w-8 h-8 text-brand-maroon-dark mx-auto mb-2" />
-                <p className="text-2xl font-bold text-brand-maroon-black">Protected</p>
-                <p className="text-sm text-gray-600">Payments</p>
-              </div>
-              <div className="bg-white/95 rounded-xl shadow-lg p-6 text-center border border-brand-gold/20">
-                <MessageSquare className="w-8 h-8 text-brand-gold mx-auto mb-2" />
-                <p className="text-2xl font-bold text-brand-maroon-black">24/7</p>
-                <p className="text-sm text-gray-600">Support</p>
-              </div>
-              <div className="bg-white/95 rounded-xl shadow-lg p-6 text-center border border-brand-gold/20">
-                <TrendingUp className="w-8 h-8 text-brand-maroon-rust mx-auto mb-2" />
-                <p className="text-2xl font-bold text-brand-maroon-black">Trusted</p>
-                <p className="text-sm text-gray-600">Platform</p>
-              </div>
             </div>
 
             {/* Developer Tools (Local Only) */}

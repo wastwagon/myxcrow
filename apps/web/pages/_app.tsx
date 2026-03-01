@@ -1,10 +1,15 @@
 import type { AppProps } from 'next/app';
+import dynamic from 'next/dynamic';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { IntercomChat } from '@/components/IntercomChat';
 import '../styles/globals.css';
+
+const MobileBottomNav = dynamic(() => import('@/components/MobileBottomNav'), {
+  ssr: false,
+});
 
 export default function App({ Component, pageProps }: AppProps) {
   const [queryClient] = useState(
@@ -23,7 +28,10 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <Component {...pageProps} />
+        <div className="min-h-screen pb-20 md:pb-0">
+          <Component {...pageProps} />
+        </div>
+        <MobileBottomNav />
         <Toaster
           position="top-right"
           toastOptions={{
