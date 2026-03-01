@@ -119,10 +119,7 @@ Before building, update these in `app.json`:
 }
 ```
 
-**Get your Project ID:**
-```bash
-eas project:init
-```
+**Get your Project ID:** Run `npx eas-cli init` in `apps/mobile` – it creates the project and adds the ID to `app.json`.
 
 ---
 

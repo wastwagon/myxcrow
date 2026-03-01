@@ -9,13 +9,16 @@ import {
   TextInput,
   Alert,
   RefreshControl,
+  Modal,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useQuery } from '../../../src/hooks/useQuery';
 import apiClient from '../../../src/lib/api-client';
 import { formatDate } from '../../../src/lib/constants';
 import Toast from 'react-native-toast-message';
+import { useAuth } from '../../../src/contexts/AuthContext';
 
 interface User {
   id: string;
@@ -29,19 +32,50 @@ interface User {
   createdAt: string;
 }
 
+const ROLES = ['BUYER', 'SELLER', 'ADMIN', 'SUPPORT', 'AUDITOR'] as const;
+
 export default function UserManagementScreen() {
+  const router = useRouter();
+  const { impersonate: doImpersonate } = useAuth();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingRoles, setEditingRoles] = useState<string[]>([]);
 
-  const { data: users, isLoading, refetch } = useQuery<User[]>({
+  const { data: usersResponse, isLoading, refetch } = useQuery<{ users: User[] }>({
     queryKey: ['admin-users'],
-    url: '/admin/users',
+    url: '/users?limit=100',
+  });
+  const users = usersResponse?.users ?? [];
+
+  const approveMutation = useMutation({
+    mutationFn: async (userId: string) => apiClient.put(`/users/${userId}/approve`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      Toast.show({ type: 'success', text1: 'Success', text2: 'User approved' });
+    },
+    onError: (e: any) => {
+      Toast.show({ type: 'error', text1: 'Error', text2: e.response?.data?.message || 'Failed to approve' });
+    },
+  });
+
+  const updateRoleMutation = useMutation({
+    mutationFn: async ({ userId, roles }: { userId: string; roles: string[] }) =>
+      apiClient.put(`/users/${userId}/role`, { roles }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      Toast.show({ type: 'success', text1: 'Success', text2: 'Roles updated' });
+      setEditingUser(null);
+    },
+    onError: (e: any) => {
+      Toast.show({ type: 'error', text1: 'Error', text2: e.response?.data?.message || 'Failed to update roles' });
+    },
   });
 
   const toggleActiveStatus = useMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
-      return apiClient.put(`/admin/users/${userId}/toggle-active`, { isActive });
+      return apiClient.put(`/users/${userId}/status`, { isActive });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
@@ -72,6 +106,39 @@ export default function UserManagementScreen() {
           onPress: () => toggleActiveStatus.mutate({ userId: user.id, isActive: !user.isActive }),
         },
       ]
+    );
+  };
+
+  const handleImpersonate = async (user: User) => {
+    if (user.roles?.includes('ADMIN')) {
+      Toast.show({ type: 'error', text1: 'Cannot impersonate admin' });
+      return;
+    }
+    Alert.alert('Impersonate', `Log in as ${user.email}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Impersonate',
+        onPress: async () => {
+          try {
+            await doImpersonate(user.id);
+            Toast.show({ type: 'success', text1: 'Logged in', text2: `As ${user.email}` });
+            router.replace('/(tabs)/dashboard');
+          } catch (e: any) {
+            Toast.show({ type: 'error', text1: 'Error', text2: e.message });
+          }
+        },
+      },
+    ]);
+  };
+
+  const openRoleModal = (user: User) => {
+    setEditingUser(user);
+    setEditingRoles([...user.roles]);
+  };
+
+  const toggleRole = (role: string) => {
+    setEditingRoles((prev) =>
+      prev.includes(role) ? prev.filter((r) => r !== role) : [...prev, role]
     );
   };
 
@@ -202,6 +269,44 @@ export default function UserManagementScreen() {
 
               <View style={styles.actionButtons}>
                 <TouchableOpacity
+                  style={[styles.actionButton, styles.viewWalletButton]}
+                  onPress={() => router.push({ pathname: '/(tabs)/admin/user-wallet', params: { userId: user.id } })}
+                >
+                  <Ionicons name="wallet-outline" size={18} color="#fff" />
+                  <Text style={styles.actionButtonText}>Wallet</Text>
+                </TouchableOpacity>
+                {!user.roles?.includes('ADMIN') && (
+                <TouchableOpacity
+                  style={[styles.actionButton, { backgroundColor: '#8b5cf6' }]}
+                  onPress={() => handleImpersonate(user)}
+                >
+                  <Ionicons name="person-outline" size={18} color="#fff" />
+                  <Text style={styles.actionButtonText}>Login As</Text>
+                </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={[styles.actionButton, { backgroundColor: '#6b7280' }]}
+                  onPress={() => openRoleModal(user)}
+                >
+                  <Ionicons name="people-outline" size={18} color="#fff" />
+                  <Text style={styles.actionButtonText}>Roles</Text>
+                </TouchableOpacity>
+                {user.kycStatus === 'PENDING' && (
+                <TouchableOpacity
+                  style={[styles.actionButton, { backgroundColor: '#059669' }]}
+                  onPress={() => {
+                    Alert.alert('Approve User', `Approve ${user.email}?`, [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Approve', onPress: () => approveMutation.mutate(user.id) },
+                    ]);
+                  }}
+                  disabled={approveMutation.isPending}
+                >
+                  <Ionicons name="checkmark-done-outline" size={18} color="#fff" />
+                  <Text style={styles.actionButtonText}>Approve</Text>
+                </TouchableOpacity>
+                )}
+                <TouchableOpacity
                   style={[
                     styles.actionButton,
                     user.isActive ? styles.deactivateButton : styles.activateButton,
@@ -235,6 +340,50 @@ export default function UserManagementScreen() {
           </View>
         )}
       </ScrollView>
+
+      {/* Role Edit Modal */}
+      <Modal visible={!!editingUser} animationType="slide" presentationStyle="pageSheet">
+        {editingUser && (
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setEditingUser(null)}>
+                <Text style={styles.modalCancel}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Edit Roles</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  if (editingRoles.length === 0) {
+                    Toast.show({ type: 'error', text1: 'Error', text2: 'User must have at least one role' });
+                    return;
+                  }
+                  updateRoleMutation.mutate({ userId: editingUser.id, roles: editingRoles });
+                }}
+                disabled={updateRoleMutation.isPending}
+              >
+                {updateRoleMutation.isPending ? (
+                  <ActivityIndicator size="small" />
+                ) : (
+                  <Text style={styles.modalSave}>Save</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalUser}>{editingUser.email}</Text>
+            <View style={styles.roleList}>
+              {ROLES.map((role) => (
+                <TouchableOpacity
+                  key={role}
+                  style={[styles.roleChip, editingRoles.includes(role) && styles.roleChipActive]}
+                  onPress={() => toggleRole(role)}
+                >
+                  <Text style={[styles.roleChipText, editingRoles.includes(role) && styles.roleChipTextActive]}>
+                    {role}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+      </Modal>
     </View>
   );
 }
@@ -367,6 +516,10 @@ const styles = StyleSheet.create({
   actionButtons: {
     flexDirection: 'row',
     gap: 8,
+    flexWrap: 'wrap',
+  },
+  viewWalletButton: {
+    backgroundColor: '#3b82f6',
   },
   actionButton: {
     flex: 1,
@@ -395,5 +548,59 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 15,
     color: '#9ca3af',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+  },
+  modalCancel: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  modalSave: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#3b82f6',
+  },
+  modalUser: {
+    padding: 16,
+    fontSize: 14,
+    color: '#6b7280',
+  },
+  roleList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    padding: 16,
+    gap: 8,
+  },
+  roleChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#f3f4f6',
+  },
+  roleChipActive: {
+    backgroundColor: '#3b82f6',
+  },
+  roleChipText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  roleChipTextActive: {
+    color: '#fff',
   },
 });

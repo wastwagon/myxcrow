@@ -18,16 +18,14 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   useEffect(() => {
-    // Initialize Intercom
-    initializeIntercom();
-    
-    // Register for push notifications on app start
-    registerForPushNotificationsAsync().then((token) => {
-      if (token) {
-        console.log('Push notification token:', token);
-        // Token will be sent to server after user logs in
-      }
-    });
+    // Defer to avoid blocking app registration
+    Promise.resolve()
+      .then(() => initializeIntercom())
+      .then(() => registerForPushNotificationsAsync())
+      .then((token) => {
+        if (token) console.log('Push notification token:', token);
+      })
+      .catch((err) => console.warn('Startup init:', err));
   }, []);
 
   return (
@@ -39,6 +37,7 @@ export default function RootLayout() {
             headerShown: false,
           }}
         >
+          <Stack.Screen name="index" />
           <Stack.Screen name="(auth)" />
           <Stack.Screen name="(tabs)" />
         </Stack>

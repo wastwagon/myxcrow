@@ -15,9 +15,12 @@ export class EncryptionService {
   constructor(private configService: ConfigService) {}
 
   private getEncryptionKey(): string {
-    const key = this.configService.get<string>('ENCRYPTION_KEY') || this.configService.get<string>('JWT_SECRET') || 'default-key-change-in-production';
-    if (key === 'default-key-change-in-production') {
-      this.logger.warn('Using default encryption key! Set ENCRYPTION_KEY in production!');
+    const key =
+      this.configService.get<string>('ENCRYPTION_KEY') || this.configService.get<string>('JWT_SECRET');
+    if (!key || /change-in-production|default-key|your-encryption-key/i.test(key)) {
+      throw new Error(
+        'ENCRYPTION_KEY or JWT_SECRET must be set to a secure value. Generate with: openssl rand -base64 32',
+      );
     }
     return key;
   }

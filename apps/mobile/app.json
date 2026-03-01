@@ -33,7 +33,11 @@
       "permissions": [
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ]
     },
     "web": {
@@ -55,13 +59,16 @@
       ],
       [
         "expo-local-authentication"
-      ]
+      ],
+      "expo-router",
+      "expo-secure-store"
     ],
     "scheme": "myxcrow",
     "extra": {
       "eas": {
-        "projectId": "your-project-id"
+        "projectId": "78041142-2ed8-4d42-ac67-fccf9bec776c"
       }
-    }
+    },
+    "owner": "wastwagon"
   }
 }

@@ -21,18 +21,20 @@ import Toast from 'react-native-toast-message';
 interface Withdrawal {
   id: string;
   amountCents: number;
+  feeCents?: number;
+  currency?: string;
   status: string;
   methodType: string;
   methodDetails: any;
   createdAt: string;
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-  };
   wallet: {
-    availableCents: number;
+    user: {
+      id: string;
+      email: string;
+      firstName?: string;
+      lastName?: string;
+    };
+    availableCents?: number;
   };
 }
 
@@ -43,46 +45,26 @@ export default function WithdrawalApprovalsScreen() {
   const [rejectionReason, setRejectionReason] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
-  const { data: withdrawals, isLoading, refetch } = useQuery<Withdrawal[]>({
-    queryKey: ['admin-withdrawals-pending'],
-    url: '/admin/withdrawals?status=REQUESTED',
+  const [statusFilter, setStatusFilter] = useState<string>('REQUESTED');
+  const { data: withdrawalsData, isLoading, refetch } = useQuery<{ withdrawals: Withdrawal[]; total: number }>({
+    queryKey: ['admin-withdrawals', statusFilter],
+    url: statusFilter === 'all'
+      ? '/wallet/admin/withdrawals?limit=50'
+      : `/wallet/admin/withdrawals?status=${statusFilter}&limit=50`,
   });
+  const withdrawals = withdrawalsData?.withdrawals ?? [];
 
-  const approveMutation = useMutation({
-    mutationFn: async (withdrawalId: string) => {
-      return apiClient.put(`/admin/withdrawals/${withdrawalId}/approve`);
+  const processMutation = useMutation({
+    mutationFn: async ({ id, succeeded, reason }: { id: string; succeeded: boolean; reason?: string }) => {
+      return apiClient.put(`/wallet/withdraw/${id}/process`, { succeeded, reason });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-withdrawals-pending'] });
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-withdrawals'] });
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
       Toast.show({
         type: 'success',
         text1: 'Success',
-        text2: 'Withdrawal approved successfully',
-      });
-      setDetailModalVisible(false);
-      setSelectedWithdrawal(null);
-    },
-    onError: (error: any) => {
-      Toast.show({
-        type: 'error',
-        text1: 'Error',
-        text2: error.response?.data?.message || 'Failed to approve withdrawal',
-      });
-    },
-  });
-
-  const rejectMutation = useMutation({
-    mutationFn: async ({ withdrawalId, reason }: { withdrawalId: string; reason: string }) => {
-      return apiClient.put(`/admin/withdrawals/${withdrawalId}/reject`, { reason });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-withdrawals-pending'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-dashboard-stats'] });
-      Toast.show({
-        type: 'success',
-        text1: 'Success',
-        text2: 'Withdrawal rejected',
+        text2: variables.succeeded ? 'Withdrawal approved' : 'Withdrawal denied',
       });
       setDetailModalVisible(false);
       setSelectedWithdrawal(null);
@@ -92,21 +74,23 @@ export default function WithdrawalApprovalsScreen() {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: error.response?.data?.message || 'Failed to reject withdrawal',
+        text2: error.response?.data?.message || 'Failed to process withdrawal',
       });
     },
   });
 
+  const user = (w: Withdrawal) => w.wallet?.user ?? (w as any).user;
   const handleApprove = (withdrawal: Withdrawal) => {
+    const u = user(withdrawal);
     Alert.alert(
       'Approve Withdrawal',
-      `Approve ${formatCurrency(withdrawal.amountCents)} withdrawal for ${withdrawal.user.firstName} ${withdrawal.user.lastName}?`,
+      `Approve ${formatCurrency(withdrawal.amountCents)} withdrawal for ${u?.firstName || ''} ${u?.lastName || ''} (${u?.email})?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Approve',
           style: 'default',
-          onPress: () => approveMutation.mutate(withdrawal.id),
+          onPress: () => processMutation.mutate({ id: withdrawal.id, succeeded: true }),
         },
       ]
     );
@@ -123,15 +107,15 @@ export default function WithdrawalApprovalsScreen() {
     }
 
     Alert.alert(
-      'Reject Withdrawal',
-      `Are you sure you want to reject this withdrawal?`,
+      'Deny Withdrawal',
+      'Are you sure you want to deny this withdrawal?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Reject',
+          text: 'Deny',
           style: 'destructive',
           onPress: () =>
-            rejectMutation.mutate({ withdrawalId: withdrawal.id, reason: rejectionReason }),
+            processMutation.mutate({ id: withdrawal.id, succeeded: false, reason: rejectionReason }),
         },
       ]
     );
@@ -157,23 +141,41 @@ export default function WithdrawalApprovalsScreen() {
     );
   }
 
-  if (!withdrawals || withdrawals.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Ionicons name="checkmark-done-outline" size={64} color="#9ca3af" />
-        <Text style={styles.emptyText}>No Pending Withdrawals</Text>
-        <Text style={styles.emptySubtext}>All withdrawal requests have been processed</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
+      {/* Status filter */}
+      <View style={styles.filterRow}>
+        {(['REQUESTED', 'all', 'SUCCEEDED', 'FAILED'] as const).map((s) => (
+          <TouchableOpacity
+            key={s}
+            style={[styles.filterChip, statusFilter === s && styles.filterChipActive]}
+            onPress={() => setStatusFilter(s)}
+          >
+            <Text style={[styles.filterChipText, statusFilter === s && styles.filterChipTextActive]}>
+              {s === 'all' ? 'All' : s === 'REQUESTED' ? 'Pending' : s === 'SUCCEEDED' ? 'Approved' : 'Denied'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {!withdrawals || withdrawals.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="checkmark-done-outline" size={64} color="#9ca3af" />
+          <Text style={styles.emptyText}>
+            {statusFilter === 'REQUESTED' ? 'No Pending Withdrawals' : 'No Withdrawals Found'}
+          </Text>
+          <Text style={styles.emptySubtext}>
+            {statusFilter === 'REQUESTED' ? 'All withdrawal requests have been processed' : 'Try a different filter'}
+          </Text>
+        </View>
+      ) : (
       <ScrollView
         style={styles.scrollView}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        {withdrawals.map((withdrawal) => (
+        {withdrawals.map((withdrawal) => {
+          const u = user(withdrawal);
+          return (
           <TouchableOpacity
             key={withdrawal.id}
             style={styles.withdrawalCard}
@@ -182,9 +184,9 @@ export default function WithdrawalApprovalsScreen() {
             <View style={styles.cardHeader}>
               <View style={styles.userSection}>
                 <Text style={styles.userName}>
-                  {withdrawal.user.firstName} {withdrawal.user.lastName}
+                  {u?.firstName || ''} {u?.lastName || ''}
                 </Text>
-                <Text style={styles.userEmail}>{withdrawal.user.email}</Text>
+                <Text style={styles.userEmail}>{u?.email}</Text>
               </View>
               <View style={styles.amountContainer}>
                 <Text style={styles.amount}>{formatCurrency(withdrawal.amountCents)}</Text>
@@ -221,20 +223,26 @@ export default function WithdrawalApprovalsScreen() {
               </View>
             )}
 
+            {withdrawal.wallet?.availableCents != null && (
             <View style={styles.walletInfo}>
               <Ionicons name="wallet-outline" size={14} color="#6b7280" />
               <Text style={styles.walletText}>
                 Wallet Balance: {formatCurrency(withdrawal.wallet.availableCents)}
               </Text>
             </View>
+            )}
 
             <View style={styles.actionRow}>
-              <Text style={styles.reviewPrompt}>Tap to review</Text>
+              <Text style={styles.reviewPrompt}>
+                {withdrawal.status === 'REQUESTED' ? 'Tap to review' : withdrawal.status}
+              </Text>
               <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
             </View>
           </TouchableOpacity>
-        ))}
+        );
+        })}
       </ScrollView>
+      )}
 
       {/* Detail Modal */}
       <Modal
@@ -268,19 +276,21 @@ export default function WithdrawalApprovalsScreen() {
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Name:</Text>
                   <Text style={styles.infoValue}>
-                    {selectedWithdrawal.user.firstName} {selectedWithdrawal.user.lastName}
+                    {selectedWithdrawal.wallet?.user?.firstName || ''} {selectedWithdrawal.wallet?.user?.lastName || ''}
                   </Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Email:</Text>
-                  <Text style={styles.infoValue}>{selectedWithdrawal.user.email}</Text>
+                  <Text style={styles.infoValue}>{selectedWithdrawal.wallet?.user?.email}</Text>
                 </View>
+                {selectedWithdrawal.wallet?.availableCents != null && (
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Wallet Balance:</Text>
                   <Text style={styles.infoValue}>
                     {formatCurrency(selectedWithdrawal.wallet.availableCents)}
                   </Text>
                 </View>
+                )}
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Requested:</Text>
                   <Text style={styles.infoValue}>{formatDate(selectedWithdrawal.createdAt)}</Text>
@@ -355,9 +365,9 @@ export default function WithdrawalApprovalsScreen() {
               <TouchableOpacity
                 style={[styles.actionButton, styles.rejectButton]}
                 onPress={() => handleReject(selectedWithdrawal)}
-                disabled={rejectMutation.isPending}
+                disabled={processMutation.isPending}
               >
-                {rejectMutation.isPending ? (
+                {processMutation.isPending ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <>
@@ -369,9 +379,9 @@ export default function WithdrawalApprovalsScreen() {
               <TouchableOpacity
                 style={[styles.actionButton, styles.approveButton]}
                 onPress={() => handleApprove(selectedWithdrawal)}
-                disabled={approveMutation.isPending}
+                disabled={processMutation.isPending}
               >
-                {approveMutation.isPending ? (
+                {processMutation.isPending ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
                   <>
@@ -415,6 +425,30 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     marginTop: 8,
     textAlign: 'center',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    padding: 16,
+    paddingBottom: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#f3f4f6',
+  },
+  filterChipActive: {
+    backgroundColor: '#3b82f6',
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: '#6b7280',
+  },
+  filterChipTextActive: {
+    color: '#fff',
   },
   scrollView: {
     flex: 1,

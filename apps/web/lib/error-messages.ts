@@ -21,7 +21,14 @@ export function getErrorMessage(error: unknown, fallback = 'Something went wrong
   const msg = Array.isArray(apiMsg) ? apiMsg.join('. ') : (apiMsg ? String(apiMsg) : '');
 
   if (status === 429) return 'Too many requests. Please wait a moment and try again.';
-  if (status === 401) return 'Session expired. Please sign in again.';
+  // 401 on login = wrong credentials; 401 elsewhere = expired session
+  if (status === 401) {
+    const lower = (msg || '').toLowerCase();
+    if (lower.includes('invalid') && (lower.includes('credentials') || lower.includes('password'))) {
+      return 'Invalid email or password. Please check and try again.';
+    }
+    return msg || 'Session expired. Please sign in again.';
+  }
   if (status === 403) return msg || 'You do not have permission to perform this action.';
 
   // Registration / OTP: map API messages to clear, actionable text

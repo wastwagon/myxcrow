@@ -556,7 +556,7 @@ async function main() {
         mimeType: 'text/plain',
         type: 'photo',
         description: 'Package ready for shipment',
-        body: Buffer.from(`[Photo placeholder] Package sealed and labeled for escrow ${escrow3.id}\n`, 'utf-8'),
+        body: Buffer.from(`Package sealed and labeled for escrow ${escrow3.id}\n`, 'utf-8'),
       },
       {
         escrowId: escrow4.id,
@@ -565,7 +565,7 @@ async function main() {
         mimeType: 'text/plain',
         type: 'photo',
         description: 'Item delivered - furniture set',
-        body: Buffer.from(`[Photo placeholder] Delivery confirmation for escrow ${escrow4.id}\n`, 'utf-8'),
+        body: Buffer.from(`Delivery confirmation for escrow ${escrow4.id}\n`, 'utf-8'),
       },
       {
         escrowId: escrow6.id,
@@ -574,7 +574,7 @@ async function main() {
         mimeType: 'text/plain',
         type: 'photo',
         description: 'Photo showing product defect',
-        body: Buffer.from(`[Photo placeholder] Gaming console defect evidence for dispute\n`, 'utf-8'),
+        body: Buffer.from(`Gaming console defect evidence for dispute\n`, 'utf-8'),
       },
       {
         escrowId: escrow8.id,
@@ -583,7 +583,7 @@ async function main() {
         mimeType: 'text/plain',
         type: 'photo',
         description: 'Close-up of stitching defect',
-        body: Buffer.from(`[Photo placeholder] Handbag stitching coming apart - manufacturing defect\n`, 'utf-8'),
+        body: Buffer.from(`Handbag stitching coming apart - manufacturing defect\n`, 'utf-8'),
       },
       {
         escrowId: escrow8.id,
@@ -602,7 +602,7 @@ async function main() {
         type: 'document',
         description: 'UI/UX design mockups (Milestone 1)',
         body: Buffer.from(
-          `[Mockup files placeholder]\n\nDesign Phase Deliverables:\n- Homepage design\n- Dashboard layouts\n- Mobile responsive views\n`,
+          `Design Phase Deliverables:\n- Homepage design\n- Dashboard layouts\n- Mobile responsive views\n`,
           'utf-8',
         ),
       },
@@ -613,7 +613,7 @@ async function main() {
         mimeType: 'text/plain',
         type: 'document',
         description: 'Logo design concepts (3 variations)',
-        body: Buffer.from(`[Design files placeholder]\n\nLogo Concepts:\n- Concept A: Modern\n- Concept B: Classic\n- Concept C: Minimal\n`, 'utf-8'),
+        body: Buffer.from(`Logo Concepts:\n- Concept A: Modern\n- Concept B: Classic\n- Concept C: Minimal\n`, 'utf-8'),
       },
       {
         escrowId: milestoneEscrow3.id,

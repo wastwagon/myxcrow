@@ -26,11 +26,29 @@ export default function WalletOperationsScreen() {
 
   const searchUserMutation = useMutation({
     mutationFn: async (email: string) => {
-      const response = await apiClient.get(`/admin/users/search?email=${email}`);
-      return response.data;
+      // GET /wallet/admin?email= returns wallets with user; GET /users?search= returns users
+      const response = await apiClient.get(`/wallet/admin?email=${encodeURIComponent(email)}&limit=10`);
+      const data = response.data;
+      const wallets = data?.wallets ?? [];
+      if (wallets.length === 0) {
+        // Fallback: search users by email
+        const usersRes = await apiClient.get(`/users?search=${encodeURIComponent(email)}&limit=10`);
+        const users = usersRes.data?.users ?? [];
+        if (users.length === 0) return null;
+        const user = users[0];
+        // Fetch wallet for this user
+        const walletRes = await apiClient.get(`/wallet/admin/${user.id}`);
+        const w = walletRes.data;
+        return { ...user, wallet: w?.wallet };
+      }
+      const w = wallets[0];
+      return { ...w.user, wallet: { availableCents: w.availableCents, pendingCents: w.pendingCents } };
     },
     onSuccess: (data) => {
-      setSearchedUser(data);
+      setSearchedUser(data ?? null);
+      if (!data) {
+        Toast.show({ type: 'error', text1: 'Not found', text2: 'No user found with that email' });
+      }
     },
     onError: (error: any) => {
       Toast.show({
@@ -44,8 +62,12 @@ export default function WalletOperationsScreen() {
 
   const walletOperationMutation = useMutation({
     mutationFn: async (data: { userId: string; amountCents: number; description: string; type: string }) => {
-      const endpoint = operation === 'CREDIT' ? '/admin/wallet/credit' : '/admin/wallet/debit';
-      return apiClient.post(endpoint, data);
+      const endpoint = operation === 'CREDIT' ? '/wallet/admin/credit' : '/wallet/admin/debit';
+      const body =
+        operation === 'CREDIT'
+          ? { userId: data.userId, amountCents: data.amountCents, description: data.description }
+          : { userId: data.userId, amountCents: data.amountCents, description: data.description };
+      return apiClient.post(endpoint, body);
     },
     onSuccess: () => {
       Toast.show({

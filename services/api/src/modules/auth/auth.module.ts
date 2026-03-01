@@ -17,10 +17,13 @@ import { SMSModule } from '../notifications/sms.module';
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'your-secret-key-change-in-production',
-        signOptions: { expiresIn: '7d' },
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const secret = configService.get<string>('JWT_SECRET');
+        if (!secret || /change-in-production|your-secret-key|your-super-secret/i.test(secret)) {
+          throw new Error('JWT_SECRET must be set to a secure value in production. Generate with: openssl rand -base64 32');
+        }
+        return { secret, signOptions: { expiresIn: '7d' } };
+      },
       inject: [ConfigService],
     }),
     forwardRef(() => AuditModule),

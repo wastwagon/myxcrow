@@ -7,11 +7,16 @@
   "scripts": {
     "dev": "echo 'Use docker-compose for local development'",
     "build": "echo 'Build individual services'",
-    "test": "echo 'Run tests in individual services'"
+    "test": "echo 'Run tests in individual services'",
+    "screenshots": "tsx scripts/capture-app-store-screenshots.ts"
   },
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
   },
-  "packageManager": "pnpm@9.12.3"
+  "packageManager": "pnpm@9.12.3",
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "tsx": "^4.19.0"
+  }
 }

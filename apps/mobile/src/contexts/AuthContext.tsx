@@ -10,6 +10,7 @@ interface AuthContextType {
   register: (data: RegisterData) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  impersonate: (userId: string) => Promise<void>;
 }
 
 interface RegisterData {
@@ -127,6 +128,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const impersonate = async (userId: string) => {
+    try {
+      const response = await apiClient.post('/auth/admin/impersonate', { userId });
+      const { user: targetUser, accessToken, refreshToken } = response.data;
+      const { setAuthTokens } = await import('../lib/auth');
+      await setAuthTokens(accessToken, refreshToken);
+      await setUser(targetUser);
+      setUserState(targetUser);
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Impersonation failed');
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -137,6 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         register,
         logout,
         refreshUser,
+        impersonate,
       }}
     >
       {children}

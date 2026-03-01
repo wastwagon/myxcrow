@@ -44,6 +44,12 @@ export default function AdminLayout() {
         }}
       />
       <Stack.Screen
+        name="user-wallet"
+        options={{
+          title: 'View User Wallet',
+        }}
+      />
+      <Stack.Screen
         name="settings"
         options={{
           title: 'Platform Settings',

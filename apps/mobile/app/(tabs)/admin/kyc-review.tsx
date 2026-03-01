@@ -25,18 +25,18 @@ const { width: screenWidth } = Dimensions.get('window');
 interface KYCSubmission {
   id: string;
   userId: string;
-  status: string;
-  ghanaCardNumber: string;
+  ghanaCardNumber?: string | null;
   createdAt: string;
   user: {
+    id: string;
     email: string;
-    firstName: string;
-    lastName: string;
+    firstName?: string | null;
+    lastName?: string | null;
   };
-  cardFrontUrl?: string;
-  cardBackUrl?: string;
-  selfieUrl?: string;
-  faceMatchScore?: number;
+  cardFrontUrl?: string | null;
+  cardBackUrl?: string | null;
+  selfieUrl?: string | null;
+  faceMatchScore?: number | null;
 }
 
 export default function KYCReviewScreen() {
@@ -48,14 +48,15 @@ export default function KYCReviewScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
-  const { data: submissions, isLoading } = useQuery<KYCSubmission[]>({
+  const { data: kycData, isLoading } = useQuery<{ kycDetails: KYCSubmission[] }>({
     queryKey: ['admin-kyc-pending'],
-    url: '/admin/kyc/pending',
+    url: '/kyc/pending',
   });
+  const submissions = kycData?.kycDetails ?? [];
 
   const approveMutation = useMutation({
-    mutationFn: async (submissionId: string) => {
-      return apiClient.put(`/admin/kyc/${submissionId}/approve`);
+    mutationFn: async (userId: string) => {
+      return apiClient.put(`/kyc/approve/${userId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-kyc-pending'] });
@@ -78,8 +79,8 @@ export default function KYCReviewScreen() {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: async ({ submissionId, reason }: { submissionId: string; reason: string }) => {
-      return apiClient.put(`/admin/kyc/${submissionId}/reject`, { reason });
+    mutationFn: async ({ userId, reason }: { userId: string; reason: string }) => {
+      return apiClient.put(`/kyc/reject/${userId}`, { reason });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-kyc-pending'] });
@@ -105,13 +106,13 @@ export default function KYCReviewScreen() {
   const handleApprove = (submission: KYCSubmission) => {
     Alert.alert(
       'Approve KYC',
-      `Are you sure you want to approve KYC verification for ${submission.user.firstName} ${submission.user.lastName}?`,
+      `Are you sure you want to approve KYC verification for ${submission.user?.firstName || ''} ${submission.user?.lastName || ''}?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Approve',
           style: 'default',
-          onPress: () => approveMutation.mutate(submission.id),
+          onPress: () => approveMutation.mutate(submission.userId),
         },
       ]
     );
@@ -129,14 +130,14 @@ export default function KYCReviewScreen() {
 
     Alert.alert(
       'Reject KYC',
-      `Are you sure you want to reject this KYC verification?`,
+      'Are you sure you want to reject this KYC verification?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Reject',
           style: 'destructive',
           onPress: () =>
-            rejectMutation.mutate({ submissionId: submission.id, reason: rejectionReason }),
+            rejectMutation.mutate({ userId: submission.userId, reason: rejectionReason }),
         },
       ]
     );
@@ -182,10 +183,12 @@ export default function KYCReviewScreen() {
             <View style={styles.submissionHeader}>
               <View style={styles.userInfo}>
                 <Text style={styles.userName}>
-                  {submission.user.firstName} {submission.user.lastName}
+                  {submission.user?.firstName || ''} {submission.user?.lastName || ''}
                 </Text>
-                <Text style={styles.userEmail}>{submission.user.email}</Text>
+                <Text style={styles.userEmail}>{submission.user?.email}</Text>
+                {submission.ghanaCardNumber && (
                 <Text style={styles.cardNumber}>Card: {submission.ghanaCardNumber}</Text>
+                )}
               </View>
               <View style={styles.dateContainer}>
                 <Text style={styles.dateLabel}>Submitted</Text>
@@ -219,14 +222,22 @@ export default function KYCReviewScreen() {
             )}
 
             <View style={styles.thumbnailRow}>
+              {/* Thumbnails - cardFrontUrl etc are MinIO object keys; need presigned URLs to display.
+                For now show placeholder; full image view would need GET /kyc/download/:objectName */}
               {submission.cardFrontUrl && (
-                <Image source={{ uri: submission.cardFrontUrl }} style={styles.thumbnail} />
+                <View style={[styles.thumbnail, styles.thumbnailPlaceholder]}>
+                  <Ionicons name="document-text" size={24} color="#9ca3af" />
+                </View>
               )}
               {submission.cardBackUrl && (
-                <Image source={{ uri: submission.cardBackUrl }} style={styles.thumbnail} />
+                <View style={[styles.thumbnail, styles.thumbnailPlaceholder]}>
+                  <Ionicons name="document-text" size={24} color="#9ca3af" />
+                </View>
               )}
               {submission.selfieUrl && (
-                <Image source={{ uri: submission.selfieUrl }} style={styles.thumbnail} />
+                <View style={[styles.thumbnail, styles.thumbnailPlaceholder]}>
+                  <Ionicons name="person" size={24} color="#9ca3af" />
+                </View>
               )}
             </View>
 
@@ -262,17 +273,19 @@ export default function KYCReviewScreen() {
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Name:</Text>
                   <Text style={styles.infoValue}>
-                    {selectedSubmission.user.firstName} {selectedSubmission.user.lastName}
+                    {selectedSubmission.user?.firstName || ''} {selectedSubmission.user?.lastName || ''}
                   </Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Email:</Text>
-                  <Text style={styles.infoValue}>{selectedSubmission.user.email}</Text>
+                  <Text style={styles.infoValue}>{selectedSubmission.user?.email}</Text>
                 </View>
+                {selectedSubmission.ghanaCardNumber && (
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Ghana Card:</Text>
                   <Text style={styles.infoValue}>{selectedSubmission.ghanaCardNumber}</Text>
                 </View>
+                )}
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>Submitted:</Text>
                   <Text style={styles.infoValue}>{formatDate(selectedSubmission.createdAt)}</Text>
@@ -299,36 +312,26 @@ export default function KYCReviewScreen() {
                 )}
               </View>
 
-              {/* Documents */}
+              {/* Documents - stored as MinIO object keys; view via web admin for full preview */}
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>Documents</Text>
                 {selectedSubmission.cardFrontUrl && (
-                  <TouchableOpacity
-                    onPress={() => openImageModal(selectedSubmission.cardFrontUrl!)}
-                  >
-                    <Image
-                      source={{ uri: selectedSubmission.cardFrontUrl }}
-                      style={styles.fullImage}
-                    />
-                    <Text style={styles.imageLabel}>Ghana Card (Front)</Text>
-                  </TouchableOpacity>
+                  <View style={styles.docPlaceholder}>
+                    <Ionicons name="document-text" size={32} color="#9ca3af" />
+                    <Text style={styles.imageLabel}>Ghana Card (Front) - submitted</Text>
+                  </View>
                 )}
                 {selectedSubmission.cardBackUrl && (
-                  <TouchableOpacity
-                    onPress={() => openImageModal(selectedSubmission.cardBackUrl!)}
-                  >
-                    <Image
-                      source={{ uri: selectedSubmission.cardBackUrl }}
-                      style={styles.fullImage}
-                    />
-                    <Text style={styles.imageLabel}>Ghana Card (Back)</Text>
-                  </TouchableOpacity>
+                  <View style={styles.docPlaceholder}>
+                    <Ionicons name="document-text" size={32} color="#9ca3af" />
+                    <Text style={styles.imageLabel}>Ghana Card (Back) - submitted</Text>
+                  </View>
                 )}
                 {selectedSubmission.selfieUrl && (
-                  <TouchableOpacity onPress={() => openImageModal(selectedSubmission.selfieUrl!)}>
-                    <Image source={{ uri: selectedSubmission.selfieUrl }} style={styles.fullImage} />
-                    <Text style={styles.imageLabel}>Selfie</Text>
-                  </TouchableOpacity>
+                  <View style={styles.docPlaceholder}>
+                    <Ionicons name="person" size={32} color="#9ca3af" />
+                    <Text style={styles.imageLabel}>Selfie - submitted</Text>
+                  </View>
                 )}
               </View>
 
@@ -503,6 +506,17 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 8,
     backgroundColor: '#f3f4f6',
+  },
+  thumbnailPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  docPlaceholder: {
+    padding: 24,
+    backgroundColor: '#f9fafb',
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 12,
   },
   actionRow: {
     flexDirection: 'row',
