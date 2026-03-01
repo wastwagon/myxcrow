@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
+import type { LucideIcon } from 'lucide-react';
 import {
   Home,
   LogIn,
@@ -15,7 +16,7 @@ import { isAuthenticated, isAdmin } from '@/lib/auth';
 interface NavItem {
   href: string;
   label: string;
-  icon: React.ComponentType<{ className?: string; size?: number }>;
+  icon: LucideIcon;
 }
 
 const LOGGED_OUT_ITEMS: NavItem[] = [
