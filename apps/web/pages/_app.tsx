@@ -11,6 +11,8 @@ const MobileBottomNav = dynamic(() => import('@/components/MobileBottomNav'), {
   ssr: false,
 });
 
+const PremiumFooter = dynamic(() => import('@/components/PremiumFooter'));
+
 export default function App({ Component, pageProps }: AppProps) {
   const [queryClient] = useState(
     () =>
@@ -28,8 +30,11 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <div className="min-h-screen pb-20 md:pb-0">
-          <Component {...pageProps} />
+        <div className="min-h-screen pb-20 md:pb-0 flex flex-col">
+          <div className="flex-1">
+            <Component {...pageProps} />
+          </div>
+          <PremiumFooter />
         </div>
         <MobileBottomNav />
         <Toaster
