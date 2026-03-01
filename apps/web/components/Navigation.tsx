@@ -73,7 +73,7 @@ export default function Navigation() {
             <Link href={admin ? "/admin" : "/dashboard"} className="flex items-center gap-3 group">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform overflow-hidden bg-brand-maroon-deep">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/logo/website-logo.gif" alt="MYXCROW" width={40} height={40} className="object-contain" />
+                <img src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={40} height={40} className="object-contain" />
               </div>
               <span className="text-xl font-bold text-gray-900 group-hover:text-brand-maroon transition-colors hidden sm:block">
                 MYXCROW

@@ -1,61 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { CheckCircle, XCircle, Loader2, Shield, Lock, Zap, Users, TrendingUp, ArrowRight, Star, FileText, Wallet, MessageSquare } from 'lucide-react';
-import apiClient from '@/lib/api-client';
+import { Shield, Lock, Zap, Users, TrendingUp, ArrowRight, Star, FileText, Wallet, MessageSquare } from 'lucide-react';
 import { isAuthenticated } from '@/lib/auth';
 import PublicHeader from '@/components/PublicHeader';
 
-interface HealthStatus {
-  status: string;
-  timestamp: string;
-}
-
 export default function Home() {
   const router = useRouter();
-  const [healthStatus, setHealthStatus] = useState<HealthStatus | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    checkHealth();
-    // Redirect if already authenticated
     if (isAuthenticated()) {
       router.push('/dashboard');
     }
   }, [router]);
-
-  const checkHealth = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      // Try with timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-      
-      // Health endpoint is at /api/health (no /api prefix needed since baseURL already has it)
-      const response = await apiClient.get('/health', {
-        signal: controller.signal,
-        timeout: 5000,
-      });
-      clearTimeout(timeoutId);
-      setHealthStatus(response.data);
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
-        setError('Connection timeout - API may be offline');
-      } else if (err.response) {
-        setError(`API Error: ${err.response.status} - ${err.response.statusText}`);
-      } else if (err.request) {
-        setError('Network Error - Cannot reach API server. Please ensure the API is running.');
-      } else {
-        setError(err.message || 'Failed to connect to API');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const isLocal = process.env.NEXT_PUBLIC_ENV === 'local';
 
@@ -108,7 +67,7 @@ export default function Home() {
             {/* Header */}
             <div className="text-center mb-16">
               <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-6 shadow-lg overflow-hidden bg-brand-maroon-deep">
-                <Image src="/logo/website-logo.gif" alt="MYXCROW" width={80} height={80} className="object-contain" unoptimized />
+                <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={80} height={80} className="object-contain" />
               </div>
               <h1 className="text-6xl font-bold text-white mb-4">
                 MYXCROW
@@ -119,63 +78,6 @@ export default function Home() {
               <p className="text-lg text-white/80 max-w-2xl mx-auto">
                 Protect your payments with our trusted escrow platform. Funds are held securely until both parties are satisfied.
               </p>
-            </div>
-
-            {/* API Health Status */}
-            <div className="bg-white/95 rounded-2xl shadow-xl p-6 mb-8 border border-brand-gold/20">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-semibold text-brand-maroon-black flex items-center gap-2">
-                  <div className={`w-3 h-3 rounded-full ${healthStatus ? 'bg-green-500 animate-pulse' : error ? 'bg-red-500' : 'bg-gray-400'}`} />
-                  System Status
-                </h2>
-                <button
-                  onClick={checkHealth}
-                  disabled={loading}
-                  className="px-4 py-2 bg-brand-maroon text-white rounded-lg hover:bg-brand-maroon-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-all"
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Checking...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle className="w-4 h-4" />
-                      Refresh
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {loading && !healthStatus && (
-                <div className="flex items-center gap-3 text-gray-600">
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>Checking API connection...</span>
-                </div>
-              )}
-
-              {error && (
-                <div className="flex items-center gap-3 text-red-600 bg-red-50 p-4 rounded-lg">
-                  <XCircle className="w-5 h-5" />
-                  <div>
-                    <p className="font-medium">Connection Failed</p>
-                    <p className="text-sm text-gray-600">{error}</p>
-                  </div>
-                </div>
-              )}
-
-              {healthStatus && (
-                <div className="flex items-center gap-3 text-green-600 bg-green-50 p-4 rounded-lg">
-                  <CheckCircle className="w-5 h-5" />
-                  <div>
-                    <p className="font-medium">API is Healthy</p>
-                    <p className="text-sm text-gray-600">
-                      Status: {healthStatus.status} | Last checked:{' '}
-                      {new Date(healthStatus.timestamp).toLocaleTimeString()}
-                    </p>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Features Grid */}

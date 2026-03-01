@@ -130,7 +130,7 @@ export default function Register() {
           {/* Branding Header */}
           <div className="text-center mb-6">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg overflow-hidden bg-brand-maroon-deep">
-              <Image src="/logo/website-logo.gif" alt="MYXCROW" width={64} height={64} className="object-contain" unoptimized />
+              <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={64} height={64} className="object-contain" />
             </div>
             <h1 className="text-3xl md:text-4xl font-bold mb-2 text-white">
               MYXCROW

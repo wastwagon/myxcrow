@@ -24,7 +24,7 @@ export default function PublicHeader() {
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-10 h-10 flex-shrink-0">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo/website-logo.gif" alt="MYXCROW" width={40} height={40} className="object-contain" />
+              <img src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={40} height={40} className="object-contain" />
             </div>
             <span className="text-xl font-bold text-white hidden sm:inline group-hover:text-brand-gold transition-colors">
               MYXCROW

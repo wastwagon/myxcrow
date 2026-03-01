@@ -63,7 +63,7 @@ export default function Login() {
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg overflow-hidden bg-brand-maroon-deep">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo/website-logo.gif" alt="MYXCROW" width={64} height={64} className="object-contain" />
+              <img src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={64} height={64} className="object-contain" />
             </div>
             <h1 className="text-4xl md:text-5xl font-bold mb-2 text-white">
               MYXCROW
