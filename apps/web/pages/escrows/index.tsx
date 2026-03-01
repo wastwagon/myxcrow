@@ -121,7 +121,7 @@ export default function EscrowsPage() {
           action={
             <Link
               href="/escrows/new"
-              className="px-4 py-2 bg-brand-maroon text-white rounded-lg hover:bg-brand-maroon-dark font-medium shadow-sm transition-all flex items-center gap-2"
+              className="min-h-[48px] px-4 py-3 bg-brand-maroon text-white rounded-lg hover:bg-brand-maroon-dark font-medium shadow-sm transition-all flex items-center justify-center gap-2 touch-manipulation"
             >
               <Plus className="w-5 h-5" />
               New Escrow
@@ -159,14 +159,16 @@ export default function EscrowsPage() {
               </div>
               <div className="flex gap-2">
                 <button
+                  type="button"
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm"
+                  className="flex-1 min-h-[48px] px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm touch-manipulation"
                 >
                   {showAdvancedFilters ? 'Hide' : 'Show'} Advanced Filters
                 </button>
                 <button
+                  type="button"
                   onClick={handleExportCSV}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
+                  className="min-h-[48px] flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm touch-manipulation"
                 >
                   <Download className="w-4 h-4" />
                   Export CSV
@@ -279,7 +281,7 @@ export default function EscrowsPage() {
                 <Link
                   key={escrow.id}
                   href={`/escrows/${escrow.id}`}
-                  className="block p-6 hover:bg-gray-50 transition-colors"
+                  className="block p-6 min-h-[48px] hover:bg-gray-50 transition-colors touch-manipulation"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">

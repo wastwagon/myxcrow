@@ -183,10 +183,12 @@ export default function Navigation() {
               Logout
             </button>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Button - 44x44 min touch target */}
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -198,10 +200,10 @@ export default function Navigation() {
           <div className="md:hidden border-t border-gray-200 py-4 space-y-1 max-h-[70vh] overflow-y-auto bg-gray-50">
             {/* Hide Dashboard link for admins - they use Admin Dashboard instead */}
             {!admin && (
-              <Link
-                href="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`block px-4 py-3 rounded-lg font-medium transition-all ${
+            <Link
+              href="/dashboard"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-4 py-3 min-h-[48px] flex items-center rounded-lg font-medium transition-all touch-manipulation ${
                   isActive('/dashboard')
                     ? 'bg-brand-maroon text-white'
                     : 'text-gray-700 hover:bg-gray-200'
@@ -213,7 +215,7 @@ export default function Navigation() {
             <Link
               href="/escrows"
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-4 py-3 rounded-lg font-medium transition-all ${
+              className={`block px-4 py-3 min-h-[48px] flex items-center rounded-lg font-medium transition-all touch-manipulation ${
                 isActive('/escrows')
                   ? 'bg-brand-maroon text-white'
                   : 'text-gray-700 hover:bg-gray-200'
@@ -224,7 +226,7 @@ export default function Navigation() {
             <Link
               href="/wallet"
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-4 py-3 rounded-lg font-medium transition-all ${
+              className={`block px-4 py-3 min-h-[48px] flex items-center rounded-lg font-medium transition-all touch-manipulation ${
                 isActive('/wallet')
                   ? 'bg-brand-maroon text-white'
                   : 'text-gray-700 hover:bg-gray-200'
@@ -235,7 +237,7 @@ export default function Navigation() {
             <Link
               href="/disputes"
               onClick={() => setMobileMenuOpen(false)}
-              className={`block px-4 py-3 rounded-lg font-medium transition-all ${
+              className={`block px-4 py-3 min-h-[48px] flex items-center rounded-lg font-medium transition-all touch-manipulation ${
                 isActive('/disputes')
                   ? 'bg-brand-maroon text-white'
                   : 'text-gray-700 hover:bg-gray-200'
@@ -253,7 +255,7 @@ export default function Navigation() {
                     key={href}
                     href={href}
                     onClick={() => setMobileMenuOpen(false)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all ${
+                    className={`flex items-center gap-2 px-4 py-3 min-h-[48px] rounded-lg font-medium transition-all touch-manipulation ${
                       isActive(href) ? 'bg-brand-maroon text-white' : 'text-gray-700 hover:bg-gray-200'
                     }`}
                   >
@@ -267,7 +269,7 @@ export default function Navigation() {
               <Link
                 href="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-3 text-gray-700 hover:bg-gray-200 rounded-lg font-medium"
+                className="block px-4 py-3 min-h-[48px] flex items-center text-gray-700 hover:bg-gray-200 rounded-lg font-medium touch-manipulation"
               >
                 <User className="w-4 h-4 inline mr-2" />
                 Profile
@@ -277,7 +279,7 @@ export default function Navigation() {
                   handleLogout();
                   setMobileMenuOpen(false);
                 }}
-                className="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-200 rounded-lg font-medium"
+                className="w-full text-left px-4 py-3 min-h-[48px] flex items-center text-red-600 hover:bg-gray-200 rounded-lg font-medium touch-manipulation"
               >
                 <LogOut className="w-4 h-4 inline mr-2" />
                 Logout

@@ -117,14 +117,14 @@ export default function WalletPage() {
           <div className="flex flex-wrap gap-4">
             <Link
               href="/wallet/topup"
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center gap-2"
+              className="min-h-[48px] px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 touch-manipulation"
             >
               <Plus className="w-4 h-4" />
               Top Up Wallet
             </Link>
             <Link
               href="/wallet/withdraw"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2"
+              className="min-h-[48px] px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 touch-manipulation"
             >
               <ArrowUpCircle className="w-4 h-4" />
               Request Withdrawal
@@ -132,7 +132,7 @@ export default function WalletPage() {
             {admin && (
               <Link
                 href="/admin"
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center gap-2"
+                className="min-h-[48px] px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 touch-manipulation"
               >
                 <Users className="w-4 h-4" />
                 Admin Panel

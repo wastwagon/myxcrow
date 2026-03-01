@@ -178,7 +178,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               href="/escrows/new"
-              className="flex items-center gap-4 p-4 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all group"
+              className="flex items-center gap-4 p-4 min-h-[48px] border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all group touch-manipulation"
             >
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Plus className="w-6 h-6 text-white" />
@@ -192,7 +192,7 @@ export default function Dashboard() {
 
             <Link
               href="/wallet"
-              className="flex items-center gap-4 p-4 border-2 border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-all group"
+              className="flex items-center gap-4 p-4 min-h-[48px] border-2 border-green-200 rounded-lg hover:border-green-400 hover:bg-green-50 transition-all group touch-manipulation"
             >
               <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Wallet className="w-6 h-6 text-white" />
@@ -206,7 +206,7 @@ export default function Dashboard() {
 
             <Link
               href="/escrows"
-              className="flex items-center gap-4 p-4 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-all group"
+              className="flex items-center gap-4 p-4 min-h-[48px] border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:bg-purple-50 transition-all group touch-manipulation"
             >
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                 <FileText className="w-6 h-6 text-white" />
@@ -246,7 +246,7 @@ export default function Dashboard() {
                   <Link
                     key={escrow.id}
                     href={`/escrows/${escrow.id}`}
-                    className="block p-5 border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all group"
+                    className="block p-5 min-h-[48px] border-2 border-gray-200 rounded-xl hover:border-blue-300 hover:bg-blue-50 transition-all group touch-manipulation"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex-1">

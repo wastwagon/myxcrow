@@ -180,7 +180,7 @@ export default function Register() {
                       {...register('firstName')}
                       type="text"
                       id="firstName"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
+                      className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation"
                       placeholder="John"
                     />
                     {errors.firstName && (
@@ -195,7 +195,7 @@ export default function Register() {
                       {...register('lastName')}
                       type="text"
                       id="lastName"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
+                      className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation"
                       placeholder="Doe"
                     />
                     {errors.lastName && (
@@ -214,7 +214,7 @@ export default function Register() {
                     {...register('email')}
                     type="email"
                     id="email"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
+                    className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation"
                     placeholder="you@example.com"
                   />
                   {errors.email && (
@@ -232,7 +232,7 @@ export default function Register() {
                     {...register('phone')}
                     type="tel"
                     id="phone"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
+                    className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation"
                     placeholder="0551234567"
                   />
                   {errors.phone && (
@@ -258,7 +258,7 @@ export default function Register() {
                       type="button"
                       onClick={onSendCode}
                       disabled={loading || countdown > 0 || !phone || !/^0[0-9]{9}$/.test(phone)}
-                      className="mt-3 w-full py-2 px-4 border-2 border-brand-maroon text-brand-maroon rounded-xl hover:bg-brand-maroon/5 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="mt-3 w-full min-h-[48px] py-3 px-4 border-2 border-brand-maroon text-brand-maroon rounded-xl hover:bg-brand-maroon/5 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation"
                     >
                       <MessageCircle className="w-4 h-4" />
                       {loading ? 'Sending...' : countdown > 0 ? `Resend in ${countdown}s` : 'Send verification code'}
@@ -278,7 +278,7 @@ export default function Register() {
                       inputMode="numeric"
                       maxLength={6}
                       id="code"
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none text-center text-lg tracking-widest"
+                      className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none text-center text-lg tracking-widest touch-manipulation"
                       placeholder="123456"
                     />
                     {errors.code && (
@@ -306,7 +306,7 @@ export default function Register() {
                     {...register('password')}
                     type="password"
                     id="password"
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
+                    className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation"
                     placeholder="••••••••"
                   />
                   {errors.password && (
@@ -319,7 +319,7 @@ export default function Register() {
                 <button
                   type="submit"
                   disabled={loading || !codeSent}
-                  className="w-full py-3 px-6 bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white rounded-xl hover:from-brand-maroon-dark hover:to-brand-maroon-darker focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl"
+                  className="w-full min-h-[48px] py-3 px-6 bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white rounded-xl hover:from-brand-maroon-dark hover:to-brand-maroon-darker focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl touch-manipulation"
                 >
                   {loading ? (
                     <>

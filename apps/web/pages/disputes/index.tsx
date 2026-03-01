@@ -68,7 +68,7 @@ export default function DisputesPage() {
                 <Link
                   key={dispute.id}
                   href={`/disputes/${dispute.id}`}
-                  className="block p-6 hover:bg-gray-50 transition-colors"
+                  className="block p-6 min-h-[48px] hover:bg-gray-50 transition-colors touch-manipulation"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
