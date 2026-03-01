@@ -38,7 +38,7 @@ export default function App({ Component, pageProps }: AppProps) {
         </div>
         <MobileBottomNav />
         <Toaster
-          position="top-right"
+          position="top-center"
           toastOptions={{
             duration: 4000,
             style: {

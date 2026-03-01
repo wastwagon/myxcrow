@@ -36,7 +36,7 @@ export default function PremiumFooter() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="text-white/80 hover:text-brand-gold transition-colors"
+                  className="min-h-[44px] py-2 flex items-center text-white/80 hover:text-brand-gold transition-colors touch-manipulation"
                 >
                   {link.label}
                 </Link>
@@ -52,7 +52,7 @@ export default function PremiumFooter() {
                 href={href}
                 target={href.startsWith('#') ? undefined : '_blank'}
                 rel={href.startsWith('#') ? undefined : 'noopener noreferrer'}
-                className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center text-white/80 hover:bg-brand-gold hover:text-brand-maroon-black transition-all"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-lg bg-white/10 flex items-center justify-center text-white/80 hover:bg-brand-gold hover:text-brand-maroon-black transition-all touch-manipulation"
                 aria-label={label}
               >
                 <Icon className="w-5 h-5" />

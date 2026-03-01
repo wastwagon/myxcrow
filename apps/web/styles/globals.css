@@ -42,6 +42,14 @@
   body {
     @apply bg-background text-foreground;
   }
+  /* Reduce 300ms tap delay on touch devices – mobile-first */
+  button,
+  a,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    touch-action: manipulation;
+  }
 }
 
 /* Custom scrollbar */

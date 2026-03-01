@@ -1,36 +1,37 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/router';
-import { Shield, Lock, Zap, Users, ArrowRight, CheckCircle2, ChevronRight, MapPin } from 'lucide-react';
+import { Shield, Lock, Zap, Users, ArrowRight, CheckCircle2, MapPin, X, ChevronRight } from 'lucide-react';
 import { isAuthenticated } from '@/lib/auth';
 import PublicHeader from '@/components/PublicHeader';
 
 const HOW_IT_WORKS = [
-  { step: 1, title: 'Agree on terms', desc: 'Buyer and seller agree on amount, goods or services, and delivery.' },
-  { step: 2, title: 'Buyer pays MYXCROW', desc: 'Funds are held securely in escrow until conditions are met.' },
-  { step: 3, title: 'Seller delivers', desc: 'Seller ships goods or completes the service as agreed.' },
-  { step: 4, title: 'Buyer approves', desc: 'Buyer inspects and confirms receipt or completion.' },
-  { step: 5, title: 'We release payment', desc: 'Funds are released to the seller. Done.' },
+  { step: 1, title: 'Agree on terms', desc: 'Buyer and seller agree on the amount, goods or services, and delivery terms before starting.' },
+  { step: 2, title: 'Buyer funds escrow', desc: 'Buyer pays into a secure MYXCROW escrow. Funds are held until both parties fulfil their obligations.' },
+  { step: 3, title: 'Seller delivers', desc: 'Seller ships goods or completes the service according to the agreed terms.' },
+  { step: 4, title: 'Buyer confirms', desc: 'Buyer inspects delivery and confirms satisfaction, or raises a dispute if needed.' },
+  { step: 5, title: 'Release payment', desc: 'MYXCROW releases funds to the seller once the buyer approves. Transaction complete.' },
 ];
 
 const USE_CASES = [
-  { title: 'Diaspora & remittances', desc: 'Build or invest back home. Milestone-based releases so your projects stay on track.', icon: MapPin },
-  { title: 'Local transactions', desc: 'Buy property, vehicles, or high-value goods. Secure until both parties are satisfied.', icon: Shield },
-  { title: 'Real estate & contracts', desc: 'Close deals with confidence. Funds released only when obligations are fulfilled.', icon: Lock },
-  { title: 'Goods & services', desc: 'Protect buyers and sellers. No more lost payments or undelivered orders.', icon: Zap },
+  { title: 'Diaspora & remittances', desc: 'Build or invest from abroad. Milestone-based releases keep your projects on track.', icon: MapPin },
+  { title: 'Local transactions', desc: 'Buy property, vehicles, or high-value goods. Funds held until both parties are satisfied.', icon: Shield },
+  { title: 'Real estate & contracts', desc: 'Close deals with confidence. Funds released only when all obligations are fulfilled.', icon: Lock },
+  { title: 'Goods & services', desc: 'Protect buyers and sellers. No lost payments, no undelivered orders.', icon: Zap },
 ];
 
 const FAQ_ITEMS = [
-  { q: 'How are my funds protected?', a: 'We hold funds in a secure escrow account. Money is released only when both parties confirm the deal is complete.' },
-  { q: 'What fees do you charge?', a: 'A small percentage fee on each successful transaction. No subscriptions, no hidden fees. See our Terms for details.' },
-  { q: 'Is MYXCROW available in Ghana?', a: 'Yes. We are built for Ghana and operate in Ghana Cedis (₵). Ideal for local and diaspora transactions.' },
-  { q: 'How do I start an escrow?', a: 'Register, complete KYC, then create a new escrow. Add the other party and fund it. Simple.' },
+  { q: 'How are my funds protected?', a: 'MYXCROW holds funds in a secure escrow account. Money is released only when both buyer and seller confirm the transaction is complete. If there is a dispute, our team mediates before any release.' },
+  { q: 'What fees do you charge?', a: 'We charge a small percentage fee on each successful transaction. There are no monthly subscriptions or hidden charges. The exact fee is shown before you confirm an escrow. See our Terms for full details.' },
+  { q: 'Is MYXCROW available in Ghana?', a: 'Yes. MYXCROW is built for Ghana and operates in Ghana Cedis (₵). It is suitable for local and diaspora transactions, including real estate, goods, and services.' },
+  { q: 'How do I start an escrow?', a: 'Register, complete KYC verification, then create a new escrow. Add the other party (buyer or seller), set the amount and terms, and fund the escrow. The other party receives instructions to complete their part.' },
 ];
 
 export default function Home() {
   const router = useRouter();
+  const [faqModal, setFaqModal] = useState<typeof FAQ_ITEMS[0] | null>(null);
 
   useEffect(() => {
     if (isAuthenticated()) {
@@ -68,23 +69,23 @@ export default function Home() {
 
         <div className="container mx-auto px-4 py-10 md:py-12">
           <div className="max-w-6xl mx-auto">
-            {/* Hero + regional positioning */}
+            {/* Hero – logo retained for brand recognition; copy streamlined, no duplication */}
             <div className="text-center mb-10 md:mb-14">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-white/90 text-xs font-medium mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white/90 text-xs font-medium mb-4">
                 <MapPin className="w-3.5 h-3.5" />
                 Trusted escrow for Ghana
               </div>
-              <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl mb-4 md:mb-6 shadow-lg overflow-hidden bg-brand-maroon-deep">
+              <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl mb-4 md:mb-6 shadow-lg overflow-hidden bg-brand-maroon-deep ring-2 ring-brand-gold/30">
                 <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={80} height={80} className="object-contain w-full h-full" />
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 md:mb-4">
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 md:mb-4 tracking-tight">
                 MYXCROW
               </h1>
-              <p className="text-base md:text-2xl text-brand-gold font-medium mb-1 md:mb-2">
+              <p className="text-base md:text-2xl text-brand-gold font-medium mb-2 md:mb-3">
                 Secure Escrow Services
               </p>
-              <p className="text-sm md:text-lg text-white/80 max-w-2xl mx-auto hidden sm:block">
-                For the home you&apos;re building from afar, or the deal you&apos;re closing in Accra. Your money, held safely until both sides are satisfied.
+              <p className="text-sm md:text-lg text-white/80 max-w-2xl mx-auto">
+                For the home you&apos;re building from afar, or the deal you&apos;re closing in Accra. Funds held safely until both sides are satisfied.
               </p>
             </div>
 
@@ -103,26 +104,31 @@ export default function Home() {
               ))}
             </div>
 
-            {/* How it works */}
-            <div className="bg-white/95 rounded-2xl shadow-xl p-6 md:p-8 mb-12 border border-brand-gold/20">
-              <h2 className="text-2xl md:text-3xl font-bold text-brand-maroon-black mb-6 text-center">
+            {/* How it works – modern premium horizontal timeline */}
+            <div className="bg-white/95 rounded-2xl shadow-xl p-6 md:p-10 mb-12 border border-brand-gold/20 overflow-hidden">
+              <h2 className="text-2xl md:text-3xl font-bold text-brand-maroon-black mb-8 md:mb-12 text-center">
                 How it works
               </h2>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6">
-                {HOW_IT_WORKS.map((item) => (
-                  <div key={item.step} className="flex flex-col">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="flex-shrink-0 w-8 h-8 rounded-full bg-brand-maroon text-white flex items-center justify-center text-sm font-bold">
+              <div className="relative">
+                {/* Timeline line – horizontal on desktop, vertical on mobile */}
+                <div className="hidden lg:block absolute top-7 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-brand-gold/40 via-brand-maroon/60 to-brand-gold/40" aria-hidden />
+                <div className="lg:hidden absolute left-1/2 top-6 bottom-6 w-0.5 -translate-x-1/2 bg-gradient-to-b from-brand-maroon/40 via-brand-gold/50 to-brand-maroon/40" aria-hidden />
+                <div className="relative flex flex-col lg:flex-row lg:justify-between gap-8 lg:gap-4">
+                  {HOW_IT_WORKS.map((item) => (
+                    <div key={item.step} className="relative flex flex-col items-center text-center lg:flex-1 group z-10">
+                      <div className="relative z-10 w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-brand-maroon to-brand-maroon-dark flex items-center justify-center text-white font-bold text-sm md:text-base shadow-lg ring-4 ring-white group-hover:scale-110 transition-transform">
                         {item.step}
-                      </span>
-                      <h3 className="font-semibold text-brand-maroon-black">{item.title}</h3>
+                      </div>
+                      <div className="mt-4 space-y-1">
+                        <h3 className="font-semibold text-brand-maroon-black text-sm md:text-base">{item.title}</h3>
+                        <p className="text-xs md:text-sm text-gray-600 max-w-[200px] mx-auto">{item.desc}</p>
+                      </div>
+                      {item.step < 5 && (
+                        <ChevronRight className="hidden lg:block absolute -right-2 top-8 w-5 h-5 text-brand-gold/50" aria-hidden />
+                      )}
                     </div>
-                    <p className="text-sm text-gray-600 pl-11">{item.desc}</p>
-                    {item.step < 5 && (
-                      <ChevronRight className="hidden lg:block w-5 h-5 text-brand-gold/60 mt-2 pl-11" aria-hidden />
-                    )}
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -196,25 +202,74 @@ export default function Home() {
               </div>
             </div>
 
-            {/* FAQ */}
-            <div className="bg-white/95 rounded-2xl shadow-xl p-6 md:p-8 mb-12 border border-brand-gold/20">
-              <h2 className="text-2xl md:text-3xl font-bold text-brand-maroon-black mb-6 text-center">
+            {/* FAQ – premium cards with pop-up modal */}
+            <div className="mb-12">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 text-center">
                 Frequently asked questions
               </h2>
-              <div className="space-y-6 max-w-2xl mx-auto">
+              <div className="grid sm:grid-cols-2 gap-4">
                 {FAQ_ITEMS.map((faq) => (
-                  <div key={faq.q}>
-                    <h3 className="font-semibold text-brand-maroon-black mb-1">{faq.q}</h3>
-                    <p className="text-gray-600 text-sm md:text-base">{faq.a}</p>
-                  </div>
+                  <button
+                    key={faq.q}
+                    type="button"
+                    onClick={() => setFaqModal(faq)}
+                    className="min-h-[48px] bg-white/95 rounded-xl p-5 md:p-6 text-left border border-brand-gold/20 hover:border-brand-gold/50 shadow-lg hover:shadow-xl transition-all group touch-manipulation w-full"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <span className="font-semibold text-brand-maroon-black text-sm md:text-base group-hover:text-brand-maroon transition-colors">
+                        {faq.q}
+                      </span>
+                      <ChevronRight className="flex-shrink-0 w-5 h-5 text-brand-gold/70 group-hover:text-brand-maroon group-hover:translate-x-0.5 transition-all" />
+                    </div>
+                    <p className="mt-2 text-gray-500 text-xs line-clamp-2">{faq.a}</p>
+                  </button>
                 ))}
               </div>
               <div className="mt-6 text-center">
-                <Link href="/support" className="text-brand-maroon font-semibold hover:underline text-sm">
+                <Link href="/support" className="text-brand-gold font-semibold hover:underline text-sm">
                   More questions? Contact Support
                 </Link>
               </div>
             </div>
+
+            {/* FAQ modal */}
+            {faqModal && (
+              <div
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+                onClick={() => setFaqModal(null)}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="faq-modal-title"
+              >
+                <div
+                  className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 md:p-8 border border-brand-gold/20"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <h3 id="faq-modal-title" className="text-lg font-semibold text-brand-maroon-black pr-8">
+                      {faqModal.q}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setFaqModal(null)}
+                      className="flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-brand-maroon transition-colors touch-manipulation"
+                      aria-label="Close"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">{faqModal.a}</p>
+                  <div className="mt-6 flex justify-end">
+                    <Link
+                      href="/support"
+                      className="text-brand-maroon font-semibold hover:underline text-sm"
+                    >
+                      Contact Support →
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* CTA Section */}
             <div className="bg-gradient-to-r from-brand-maroon via-brand-maroon-dark to-brand-maroon-darker rounded-2xl shadow-xl p-8 mb-8 text-white">
@@ -225,14 +280,14 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/register"
-                  className="px-8 py-4 bg-brand-gold text-brand-maroon-black rounded-lg hover:bg-primary-200 font-semibold text-center transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                  className="min-h-[48px] px-8 py-4 bg-brand-gold text-brand-maroon-black rounded-lg hover:bg-primary-200 font-semibold text-center transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 touch-manipulation"
                 >
                   Start an Escrow
                   <ArrowRight className="w-5 h-5" />
                 </Link>
                 <Link
                   href="/login"
-                  className="px-8 py-4 bg-white/10 text-white rounded-lg hover:bg-white/20 font-semibold text-center transition-all border-2 border-brand-gold/50"
+                  className="min-h-[48px] px-8 py-4 bg-white/10 text-white rounded-lg hover:bg-white/20 font-semibold text-center transition-all border-2 border-brand-gold/50 flex items-center justify-center touch-manipulation"
                 >
                   Sign In
                 </Link>
