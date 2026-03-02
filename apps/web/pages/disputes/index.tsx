@@ -51,56 +51,55 @@ export default function DisputesPage() {
         <PageHeader
           title="Disputes"
           subtitle="View and manage disputes"
-          icon={<AlertCircle className="w-6 h-6 text-white" />}
-          gradient="red"
+          icon={<AlertCircle className="w-6 h-6" />}
         />
 
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 overflow-hidden">
           {isLoading ? (
             <div className="p-6 space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 bg-gray-200 animate-pulse rounded" />
+                <div key={i} className="h-24 bg-white/10 animate-pulse rounded-xl" />
               ))}
             </div>
           ) : disputes && disputes.length > 0 ? (
-            <div className="divide-y">
+            <div className="divide-y divide-white/10">
               {disputes.map((dispute) => (
                 <Link
                   key={dispute.id}
                   href={`/disputes/${dispute.id}`}
-                  className="block p-6 min-h-[48px] hover:bg-gray-50 transition-colors touch-manipulation"
+                  className="block p-6 min-h-[48px] hover:bg-white/5 transition-colors touch-manipulation"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <AlertCircle className="w-5 h-5 text-red-600" />
-                        <h3 className="font-semibold text-gray-900">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
+                        <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
+                        <h3 className="font-semibold text-white">
                           Dispute: {dispute.reason.replace('_', ' ')}
                         </h3>
                         <span
                           className={`px-2 py-1 text-xs font-medium rounded ${
-                            statusColors[dispute.status] || 'bg-gray-100 text-gray-800'
+                            statusColors[dispute.status] || 'bg-white/10 text-white/90'
                           }`}
                         >
                           {dispute.status}
                         </span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">{dispute.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <p className="text-sm text-white/70 mb-2">{dispute.description}</p>
+                      <div className="flex items-center gap-4 text-xs text-white/60">
                         <span>Escrow: {dispute.escrowId.slice(0, 8)}...</span>
                         <span>•</span>
                         <span>{formatDateShort(dispute.createdAt)}</span>
                       </div>
                     </div>
-                    <div className="text-gray-400">→</div>
+                    <div className="text-brand-gold">→</div>
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
-            <div className="p-12 text-center text-gray-500">
-              <AlertCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-              <p className="text-lg mb-2">No disputes found</p>
+            <div className="p-12 text-center text-white/70">
+              <AlertCircle className="w-12 h-12 mx-auto mb-3 text-white/40" />
+              <p className="text-lg mb-2 text-white">No disputes found</p>
               <p className="text-sm">Disputes will appear here when created</p>
             </div>
           )}

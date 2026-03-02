@@ -65,17 +65,17 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <nav className="bg-[#160f10]/95 backdrop-blur-md border-b border-white/10 sticky top-0 z-50 shadow-lg shadow-black/20">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}
           <div className="flex items-center gap-3">
             <Link href={admin ? "/admin" : "/dashboard"} className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform overflow-hidden bg-brand-maroon-deep">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform overflow-hidden bg-brand-maroon-deep ring-1 ring-white/10">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={40} height={40} className="object-contain" />
               </div>
-              <span className="text-xl font-bold text-gray-900 group-hover:text-brand-maroon transition-colors hidden sm:block">
+              <span className="text-xl font-bold text-white group-hover:text-brand-gold transition-colors hidden sm:block">
                 MYXCROW
               </span>
             </Link>
@@ -90,8 +90,8 @@ export default function Navigation() {
                 href="/dashboard"
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   isActive('/dashboard')
-                    ? 'bg-brand-maroon text-white shadow-sm'
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-brand-maroon'
+                    ? 'bg-brand-gold text-brand-maroon-black shadow-sm'
+                    : 'text-white/90 hover:bg-white/10 hover:text-white'
                 }`}
               >
                 Dashboard
@@ -101,8 +101,8 @@ export default function Navigation() {
               href="/escrows"
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 isActive('/escrows')
-                  ? 'bg-brand-maroon text-white shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-brand-maroon'
+                  ? 'bg-brand-gold text-brand-maroon-black shadow-sm'
+                  : 'text-white/90 hover:bg-white/10 hover:text-white'
               }`}
             >
               Escrows
@@ -111,8 +111,8 @@ export default function Navigation() {
               href="/wallet"
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 isActive('/wallet')
-                  ? 'bg-brand-maroon text-white shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-brand-maroon'
+                  ? 'bg-brand-gold text-brand-maroon-black shadow-sm'
+                  : 'text-white/90 hover:bg-white/10 hover:text-white'
               }`}
             >
               Wallet
@@ -121,8 +121,8 @@ export default function Navigation() {
               href="/disputes"
               className={`px-4 py-2 rounded-lg font-medium transition-all ${
                 isActive('/disputes')
-                  ? 'bg-brand-maroon text-white shadow-sm'
-                  : 'text-gray-700 hover:bg-gray-100 hover:text-brand-maroon'
+                  ? 'bg-brand-gold text-brand-maroon-black shadow-sm'
+                  : 'text-white/90 hover:bg-white/10 hover:text-white'
               }`}
             >
               Disputes
@@ -131,14 +131,14 @@ export default function Navigation() {
             {/* Admin dropdown: one control, all admin links inside */}
             {admin && (
               <div className="relative flex items-center" ref={adminDropdownRef}>
-                <div className="h-6 w-px bg-gray-300 mx-2" />
+                <div className="h-6 w-px bg-white/20 mx-2" />
                 <button
                   type="button"
                   onClick={() => setAdminDropdownOpen(!adminDropdownOpen)}
                   className={`px-4 py-2 rounded-lg font-medium transition-all flex items-center gap-2 ${
                     router.pathname.startsWith('/admin')
-                      ? 'bg-brand-maroon text-white shadow-sm'
-                      : 'text-gray-700 hover:bg-gray-100 hover:text-brand-maroon'
+                      ? 'bg-brand-gold text-brand-maroon-black shadow-sm'
+                      : 'text-white/90 hover:bg-white/10 hover:text-white'
                   }`}
                 >
                   <Settings className="w-4 h-4 shrink-0" />
@@ -146,14 +146,14 @@ export default function Navigation() {
                   <ChevronDown className={`w-4 h-4 shrink-0 transition-transform ${adminDropdownOpen ? 'rotate-180' : ''}`} />
                 </button>
                 {adminDropdownOpen && (
-                  <div className="absolute top-full left-0 mt-1 py-2 w-56 bg-white border border-gray-200 rounded-xl shadow-lg z-50">
+                  <div className="absolute top-full left-0 mt-1 py-2 w-56 bg-[#1f1414] border border-white/10 rounded-xl shadow-xl z-50 backdrop-blur-md">
                     {ADMIN_LINKS.map(({ href, label, icon: Icon }) => (
                       <Link
                         key={href}
                         href={href}
                         onClick={() => setAdminDropdownOpen(false)}
-                        className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors hover:bg-gray-50 ${
-                          isActive(href) ? 'bg-brand-maroon/10 text-brand-maroon' : 'text-gray-700 hover:text-brand-maroon'
+                        className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                          isActive(href) ? 'bg-brand-gold/20 text-brand-gold' : 'text-white/90 hover:bg-white/10 hover:text-white'
                         }`}
                       >
                         <Icon className="w-4 h-4 shrink-0" />
@@ -170,14 +170,14 @@ export default function Navigation() {
           <div className="flex items-center gap-3">
             <Link
               href="/profile"
-              className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-brand-maroon rounded-lg transition-colors"
+              className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium text-white/90 hover:bg-white/10 hover:text-white rounded-lg transition-colors"
             >
               <User className="w-4 h-4" />
               <span className="max-w-[150px] truncate">{user?.email || 'User'}</span>
             </Link>
             <button
               onClick={handleLogout}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 hover:text-red-600 rounded-lg transition-colors"
+              className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-white/90 hover:bg-white/10 hover:text-red-400 rounded-lg transition-colors"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -187,7 +187,7 @@ export default function Navigation() {
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              className="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-white/90 hover:bg-white/10 rounded-lg transition-colors"
               aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -197,7 +197,7 @@ export default function Navigation() {
 
         {/* Mobile Menu - scrollable so all items (including admin) are visible */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-4 space-y-1 max-h-[70vh] overflow-y-auto bg-gray-50">
+          <div className="md:hidden border-t border-white/10 py-4 space-y-1 max-h-[70vh] overflow-y-auto bg-[#1f1414]/98">
             {/* Hide Dashboard link for admins - they use Admin Dashboard instead */}
             {!admin && (
             <Link
@@ -205,8 +205,8 @@ export default function Navigation() {
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-4 py-3 min-h-[48px] flex items-center rounded-lg font-medium transition-all touch-manipulation ${
                   isActive('/dashboard')
-                    ? 'bg-brand-maroon text-white'
-                    : 'text-gray-700 hover:bg-gray-200'
+                    ? 'bg-brand-gold text-brand-maroon-black'
+                    : 'text-white/90 hover:bg-white/10'
                 }`}
               >
                 Dashboard
@@ -217,8 +217,8 @@ export default function Navigation() {
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-4 py-3 min-h-[48px] flex items-center rounded-lg font-medium transition-all touch-manipulation ${
                 isActive('/escrows')
-                  ? 'bg-brand-maroon text-white'
-                  : 'text-gray-700 hover:bg-gray-200'
+                  ? 'bg-brand-gold text-brand-maroon-black'
+                  : 'text-white/90 hover:bg-white/10'
               }`}
             >
               Escrows
@@ -228,8 +228,8 @@ export default function Navigation() {
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-4 py-3 min-h-[48px] flex items-center rounded-lg font-medium transition-all touch-manipulation ${
                 isActive('/wallet')
-                  ? 'bg-brand-maroon text-white'
-                  : 'text-gray-700 hover:bg-gray-200'
+                  ? 'bg-brand-gold text-brand-maroon-black'
+                  : 'text-white/90 hover:bg-white/10'
               }`}
             >
               Wallet
@@ -239,15 +239,15 @@ export default function Navigation() {
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-4 py-3 min-h-[48px] flex items-center rounded-lg font-medium transition-all touch-manipulation ${
                 isActive('/disputes')
-                  ? 'bg-brand-maroon text-white'
-                  : 'text-gray-700 hover:bg-gray-200'
+                  ? 'bg-brand-gold text-brand-maroon-black'
+                  : 'text-white/90 hover:bg-white/10'
               }`}
             >
               Disputes
             </Link>
             {admin && (
               <>
-                <div className="px-4 py-2 text-xs font-semibold text-brand-maroon uppercase tracking-wider">
+                <div className="px-4 py-2 text-xs font-semibold text-brand-gold uppercase tracking-wider">
                   Admin
                 </div>
                 {ADMIN_LINKS.map(({ href, label, icon: Icon }) => (
@@ -256,7 +256,7 @@ export default function Navigation() {
                     href={href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-2 px-4 py-3 min-h-[48px] rounded-lg font-medium transition-all touch-manipulation ${
-                      isActive(href) ? 'bg-brand-maroon text-white' : 'text-gray-700 hover:bg-gray-200'
+                      isActive(href) ? 'bg-brand-gold text-brand-maroon-black' : 'text-white/90 hover:bg-white/10'
                     }`}
                   >
                     <Icon className="w-4 h-4 shrink-0" />
@@ -265,11 +265,11 @@ export default function Navigation() {
                 ))}
               </>
             )}
-            <div className="border-t border-gray-200 pt-2 mt-2">
+            <div className="border-t border-white/10 pt-2 mt-2">
               <Link
                 href="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-4 py-3 min-h-[48px] flex items-center text-gray-700 hover:bg-gray-200 rounded-lg font-medium touch-manipulation"
+                className="block px-4 py-3 min-h-[48px] flex items-center text-white/90 hover:bg-white/10 rounded-lg font-medium touch-manipulation"
               >
                 <User className="w-4 h-4 inline mr-2" />
                 Profile
@@ -279,7 +279,7 @@ export default function Navigation() {
                   handleLogout();
                   setMobileMenuOpen(false);
                 }}
-                className="w-full text-left px-4 py-3 min-h-[48px] flex items-center text-red-600 hover:bg-gray-200 rounded-lg font-medium touch-manipulation"
+                className="w-full text-left px-4 py-3 min-h-[48px] flex items-center text-red-400 hover:bg-white/10 rounded-lg font-medium touch-manipulation"
               >
                 <LogOut className="w-4 h-4 inline mr-2" />
                 Logout

@@ -104,24 +104,24 @@ export default function Home() {
               ))}
             </div>
 
-            {/* How it works – modern premium horizontal timeline */}
-            <div className="bg-white/95 rounded-2xl shadow-xl p-6 md:p-10 mb-12 border border-brand-gold/20 overflow-hidden">
-              <h2 className="text-2xl md:text-3xl font-bold text-brand-maroon-black mb-8 md:mb-12 text-center">
+            {/* How it works – premium dark theme, mobile-first */}
+            <div className="rounded-2xl p-6 md:p-10 mb-12 overflow-hidden bg-white/[0.07] backdrop-blur-sm border border-white/10 shadow-2xl shadow-black/20">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 md:mb-12 text-center tracking-tight">
                 How it works
               </h2>
               <div className="relative">
                 {/* Timeline line – horizontal on desktop, vertical on mobile */}
-                <div className="hidden lg:block absolute top-7 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-brand-gold/40 via-brand-maroon/60 to-brand-gold/40" aria-hidden />
-                <div className="lg:hidden absolute left-1/2 top-6 bottom-6 w-0.5 -translate-x-1/2 bg-gradient-to-b from-brand-maroon/40 via-brand-gold/50 to-brand-maroon/40" aria-hidden />
-                <div className="relative flex flex-col lg:flex-row lg:justify-between gap-8 lg:gap-4">
+                <div className="hidden lg:block absolute top-7 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-brand-gold/60 via-brand-gold to-brand-gold/60" aria-hidden />
+                <div className="lg:hidden absolute left-6 top-6 bottom-6 w-px bg-gradient-to-b from-brand-gold/60 via-brand-gold to-brand-gold/60" aria-hidden />
+                <div className="relative flex flex-col lg:flex-row lg:justify-between gap-8 lg:gap-4 pl-12 lg:pl-0">
                   {HOW_IT_WORKS.map((item) => (
-                    <div key={item.step} className="relative flex flex-col items-center text-center lg:flex-1 group z-10">
-                      <div className="relative z-10 w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-brand-maroon to-brand-maroon-dark flex items-center justify-center text-white font-bold text-sm md:text-base shadow-lg ring-4 ring-white group-hover:scale-110 transition-transform">
+                    <div key={item.step} className="relative flex flex-col lg:items-center lg:text-center lg:flex-1 group z-10 text-left lg:text-center">
+                      <div className="absolute left-0 lg:left-1/2 lg:-translate-x-1/2 -ml-12 lg:ml-0 top-0 lg:top-0 w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-brand-gold to-amber-600 flex items-center justify-center text-brand-maroon-black font-bold text-sm md:text-base shadow-lg ring-2 ring-brand-gold/50 group-hover:scale-110 transition-transform">
                         {item.step}
                       </div>
-                      <div className="mt-4 space-y-1">
-                        <h3 className="font-semibold text-brand-maroon-black text-sm md:text-base">{item.title}</h3>
-                        <p className="text-xs md:text-sm text-gray-600 max-w-[200px] mx-auto">{item.desc}</p>
+                      <div className="mt-0 lg:mt-16 space-y-2">
+                        <h3 className="font-semibold text-white text-base md:text-lg">{item.title}</h3>
+                        <p className="text-sm md:text-base text-white/80 max-w-[280px] lg:max-w-[200px] lg:mx-auto leading-relaxed">{item.desc}</p>
                       </div>
                       {item.step < 5 && (
                         <ChevronRight className="hidden lg:block absolute -right-2 top-8 w-5 h-5 text-brand-gold/50" aria-hidden />

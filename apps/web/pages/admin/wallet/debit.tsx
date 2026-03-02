@@ -129,7 +129,7 @@ export default function DebitWalletPage() {
             ← Back
           </button>
           <h1 className="text-3xl font-bold text-gray-900">Debit Wallet</h1>
-          <p className="text-gray-600 mt-1">Manually debit a user's wallet</p>
+          <p className="text-gray-600 mt-1">Manually debit a user&apos;s wallet</p>
         </div>
 
         <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6 flex items-start gap-3">
@@ -137,7 +137,7 @@ export default function DebitWalletPage() {
           <div>
             <p className="text-sm font-semibold text-yellow-900">Warning</p>
             <p className="text-sm text-yellow-800">
-              This will deduct funds from the user's wallet. Make sure you have a valid reason and provide a detailed description for audit purposes.
+              This will deduct funds from the user&apos;s wallet. Make sure you have a valid reason and provide a detailed description for audit purposes.
             </p>
           </div>
         </div>

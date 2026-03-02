@@ -80,51 +80,51 @@ export default function WalletPage() {
 
         {/* Balance Cards */}
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 shadow-xl shadow-black/10">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">Available Balance</h3>
-              <DollarSign className="w-6 h-6 text-green-600" />
+              <h3 className="text-sm font-medium text-white/80">Available Balance</h3>
+              <DollarSign className="w-6 h-6 text-emerald-500" />
             </div>
             {walletLoading ? (
-              <div className="h-10 bg-gray-200 animate-pulse rounded" />
+              <div className="h-10 bg-white/10 animate-pulse rounded-lg" />
             ) : (
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-3xl font-bold text-white">
                 {wallet ? formatCurrency(wallet.availableCents, 'GHS') : '--'}
               </p>
             )}
-            <p className="text-sm text-gray-500 mt-2">Ready to use</p>
+            <p className="text-sm text-white/60 mt-2">Ready to use</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 shadow-xl shadow-black/10">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-gray-600">Pending Balance</h3>
-              <Clock className="w-6 h-6 text-yellow-600" />
+              <h3 className="text-sm font-medium text-white/80">Pending Balance</h3>
+              <Clock className="w-6 h-6 text-amber-500" />
             </div>
             {walletLoading ? (
-              <div className="h-10 bg-gray-200 animate-pulse rounded" />
+              <div className="h-10 bg-white/10 animate-pulse rounded-lg" />
             ) : (
-              <p className="text-3xl font-bold text-gray-900">
+              <p className="text-3xl font-bold text-white">
                 {wallet ? formatCurrency(wallet.pendingCents, 'GHS') : '--'}
               </p>
             )}
-            <p className="text-sm text-gray-500 mt-2">In escrow or pending</p>
+            <p className="text-sm text-white/60 mt-2">In escrow or pending</p>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 shadow-xl shadow-black/10">
+          <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
           <div className="flex flex-wrap gap-4">
             <Link
               href="/wallet/topup"
-              className="min-h-[48px] px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center gap-2 touch-manipulation"
+              className="min-h-[48px] px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-500 hover:to-emerald-600 flex items-center justify-center gap-2 touch-manipulation font-medium shadow-lg transition-all"
             >
               <Plus className="w-4 h-4" />
               Top Up Wallet
             </Link>
             <Link
               href="/wallet/withdraw"
-              className="min-h-[48px] px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2 touch-manipulation"
+              className="min-h-[48px] px-4 py-3 bg-gradient-to-r from-brand-gold to-amber-600 text-brand-maroon-black rounded-xl hover:from-brand-gold/90 hover:to-amber-500 flex items-center justify-center gap-2 touch-manipulation font-semibold shadow-lg transition-all"
             >
               <ArrowUpCircle className="w-4 h-4" />
               Request Withdrawal
@@ -132,7 +132,7 @@ export default function WalletPage() {
             {admin && (
               <Link
                 href="/admin"
-                className="min-h-[48px] px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center justify-center gap-2 touch-manipulation"
+                className="min-h-[48px] px-4 py-3 bg-brand-maroon text-white rounded-xl hover:bg-brand-maroon-dark flex items-center justify-center gap-2 touch-manipulation font-medium transition-all"
               >
                 <Users className="w-4 h-4" />
                 Admin Panel
@@ -142,28 +142,28 @@ export default function WalletPage() {
         </div>
 
         {/* Funding History */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">Funding History</h2>
+        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 overflow-hidden">
+          <div className="p-6 border-b border-white/10">
+            <h2 className="text-xl font-semibold text-white">Funding History</h2>
           </div>
           <div className="p-6">
             {fundingLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-gray-200 animate-pulse rounded" />
+                  <div key={i} className="h-16 bg-white/10 animate-pulse rounded-xl" />
                 ))}
               </div>
             ) : fundingHistory && fundingHistory.length > 0 ? (
               <div className="space-y-4">
                 {fundingHistory.map((funding) => (
-                  <div key={funding.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={funding.id} className="flex items-center justify-between p-4 border border-white/10 rounded-xl bg-white/5">
                     <div className="flex items-center gap-4">
-                      <ArrowDownCircle className="w-5 h-5 text-green-600" />
+                      <ArrowDownCircle className="w-5 h-5 text-emerald-500" />
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
                           {formatCurrency(Math.abs(funding.amountCents), 'GHS')}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-white/70">
                           {funding.sourceType} • {formatDate(funding.createdAt)}
                         </p>
                       </div>
@@ -171,8 +171,8 @@ export default function WalletPage() {
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded ${
                         funding.status === 'SUCCEEDED'
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-yellow-100 text-yellow-800'
+                          ? 'bg-emerald-500/20 text-emerald-400'
+                          : 'bg-amber-500/20 text-amber-400'
                       }`}
                     >
                       {funding.status}
@@ -181,34 +181,34 @@ export default function WalletPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 py-8">No funding history</p>
+              <p className="text-center text-white/60 py-8">No funding history</p>
             )}
           </div>
         </div>
 
         {/* Withdrawal History */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">Withdrawal History</h2>
+        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 overflow-hidden">
+          <div className="p-6 border-b border-white/10">
+            <h2 className="text-xl font-semibold text-white">Withdrawal History</h2>
           </div>
           <div className="p-6">
             {withdrawalLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-gray-200 animate-pulse rounded" />
+                  <div key={i} className="h-16 bg-white/10 animate-pulse rounded-xl" />
                 ))}
               </div>
             ) : withdrawalHistory && withdrawalHistory.length > 0 ? (
               <div className="space-y-4">
                 {withdrawalHistory.map((withdrawal) => (
-                  <div key={withdrawal.id} className="flex items-center justify-between p-4 border rounded-lg">
+                  <div key={withdrawal.id} className="flex items-center justify-between p-4 border border-white/10 rounded-xl bg-white/5">
                     <div className="flex items-center gap-4">
-                      <ArrowUpCircle className="w-5 h-5 text-red-600" />
+                      <ArrowUpCircle className="w-5 h-5 text-red-400" />
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-white">
                           {formatCurrency(withdrawal.amountCents, 'GHS')}
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-white/70">
                           {withdrawal.methodType} • {formatDate(withdrawal.createdAt)}
                         </p>
                       </div>
@@ -216,10 +216,10 @@ export default function WalletPage() {
                     <span
                       className={`px-2 py-1 text-xs font-medium rounded ${
                         withdrawal.status === 'SUCCEEDED'
-                          ? 'bg-green-100 text-green-800'
+                          ? 'bg-emerald-500/20 text-emerald-400'
                           : withdrawal.status === 'FAILED'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-yellow-100 text-yellow-800'
+                          ? 'bg-red-500/20 text-red-400'
+                          : 'bg-amber-500/20 text-amber-400'
                       }`}
                     >
                       {withdrawal.status}
@@ -229,10 +229,10 @@ export default function WalletPage() {
               </div>
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500 mb-4">No withdrawal history</p>
+                <p className="text-white/60 mb-4">No withdrawal history</p>
                 <Link
                   href="/wallet/withdraw"
-                  className="inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                  className="inline-block px-4 py-2 min-h-[48px] bg-gradient-to-r from-brand-gold to-amber-600 text-brand-maroon-black rounded-xl hover:from-brand-gold/90 hover:to-amber-500 font-semibold flex items-center justify-center mx-auto gap-2 touch-manipulation"
                 >
                   Request Withdrawal
                 </Link>

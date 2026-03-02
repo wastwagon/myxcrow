@@ -102,6 +102,7 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
     <div className="space-y-2">
       {value ? (
         <div className="relative">
+          {/* eslint-disable-next-line @next/next/no-img-element -- Blob URLs from createObjectURL are not supported by next/image */}
           <img
             src={URL.createObjectURL(value)}
             alt="Selfie preview"

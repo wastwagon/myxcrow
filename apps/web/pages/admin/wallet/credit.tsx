@@ -129,7 +129,7 @@ export default function CreditWalletPage() {
             ← Back
           </button>
           <h1 className="text-3xl font-bold text-gray-900">Credit Wallet</h1>
-          <p className="text-gray-600 mt-1">Manually credit a user's wallet</p>
+          <p className="text-gray-600 mt-1">Manually credit a user&apos;s wallet</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl shadow-lg p-8 space-y-6">

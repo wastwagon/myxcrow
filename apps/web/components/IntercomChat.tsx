@@ -29,7 +29,7 @@ export function IntercomChat() {
         });
       }
     }
-  }, [user]);
+  }, [user, INTERCOM_APP_ID]);
 
   if (!INTERCOM_APP_ID) {
     return null;

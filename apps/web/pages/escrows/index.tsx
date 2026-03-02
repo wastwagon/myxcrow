@@ -121,7 +121,7 @@ export default function EscrowsPage() {
           action={
             <Link
               href="/escrows/new"
-              className="min-h-[48px] px-4 py-3 bg-brand-maroon text-white rounded-lg hover:bg-brand-maroon-dark font-medium shadow-sm transition-all flex items-center justify-center gap-2 touch-manipulation"
+              className="min-h-[48px] px-4 py-3 bg-gradient-to-r from-brand-gold to-amber-600 text-brand-maroon-black rounded-xl hover:from-brand-gold/90 hover:to-amber-500 font-semibold shadow-lg transition-all flex items-center justify-center gap-2 touch-manipulation"
             >
               <Plus className="w-5 h-5" />
               New Escrow
@@ -130,25 +130,25 @@ export default function EscrowsPage() {
         />
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4">
+        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 p-4">
           <div className="space-y-4">
             <div className="grid md:grid-cols-3 gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search by ID or description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white placeholder-white/50 focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50"
                 />
               </div>
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+                  className="w-full pl-10 pr-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 appearance-none"
                 >
                   {statusOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -161,14 +161,14 @@ export default function EscrowsPage() {
                 <button
                   type="button"
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="flex-1 min-h-[48px] px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 text-sm touch-manipulation"
+                  className="flex-1 min-h-[48px] px-4 py-3 border border-white/20 rounded-lg bg-white/5 hover:bg-white/10 text-white text-sm touch-manipulation transition-colors"
                 >
                   {showAdvancedFilters ? 'Hide' : 'Show'} Advanced Filters
                 </button>
                 <button
                   type="button"
                   onClick={handleExportCSV}
-                  className="min-h-[48px] flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm touch-manipulation"
+                  className="min-h-[48px] flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 text-sm touch-manipulation font-medium"
                 >
                   <Download className="w-4 h-4" />
                   Export CSV
@@ -177,9 +177,9 @@ export default function EscrowsPage() {
             </div>
 
             {showAdvancedFilters && (
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t">
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-white/10">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-white/80 mb-1">
                     <DollarSign className="w-4 h-4 inline mr-1" />
                     Min Amount (₵)
                   </label>
@@ -189,11 +189,11 @@ export default function EscrowsPage() {
                     placeholder="0.00"
                     value={minAmount}
                     onChange={(e) => setMinAmount(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-white/80 mb-1">
                     <DollarSign className="w-4 h-4 inline mr-1" />
                     Max Amount (₵)
                   </label>
@@ -203,23 +203,23 @@ export default function EscrowsPage() {
                     placeholder="0.00"
                     value={maxAmount}
                     onChange={(e) => setMaxAmount(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-white/80 mb-1">
                     Currency
                   </label>
                   <select
                     value="GHS"
                     disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-gray-100"
+                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/10 text-white/70"
                   >
                     <option value="GHS">₵ Ghana Cedis</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-white/80 mb-1">
                     <Mail className="w-4 h-4 inline mr-1" />
                     Counterparty Email
                   </label>
@@ -228,11 +228,11 @@ export default function EscrowsPage() {
                     placeholder="email@example.com"
                     value={counterpartyEmail}
                     onChange={(e) => setCounterpartyEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white placeholder-white/50 focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-white/80 mb-1">
                     <Calendar className="w-4 h-4 inline mr-1" />
                     Start Date
                   </label>
@@ -240,11 +240,11 @@ export default function EscrowsPage() {
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-white/80 mb-1">
                     <Calendar className="w-4 h-4 inline mr-1" />
                     End Date
                   </label>
@@ -252,7 +252,7 @@ export default function EscrowsPage() {
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
               </div>
@@ -262,37 +262,37 @@ export default function EscrowsPage() {
 
         {/* Results Summary */}
         {!isLoading && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-white/70">
             Showing {escrows.length} of {total} escrows
           </div>
         )}
 
         {/* Escrows List */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 overflow-hidden">
           {isLoading ? (
             <div className="p-6 space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 bg-gray-200 animate-pulse rounded" />
+                <div key={i} className="h-24 bg-white/10 animate-pulse rounded-xl" />
               ))}
             </div>
           ) : escrows && escrows.length > 0 ? (
-            <div className="divide-y">
+            <div className="divide-y divide-white/10">
               {escrows.map((escrow) => (
                 <Link
                   key={escrow.id}
                   href={`/escrows/${escrow.id}`}
-                  className="block p-6 min-h-[48px] hover:bg-gray-50 transition-colors touch-manipulation"
+                  className="block p-6 min-h-[48px] hover:bg-white/5 transition-colors touch-manipulation"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold text-gray-900">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
+                        <h3 className="font-semibold text-white">
                           {escrow.description || 'Escrow Agreement'}
                         </h3>
                         <StatusBadge status={escrow.status} />
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-600">
-                        <span className="font-medium">
+                      <div className="flex items-center gap-4 text-sm text-white/70 flex-wrap">
+                        <span className="font-medium text-white">
                           {formatCurrency(escrow.amountCents, 'GHS')}
                         </span>
                         <span>•</span>
@@ -301,14 +301,14 @@ export default function EscrowsPage() {
                         <span>{formatDateShort(escrow.createdAt)}</span>
                       </div>
                     </div>
-                    <div className="text-gray-400">→</div>
+                    <div className="text-brand-gold">→</div>
                   </div>
                 </Link>
               ))}
             </div>
           ) : (
-            <div className="p-12 text-center text-gray-500">
-              <p className="text-lg mb-2">No escrows found</p>
+            <div className="p-12 text-center text-white/70">
+              <p className="text-lg mb-2 text-white">No escrows found</p>
               <p className="text-sm">
                 {searchTerm || statusFilter !== 'all' || minAmount || maxAmount || currency || counterpartyEmail || startDate || endDate
                   ? 'Try adjusting your filters'
