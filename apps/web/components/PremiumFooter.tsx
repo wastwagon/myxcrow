@@ -20,9 +20,9 @@ export default function PremiumFooter() {
   return (
     <footer className="bg-brand-maroon-black border-t border-brand-maroon-deep/50">
       <div className="container mx-auto px-4 py-10 md:py-12">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
-          {/* Brand */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
+        <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-4">
+          {/* Left: brand + nav */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 md:flex-1 md:justify-start">
             <Link href="/" className="flex items-center gap-3 group w-fit">
               <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-brand-maroon-deep group-hover:opacity-90 transition-opacity">
                 <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={40} height={40} className="object-contain" />
@@ -44,8 +44,13 @@ export default function PremiumFooter() {
             </nav>
           </div>
 
-          {/* Socials */}
-          <div className="flex items-center gap-4">
+          {/* Center: copyright */}
+          <p className="text-center text-sm text-white/60 md:flex-1">
+            © {new Date().getFullYear()} MYXCROW. Secure escrow services for safe transactions.
+          </p>
+
+          {/* Right: socials */}
+          <div className="flex items-center justify-center md:justify-end gap-4 md:flex-1">
             {socialLinks.map(({ href, icon: Icon, label }) => (
               <a
                 key={label}
@@ -60,9 +65,6 @@ export default function PremiumFooter() {
             ))}
           </div>
         </div>
-        <p className="mt-6 text-center md:text-left text-sm text-white/60">
-          © {new Date().getFullYear()} MYXCROW. Secure escrow services for safe transactions.
-        </p>
       </div>
     </footer>
   );
