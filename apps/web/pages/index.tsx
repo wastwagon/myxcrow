@@ -69,22 +69,22 @@ export default function Home() {
 
         <div className="container mx-auto px-4 py-10 md:py-12">
           <div className="max-w-6xl mx-auto">
-            {/* Hero – logo retained for brand recognition; copy streamlined, no duplication */}
-            <div className="text-center mb-10 md:mb-14">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white/90 text-xs font-medium mb-4">
-                <MapPin className="w-3.5 h-3.5" />
-                Trusted escrow for Ghana
-              </div>
-              <div className="inline-flex items-center justify-center w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl mb-4 md:mb-6 shadow-lg overflow-hidden bg-brand-maroon-deep ring-2 ring-brand-gold/30">
+            {/* Hero – logo centered; Trusted escrow under MYXCROW; aligned */}
+            <div className="flex flex-col items-center text-center mb-10 md:mb-14">
+              <div className="flex justify-center w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl mb-4 md:mb-5 shadow-lg overflow-hidden bg-brand-maroon-deep ring-2 ring-brand-gold/30">
                 <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={80} height={80} className="object-contain w-full h-full" />
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 md:mb-4 tracking-tight">
+              <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 tracking-tight">
                 MYXCROW
               </h1>
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white/90 text-xs font-medium mb-3 md:mb-4">
+                <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                Trusted escrow for Ghana
+              </div>
               <p className="text-base md:text-2xl text-brand-gold font-medium mb-2 md:mb-3">
                 Secure Escrow Services
               </p>
-              <p className="text-sm md:text-lg text-white/80 max-w-2xl mx-auto">
+              <p className="text-sm md:text-lg text-white/80 max-w-2xl">
                 For the home you&apos;re building from afar, or the deal you&apos;re closing in Accra. Funds held safely until both sides are satisfied.
               </p>
             </div>
