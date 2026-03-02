@@ -109,7 +109,7 @@ export default function Home() {
               <h2 id="how-it-works-heading" className="text-2xl md:text-4xl font-bold text-white mb-10 md:mb-14 text-center tracking-tight">
                 How it works
               </h2>
-              <div className="grid gap-6 md:gap-8 md:grid-cols-5">
+              <div className="grid grid-cols-2 gap-6 md:gap-8 md:grid-cols-5">
                 {HOW_IT_WORKS.map((item) => (
                   <div
                     key={item.step}
@@ -135,7 +135,7 @@ export default function Home() {
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 text-center">
                 Built for your transactions
               </h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {USE_CASES.map((uc) => {
                   const Icon = uc.icon;
                   return (
@@ -152,7 +152,7 @@ export default function Home() {
             </div>
 
             {/* Features Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {features.map((feature, index) => {
                 const Icon = feature.icon;
                 const colorClasses = {
@@ -205,7 +205,7 @@ export default function Home() {
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 text-center">
                 Frequently asked questions
               </h2>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 {FAQ_ITEMS.map((faq) => (
                   <button
                     key={faq.q}
@@ -299,7 +299,7 @@ export default function Home() {
                   <Zap className="w-6 h-6 text-brand-gold" />
                   Developer Tools
                 </h2>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
                   <a
                     href={process.env.NEXT_PUBLIC_MAILPIT_URL || 'http://localhost:8025'}
                     target="_blank"
