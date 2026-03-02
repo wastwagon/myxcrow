@@ -26,7 +26,7 @@ export default function TermsPage() {
 
                 <div>
                   <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">2. Eligibility</h2>
-                  <p>You must be at least 18 years old and have the legal capacity to enter into a binding contract. By using the Platform you represent that you meet these requirements. The service is primarily intended for users in Ghana; use from other countries is at your own risk and subject to local laws.</p>
+                  <p>You must have the legal capacity to enter into a binding contract in your jurisdiction. We do not impose a minimum age. By using the Platform you represent that you meet these requirements. The service is primarily intended for users in Ghana; use from other countries is at your own risk and subject to local laws.</p>
                 </div>
 
                 <div>

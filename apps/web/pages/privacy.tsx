@@ -91,8 +91,8 @@ export default function PrivacyPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">9. Children</h2>
-                  <p>The Platform is not intended for users under 18. We do not knowingly collect personal data from anyone under 18. If you become aware that a minor has provided us with data, please contact us so we can delete it.</p>
+                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">9. Age</h2>
+                  <p>We do not impose a minimum age to use the Platform. Users are responsible for ensuring they have the legal capacity to enter into binding agreements in their jurisdiction. We do not knowingly collect personal data from minors without appropriate consent where required by law. If you become aware that data has been provided without such consent, please contact us so we can address it.</p>
                 </div>
 
                 <div>
