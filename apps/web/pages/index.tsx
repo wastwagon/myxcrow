@@ -104,33 +104,31 @@ export default function Home() {
               ))}
             </div>
 
-            {/* How it works – premium dark theme, mobile-first */}
-            <div className="rounded-2xl p-6 md:p-10 mb-12 overflow-hidden bg-white/[0.07] backdrop-blur-sm border border-white/10 shadow-2xl shadow-black/20">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-8 md:mb-12 text-center tracking-tight">
+            {/* How it works – modern premium, no background, minimal */}
+            <section className="mb-16 md:mb-20" aria-labelledby="how-it-works-heading">
+              <h2 id="how-it-works-heading" className="text-2xl md:text-4xl font-bold text-white mb-10 md:mb-14 text-center tracking-tight">
                 How it works
               </h2>
-              <div className="relative">
-                {/* Timeline line – horizontal on desktop, vertical on mobile */}
-                <div className="hidden lg:block absolute top-7 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-brand-gold/60 via-brand-gold to-brand-gold/60" aria-hidden />
-                <div className="lg:hidden absolute left-6 top-6 bottom-6 w-px bg-gradient-to-b from-brand-gold/60 via-brand-gold to-brand-gold/60" aria-hidden />
-                <div className="relative flex flex-col lg:flex-row lg:justify-between gap-8 lg:gap-4 pl-12 lg:pl-0">
-                  {HOW_IT_WORKS.map((item) => (
-                    <div key={item.step} className="relative flex flex-col lg:items-center lg:text-center lg:flex-1 group z-10 text-left lg:text-center">
-                      <div className="absolute left-0 lg:left-1/2 lg:-translate-x-1/2 -ml-12 lg:ml-0 top-0 lg:top-0 w-12 h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-brand-gold to-amber-600 flex items-center justify-center text-brand-maroon-black font-bold text-sm md:text-base shadow-lg ring-2 ring-brand-gold/50 group-hover:scale-110 transition-transform">
-                        {item.step}
-                      </div>
-                      <div className="mt-0 lg:mt-16 space-y-2">
-                        <h3 className="font-semibold text-white text-base md:text-lg">{item.title}</h3>
-                        <p className="text-sm md:text-base text-white/80 max-w-[280px] lg:max-w-[200px] lg:mx-auto leading-relaxed">{item.desc}</p>
-                      </div>
-                      {item.step < 5 && (
-                        <ChevronRight className="hidden lg:block absolute -right-2 top-8 w-5 h-5 text-brand-gold/50" aria-hidden />
-                      )}
+              <div className="grid gap-6 md:gap-8 md:grid-cols-5">
+                {HOW_IT_WORKS.map((item) => (
+                  <div
+                    key={item.step}
+                    className="group relative flex flex-col items-center text-center"
+                  >
+                    {/* Step number – minimal, premium */}
+                    <div className="flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-full border-2 border-brand-gold/80 text-brand-gold font-semibold text-sm md:text-base mb-4 group-hover:border-brand-gold group-hover:bg-brand-gold/10 transition-colors">
+                      {item.step}
                     </div>
-                  ))}
-                </div>
+                    <h3 className="font-semibold text-white text-base md:text-lg mb-1.5">
+                      {item.title}
+                    </h3>
+                    <p className="text-sm md:text-base text-white/75 leading-relaxed max-w-xs">
+                      {item.desc}
+                    </p>
+                  </div>
+                ))}
               </div>
-            </div>
+            </section>
 
             {/* Use cases */}
             <div className="mb-12">
