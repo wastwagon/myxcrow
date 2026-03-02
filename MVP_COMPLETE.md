@@ -1,5 +1,7 @@
 # 🎉 MVP Implementation Complete!
 
+> **Note:** The native mobile app has been removed. The project is **web-only** (mobile-first, PWA-ready). Phase 2 below is historical.
+
 **Date:** January 2026  
 **Status:** ✅ **ALL PHASES COMPLETE**
 
@@ -64,19 +66,17 @@
 - ✅ Biometric login option
 - ✅ Settings toggle
 
-### Status: Ready for Testing & App Store Submission
+### Status: Ready for testing and production launch
 
 ---
 
 ## ✅ Phase 3: Live Chat Support - COMPLETE
 
 ### Implemented:
-- ✅ Intercom integration (web + mobile)
+- ✅ Intercom integration (web)
 - ✅ Web chat widget
-- ✅ Mobile chat service
 - ✅ User identification
 - ✅ Automatic registration on login
-- ✅ Support button in mobile app
 
 ### Status: Ready for Intercom Account Setup
 
@@ -115,7 +115,7 @@
 ### 2. Mobile App
 - [ ] Test on physical devices
 - [ ] Configure push notification certificates
-- [ ] Prepare app store listings
+- [ ] Optional: PWA / app store listing
 - [ ] Set up EAS build
 
 ### 3. Live Chat
@@ -154,12 +154,10 @@
 1. **Configure Services:**
    - SMS provider credentials
    - Intercom account setup
-   - Push notification certificates
 
 2. **Testing:**
    - End-to-end testing
-   - Device testing (iOS + Android)
-   - Payment flow testing
+   - Payment flow testing (web)
 
 3. **Production Deployment:**
    - Environment variables
@@ -167,10 +165,8 @@
    - Monitoring setup
 
 ### Short Term:
-1. **App Store Submission:**
-   - iOS App Store
-   - Google Play Store
-   - App review preparation
+1. **Optional (future):**
+   - PWA / app store listing if desired
 
 2. **Support Team Setup:**
    - Train support staff
@@ -188,7 +184,6 @@
 
 All implementation guides are available:
 - [SMS Notifications](SMS_NOTIFICATIONS_IMPLEMENTATION.md)
-- [Mobile App](apps/mobile/MOBILE_APP_IMPLEMENTATION.md)
 - [Live Chat](LIVE_CHAT_IMPLEMENTATION.md)
 - [Face Verification](SELF_HOSTED_FACE_VERIFICATION.md)
 
@@ -198,7 +193,7 @@ All implementation guides are available:
 
 ### Pre-Launch:
 - [x] SMS notifications implemented
-- [x] Mobile app features complete
+- [x] Mobile-first web app features complete
 - [x] Live chat integrated
 - [ ] SMS provider configured
 - [ ] Intercom account set up
@@ -219,7 +214,7 @@ All implementation guides are available:
 
 **All MVP phases are complete!** Your platform now has:
 - ✅ SMS notifications for engagement
-- ✅ Full-featured mobile app (iOS + Android)
+- ✅ Mobile-first responsive web app (PWA-ready)
 - ✅ Live chat support
 - ✅ Self-hosted face verification
 - ✅ Complete escrow platform

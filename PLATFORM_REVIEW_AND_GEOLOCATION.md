@@ -19,9 +19,9 @@
 | **Evidence** | ✅ | Presigned upload (web/mobile), MinIO/S3, linked to escrow/dispute |
 | **Messaging** | ✅ | Escrow messages (buyer–seller), dispute messages (with admin) |
 | **Notifications** | ✅ | Email, SMS (Africa’s Talking/Twilio), push (mobile), password-change emails |
-| **Support** | ✅ | Intercom (web), support page, Terms & Privacy (web + mobile links) |
+| **Support** | ✅ | Intercom (web), support page, Terms & Privacy (web) |
 | **Admin** | ✅ | Users, KYC review, withdrawals, wallet credit/debit, fees, reconciliation, settings |
-| **Reputation** | ✅ | Escrow ratings (API + UI); RatingModal (web + mobile) |
+| **Reputation** | ✅ | Escrow ratings (API + UI); RatingModal (web) |
 | **Risk/Compliance** | ✅ | Risk scoring, sanctions screening, audit log |
 | **Automation** | ✅ | Scheduler, rules engine, auto-release |
 | **Shipment** | ⚠️ Partial | Schema: Shipment + ShipmentEvent (carrier, trackingNumber, deliveryAddress Json, location string). Only tracking number + carrier used in “Mark shipped”; no delivery address flow, no tracking-event UI |
@@ -30,7 +30,7 @@
 
 - **API:** NestJS, PostgreSQL, Prisma, Redis, BullMQ, MinIO/S3  
 - **Web:** Next.js, React, TanStack Query, Tailwind  
-- **Mobile:** Expo, React Native, Expo Router, TanStack Query  
+- **Mobile:** Web app (responsive, PWA-ready)  
 
 ---
 

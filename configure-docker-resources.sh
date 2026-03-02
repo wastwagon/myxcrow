@@ -78,7 +78,7 @@ echo "5. Click 'Apply & Restart'"
 echo "6. Wait for Docker Desktop to restart (30-60 seconds)"
 echo "7. Wait for 'Engine running' status"
 echo "8. Open a NEW terminal window"
-echo "9. Run: cd /Users/OceanCyber/Downloads/myexrow && ./robust-setup.sh"
+echo "9. Run: cd /Users/OceanCyber/Downloads/myxcrow && ./setup-local.sh"
 echo ""
 
 # Check if Docker is accessible

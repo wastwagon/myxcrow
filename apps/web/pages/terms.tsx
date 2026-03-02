@@ -101,8 +101,8 @@ export default function TermsPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">16. Web, Android and iOS</h2>
-                  <p>These same Terms and Conditions apply whether you use MYXCROW on the web, via the Android app (e.g. Google Play), or the iOS app (e.g. App Store). Downloading or using the mobile apps constitutes acceptance of these terms. Where the app store&apos;s terms conflict with ours regarding your relationship with the store (e.g. payment through the store), the store&apos;s terms apply for that relationship only; our escrow and user terms remain as set out here.</p>
+                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">16. Web and Mobile Web</h2>
+                  <p>These same Terms and Conditions apply whether you use MYXCROW on the web (desktop or mobile browser). Accessing or using the service constitutes acceptance of these terms.</p>
                 </div>
               </section>
 

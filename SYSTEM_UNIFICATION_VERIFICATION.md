@@ -2,13 +2,15 @@
 **Date:** January 25, 2026  
 **Status:** ✅ **UNIFIED & VERIFIED**
 
+> **Note:** The native mobile app has been removed. The project is **web-only** (mobile-first, PWA-ready). This doc is historical.
+
 ---
 
 ## 🎯 Executive Summary
 
 **Verification Result: ✅ FULLY UNIFIED**
 
-The web and mobile applications operate as a **single, unified system**. Users can seamlessly switch between platforms while maintaining complete continuity of their data, roles, and activities.
+The web app uses a single backend; all user data, roles, and activities are consistent.
 
 ---
 
@@ -373,7 +375,7 @@ Day 6 - Web (Anyone):
 ```
 
 **Every step is linked to the same user identity:**
-- ✅ Same `user.id` across web and mobile
+- ✅ Same `user.id` (single web app)
 - ✅ All transactions tracked under single user
 - ✅ Complete activity history accessible from either platform
 
@@ -605,7 +607,7 @@ Profile → Change Password → Enter current/new passwords → Submit
 **What Users Experience:**
 - ✅ Register once, use everywhere
 - ✅ Login works on any device
-- ✅ Same wallet balance on web and mobile
+- ✅ Same wallet balance (web)
 - ✅ Escrows created on mobile visible on web
 - ✅ Actions on web reflected on mobile instantly
 - ✅ Complete activity history on both platforms
@@ -669,7 +671,7 @@ The MYXCROW platform operates as a **single, unified system** with:
 - ✅ Complete activity linking
 - ✅ 100% feature parity
 
-**Users can seamlessly switch between web and mobile while maintaining complete continuity of their account, data, and activities.**
+**The web app provides full continuity of account, data, and activities.**
 
 ---
 

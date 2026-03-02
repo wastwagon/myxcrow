@@ -1,5 +1,7 @@
 # Phase 3 Completion Summary
 
+> **Note:** The native mobile app has been removed. Live chat is **web-only**. Mobile/Expo references below are historical.
+
 **Date:** January 2026  
 **Status:** ✅ **PHASE 3 COMPLETE**
 
@@ -90,11 +92,7 @@ INTERCOM_ACCESS_TOKEN=your-access-token
    - Add credentials to `.env` files
    - Restart services
 
-4. **Install Mobile SDK** (When ready)
-   ```bash
-   cd apps/mobile
-   pnpm add react-native-intercom
-   ```
+4. **Web only:** Live chat uses Intercom in the web app; no mobile SDK to install.
 
 5. **Configure Chatbot**
    - Set up auto-responses

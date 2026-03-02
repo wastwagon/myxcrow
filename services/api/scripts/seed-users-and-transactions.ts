@@ -350,14 +350,14 @@ async function main() {
   });
   console.log(`  ✅ Created milestone escrow: ${milestoneEscrow1.description}`);
   
-  // Milestone Escrow 2 - Mobile App (Awaiting Funding)
+  // Milestone Escrow 2 - App Development (Awaiting Funding)
   const milestoneEscrow2 = await prisma.escrowAgreement.create({
     data: {
       buyerId: buyers[3].id,
       sellerId: sellers[0].id,
       amountCents: 300000, // 3000 GHS
       currency: 'GHS',
-      description: 'Mobile App Development - iOS & Android',
+      description: 'App Development - Web & PWA',
       status: EscrowStatus.AWAITING_FUNDING,
       feeCents: 15000,
       netAmountCents: 285000,
@@ -678,7 +678,7 @@ async function main() {
   console.log('\n📊 Summary:');
   console.log(`   • Users created: ${createdUsers.length}`);
   console.log(`   • Regular escrows: 9 (various statuses)`);
-  console.log(`   • Milestone escrows: 3 (Website, Mobile App, Brand Design)`);
+  console.log(`   • Milestone escrows: 3 (Website, App Design, Brand Design)`);
   console.log(`   • Total escrows: 12`);
   console.log(`   • Disputes created: 3 (OPEN, MEDIATION, RESOLVED)`);
   console.log(`   • Messages created: 7`);

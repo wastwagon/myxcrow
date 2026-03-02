@@ -106,8 +106,8 @@ export default function PrivacyPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">12. Web, Android and iOS</h2>
-                  <p>This Privacy Policy applies to your use of MYXCROW on the web, the Android app (e.g. Google Play), and the iOS app (e.g. App Store). The same data practices and rights apply across all platforms. By using any of these, you acknowledge that you have read and understood this policy.</p>
+                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">12. Web and Mobile Web</h2>
+                  <p>This Privacy Policy applies to your use of MYXCROW on the web (including on mobile browsers). The same data practices and rights apply. By using the service, you acknowledge that you have read and understood this policy.</p>
                 </div>
 
                 <div>

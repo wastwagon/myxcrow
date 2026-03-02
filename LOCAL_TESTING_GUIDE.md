@@ -135,62 +135,13 @@ You should see 6 containers running:
 
 ---
 
-## 📱 Testing Mobile App
+## 📱 Testing on Mobile Devices
 
-The mobile app runs separately using Expo. Here's how to set it up:
+Use the **web app** in a mobile browser. The app is mobile-first and PWA-ready.
 
-### Step 1: Install Expo CLI
-
-```bash
-npm install -g expo-cli eas-cli
-```
-
-### Step 2: Navigate to Mobile App
-
-```bash
-cd apps/mobile
-```
-
-### Step 3: Install Dependencies
-
-```bash
-pnpm install
-```
-
-### Step 4: Configure API Endpoint
-
-Create `.env` file:
-```bash
-cat > .env << 'EOF'
-EXPO_PUBLIC_API_BASE_URL=http://localhost:4000/api
-EOF
-```
-
-**Important:** 
-- For iOS Simulator: Use `http://localhost:4000/api`
-- For Android Emulator: Use `http://10.0.2.2:4000/api`
-- For Physical Device: Use your computer's IP (e.g., `http://192.168.1.100:4000/api`)
-
-### Step 5: Start Mobile App
-
-**For iOS (Mac only):**
-```bash
-pnpm ios
-```
-
-**For Android:**
-```bash
-pnpm android
-```
-
-**For Both (Expo Go):**
-```bash
-pnpm start
-```
-
-Then scan QR code with:
-- iOS: Camera app
-- Android: Expo Go app
+1. Ensure the web app is running (see Web App section above).
+2. On your phone/tablet, open the browser and go to your dev URL (e.g. `http://YOUR_IP:3007` or use ngrok for HTTPS).
+3. Add to home screen for an app-like experience (PWA).
 
 ---
 
@@ -410,32 +361,9 @@ docker-compose -f infra/docker/docker-compose.dev.yml logs db
 docker-compose -f infra/docker/docker-compose.dev.yml restart db
 ```
 
-### Problem: "Mobile app can't connect to API"
+### Problem: "Web app can't connect to API"
 
-**Solution:**
-
-**For iOS Simulator:**
-```bash
-# Should work with localhost
-EXPO_PUBLIC_API_BASE_URL=http://localhost:4000/api
-```
-
-**For Android Emulator:**
-```bash
-# Use special IP
-EXPO_PUBLIC_API_BASE_URL=http://10.0.2.2:4000/api
-```
-
-**For Physical Device:**
-```bash
-# Get your computer's IP:
-ipconfig getifaddr en0  # Mac WiFi
-# or
-ifconfig | grep "inet "
-
-# Use that IP:
-EXPO_PUBLIC_API_BASE_URL=http://192.168.1.100:4000/api
-```
+**Solution:** The project is web-only. Ensure the web app's API base URL is set (e.g. in `.env.local`: `NEXT_PUBLIC_API_BASE_URL=http://localhost:4000/api`). Use the web app in a browser at the URL where it’s served (e.g. http://localhost:3007).
 
 ### Problem: "MinIO bucket not created"
 
@@ -561,33 +489,10 @@ docker-compose -f infra/docker/docker-compose.dev.yml stop
 
 ---
 
-## 📱 Mobile Development Tips
+## 📱 Mobile Testing Tips
 
-### Hot Reload
-
-Changes to mobile app code automatically reload in Expo.
-
-### Clear Cache
-
-```bash
-cd apps/mobile
-pnpm start --clear
-```
-
-### View Mobile Logs
-
-```bash
-cd apps/mobile
-pnpm start
-
-# Then press 'j' to open debugger
-```
-
-### Test on Multiple Devices
-
-1. Start Expo: `pnpm start`
-2. Scan QR code on multiple devices
-3. All devices connect to same backend
+- Use Chrome DevTools device emulation or a real device browser.
+- For PWA: use HTTPS (e.g. ngrok) and "Add to Home Screen" on iOS/Android.
 
 ---
 
@@ -601,7 +506,7 @@ Your local development environment is now set up:
 ✅ **Cache** (Redis) on port 6380  
 ✅ **Storage** (MinIO) on ports 9003, 9004  
 ✅ **Email Testing** (Mailpit) on port 8026  
-✅ **Mobile App** ready with Expo  
+✅ **Web app** works in mobile browsers (responsive, PWA-ready)
 
 ---
 

@@ -1,5 +1,7 @@
 # 🎯 KYC System Improvement Plan
 
+> **Note:** The native mobile app has been removed. Project is **web-only**. Any "mobile app" or `apps/mobile` references in this doc are historical.
+
 **Date:** February 10, 2026  
 **Status:** 📋 **PLANNING**  
 **Priority:** 🟡 **MEDIUM** (Improves security & reliability)
@@ -283,11 +285,7 @@
 
 **2. Install Smile Identity SDK**
 
-**Mobile (React Native/Expo):**
-```bash
-cd apps/mobile
-npm install @smile_identity/react-native
-```
+**Web/API:** Project is web-only. Use Smile ID via backend API (see Backend below); no mobile SDK.
 
 **Backend:**
 ```bash

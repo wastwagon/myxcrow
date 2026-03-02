@@ -1,5 +1,7 @@
 # MVP Phase Progress Report
 
+> **Note:** The native mobile app has been removed. Project is **web-only**. Phase 2 / mobile references below are historical.
+
 **Date:** January 2026  
 **Status:** Actively Completing All Phases
 
@@ -107,7 +109,7 @@
 ### Short Term (Next Session):
 1. Push notifications setup
 2. Biometric authentication
-3. Live chat integration (web + mobile)
+3. Live chat integration (web)
 
 ### Testing & Launch:
 1. End-to-end testing

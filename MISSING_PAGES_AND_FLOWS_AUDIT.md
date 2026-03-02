@@ -1,6 +1,7 @@
 ## Missing Pages, UI, and Flow Audit
 
-This document tracks **missing or incomplete pages/flows** across **API**, **Web**, and **Mobile**.
+> **Note:** Project is **web-only**; "Mobile" and `apps/mobile` refs below are historical.  
+> This document tracks **missing or incomplete pages/flows** across **API** and **Web**.
 It’s intended as a “work queue” for polishing the product into a complete MVP.
 
 ### Newly completed in this pass

@@ -45,51 +45,16 @@ Create `services/api/src/modules/kyc/smile-id.service.ts`:
 
 ---
 
-## 📱 Step 2: Mobile Integration (Expo)
+## 📱 Step 2: Web App KYC
 
-### 1. Install SDK
-```bash
-cd apps/mobile
-pnpm add @smile_identity/react-native-expo
-```
-
-### 2. Configure Smile ID
-- Place `smile_config.json` in the root of `apps/mobile/`.
-- The SDK will automatically detect this configuration.
-
-### 3. Update KYC Screen
-Replace the manual camera/gallery selection with the Smile ID SmartSelfie™ and Document Verification components.
-
-**Example Component Usage:**
-```tsx
-import { SmartSelfieCapture, DocumentCapture } from '@smile_identity/react-native-expo';
-
-// Selfie Capture
-<SmartSelfieCapture
-  userId={userId}
-  jobId={jobId}
-  onResult={(result) => {
-    // Handle result
-  }}
-  onError={(error) => {
-    // Handle error
-  }}
-/>
-```
-
-### 4. Build Custom Client (Important!)
-Since Smile ID uses native modules, you **cannot** use Expo Go. You must create a development build:
-```bash
-cd apps/mobile
-npx expo run:ios # or android
-```
+KYC runs via the **web app** (`apps/web`). The API (`services/api`) uses the Smile ID service; the web app calls API endpoints for KYC submission and status. No native mobile app SDK is required.
 
 ---
 
 ## 🔄 Step 3: Updated Verification Flow
 
-1. **User Starts KYC** on Web or Mobile.
-2. **Mobile App** uses Smile ID SDK to capture:
+1. **User Starts KYC** on the web app.
+2. **Web app** (and API) handle capture and submission:
    - **SmartSelfie™** (with real-time liveness detection)
    - **Ghana Card** (Front & Back)
 3. **SDK** automatically uploads images to Smile ID servers.
@@ -109,8 +74,7 @@ npx expo run:ios # or android
 - [ ] Install `@smile_identity/smile-identity-core` in API.
 - [ ] Create `SmileIDService` in API.
 - [ ] Implement Webhook handler in `KYCController`.
-- [ ] Install `@smile_identity/react-native-expo` in Mobile.
-- [ ] Update Mobile KYC flow to use Smile ID components.
+- [ ] Web app KYC flow uses API; no mobile SDK required.
 
 ---
 

@@ -1,5 +1,7 @@
 # ✅ Phase 1 Complete: Face Matching Removed
 
+> **Note:** Project is **web-only**; any "mobile" or "Phase 2" references below are historical.
+
 **Date:** February 10, 2026  
 **Status:** ✅ **COMPLETED**  
 **Time Taken:** ~15 minutes
@@ -271,16 +273,15 @@ Phase 1 is complete when:
 
 **Documentation to review:**
 - Smile Identity Docs: https://docs.smileidentity.com
-- React Native SDK: https://docs.smileidentity.com/integration-options/mobile/react-native
-- Web API: https://docs.smileidentity.com/integration-options/server-to-server
+- Web API (server-to-server): https://docs.smileidentity.com/integration-options/server-to-server
 
 ---
 
 ## 🚀 Ready for Phase 2!
 
 Once you have your Smile Identity credentials, we'll:
-1. ✅ Install Smile Identity SDK (mobile + backend)
-2. ✅ Create liveness capture screen (mobile)
+1. ✅ Use Smile Identity via API (backend + web)
+2. ✅ Liveness capture in web app
 3. ✅ Integrate liveness verification (backend)
 4. ✅ Update KYC flow to include liveness
 5. ✅ Test and deploy

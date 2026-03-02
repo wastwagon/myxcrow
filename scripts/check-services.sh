@@ -37,7 +37,7 @@ check_service() {
 # Check services
 echo "Checking services..."
 check_service "API Health" "http://localhost:4000/api/health" "ok" || true
-check_service "Web Frontend" "http://localhost:3000" "" || true
+check_service "Web Frontend" "http://localhost:3007" "" || true
 check_service "Mailpit" "http://localhost:8026" "" || true
 check_service "MinIO Console" "http://localhost:9004" "" || true
 

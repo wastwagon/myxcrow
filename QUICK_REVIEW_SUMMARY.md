@@ -12,8 +12,7 @@
 
 | Component | Status | Score | Notes |
 |-----------|--------|-------|-------|
-| **Web App** | ✅ Running | 98/100 | Excellent design & UX |
-| **Mobile App** | ✅ Ready | 95/100 | iOS + Android ready |
+| **Web App** | ✅ Running | 98/100 | Mobile-first, PWA-ready |
 | **Backend API** | ✅ Running | 95/100 | NestJS, 19 modules |
 | **Database** | ✅ Running | 100/100 | PostgreSQL, 25 tables |
 | **Infrastructure** | ✅ Running | 100/100 | Docker, all services up |
@@ -37,12 +36,6 @@
 - Tailwind CSS
 - TanStack Query
 - 35+ pages
-
-**Mobile Application:**
-- Expo 51.0.0 + React Native
-- TypeScript
-- 29 screens
-- iOS + Android
 
 **Backend API:**
 - NestJS 10.0.0 + TypeScript
@@ -68,15 +61,8 @@
 - ✅ **Wallet System** - Paystack integration
 - ✅ **Dispute Resolution** - Full workflow
 - ✅ **Admin Dashboard** - Complete management
-- ✅ **Notifications** - Email + SMS + Push
+- ✅ **Notifications** - Email + SMS
 - ✅ **Live Chat** - Intercom integration
-
-### Mobile-Specific Features
-
-- ✅ **Biometric Auth** - Face ID / Touch ID
-- ✅ **Push Notifications** - Expo Notifications
-- ✅ **Camera Integration** - KYC documents
-- ✅ **Native UX** - Platform-specific design
 
 ---
 
@@ -212,10 +198,9 @@
    - Wallet management
    - Admin dashboard
 
-3. **Dual Platform** ⭐⭐⭐⭐⭐
-   - Web application
-   - Mobile app (iOS + Android)
-   - Feature parity
+3. **Web Platform** ⭐⭐⭐⭐⭐
+   - Web application (mobile-first, PWA-ready)
+   - Feature complete
    - Shared backend
 
 4. **Modern Tech Stack** ⭐⭐⭐⭐⭐
@@ -298,7 +283,7 @@
 - [ ] Multi-currency support
 - [ ] WebSocket notifications
 - [ ] Advanced analytics
-- [ ] Mobile app store submission
+- [ ] PWA / app store listing (optional)
 
 ---
 
@@ -316,7 +301,6 @@
 - Security: 8/10
 - Documentation: 9/10
 - Testing: 3/10 ⚠️
-- Mobile App: 10/10
 
 **Total: 95/100**
 
@@ -340,7 +324,7 @@ You've built an **exceptional escrow platform** that:
 ✅ **Works Perfectly** - All features functional  
 ✅ **Performs Well** - Fast and reliable  
 ✅ **Scales Properly** - Modern architecture  
-✅ **Supports Mobile** - iOS + Android apps  
+✅ **Mobile-friendly** - Responsive web, PWA-ready  
 ✅ **Ready to Deploy** - Production infrastructure  
 
 **Your platform is ready to compete with the best escrow services in the market!** 🚀
@@ -392,7 +376,7 @@ docker-compose -f infra/docker/docker-compose.dev.yml logs -f
 
 **Feature Docs:**
 - `MVP_COMPLETE.md` - MVP completion
-- `MOBILE_IMPLEMENTATION_COMPLETE.md` - Mobile app
+- (Mobile app docs removed; project is web-only.)
 - `SMS_NOTIFICATIONS_IMPLEMENTATION.md` - SMS feature
 
 ---

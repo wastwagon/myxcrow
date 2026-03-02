@@ -1,5 +1,7 @@
 # MYXCROW – Implementation Phase Plan
 
+> **Note:** The native mobile app has been removed. Project is **web-only**. Any `apps/mobile` references in this doc are historical.
+
 **Purpose:** Systematic implementation of system improvements for a flawless public-facing escrow platform.  
 **Created:** February 2025  
 **Status:** Planning
@@ -221,7 +223,7 @@ This document organizes all recommendations from the system review into phases. 
 
 ### 4.2 API Client – Refresh Timeout & Error Handling
 
-**Files:** `apps/web/lib/api-client.ts`, `apps/mobile/src/lib/api-client.ts`
+**Files:** `apps/web/lib/api-client.ts` (web-only; native app removed)
 
 | Step | Action | Acceptance Criteria |
 |------|--------|---------------------|

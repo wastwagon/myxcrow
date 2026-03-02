@@ -36,11 +36,4 @@ In the Smile ID Portal:
 
 ---
 
-## 4. Mobile Setup
-Once you have `smile_config.json`:
-1. Place it in `apps/mobile/smile_config.json`.
-2. I will then help you update the `KYCScreen` to use the SDK components.
-
----
-
-**Status:** Backend Integrated ⚙️ | Waiting for API Keys & Mobile Config ⏳
+**Status:** Backend Integrated ⚙️ | KYC flows via web app use the API Smile ID service.

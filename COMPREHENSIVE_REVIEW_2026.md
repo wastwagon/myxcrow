@@ -3,6 +3,8 @@
 **Reviewer:** AI Assistant  
 **Status:** ✅ Production-Ready
 
+> **Note:** The native mobile app has been removed. The project is **web-only** (mobile-first, PWA-ready). References to "Mobile" or "apps/mobile" below are historical.
+
 ---
 
 ## 📊 Executive Summary
@@ -17,7 +19,7 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 ### Recent Enhancements (This Session)
 1. ✅ **Enhanced Seed Data** - 12 escrows, 3 disputes, 9 evidence files with real storage
 2. ✅ **Mobile Milestones** - Complete milestone management screens
-3. ✅ **Change Password** - Full implementation (API + Web + Mobile)
+3. ✅ **Change Password** - Full implementation (API + Web)
 4. ✅ **TypeScript Fixes** - All compilation errors resolved
 
 ---
@@ -34,12 +36,8 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 - **Forms:** React Hook Form + Zod
 - **Pages:** 35 (including admin dashboard)
 
-#### Frontend (Mobile)
-- **Framework:** Expo 51.0.0 + React Native 0.74.0
-- **Language:** TypeScript 5.3.0
-- **Navigation:** Expo Router 3.5.0
-- **State:** TanStack Query 5.17.0
-- **Screens:** 29 (iOS + Android)
+#### Frontend (mobile experience)
+- **Delivery:** Web app (responsive, PWA-ready); no native app.
 
 #### Backend (API)
 - **Framework:** NestJS 10.0.0
@@ -51,10 +49,10 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 - **Files:** 103 TypeScript files
 
 ### Codebase Statistics
-- **Total TypeScript Files:** 201
+- **Total TypeScript Files:** 162+
   - API: 103 files
   - Web: 59 files (35 pages)
-  - Mobile: 39 files (29 screens)
+  - Mobile: removed (web-only)
 - **Documentation:** 53 markdown files
 - **Test Coverage:** Minimal (1 spec file) ⚠️
 - **TODOs/FIXMEs:** 21 (mostly in docs/lock files)
@@ -69,7 +67,7 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 - JWT-based auth with refresh tokens
 - 5 user roles (BUYER, SELLER, ADMIN, AUDITOR, SUPPORT)
 - Password reset flow
-- **NEW:** Change password feature (web + mobile)
+- **NEW:** Change password feature (web)
 - Biometric auth (mobile - Face ID/Touch ID)
 
 #### 2. KYC Verification ✅
@@ -80,7 +78,7 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 
 #### 3. Escrow Lifecycle ✅
 - Complete flow: Create → Fund → Ship → Deliver → Release
-- **NEW:** Milestone-based escrows (web + mobile)
+- **NEW:** Milestone-based escrows (web)
 - Auto-release after configurable days
 - Cancel/refund flows
 - 12 status states
@@ -88,7 +86,7 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 
 #### 4. Wallet System ✅
 - Balance management (available + pending)
-- Paystack top-ups (web + mobile)
+- Paystack top-ups (web)
 - Withdrawal requests (admin approval)
 - Admin credit/debit
 - Transaction history
@@ -122,12 +120,12 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 #### 8. Messaging ✅
 - Escrow messaging (buyer ↔ seller)
 - Dispute messaging (all parties + admin)
-- Web + mobile
+- Web
 
 #### 9. Notifications ✅
 - Email (Nodemailer)
 - SMS (Africa's Talking / Twilio)
-- Push (mobile - registered, needs Expo config)
+- Push: N/A (web-only)
 - **NEW:** Password change email notifications
 
 #### 10. Support/Chat ✅
@@ -177,7 +175,7 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 - **Users:** 10 (5 buyers, 5 sellers) + 1 admin
 - **Escrows:** 12 total
   - Regular: 9 (various statuses)
-  - Milestone: 3 (Website Dev, Mobile App, Brand Design)
+  - Milestone: 3 (Website Dev, App Design, Brand Design)
 - **Disputes:** 3 (OPEN, MEDIATION, RESOLVED)
 - **Messages:** 7 (buyer-seller communication)
 - **Evidence:** 9 real files in MinIO storage ✅
@@ -313,14 +311,8 @@ Found in 6 files (API):
 - **Loading states:** Proper feedback
 - **Error handling:** User-friendly messages
 
-### Mobile Application ✅
-- **Design:** Native feel
-- **Navigation:** Expo Router (file-based)
-- **Tabs:** Home, Escrows, Wallet, Disputes, Profile
-- **Biometric:** Face ID/Touch ID support
-- **Offline:** Partial support (cached queries)
-- **Toast:** React Native Toast Message
-- **Styling:** StyleSheet (performant)
+### Mobile experience (web)
+- **Delivery:** Same web app, responsive; PWA-ready. No native app.
 
 ---
 
@@ -363,11 +355,11 @@ Found in 6 files (API):
 - 9 evidence files (real, downloadable)
 - 7 messages
 
-### 2. Mobile Milestone Screens ✅
-**Impact:** Feature parity with web
+### 2. Milestone screens ✅
+**Impact:** Milestone escrows on web
 
-**Added:**
-- `/apps/mobile/app/(tabs)/escrows/[id]/milestones.tsx`
+**Added (web):**
+- Milestone escrow UI (view, mark complete, release funds)
 - View all milestones
 - Mark complete (buyer)
 - Release funds (buyer)
@@ -444,7 +436,7 @@ Found in 6 files (API):
 1. **Multi-currency support** - USD, EUR, etc.
 2. **WebSocket notifications** - Real-time updates
 3. **Advanced analytics** - Charts, trends, forecasting
-4. **Mobile app store** - Publish to App Store + Play Store
+4. **PWA / app store** - Optional listing (e.g. PWA)
 5. **Internationalization** - Multi-language support
 6. **2FA authentication** - Additional security layer
 
@@ -457,7 +449,7 @@ Found in 6 files (API):
 MYXCROW is a **production-ready escrow platform** with:
 - ✅ Comprehensive feature set (100% MVP + enhancements)
 - ✅ Clean, type-safe codebase (0 TypeScript errors)
-- ✅ Modern architecture (NestJS + Next.js + React Native)
+- ✅ Modern architecture (NestJS + Next.js)
 - ✅ Robust database design (25 tables, proper relations)
 - ✅ Extensive documentation (53 files)
 - ✅ Realistic test data (ready for immediate testing)
@@ -503,8 +495,7 @@ MYXCROW is a **production-ready escrow platform** with:
 # Seed database
 ./scripts/db-seed.sh
 
-# Type-check all
-cd apps/mobile && pnpm type-check
+# Type-check all (web-only)
 cd apps/web && pnpm type-check
 
 # Run tests

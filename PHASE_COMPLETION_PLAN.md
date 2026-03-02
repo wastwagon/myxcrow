@@ -1,5 +1,7 @@
 # MVP Phase Completion Plan
 
+> **Note:** The native mobile app has been removed. Project is **web-only**. Phase 2 / mobile references below are historical.
+
 **Date:** January 2026  
 **Status:** In Progress - Completing All Phases
 
@@ -89,7 +91,7 @@
 ### Week 2: Mobile App Polish & Live Chat
 1. **Day 1:** Biometric authentication
 2. **Day 2-3:** Mobile app testing & fixes
-3. **Day 4-5:** Live chat integration (web + mobile)
+3. **Day 4-5:** Live chat integration (web)
 
 ### Week 3: Testing & Launch Prep
 1. **Day 1-2:** End-to-end testing

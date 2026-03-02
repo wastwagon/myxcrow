@@ -4,6 +4,8 @@
 **Status:** Phase 3 - Implementation  
 **Service:** Intercom (Recommended)
 
+> **Note:** The native mobile app has been removed. Live chat is used on the web app only.
+
 ---
 
 ## 📋 Overview
@@ -126,79 +128,9 @@ export default function App({ Component, pageProps }) {
 
 ---
 
-## 📱 Mobile Integration
+## 📱 Mobile (browser)
 
-### Installation
-
-```bash
-cd apps/mobile
-pnpm add react-native-intercom
-```
-
-### Implementation
-
-```typescript
-// apps/mobile/src/services/intercom.ts
-import Intercom from 'react-native-intercom';
-
-const INTERCOM_APP_ID = process.env.EXPO_PUBLIC_INTERCOM_APP_ID;
-const INTERCOM_API_KEY = process.env.EXPO_PUBLIC_INTERCOM_API_KEY;
-
-export async function initializeIntercom() {
-  await Intercom.setApiKey(INTERCOM_API_KEY, INTERCOM_APP_ID);
-}
-
-export async function registerUser(user: { id: string; email: string; name?: string }) {
-  await Intercom.registerIdentifiedUser({ userId: user.id });
-  await Intercom.updateUser({
-    email: user.email,
-    name: user.name,
-  });
-}
-
-export async function unregisterUser() {
-  await Intercom.logout();
-}
-
-export function showMessenger() {
-  Intercom.displayMessenger();
-}
-
-export function hideMessenger() {
-  Intercom.hideMessenger();
-}
-```
-
-### Add to App
-
-```typescript
-// apps/mobile/app/_layout.tsx
-import { useEffect } from 'react';
-import { initializeIntercom } from '../src/services/intercom';
-import { useAuth } from '../src/contexts/AuthContext';
-
-export default function RootLayout() {
-  const { user } = useAuth();
-
-  useEffect(() => {
-    initializeIntercom();
-  }, []);
-
-  useEffect(() => {
-    if (user) {
-      registerUser({
-        id: user.id,
-        email: user.email,
-        name: `${user.firstName} ${user.lastName}`,
-      });
-    } else {
-      unregisterUser();
-    }
-  }, [user]);
-
-  // ... rest of layout
-}
-```
+Live chat runs on the **web app** only. Use the web app in a mobile browser for the same experience; no native app integration.
 
 ---
 
@@ -226,12 +158,6 @@ export default function RootLayout() {
 ### Web (.env.local)
 ```bash
 NEXT_PUBLIC_INTERCOM_APP_ID=your-app-id
-```
-
-### Mobile (.env)
-```bash
-EXPO_PUBLIC_INTERCOM_APP_ID=your-app-id
-EXPO_PUBLIC_INTERCOM_API_KEY=your-api-key
 ```
 
 ### Backend (.env)
@@ -266,7 +192,7 @@ INTERCOM_ACCESS_TOKEN=your-access-token
 3. **Install SDKs**
 4. **Integrate widgets**
 5. **Configure chatbot**
-6. **Test on web and mobile**
+6. **Test on web**
 7. **Train support team**
 
 ---

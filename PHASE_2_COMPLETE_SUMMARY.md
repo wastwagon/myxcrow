@@ -1,11 +1,13 @@
 # Phase 2 Completion Summary
 
+> **Note:** The native mobile app has been removed. Project is **web-only**. This doc is historical.
+
 **Date:** January 2026  
-**Status:** ✅ **PHASE 2 COMPLETE**
+**Status:** ✅ **PHASE 2 COMPLETE** (historical)
 
 ---
 
-## 🎉 Phase 2: Mobile App - **100% COMPLETE**
+## 🎉 Phase 2: Mobile App - **100% COMPLETE** (historical)
 
 ### ✅ All Features Implemented
 

@@ -1,5 +1,7 @@
 # Final MVP Verification Report
 
+> **Note:** The native mobile app has been removed. Project is **web-only**. Phase 2 / `apps/mobile` references below are historical.
+
 **Date:** January 2026  
 **Verification Status:** ✅ **ALL PHASES COMPLETE**
 
@@ -137,7 +139,7 @@ All three phases have been:
 1. Configuration (SMS provider, Intercom account)
 2. Testing (physical devices)
 3. Production deployment
-4. App store submission
+4. Production launch (PWA / app store optional)
 
 ---
 

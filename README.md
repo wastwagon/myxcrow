@@ -6,8 +6,8 @@ A comprehensive escrow platform built with Next.js and NestJS, designed for secu
 
 All MVP phases have been successfully implemented:
 - ✅ SMS Notifications
-- ✅ Mobile App (iOS + Android)
 - ✅ Live Chat Support
+- ✅ Mobile-first responsive web app (PWA-ready)
 
 See [MVP_COMPLETE.md](MVP_COMPLETE.md) for full details.
 
@@ -65,24 +65,22 @@ docker exec escrow_api pnpm seed
 
 **Wallet top-up (Paystack):** To test payments locally, add your Paystack keys to `.env` and see **[LOCAL_PAYSTACK_TESTING.md](LOCAL_PAYSTACK_TESTING.md)**.
 
-## 🏗️ Shared Architecture
+## 🏗️ Architecture
 
-**Web and mobile use the same infrastructure:**
 - **One database** (PostgreSQL) — shared by all users and admin
-- **One backend API** (NestJS) — serves both web and mobile
+- **One backend API** (NestJS) — serves the web app
 - **Same admin backend** — admin dashboard (web UI) uses the same API and DB
 
-Only the **frontends** differ: web (Next.js) and mobile (Expo/React Native) are different clients talking to the same API. See **[SHARED_ARCHITECTURE.md](SHARED_ARCHITECTURE.md)** for details.
+See **[SHARED_ARCHITECTURE.md](SHARED_ARCHITECTURE.md)** for details.
 
 ## 📁 Project Structure
 
 ```
 myxcrow/
 ├── apps/
-│   ├── web/              # Next.js frontend (includes admin dashboard)
-│   └── mobile/           # React Native mobile app (iOS + Android)
+│   └── web/              # Next.js frontend (includes admin dashboard, mobile-first PWA)
 ├── services/
-│   └── api/              # NestJS backend (shared by web + mobile)
+│   └── api/              # NestJS backend
 └── infra/
     └── docker/           # Docker configuration
 ```
@@ -99,8 +97,11 @@ myxcrow/
 
 ## 📚 Documentation
 
+**Platform:** This repo is **web-only** (no native app). If you see "mobile app" or Expo in other docs, see **[WEB_ONLY_NOTICE.md](WEB_ONLY_NOTICE.md)**.
+
 ### Architecture & Development
-- **[Shared Architecture](SHARED_ARCHITECTURE.md)** - One DB, one backend, one admin for web + mobile
+- **[Web-only notice](WEB_ONLY_NOTICE.md)** - No native app; ignore mobile/Expo refs in other docs
+- **[Shared Architecture](SHARED_ARCHITECTURE.md)** - One DB, one backend, one admin
 - **[Local Development Guide](LOCAL_DEVELOPMENT.md)** - Complete guide for local setup and development
 - [Product Review](PRODUCT_REVIEW.md) - Complete feature overview
 
@@ -115,12 +116,9 @@ myxcrow/
 ### Market Analysis & Enhancements
 - **[MVP Focus Summary](MVP_FOCUS_SUMMARY.md)** - Quick MVP overview (start here!)
 - **[MVP Enhancement Plan](MVP_ENHANCEMENT_PLAN.md)** - Detailed MVP implementation plan
-- **[MVP Implementation Status](MVP_IMPLEMENTATION_STATUS.md)** - ✅ **100% Complete** - All phases done!
 - **[SMS Notifications Implementation](SMS_NOTIFICATIONS_IMPLEMENTATION.md)** - ✅ SMS feature implementation guide
-- **[Mobile App Implementation](apps/mobile/MOBILE_APP_IMPLEMENTATION.md)** - ✅ Mobile app development guide
 - **[Live Chat Implementation](LIVE_CHAT_IMPLEMENTATION.md)** - ✅ Live chat integration guide
 - **[Self-Hosted Face Verification](SELF_HOSTED_FACE_VERIFICATION.md)** - ✅ Face verification system documentation
-- **[Phase 2 Complete Summary](PHASE_2_COMPLETE_SUMMARY.md)** - Mobile app completion summary
 - **[Phase 3 Complete Summary](PHASE_3_COMPLETE_SUMMARY.md)** - Live chat completion summary
 - **[Competitor Analysis](COMPETITOR_ANALYSIS_AND_ENHANCEMENTS.md)** - Comprehensive competitor feature analysis
 - **[Ghana Enhancement Roadmap](GHANA_ENHANCEMENT_ROADMAP.md)** - 12-month enhancement plan (updated for MVP)
@@ -167,13 +165,6 @@ pnpm dev
 cd apps/web
 pnpm install
 pnpm dev
-```
-
-**Mobile App:**
-```bash
-cd apps/mobile
-pnpm install
-pnpm start
 ```
 
 **Note:** You'll need to set up PostgreSQL, Redis, and MinIO separately for local development.

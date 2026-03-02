@@ -68,15 +68,15 @@ Look for Paystack-related errors (invalid key, network, etc.).
 
 ---
 
-## Mobile app (Paystack)
+## Wallet top-up (web app)
 
-The **mobile app** uses the same API for wallet top-up:
+The **web app** uses the same API for wallet top-up:
 
-1. User taps Top up, enters amount, taps "Continue to Payment".
-2. App calls `POST /payments/wallet/topup` with `amountCents`, `email`, and **`callbackUrl`** (so Paystack redirects to a URL the app can detect in the WebView).
-3. A WebView opens the Paystack payment page (`authorizationUrl`).
-4. After payment, Paystack redirects to `callbackUrl` (e.g. `https://www.myxcrow.com/wallet/topup/callback?reference=xxx`). The WebView loads that URL; the app detects it, extracts `reference` (or `trxref`), and calls `GET /payments/wallet/topup/verify/:reference` to credit the wallet.
+1. User goes to Wallet → Top up, enters amount, clicks "Continue to Paystack".
+2. Web app calls `POST /payments/wallet/topup` with `amountCents`, `email`; API returns `authorizationUrl`.
+3. User is redirected to the Paystack payment page.
+4. After payment, Paystack redirects to your callback URL (e.g. `https://www.myxcrow.com/wallet/topup/callback?reference=xxx`). The app then calls `GET /payments/wallet/topup/verify/:reference` to credit the wallet.
 
-**Mobile env for production:** Set `EXPO_PUBLIC_WEB_BASE_URL=https://www.myxcrow.com` so the app sends the correct callback URL. The API does not need to be changed; the app sends `callbackUrl` explicitly.
+**Production:** Set your web app URL so the Paystack callback redirects to your domain (e.g. `https://www.myxcrow.com/wallet/topup/callback`).
 
-**Mobile local dev:** On a real device, `localhost` in the callback URL is not reachable. Use your machine’s LAN URL for the web app (e.g. `EXPO_PUBLIC_WEB_BASE_URL=http://192.168.1.x:3007`) and ensure the device can load that URL so the WebView can land on the callback page and the app can verify. Or test on the iOS Simulator / Android Emulator with a host-accessible URL (e.g. `http://localhost:3007` on simulator).
+**Local dev:** Use your web app URL (e.g. `http://localhost:3007`). On a real device, use your machine LAN IP so the device can reach the callback page. Use your machine’s LAN URL for the web app (e.g. `WEB_APP_URL=http://192.168.1.x:3007`) and ensure the device can load that URL so the browser can land on the callback page and the app can verify. Or test in a browser on your machine at `http://localhost:3007`.

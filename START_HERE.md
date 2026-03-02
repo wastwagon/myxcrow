@@ -14,16 +14,12 @@ Your terminal session can't access Docker daemon even though Docker Desktop is r
 
 ```bash
 cd /Users/OceanCyber/Downloads/myxcrow
-./diagnose-docker.sh
-```
-
-4. **If it shows ✅ Docker is accessible**, then:
-```bash
+# If you have diagnose-docker.sh, run it; otherwise skip to the next command.
 ./fix-and-start.sh
 ```
 
-5. **Wait 2-3 minutes** for everything to build and start
-6. **Access**: http://localhost:3007
+4. **Wait 2-3 minutes** for everything to build and start.
+5. **Access**: http://localhost:3007
 
 ### Option 2: Restart Docker Desktop
 
@@ -54,10 +50,8 @@ cd /Users/OceanCyber/Downloads/myxcrow
 
 ## What the Scripts Do
 
-### `diagnose-docker.sh`
-- Checks if Docker is accessible
-- Shows what's wrong
-- Provides specific fixes
+### `diagnose-docker.sh` (optional, not in repo)
+- If you have this script locally, it checks Docker and suggests fixes. Otherwise skip it.
 
 ### `fix-and-start.sh`
 - Builds Docker images (this was missing!)

@@ -51,7 +51,7 @@
 ## ✅ CURRENT MVP FOCUS
 
 **Payment:** Paystack (wallet top-ups, cards, bank transfers)  
-**Features:** SMS, Mobile App, Live Chat  
+**Features:** SMS, Live Chat, Web app (mobile-first)  
 **Timeline:** 3-4 months to launch
 
 ---

@@ -504,7 +504,7 @@ myxcrow/
 ### Long-term (3-6 months)
 1. ⚠️ Multi-currency support
 2. ⚠️ Real-time notifications (WebSockets)
-3. ⚠️ Mobile app (React Native)
+3. ✅ Web app (mobile-first, PWA)
 4. ⚠️ Advanced analytics dashboard
 5. ⚠️ Multi-language support (i18n)
 

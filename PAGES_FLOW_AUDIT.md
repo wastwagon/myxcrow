@@ -111,11 +111,11 @@ All main user and admin entry points are reachable from nav or in-app links.
    - API: `release` → `releaseFunds` → ledger + notifications.  
    - ✅ Implemented.
 
-Same DB, same API; web and mobile both use these endpoints. Flow is consistent.
+Same DB, same API; the web app uses these endpoints. Flow is consistent.
 
 ### Wallet
 
-- **Balance:** `GET /wallet` (web + mobile).  
+- **Balance:** `GET /wallet` (web).  
 - **Top-up:**  
   - Web: `/wallet/topup` → `POST /payments/wallet/topup` → redirect to Paystack → `/wallet/topup/callback` → `GET /payments/wallet/topup/verify/:reference` → back to `/wallet`.  
   - Mobile: `/(tabs)/wallet/topup` → same API → WebView Paystack → verify → back.  
@@ -128,9 +128,9 @@ Same DB, same API; web and mobile both use these endpoints. Flow is consistent.
 
 ### Disputes
 
-- Create: `POST /disputes` (web + mobile).  
-- List: `GET /disputes` (web + mobile).  
-- Detail: `GET /disputes/:id` (web + mobile).  
+- Create: `POST /disputes` (web).
+- List: `GET /disputes` (web).
+- Detail: `GET /disputes/:id` (web).
 - ✅ All wired to API and DB.
 
 ### Admin
@@ -157,7 +157,7 @@ Same DB, same API; web and mobile both use these endpoints. Flow is consistent.
 ### Recommended (short term)
 
 1. **End-to-end tests**  
-   - Escrow: create → fund → ship → deliver → release (web + mobile).  
+   - Escrow: create → fund → ship → deliver → release (web).  
    - Wallet: top-up (Paystack test), withdraw request, transaction list.
 
 2. **Web withdraw `methodType`**  
@@ -172,8 +172,7 @@ Same DB, same API; web and mobile both use these endpoints. Flow is consistent.
 ### Optional
 
 4. **Mobile wallet layout**  
-   - `wallet/_layout` references `index` but `wallet/index` is missing; main wallet is `(tabs)/wallet`.  
-   - Confirm expo-router behavior and remove or fix the `index` reference if it causes issues.
+   - Obsolete: referred to removed native app (expo-router). Web wallet is in `apps/web`; no action needed.
 
 5. **`WEB_BASE_URL`** ✅  
    - Added to `.env.example`. Wallet top-up callback uses `WEB_BASE_URL || WEB_APP_URL || 'http://localhost:3003'`.  
@@ -183,10 +182,10 @@ Same DB, same API; web and mobile both use these endpoints. Flow is consistent.
 
 ## 6. Summary
 
-- **Pages:** All required web and mobile pages exist; admin “View Wallet” and web top-up + callback were added.  
+- **Pages:** All required web pages exist; admin “View Wallet” and web top-up + callback were added.  
 - **Menus:** Nav links for user, admin, wallet, and Fees are correct; “View Wallet” and withdraw are reachable.  
-- **Transaction flow:** Escrow create → fund → ship → deliver → release and wallet top-up/withdraw/transactions are implemented and communicating with the same DB and API from both web and mobile.  
-- **Remaining work:** Optional E2E tests and mobile wallet layout check. Web `methodType`, seller resolution, `WEB_BASE_URL`, and escrow unit tests are done (see [REMAINING_WORK_COMPLETE.md](REMAINING_WORK_COMPLETE.md)).
+- **Transaction flow:** Escrow create → fund → ship → deliver → release and wallet top-up/withdraw/transactions are implemented and communicating with the same DB and API from the web app.  
+- **Remaining work:** Optional E2E tests. Web `methodType`, seller resolution, `WEB_BASE_URL`, and escrow unit tests are done (see [REMAINING_WORK_COMPLETE.md](REMAINING_WORK_COMPLETE.md)).
 
 ---
 

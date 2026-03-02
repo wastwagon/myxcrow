@@ -7,7 +7,7 @@
 
 ## ✅ What Was Done
 
-Successfully removed all complex self-hosted face matching components and registration logic from **BOTH** web and mobile apps. The system is now unified with a simple, streamlined registration process.
+Successfully removed all complex self-hosted face matching components and registration logic. The system uses a simple, streamlined registration process. *(Native mobile app has since been removed; project is web-only.)*
 
 ---
 
@@ -124,7 +124,7 @@ Single Page Registration
 - ✅ **Easier maintenance** - Fewer dependencies
 - ✅ **Faster testing** - No file upload testing needed
 - ✅ **Better performance** - No image processing
-- ✅ **Unified logic** - Same flow on web and mobile
+- ✅ **Unified logic** - Same flow on web
 
 ### For Business:
 - ✅ **Higher conversion** - Less abandonment
@@ -235,7 +235,7 @@ services/api/src/modules/auth/auth.service.ts      (-11 lines, +2 lines)
 
 ## 🎉 Result
 
-**Both web and mobile apps now have:**
+**The web app now has:**
 - ✅ Simple, unified registration
 - ✅ No complex face matching
 - ✅ No document uploads

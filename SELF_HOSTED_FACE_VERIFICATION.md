@@ -279,11 +279,11 @@ const threshold = 0.6; // Adjust as needed
 
 ---
 
-## 📱 Mobile App Integration
+## 📱 Mobile (browser)
 
 ### Current Status
-- Mobile app registration structure ready
-- Camera integration available (Expo Camera)
+- Web registration structure ready
+- Camera integration available (browser)
 - File upload support
 - Needs: Enhanced camera capture with better UX
 
