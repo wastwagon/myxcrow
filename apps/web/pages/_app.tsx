@@ -30,7 +30,7 @@ export default function App({ Component, pageProps }: AppProps) {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <div className="min-h-screen pb-20 md:pb-0 flex flex-col">
+        <div className="min-h-screen pb-20 lg:pb-0 flex flex-col">
           <div className="flex-1">
             <Component {...pageProps} />
           </div>
