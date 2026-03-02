@@ -204,11 +204,11 @@ export class AuthService {
     let user = null;
     if (isPhone) {
       user = await this.prisma.user.findFirst({
-        where: { phone: normalizedPhone },
+        where: { phone: normalizedPhone, deletedAt: null },
       });
     } else if (isEmail) {
-      user = await this.prisma.user.findUnique({
-        where: { email: trimmed.toLowerCase() },
+      user = await this.prisma.user.findFirst({
+        where: { email: trimmed.toLowerCase(), deletedAt: null },
       });
     }
 
@@ -343,6 +343,62 @@ export class AuthService {
     return { message: 'Password changed successfully' };
   }
 
+  /**
+   * Delete (anonymize) the current user's account. Required for App Store and data subject requests.
+   * User row is kept for FK integrity; PII is cleared and sessions revoked.
+   */
+  async deleteAccount(userId: string, password: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, passwordHash: true, deletedAt: true },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    if (user.deletedAt) {
+      throw new BadRequestException('Account is already deleted');
+    }
+
+    if (!user.passwordHash) {
+      throw new BadRequestException('Account cannot be deleted via this flow');
+    }
+
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const deletedEmail = `deleted-${user.id}@deleted.myxcrow.local`;
+
+    await this.prisma.$transaction([
+      this.prisma.session.deleteMany({ where: { userId } }),
+      this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          email: deletedEmail,
+          firstName: null,
+          lastName: null,
+          phone: null,
+          passwordHash: null,
+          isActive: false,
+          deletedAt: new Date(),
+        },
+      }),
+    ]);
+
+    await this.auditService.log({
+      userId,
+      action: 'account_deleted',
+      resource: 'user',
+      resourceId: userId,
+      details: { previousEmail: user.email },
+    });
+
+    return { message: 'Account deleted successfully' };
+  }
+
   async getProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -355,10 +411,11 @@ export class AuthService {
         roles: true,
         kycStatus: true,
         createdAt: true,
+        deletedAt: true,
       },
     });
 
-    if (!user) {
+    if (!user || user.deletedAt) {
       throw new UnauthorizedException();
     }
 

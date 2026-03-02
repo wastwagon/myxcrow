@@ -4,6 +4,7 @@ import {
   Body,
   Get,
   Put,
+  Delete,
   Req,
   UseGuards,
   UseInterceptors,
@@ -121,6 +122,18 @@ export class AuthController {
     @Body() data: { currentPassword: string; newPassword: string },
   ) {
     return this.authService.changePassword(user.id, data.currentPassword, data.newPassword);
+  }
+
+  @Delete('account')
+  @UseGuards(JwtAuthGuard)
+  async deleteAccount(
+    @CurrentUser() user: ICurrentUser,
+    @Body() data: { password: string },
+  ) {
+    if (!data?.password?.trim()) {
+      throw new BadRequestException('Password is required to delete your account');
+    }
+    return this.authService.deleteAccount(user.id, data.password.trim());
   }
 
   @Post('refresh')

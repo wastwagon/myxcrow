@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
-import { isAuthenticated, getUser, setUser } from '@/lib/auth';
+import { isAuthenticated, getUser, setUser, clearAuth } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { getErrorMessage } from '@/lib/error-messages';
-import { User, Mail, Phone, Calendar, Shield, Edit2, Save, X, Loader2, Key } from 'lucide-react';
+import { User, Mail, Phone, Calendar, Shield, Edit2, Save, X, Loader2, Key, Trash2, AlertTriangle } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
@@ -27,6 +27,9 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const user = getUser();
   const [isEditing, setIsEditing] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('phone_required') === '1') {
@@ -71,6 +74,21 @@ export default function ProfilePage() {
     }
   }, [profile, reset]);
 
+  const deleteAccountMutation = useMutation({
+    mutationFn: async (password: string) => {
+      await apiClient.delete('/auth/account', { data: { password } });
+    },
+    onSuccess: () => {
+      clearAuth();
+      queryClient.clear();
+      toast.success('Your account has been deleted');
+      router.push('/');
+    },
+    onError: (error: any) => {
+      setDeleteError(getErrorMessage(error, 'Failed to delete account'));
+    },
+  });
+
   const updateMutation = useMutation({
     mutationFn: async (data: { firstName?: string; lastName?: string; phone?: string }) => {
       const response = await apiClient.put('/auth/profile', data);
@@ -104,6 +122,21 @@ export default function ProfilePage() {
       phone: profile?.phone || '',
     });
     setIsEditing(false);
+  };
+
+  const handleDeleteAccount = () => {
+    if (!deletePassword.trim()) {
+      setDeleteError('Enter your password to confirm');
+      return;
+    }
+    setDeleteError('');
+    deleteAccountMutation.mutate(deletePassword.trim());
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setDeletePassword('');
+    setDeleteError('');
   };
 
   if (!isAuthenticated()) {
@@ -315,7 +348,7 @@ export default function ProfilePage() {
               )}
 
               {!isEditing && (
-                <div className="mt-8 pt-6 border-t border-white/10">
+                <div className="mt-8 pt-6 border-t border-white/10 space-y-4">
                   <h3 className="text-lg font-semibold text-white mb-4">Security</h3>
                   <Link
                     href="/change-password"
@@ -328,12 +361,94 @@ export default function ProfilePage() {
                     </div>
                     <span className="text-brand-gold">→</span>
                   </Link>
+                  <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/5">
+                    <p className="text-sm text-white/80 mb-2">Permanently delete your account and personal data. This cannot be undone.</p>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteModalOpen(true)}
+                      className="flex items-center gap-2 px-4 py-2 min-h-[44px] text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg border border-red-500/40 transition touch-manipulation"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Delete my account
+                    </button>
+                  </div>
                 </div>
               )}
             </>
           )}
         </div>
       </div>
+
+      {/* Delete account confirmation modal */}
+      {deleteModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+          onClick={closeDeleteModal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-account-title"
+        >
+          <div
+            className="bg-[#1f1414] border border-white/10 rounded-2xl shadow-xl max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-red-400" />
+              </div>
+              <h2 id="delete-account-title" className="text-xl font-semibold text-white">
+                Delete account
+              </h2>
+            </div>
+            <p className="text-white/80 text-sm mb-4">
+              This will permanently delete your account and anonymize your data. You will be signed out and cannot recover this account.
+            </p>
+            <label htmlFor="delete-password" className="block text-sm font-medium text-white/80 mb-1">
+              Enter your password to confirm
+            </label>
+            <input
+              id="delete-password"
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              placeholder="Your password"
+              className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/5 text-white placeholder-white/50 focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 mb-4"
+              autoComplete="current-password"
+            />
+            {deleteError && (
+              <p className="text-red-400 text-sm mb-4">{deleteError}</p>
+            )}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={closeDeleteModal}
+                disabled={deleteAccountMutation.isPending}
+                className="flex-1 py-2 min-h-[44px] rounded-lg border border-white/20 text-white/90 hover:bg-white/10 transition touch-manipulation"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteAccount}
+                disabled={deleteAccountMutation.isPending || !deletePassword.trim()}
+                className="flex-1 flex items-center justify-center gap-2 py-2 min-h-[44px] rounded-lg bg-red-600 hover:bg-red-500 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition touch-manipulation"
+              >
+                {deleteAccountMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Delete my account
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 }

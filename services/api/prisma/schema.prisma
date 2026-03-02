@@ -124,6 +124,7 @@ model User {
   kycStatus     KYCStatus   @default(PENDING)
   kycVerifiedAt DateTime?
   isActive      Boolean     @default(true)
+  deletedAt     DateTime?
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
