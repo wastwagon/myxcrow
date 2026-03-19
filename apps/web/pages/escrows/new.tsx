@@ -248,14 +248,14 @@ export default function CreateEscrowPage() {
 
           <div className="border-t border-gray-200 pt-4">
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Delivery confirmation</h3>
-            <p className="text-xs text-gray-500 mb-3">Choose how delivery is confirmed. Default: reference + delivery code. PIN: only you (and whoever you share it with) can confirm at delivery; funds can auto-release when PIN is entered.</p>
+            <p className="text-xs text-gray-500 mb-3">Default: reference + delivery code. Or use a <strong>transaction PIN</strong>: only you (the person creating this transaction) set this PIN. At delivery, entering the PIN confirms the <strong>rightful owner</strong> of the transaction before escrow funds are auto-released.</p>
             <label className="flex items-center gap-2 cursor-pointer mb-3">
               <input type="checkbox" {...register('useDeliveryPin')} className="rounded border-gray-300 text-brand-maroon focus:ring-brand-gold" />
-              <span className="text-sm font-medium text-gray-700">Use PIN to confirm delivery (funds release when PIN entered at delivery)</span>
+              <span className="text-sm font-medium text-gray-700">Use PIN to confirm delivery (only I know the PIN; confirms rightful owner at delivery before releasing funds)</span>
             </label>
             {watch('useDeliveryPin') && (
               <div className="mt-2">
-                <label htmlFor="deliveryPin" className="block text-sm font-medium text-gray-700 mb-1">Transaction PIN (4–8 digits)</label>
+                <label htmlFor="deliveryPin" className="block text-sm font-medium text-gray-700 mb-1">Your transaction PIN (4–8 digits)</label>
                 <input
                   {...register('deliveryPin')}
                   id="deliveryPin"
@@ -266,7 +266,7 @@ export default function CreateEscrowPage() {
                   maxLength={8}
                   className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent font-mono"
                 />
-                <p className="mt-1 text-xs text-gray-500">Only you and anyone you share it with can confirm delivery. Keep it safe.</p>
+                <p className="mt-1 text-xs text-gray-500">Only you (the creator of this transaction) know this PIN. At delivery, the person with the reference + this PIN confirms they are the rightful owner before funds are released from escrow. Keep it safe.</p>
                 {errors.deliveryPin && (
                   <p className="mt-1 text-sm text-red-600">{errors.deliveryPin.message}</p>
                 )}

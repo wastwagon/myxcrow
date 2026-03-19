@@ -27,7 +27,7 @@
 3. **At delivery** – Someone (buyer or delivery person with buyer’s PIN) goes to **Confirm Delivery** page, enters:
    - **Reference** (e.g. MV7K2A) to identify the shipment/escrow.
    - **PIN** (or, for standard escrows, the existing delivery code).
-4. **Backend** – If PIN matches for that escrow: mark DELIVERED, then if `autoReleaseDays === 0` and no dispute, release funds (same as current code confirmation).
+4. **Backend** – If PIN matches for that escrow: we have confirmed the rightful owner at delivery; mark DELIVERED, then if `autoReleaseDays === 0` and no dispute, release funds from escrow.
 
 **What stays the same:**
 - Manual “Release” in app and auto-release after N days still work.
@@ -53,5 +53,5 @@ Recommendation: Start with **B** (per-escrow choice). You can add category later
 | Item | Scope | Status |
 |------|--------|--------|
 | Paystack 1.95% | Wallet top-up only; show fee and credit (amount - fee) | Implemented |
-| PIN delivery | Optional per escrow; ref + PIN → confirm + auto-release | Implemented |
+| PIN delivery | Optional per escrow; PIN set by transaction creator only; ref + PIN at delivery confirms rightful owner before releasing funds | Implemented |
 | Current release system | Unchanged (manual release, code confirmation, auto-release) | Preserved |

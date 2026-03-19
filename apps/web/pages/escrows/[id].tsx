@@ -367,10 +367,10 @@ export default function EscrowDetailPage() {
                 <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
                   {escrow.deliveryConfirmationMode === 'pin' ? (
                     <>
-                      <p className="text-sm font-semibold text-amber-900 mb-1">Confirm delivery with your PIN</p>
-                      <p className="text-xs text-amber-800 mb-2">At delivery, use the reference below and your transaction PIN on the confirm-delivery page. Funds will release automatically when confirmed.</p>
+                      <p className="text-sm font-semibold text-amber-900 mb-1">Confirm delivery with your PIN (rightful owner)</p>
+                      <p className="text-xs text-amber-800 mb-2">You created this transaction and only you know the PIN. At delivery, enter the reference + your PIN on the confirm-delivery page to confirm you are the rightful owner; funds will then release from escrow automatically.</p>
                       <p className="font-mono text-lg font-bold text-amber-900">Ref: {firstShipmentWithCode.shortReference}</p>
-                      <p className="text-xs text-amber-800 mt-1">Enter this reference + your PIN on the confirm-delivery page (you set the PIN when creating this escrow).</p>
+                      <p className="text-xs text-amber-800 mt-1">Use this reference and the PIN you set when creating this escrow. Do not share your PIN except with someone you authorize to confirm delivery on your behalf.</p>
                     </>
                   ) : (
                     <>

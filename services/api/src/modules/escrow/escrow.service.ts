@@ -599,7 +599,9 @@ export class EscrowService {
 
   /**
    * Confirm delivery by transaction PIN (public: e.g. at delivery point).
-   * Only for escrows with deliveryConfirmationMode = 'pin'. Verifies PIN then marks delivered and auto-releases if applicable.
+   * The PIN is set only by the user who created the transaction (buyer). Entering the correct
+   * reference + PIN confirms the rightful owner of the escrow at delivery before funds are auto-released.
+   * Only for escrows with deliveryConfirmationMode = 'pin'.
    */
   async confirmDeliveryByPin(shortReference: string, deliveryPin: string) {
     const ref = shortReference.trim().toUpperCase();
