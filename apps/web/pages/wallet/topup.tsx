@@ -77,13 +77,13 @@ export default function WalletTopupPage() {
           {amountCents >= 100 && (
             <div className="rounded-lg bg-white/5 border border-white/10 p-4 space-y-1 text-sm">
               <p className="text-white/90">
-                You will receive in wallet: <span className="font-semibold text-brand-gold">{formatCurrency(amountCents, 'GHS')}</span>
+                Exact wallet credit: <span className="font-semibold text-brand-gold">{formatCurrency(amountCents, 'GHS')}</span>
               </p>
               <p className="text-white/70">
                 Paystack processing fee (1.95%, added at checkout): <span className="font-semibold text-white">{formatCurrency(feeCents, 'GHS')}</span>
               </p>
               <p className="text-white/90 pt-1 border-t border-white/10">
-                Total charged at Paystack: <span className="font-semibold text-white">{formatCurrency(totalChargedCents, 'GHS')}</span>
+                Total charged at checkout (wallet amount + fee): <span className="font-semibold text-white">{formatCurrency(totalChargedCents, 'GHS')}</span>
               </p>
             </div>
           )}
