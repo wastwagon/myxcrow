@@ -148,7 +148,9 @@ export class DisputesService {
     // Staff (ADMIN/SUPPORT): show all disputes by default
     if (!filters?.isStaff && filters?.userId) {
       where.escrow = {
-        OR: [{ buyerId: filters.userId }, { sellerId: filters.userId }],
+        is: {
+          OR: [{ buyerId: filters.userId }, { sellerId: filters.userId }],
+        },
       };
     }
 

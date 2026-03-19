@@ -35,6 +35,7 @@ describe('DisputesService', () => {
     },
     dispute: {
       findUnique: jest.fn(),
+      findFirst: jest.fn(),
       findMany: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
@@ -88,6 +89,7 @@ describe('DisputesService', () => {
   describe('createDispute', () => {
     it('should create dispute successfully for buyer', async () => {
       mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
+      mockPrismaService.dispute.findFirst.mockResolvedValue(null);
       mockPrismaService.dispute.create.mockResolvedValue(mockDispute);
       mockPrismaService.escrowAgreement.update.mockResolvedValue({
         ...mockEscrow,
@@ -112,6 +114,7 @@ describe('DisputesService', () => {
 
     it('should create dispute successfully for seller', async () => {
       mockPrismaService.escrowAgreement.findUnique.mockResolvedValue(mockEscrow);
+      mockPrismaService.dispute.findFirst.mockResolvedValue(null);
       mockPrismaService.dispute.create.mockResolvedValue({
         ...mockDispute,
         initiatorId: 'seller-id-123',
