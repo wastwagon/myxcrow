@@ -111,7 +111,11 @@ export class EscrowService {
     let deliveryPinHash: string | null = null;
     let generatedDeliveryPin: string | null = null;
     if (deliveryMode === 'pin') {
-      generatedDeliveryPin = this.generateTransactionPin();
+      const providedPin = data.deliveryPin?.trim();
+      if (providedPin && !/^\d{6}$/.test(providedPin)) {
+        throw new BadRequestException('Delivery PIN must be exactly 6 digits');
+      }
+      generatedDeliveryPin = providedPin || this.generateTransactionPin();
       deliveryPinHash = await bcrypt.hash(generatedDeliveryPin, 10);
     }
 

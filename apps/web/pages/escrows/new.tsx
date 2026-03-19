@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Loader2, AlertCircle, Plus, X } from 'lucide-react';
+import { Loader2, AlertCircle, Plus, X, Copy } from 'lucide-react';
 import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 
@@ -31,6 +31,7 @@ const createEscrowSchema = z.object({
   deliveryAddressLine: z.string().optional(),
   deliveryPhone: z.string().optional(),
   useDeliveryPin: z.boolean().default(false),
+  deliveryPin: z.string().regex(/^\d{6}$/, 'PIN must be exactly 6 digits').optional(),
 }).refine((data) => {
   if (data.useMilestones && data.milestones && data.milestones.length > 0) {
     const totalMilestones = data.milestones.reduce((sum, m) => sum + m.amountCents, 0);
@@ -40,6 +41,12 @@ const createEscrowSchema = z.object({
 }, {
   message: 'Total milestone amounts cannot exceed escrow amount',
   path: ['milestones'],
+}).refine((data) => {
+  if (data.useDeliveryPin) return /^\d{6}$/.test(data.deliveryPin || '');
+  return true;
+}, {
+  message: 'Delivery PIN must be exactly 6 digits',
+  path: ['deliveryPin'],
 });
 
 type CreateEscrowFormData = z.infer<typeof createEscrowSchema>;
@@ -54,6 +61,10 @@ interface User {
 export default function CreateEscrowPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+
+  const generatePin = () => {
+    return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
+  };
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -75,6 +86,8 @@ export default function CreateEscrowPage() {
     formState: { errors },
     watch,
     control,
+    setValue,
+    getValues,
   } = useForm<CreateEscrowFormData>({
     resolver: zodResolver(createEscrowSchema),
     defaultValues: {
@@ -82,6 +95,7 @@ export default function CreateEscrowPage() {
       useMilestones: false,
       milestones: [],
       useDeliveryPin: false,
+      deliveryPin: undefined,
     },
   });
 
@@ -93,6 +107,18 @@ export default function CreateEscrowPage() {
   const useMilestones = watch('useMilestones');
   const amountCents = watch('amountCents');
   const milestones = watch('milestones');
+  const useDeliveryPin = watch('useDeliveryPin');
+  const deliveryPin = watch('deliveryPin');
+
+  useEffect(() => {
+    if (!useDeliveryPin) {
+      setValue('deliveryPin', undefined);
+      return;
+    }
+    if (!getValues('deliveryPin')) {
+      setValue('deliveryPin', generatePin(), { shouldValidate: true });
+    }
+  }, [useDeliveryPin, getValues, setValue]);
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateEscrowFormData) => {
@@ -106,6 +132,7 @@ export default function CreateEscrowPage() {
         deliveryAddressLine: data.deliveryAddressLine || undefined,
         deliveryPhone: data.deliveryPhone || undefined,
         deliveryConfirmationMode: data.useDeliveryPin ? 'pin' : 'code',
+        deliveryPin: data.useDeliveryPin ? data.deliveryPin : undefined,
       };
       if (data.useMilestones && data.milestones && data.milestones.length > 0) {
         payload.milestones = data.milestones.map(m => ({
@@ -252,9 +279,35 @@ export default function CreateEscrowPage() {
               <input type="checkbox" {...register('useDeliveryPin')} className="rounded border-gray-300 text-brand-maroon focus:ring-brand-gold" />
               <span className="text-sm font-medium text-gray-700">Use PIN to confirm delivery (auto-generate secure PIN for this escrow)</span>
             </label>
-            {watch('useDeliveryPin') && (
+            {useDeliveryPin && (
               <div className="mt-2">
-                <p className="mt-1 text-xs text-gray-500">A secure 6-digit transaction PIN will be auto-generated after creation and shown once on the confirmation screen. Share it only with someone you authorize to confirm delivery on your behalf.</p>
+                <label htmlFor="deliveryPin" className="block text-sm font-medium text-gray-700 mb-1">
+                  Generated Transaction PIN (6 digits)
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="deliveryPin"
+                    value={deliveryPin || ''}
+                    readOnly
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-900 font-mono tracking-[0.3em] select-all"
+                    aria-readonly="true"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!deliveryPin) return;
+                      await navigator.clipboard.writeText(deliveryPin);
+                      toast.success('PIN copied');
+                    }}
+                    className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">This PIN is auto-generated and locked (not editable). Keep it safe and share only with someone authorized to confirm delivery.</p>
+                {errors.deliveryPin && (
+                  <p className="mt-1 text-sm text-red-600">{errors.deliveryPin.message}</p>
+                )}
               </div>
             )}
           </div>
