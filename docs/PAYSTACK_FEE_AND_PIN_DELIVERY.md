@@ -5,12 +5,12 @@
 **Context:** Paystack charges you 1.95% per transaction. You want to pass this to the customer when they use Paystack (wallet top-up).
 
 **Where it applies:**
-- **Wallet top-up via Paystack** – When a user tops up their wallet using Paystack (card/mobile money), we deduct 1.95% before crediting. Example: user pays ₵100 via Paystack → we credit ₵98.05 (₵1.95 fee).
-- **Escrow funding** – Escrow is funded from wallet (not direct Paystack). So the 1.95% is only applied at top-up time, not again when funding an escrow.
+- **Wallet top-up via Paystack** – **Additive fee:** The user enters the amount they want **in their wallet** (e.g. ₵100). Paystack charges **₵100 + 1.95%** (e.g. ₵101.95). The wallet is credited the full **₵100**; the 1.95% is added at checkout so the customer covers gateway fees while receiving the intended balance.
+- **Escrow funding** – Escrow is funded from wallet (not direct Paystack). The 1.95% is only applied at top-up time, not again when funding an escrow.
 
 **Implementation:**
-- Backend: When creating/verifying a Paystack wallet top-up, set `feeCents = round(amountCents * 1.95 / 100)`. Wallet is credited `amountCents - feeCents`.
-- Frontend (top-up page): Show before redirect: “Paystack processing fee (1.95%): ₵X.XX. You will receive ₵Y.YY.”
+- Backend: `feeCents = round(amountCents * 1.95 / 100)`, `grossChargedCents = amountCents + feeCents`. Initialize Paystack with `grossChargedCents`. Store `amountCents` as wallet credit and `feeCents` on `WalletFunding`. On success, credit wallet **`amountCents`** (full intended deposit). Ledger: user wallet +`amountCents`, funding source −(`amountCents` + `feeCents`), fees revenue +`feeCents`.
+- Frontend (top-up page): Show wallet amount, fee added at checkout, and **total charged at Paystack**.
 - Optional: Make 1.95% a config (e.g. in settings) so you can change it if Paystack updates.
 
 **Clarification:** If you ever support “direct Paystack” for escrow (pay without wallet), the same 1.95% would apply to that payment; for now only wallet top-up is in scope.
@@ -52,6 +52,6 @@ Recommendation: Start with **B** (per-escrow choice). You can add category later
 
 | Item | Scope | Status |
 |------|--------|--------|
-| Paystack 1.95% | Wallet top-up only; show fee and credit (amount - fee) | Implemented |
+| Paystack 1.95% | Wallet top-up: fee added at checkout; user receives full entered amount | Implemented |
 | PIN delivery | Optional per escrow; PIN set by transaction creator only; ref + PIN at delivery confirms rightful owner before releasing funds | Implemented |
 | Current release system | Unchanged (manual release, code confirmation, auto-release) | Preserved |

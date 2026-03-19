@@ -38,11 +38,13 @@ export class WalletTopupService {
     const wallet = await this.walletService.getOrCreateWallet(data.userId, data.currency || 'GHS');
 
     const reference = `WALLET_${wallet.id}_${Date.now()}`;
+    // Additive fee: user receives full `amountCents`; Paystack charges amount + 1.95%
     const paystackFeeCents = Math.round((data.amountCents * PAYSTACK_FEE_PERCENT) / 100);
+    const grossChargedCents = data.amountCents + paystackFeeCents;
 
     const paystackResponse = await this.paystackService.initializePayment({
       email: data.email,
-      amount: data.amountCents,
+      amount: grossChargedCents,
       currency: data.currency || 'GHS',
       reference,
       metadata: {
@@ -50,6 +52,8 @@ export class WalletTopupService {
         userId: data.userId,
         type: 'wallet_topup',
         holdHours: data.holdHours,
+        walletCreditCents: data.amountCents,
+        processingFeeCents: paystackFeeCents,
       },
       callback_url: data.callbackUrl || `${process.env.WEB_BASE_URL || process.env.WEB_APP_URL || 'http://localhost:3003'}/wallet/topup/callback`,
       channels: ['card', 'bank', 'mobile_money', 'ussd'],
@@ -68,6 +72,8 @@ export class WalletTopupService {
           access_code: paystackResponse.data.access_code,
           authorization_url: paystackResponse.data.authorization_url,
           holdHours: data.holdHours,
+          grossChargedCents,
+          walletCreditCents: data.amountCents,
         },
       },
     });
@@ -77,7 +83,13 @@ export class WalletTopupService {
       action: 'initiate_wallet_topup',
       resource: 'wallet_funding',
       resourceId: funding.id,
-      details: { amountCents: data.amountCents, currency: data.currency, reference },
+      details: {
+        walletCreditCents: data.amountCents,
+        processingFeeCents: paystackFeeCents,
+        grossChargedCents,
+        currency: data.currency,
+        reference,
+      },
     });
 
     return {
@@ -85,9 +97,12 @@ export class WalletTopupService {
       authorizationUrl: paystackResponse.data.authorization_url,
       accessCode: paystackResponse.data.access_code,
       reference: paystackResponse.data.reference,
+      /** Amount credited to wallet after successful payment */
       amountCents: data.amountCents,
+      /** 1.95% processing fee (added on top at Paystack checkout) */
       feeCents: paystackFeeCents,
-      creditCents: data.amountCents - paystackFeeCents,
+      /** Total charged at Paystack = amountCents + feeCents */
+      totalChargedCents: grossChargedCents,
     };
   }
 

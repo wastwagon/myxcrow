@@ -21,7 +21,7 @@ export default function WalletTopupPage() {
 
   const amountCents = useMemo(() => Math.round(parseFloat(amount || '0') * 100), [amount]);
   const feeCents = useMemo(() => Math.round((amountCents * PAYSTACK_FEE_PERCENT) / 100), [amountCents]);
-  const creditCents = amountCents - feeCents;
+  const totalChargedCents = amountCents + feeCents;
 
   const topupMutation = useMutation({
     mutationFn: async () => {
@@ -62,7 +62,7 @@ export default function WalletTopupPage() {
         <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl p-6 space-y-4">
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-white/90 mb-1">
-              Amount to pay (₵) *
+              Amount to add to wallet (₵) *
             </label>
             <input
               id="amount"
@@ -76,11 +76,14 @@ export default function WalletTopupPage() {
           </div>
           {amountCents >= 100 && (
             <div className="rounded-lg bg-white/5 border border-white/10 p-4 space-y-1 text-sm">
-              <p className="text-white/70">
-                Paystack processing fee (1.95%): <span className="font-semibold text-white">{formatCurrency(feeCents, 'GHS')}</span>
-              </p>
               <p className="text-white/90">
-                You will receive: <span className="font-semibold text-brand-gold">{formatCurrency(creditCents, 'GHS')}</span>
+                You will receive in wallet: <span className="font-semibold text-brand-gold">{formatCurrency(amountCents, 'GHS')}</span>
+              </p>
+              <p className="text-white/70">
+                Paystack processing fee (1.95%, added at checkout): <span className="font-semibold text-white">{formatCurrency(feeCents, 'GHS')}</span>
+              </p>
+              <p className="text-white/90 pt-1 border-t border-white/10">
+                Total charged at Paystack: <span className="font-semibold text-white">{formatCurrency(totalChargedCents, 'GHS')}</span>
               </p>
             </div>
           )}

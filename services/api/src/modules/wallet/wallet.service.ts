@@ -143,12 +143,17 @@ export class WalletService {
    * Does NOT create a new funding - prevents duplicate entries when both webhook and callback run.
    * Uses transaction for atomicity.
    */
+  /**
+   * Credit wallet after Paystack (or similar) confirms payment.
+   * For Paystack top-up: `amountCents` is the wallet credit; `feeCents` is the processing fee
+   * already included in the gateway charge (additive model) — credit the full `amountCents`.
+   */
   async creditWalletFromFunding(funding: { id: string; walletId: string; wallet: { userId: string; currency: string }; amountCents: number; feeCents: number; sourceType: any }) {
     await this.prisma.$transaction(async (tx) => {
       await tx.wallet.update({
         where: { id: funding.walletId },
         data: {
-          availableCents: { increment: funding.amountCents - funding.feeCents },
+          availableCents: { increment: funding.amountCents },
         },
       });
 
