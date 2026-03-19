@@ -13,9 +13,12 @@ import { formatCurrency } from '@/lib/utils';
 
 const disputeSchema = z.object({
   escrowId: z.string().min(1, 'Escrow ID is required'),
-  reason: z.enum(['NOT_RECEIVED', 'DAMAGED', 'WRONG_ITEM', 'OTHER'], {
+  reason: z.enum(
+    ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DEFECTIVE', 'WRONG_ITEM', 'PARTIAL_DELIVERY', 'OTHER'],
+    {
     required_error: 'Please select a reason',
-  }),
+    }
+  ),
   description: z.string().min(10, 'Description must be at least 10 characters'),
 });
 
@@ -25,12 +28,17 @@ export default function CreateDisputePage() {
   const router = useRouter();
   const { escrowId } = router.query;
   const queryClient = useQueryClient();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted && !isAuthenticated()) {
       router.push('/login');
     }
-  }, [router]);
+  }, [mounted, router]);
 
   const { data: escrow } = useQuery({
     queryKey: ['escrow', escrowId],
@@ -38,7 +46,7 @@ export default function CreateDisputePage() {
       const response = await apiClient.get(`/escrows/${escrowId}`);
       return response.data;
     },
-    enabled: !!escrowId,
+    enabled: mounted && !!escrowId && isAuthenticated(),
   });
 
   const {
@@ -79,7 +87,7 @@ export default function CreateDisputePage() {
     createMutation.mutate(data);
   };
 
-  if (!isAuthenticated()) {
+  if (!mounted || !isAuthenticated()) {
     return null;
   }
 
@@ -122,8 +130,10 @@ export default function CreateDisputePage() {
             >
               <option value="">Select a reason</option>
               <option value="NOT_RECEIVED">Item Not Received</option>
-              <option value="DAMAGED">Item Damaged</option>
+              <option value="NOT_AS_DESCRIBED">Not As Described</option>
+              <option value="DEFECTIVE">Item Defective/Damaged</option>
               <option value="WRONG_ITEM">Wrong Item Received</option>
+              <option value="PARTIAL_DELIVERY">Partial Delivery</option>
               <option value="OTHER">Other</option>
             </select>
             {errors.reason && (
