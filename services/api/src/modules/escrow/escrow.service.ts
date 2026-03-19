@@ -63,7 +63,7 @@ export class EscrowService {
     autoReleaseDays?: number;
     disputeWindowDays?: number;
     useWallet?: boolean;
-    milestones?: Array<{ name: string; description?: string; amountCents: number }>;
+    milestones?: Array<{ name: string; description?: string; amountCents: number; targetDate?: Date | string; approvalWindowDays?: number }>;
     deliveryRegion?: string;
     deliveryCity?: string;
     deliveryAddressLine?: string;
@@ -159,6 +159,8 @@ export class EscrowService {
           name: m.name,
           description: m.description,
           amountCents: m.amountCents,
+          targetDate: m.targetDate ? new Date(m.targetDate) : undefined,
+          approvalWindowDays: m.approvalWindowDays ?? 5,
           status: 'pending',
         })),
       });

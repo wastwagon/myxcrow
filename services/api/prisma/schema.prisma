@@ -419,7 +419,12 @@ model EscrowMilestone {
   name        String
   description String?
   amountCents Int      // Portion of total amount for this milestone
-  status      String   @default("pending") // pending, completed, released
+  status      String   @default("pending") // pending, submitted, approved, completed(legacy), released
+  targetDate  DateTime? // Optional expected completion date (Phase 1)
+  approvalWindowDays Int @default(5) // Buyer review window after submission/completion
+  submittedAt DateTime?
+  approvedAt  DateTime?
+  approvalReminderSentAt DateTime? // Reminder sent before auto-approval deadline
   completedAt DateTime?
   releasedAt  DateTime?
   createdAt   DateTime @default(now())

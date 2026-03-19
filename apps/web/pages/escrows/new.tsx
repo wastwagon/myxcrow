@@ -15,6 +15,8 @@ const milestoneSchema = z.object({
   name: z.string().min(1, 'Milestone name is required'),
   description: z.string().optional(),
   amountCents: z.number().min(1, 'Amount must be at least 0.01'),
+  targetDate: z.string().optional(),
+  approvalWindowDays: z.number().int().min(1, 'Min 1 day').max(30, 'Max 30 days').optional(),
 });
 
 const createEscrowSchema = z.object({
@@ -109,6 +111,8 @@ export default function CreateEscrowPage() {
         payload.milestones = data.milestones.map(m => ({
           ...m,
           amountCents: Math.round(m.amountCents * 100),
+          targetDate: m.targetDate ? new Date(m.targetDate).toISOString() : undefined,
+          approvalWindowDays: m.approvalWindowDays || 5,
         }));
       } else {
         delete payload.milestones;
@@ -137,7 +141,7 @@ export default function CreateEscrowPage() {
   };
 
   const addMilestone = () => {
-    append({ name: '', description: '', amountCents: 0 });
+    append({ name: '', description: '', amountCents: 0, targetDate: '', approvalWindowDays: 5 });
   };
 
   const totalMilestoneAmount = milestones?.reduce((sum, m) => sum + (m.amountCents || 0), 0) || 0;
@@ -345,6 +349,41 @@ export default function CreateEscrowPage() {
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                           placeholder="Describe what needs to be completed..."
                         />
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Target Date (Optional)
+                          </label>
+                          <input
+                            type="date"
+                            {...register(`milestones.${index}.targetDate`)}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          />
+                          {errors.milestones?.[index]?.targetDate && (
+                            <p className="mt-1 text-xs text-red-600">
+                              {errors.milestones[index]?.targetDate?.message as string}
+                            </p>
+                          )}
+                        </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                            Approval Window (Days)
+                          </label>
+                          <input
+                            type="number"
+                            min="1"
+                            max="30"
+                            {...register(`milestones.${index}.approvalWindowDays`, { valueAsNumber: true })}
+                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            placeholder="5"
+                          />
+                          {errors.milestones?.[index]?.approvalWindowDays && (
+                            <p className="mt-1 text-xs text-red-600">
+                              {errors.milestones[index]?.approvalWindowDays?.message as string}
+                            </p>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <label className="block text-xs font-medium text-gray-700 mb-1">

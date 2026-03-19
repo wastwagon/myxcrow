@@ -169,6 +169,16 @@ export class EscrowController {
     return this.milestoneService.completeMilestone(id, milestoneId, user.id);
   }
 
+  @Put(':id/milestones/:milestoneId/approve')
+  @UseGuards(EscrowParticipantGuard)
+  async approveMilestone(
+    @Param('id') id: string,
+    @Param('milestoneId') milestoneId: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    return this.milestoneService.approveMilestone(id, milestoneId, user.id);
+  }
+
   @Put(':id/milestones/:milestoneId/release')
   @UseGuards(EscrowParticipantGuard)
   async releaseMilestone(

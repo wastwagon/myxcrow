@@ -10,7 +10,11 @@ interface Milestone {
   name: string;
   description?: string;
   amountCents: number;
-  status: 'pending' | 'completed' | 'released';
+  status: 'pending' | 'submitted' | 'approved' | 'completed' | 'released';
+  targetDate?: string;
+  approvalWindowDays?: number;
+  submittedAt?: string;
+  approvedAt?: string;
   completedAt?: string;
   releasedAt?: string;
 }
@@ -64,9 +68,29 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
     },
   });
 
-  const handleComplete = (milestoneId: string, milestoneName: string) => {
-    if (confirm(`Mark "${milestoneName}" as completed?`)) {
+  const approveMutation = useMutation({
+    mutationFn: async (milestoneId: string) => {
+      return apiClient.put(`/escrows/${escrowId}/milestones/${milestoneId}/approve`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['milestones', escrowId] });
+      queryClient.invalidateQueries({ queryKey: ['escrow', escrowId] });
+      toast.success('Milestone approved');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || 'Failed to approve milestone');
+    },
+  });
+
+  const handleSubmitMilestone = (milestoneId: string, milestoneName: string) => {
+    if (confirm(`Submit "${milestoneName}" for buyer review?`)) {
       completeMutation.mutate(milestoneId);
+    }
+  };
+
+  const handleApprove = (milestoneId: string, milestoneName: string) => {
+    if (confirm(`Approve "${milestoneName}"?`)) {
+      approveMutation.mutate(milestoneId);
     }
   };
 
@@ -74,6 +98,17 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
     if (confirm(`Release funds for "${milestoneName}" to seller?`)) {
       releaseMutation.mutate(milestoneId);
     }
+  };
+
+  const getApprovalMeta = (milestone: Milestone) => {
+    if (!milestone.submittedAt) return null;
+    const windowDays = milestone.approvalWindowDays ?? 5;
+    const due = new Date(milestone.submittedAt);
+    due.setDate(due.getDate() + windowDays);
+    const now = new Date();
+    const msLeft = due.getTime() - now.getTime();
+    const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
+    return { due, daysLeft };
   };
 
   if (isLoading) {
@@ -97,7 +132,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
   }
 
   const totalAmount = milestones.reduce((sum, m) => sum + m.amountCents, 0);
-  const completedCount = milestones.filter(m => m.status === 'completed' || m.status === 'released').length;
+  const completedCount = milestones.filter(m => ['submitted', 'approved', 'completed', 'released'].includes(m.status)).length;
   const releasedCount = milestones.filter(m => m.status === 'released').length;
 
   return (
@@ -125,8 +160,11 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
 
       <div className="space-y-3">
         {milestones.map((milestone, index) => {
-          const canComplete = isBuyer && milestone.status === 'pending';
-          const canRelease = isBuyer && milestone.status === 'completed';
+          const isSeller = user?.id === sellerId;
+          const canSubmit = isSeller && milestone.status === 'pending';
+          const canApprove = isBuyer && (milestone.status === 'submitted' || milestone.status === 'completed'); // completed kept for legacy rows
+          const canRelease = isBuyer && (milestone.status === 'approved' || milestone.status === 'completed'); // completed kept for legacy rows
+          const approvalMeta = getApprovalMeta(milestone);
 
           return (
             <div
@@ -158,6 +196,25 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       {milestone.description && (
                         <p className="text-sm text-gray-600 mt-1">{milestone.description}</p>
                       )}
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        {milestone.targetDate && (
+                          <span className="inline-block px-2 py-0.5 text-xs rounded bg-indigo-100 text-indigo-800">
+                            Target: {formatDate(milestone.targetDate)}
+                          </span>
+                        )}
+                        <span className="inline-block px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800">
+                          Approval window: {milestone.approvalWindowDays ?? 5} day{(milestone.approvalWindowDays ?? 5) > 1 ? 's' : ''}
+                        </span>
+                        {milestone.status === 'submitted' && approvalMeta && (
+                          <span className={`inline-block px-2 py-0.5 text-xs rounded ${
+                            approvalMeta.daysLeft <= 1
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-orange-100 text-orange-800'
+                          }`}>
+                            Auto-approve due: {formatDate(approvalMeta.due)} ({approvalMeta.daysLeft <= 0 ? 'today/overdue' : `${approvalMeta.daysLeft} day(s) left`})
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-gray-900">
@@ -167,6 +224,10 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                         className={`inline-block px-2 py-1 text-xs font-medium rounded mt-1 ${
                           milestone.status === 'released'
                             ? 'bg-green-100 text-green-800'
+                            : milestone.status === 'approved'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : milestone.status === 'submitted'
+                            ? 'bg-amber-100 text-amber-800'
                             : milestone.status === 'completed'
                             ? 'bg-blue-100 text-blue-800'
                             : 'bg-gray-100 text-gray-800'
@@ -174,13 +235,27 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       >
                         {milestone.status === 'released'
                           ? 'Released'
+                          : milestone.status === 'approved'
+                          ? 'Approved'
+                          : milestone.status === 'submitted'
+                          ? 'Submitted'
                           : milestone.status === 'completed'
-                          ? 'Completed'
+                          ? 'Completed (Legacy)'
                           : 'Pending'}
                       </span>
                     </div>
                   </div>
 
+                  {milestone.submittedAt && (
+                    <p className="text-xs text-gray-500 ml-11">
+                      Submitted: {formatDate(milestone.submittedAt)}
+                    </p>
+                  )}
+                  {milestone.approvedAt && (
+                    <p className="text-xs text-gray-500 ml-11">
+                      Approved: {formatDate(milestone.approvedAt)}
+                    </p>
+                  )}
                   {milestone.completedAt && (
                     <p className="text-xs text-gray-500 ml-11">
                       Completed: {formatDate(milestone.completedAt)}
@@ -194,23 +269,42 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                 </div>
               </div>
 
-              {isBuyer && (
+              {(isBuyer || user?.id === sellerId) && (
                 <div className="mt-3 ml-11 flex gap-2">
-                  {canComplete && (
+                  {canSubmit && (
                     <button
-                      onClick={() => handleComplete(milestone.id, milestone.name)}
+                      onClick={() => handleSubmitMilestone(milestone.id, milestone.name)}
                       disabled={completeMutation.isPending}
                       className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
                     >
                       {completeMutation.isPending ? (
                         <>
                           <Loader2 className="w-3 h-3 animate-spin" />
-                          Completing...
+                          Submitting...
                         </>
                       ) : (
                         <>
                           <CheckCircle className="w-3 h-3" />
-                          Mark Complete
+                          Submit for Review
+                        </>
+                      )}
+                    </button>
+                  )}
+                  {canApprove && (
+                    <button
+                      onClick={() => handleApprove(milestone.id, milestone.name)}
+                      disabled={approveMutation.isPending}
+                      className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+                    >
+                      {approveMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                          Approving...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="w-3 h-3" />
+                          Approve
                         </>
                       )}
                     </button>

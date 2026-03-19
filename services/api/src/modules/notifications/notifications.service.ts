@@ -231,6 +231,40 @@ export class NotificationsService {
   }
 
   /**
+   * Send milestone approval reminder (before auto-approval deadline)
+   */
+  async sendMilestoneApprovalReminderNotifications(data: {
+    buyerEmail: string;
+    buyerPhone?: string | null;
+    sellerEmail: string;
+    sellerPhone?: string | null;
+    escrowId: string;
+    milestoneName: string;
+    approvalDueAt: string;
+  }) {
+    const emails = [data.buyerEmail, data.sellerEmail];
+    const phones = [data.buyerPhone, data.sellerPhone].filter((p): p is string => !!p);
+
+    await this.sendNotifications({
+      emails: {
+        to: emails,
+        subject: 'Milestone Approval Reminder',
+        html: `
+          <h2>Milestone Approval Reminder</h2>
+          <p>Escrow ${data.escrowId} has a submitted milestone awaiting buyer action.</p>
+          <p><strong>Milestone:</strong> ${data.milestoneName}</p>
+          <p><strong>Auto-approval due:</strong> ${data.approvalDueAt}</p>
+          <p>If no action is taken before this deadline, the milestone may be auto-approved.</p>
+        `,
+      },
+      sms: phones.length > 0 ? {
+        to: phones,
+        message: `MYXCROW: Milestone "${data.milestoneName}" for escrow ${data.escrowId} is awaiting approval. Auto-approval due ${data.approvalDueAt}.`,
+      } : undefined,
+    });
+  }
+
+  /**
    * Send dispute opened notifications
    */
   async sendDisputeOpenedNotifications(data: {
