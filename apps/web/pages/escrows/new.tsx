@@ -29,13 +29,7 @@ const createEscrowSchema = z.object({
   deliveryAddressLine: z.string().optional(),
   deliveryPhone: z.string().optional(),
   useDeliveryPin: z.boolean().default(false),
-  deliveryPin: z.string().optional(),
 }).refine((data) => {
-  if (data.useDeliveryPin && (!data.deliveryPin || data.deliveryPin.length < 4 || data.deliveryPin.length > 8 || !/^\d+$/.test(data.deliveryPin))) {
-    return false;
-  }
-  return true;
-}, { message: 'PIN must be 4–8 digits', path: ['deliveryPin'] }).refine((data) => {
   if (data.useMilestones && data.milestones && data.milestones.length > 0) {
     const totalMilestones = data.milestones.reduce((sum, m) => sum + m.amountCents, 0);
     return totalMilestones <= data.amountCents;
@@ -86,7 +80,6 @@ export default function CreateEscrowPage() {
       useMilestones: false,
       milestones: [],
       useDeliveryPin: false,
-      deliveryPin: '',
     },
   });
 
@@ -111,7 +104,6 @@ export default function CreateEscrowPage() {
         deliveryAddressLine: data.deliveryAddressLine || undefined,
         deliveryPhone: data.deliveryPhone || undefined,
         deliveryConfirmationMode: data.useDeliveryPin ? 'pin' : 'code',
-        deliveryPin: data.useDeliveryPin ? data.deliveryPin : undefined,
       };
       if (data.useMilestones && data.milestones && data.milestones.length > 0) {
         payload.milestones = data.milestones.map(m => ({
@@ -130,7 +122,10 @@ export default function CreateEscrowPage() {
       queryClient.invalidateQueries({ queryKey: ['escrows'] });
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
       toast.success('Escrow created successfully');
-      router.push(`/escrows/${escrowId}`);
+      if (response.data.generatedDeliveryPin && typeof window !== 'undefined') {
+        sessionStorage.setItem(`newEscrowPin:${escrowId}`, response.data.generatedDeliveryPin);
+      }
+      router.push(`/escrows/created/${escrowId}`);
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || 'Failed to create escrow');
@@ -251,25 +246,11 @@ export default function CreateEscrowPage() {
             <p className="text-xs text-gray-500 mb-3">Default: reference + delivery code. Or use a <strong>transaction PIN</strong>: only you (the person creating this transaction) set this PIN. At delivery, entering the PIN confirms the <strong>rightful owner</strong> of the transaction before escrow funds are auto-released.</p>
             <label className="flex items-center gap-2 cursor-pointer mb-3">
               <input type="checkbox" {...register('useDeliveryPin')} className="rounded border-gray-300 text-brand-maroon focus:ring-brand-gold" />
-              <span className="text-sm font-medium text-gray-700">Use PIN to confirm delivery (only I know the PIN; confirms rightful owner at delivery before releasing funds)</span>
+              <span className="text-sm font-medium text-gray-700">Use PIN to confirm delivery (auto-generate secure PIN for this escrow)</span>
             </label>
             {watch('useDeliveryPin') && (
               <div className="mt-2">
-                <label htmlFor="deliveryPin" className="block text-sm font-medium text-gray-700 mb-1">Your transaction PIN (4–8 digits)</label>
-                <input
-                  {...register('deliveryPin')}
-                  id="deliveryPin"
-                  type="password"
-                  inputMode="numeric"
-                  autoComplete="off"
-                  placeholder="e.g. 1234"
-                  maxLength={8}
-                  className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent font-mono"
-                />
-                <p className="mt-1 text-xs text-gray-500">Only you (the creator of this transaction) know this PIN. At delivery, the person with the reference + this PIN confirms they are the rightful owner before funds are released from escrow. Keep it safe.</p>
-                {errors.deliveryPin && (
-                  <p className="mt-1 text-sm text-red-600">{errors.deliveryPin.message}</p>
-                )}
+                <p className="mt-1 text-xs text-gray-500">A secure 6-digit transaction PIN will be auto-generated after creation and shown once on the confirmation screen. Share it only with someone you authorize to confirm delivery on your behalf.</p>
               </div>
             )}
           </div>

@@ -8,7 +8,8 @@
     "dev": "echo 'Use docker-compose for local development'",
     "build": "echo 'Build individual services'",
     "test": "echo 'Run tests in individual services'",
-    "screenshots": "tsx scripts/capture-app-store-screenshots.ts"
+    "screenshots": "tsx scripts/capture-app-store-screenshots.ts",
+    "play-store-assets": "tsx scripts/capture-android-play-store.ts"
   },
   "engines": {
     "node": ">=20.0.0",

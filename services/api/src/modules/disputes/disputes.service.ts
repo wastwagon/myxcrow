@@ -32,6 +32,44 @@ export class DisputesService {
       throw new BadRequestException('Only escrow participants can create disputes');
     }
 
+    const activeDispute = await this.prisma.dispute.findFirst({
+      where: {
+        escrowId: data.escrowId,
+        status: { notIn: [DisputeStatus.RESOLVED, DisputeStatus.CLOSED] },
+      },
+      select: { id: true, status: true },
+    });
+    if (activeDispute) {
+      throw new BadRequestException('An active dispute already exists for this escrow');
+    }
+
+    const allowedStatuses = [
+      'FUNDED',
+      'SHIPPED',
+      'IN_TRANSIT',
+      'DELIVERED',
+      'AWAITING_RELEASE',
+      'DISPUTED',
+      'RELEASED',
+    ];
+    if (!allowedStatuses.includes(String(escrow.status))) {
+      throw new BadRequestException(`Disputes can only be raised after funding and before final closure (current status: ${escrow.status})`);
+    }
+
+    // For released escrows, allow disputes only within disputeWindowDays after release.
+    if (String(escrow.status) === 'RELEASED') {
+      const windowDays = (escrow as any).disputeWindowDays ?? 14;
+      const releasedAt = (escrow as any).releasedAt ? new Date((escrow as any).releasedAt) : null;
+      if (!releasedAt) {
+        throw new BadRequestException('Dispute window has expired for this escrow');
+      }
+      const deadline = new Date(releasedAt);
+      deadline.setDate(deadline.getDate() + windowDays);
+      if (new Date() > deadline) {
+        throw new BadRequestException(`Dispute window expired (${windowDays} days after release)`);
+      }
+    }
+
     const dispute = await this.prisma.dispute.create({
       data: {
         escrowId: data.escrowId,

@@ -278,7 +278,7 @@ export default function EscrowDetailPage() {
         <div className="mb-4">
           <button
             onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-900 flex items-center gap-2"
+            className="text-white/70 hover:text-white flex items-center gap-2 transition-colors"
           >
             ← Back
           </button>
@@ -288,9 +288,9 @@ export default function EscrowDetailPage() {
           subtitle={`ID: ${escrow.id}`}
           icon={<FileText className="w-6 h-6" />}
           action={
-            <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg border border-gray-200">
-              <StatusIcon className="w-5 h-5 text-gray-600" />
-              <span className="text-sm font-medium text-gray-700">
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg border border-white/20">
+              <StatusIcon className="w-5 h-5 text-brand-gold" />
+              <span className="text-sm font-medium text-white">
                 {statusConfig[escrow.status]?.label || escrow.status}
               </span>
             </div>
@@ -299,17 +299,17 @@ export default function EscrowDetailPage() {
 
         {/* Main Info */}
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Details</h2>
+          <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 p-6">
+            <h2 className="text-xl font-semibold text-white mb-4">Details</h2>
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-gray-600">Description</p>
-                <p className="font-medium text-gray-900">{escrow.description || 'N/A'}</p>
+                <p className="text-sm text-white/70">Description</p>
+                <p className="font-medium text-white">{escrow.description || 'N/A'}</p>
               </div>
               {escrow.buyer && (
                 <div>
-                  <p className="text-sm text-gray-600">Buyer</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-white/70">Buyer</p>
+                  <p className="font-medium text-white">
                     <UserProfileLink
                       userId={escrow.buyerId}
                       name={escrow.buyer.firstName && escrow.buyer.lastName ? `${escrow.buyer.firstName} ${escrow.buyer.lastName}` : undefined}
@@ -320,8 +320,8 @@ export default function EscrowDetailPage() {
               )}
               {escrow.seller && (
                 <div>
-                  <p className="text-sm text-gray-600">Seller</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-white/70">Seller</p>
+                  <p className="font-medium text-white">
                     <UserProfileLink
                       userId={escrow.sellerId}
                       name={escrow.seller.firstName && escrow.seller.lastName ? `${escrow.seller.firstName} ${escrow.seller.lastName}` : undefined}
@@ -331,33 +331,33 @@ export default function EscrowDetailPage() {
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-600">Amount</p>
-                <p className="font-medium text-gray-900 text-2xl">
+                <p className="text-sm text-white/70">Amount</p>
+                <p className="font-medium text-white text-2xl">
                   {formatCurrency(escrow.amountCents, 'GHS')}
                 </p>
               </div>
               {escrow.feeCents > 0 && (
                 <div>
-                  <p className="text-sm text-gray-600">Fee</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-white/70">Fee</p>
+                  <p className="font-medium text-white">
                     {formatCurrency(escrow.feeCents, 'GHS')}
                   </p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-gray-600">Net Amount</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-sm text-white/70">Net Amount</p>
+                <p className="font-medium text-white">
                   {formatCurrency(escrow.netAmountCents, 'GHS')}
                 </p>
               </div>
               <div>
-                <p className="text-sm text-gray-600">Created</p>
-                <p className="font-medium text-gray-900">{formatDate(escrow.createdAt)}</p>
+                <p className="text-sm text-white/70">Created</p>
+                <p className="font-medium text-white">{formatDate(escrow.createdAt)}</p>
               </div>
               {(escrow.deliveryRegion || escrow.deliveryCity || escrow.deliveryAddressLine) && (
                 <div>
-                  <p className="text-sm text-gray-600">Ship to</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-white/70">Ship to</p>
+                  <p className="font-medium text-white">
                     {[escrow.deliveryAddressLine, escrow.deliveryCity, escrow.deliveryRegion].filter(Boolean).join(', ')}
                     {escrow.deliveryPhone && ` · ${escrow.deliveryPhone}`}
                   </p>
@@ -388,8 +388,8 @@ export default function EscrowDetailPage() {
           </div>
 
           {/* Actions */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
+          <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 p-6">
+            <h2 className="text-xl font-semibold text-white mb-4">Actions</h2>
             <div className="space-y-3">
               {canFund && (
                 <button
@@ -474,23 +474,23 @@ export default function EscrowDetailPage() {
                 </button>
               )}
               {!canFund && !canShip && !canMarkServiceCompleted && !canDeliver && !canRelease && (
-                <p className="text-sm text-gray-500 text-center py-4">
+                <p className="text-sm text-white/70 text-center py-4">
                   No actions available for this status
                 </p>
               )}
               <div className="pt-4 border-t">
                 <Link
                   href={`/escrows/${id}/evidence`}
-                  className="block w-full px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-center"
+                  className="block w-full px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 text-center"
                 >
                   <Upload className="w-4 h-4 inline mr-2" />
                   Manage Evidence
                 </Link>
               </div>
-              {(escrow.status === 'FUNDED' || escrow.status === 'SHIPPED' || escrow.status === 'DELIVERED') && (
+              {(['FUNDED', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED', 'AWAITING_RELEASE', 'RELEASED'] as string[]).includes(escrow.status) && (
                 <Link
                   href={`/disputes/new?escrowId=${id}`}
-                  className="block w-full px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 text-center"
+                  className="block w-full px-4 py-2 bg-red-500/20 text-red-200 rounded-lg hover:bg-red-500/30 text-center border border-red-400/30"
                 >
                   <AlertCircle className="w-4 h-4 inline mr-2" />
                   Open Dispute
@@ -522,15 +522,15 @@ export default function EscrowDetailPage() {
         </div>
 
         {/* Tabs: Timeline, Ledger, Milestones */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="border-b border-gray-200">
+        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10">
+          <div className="border-b border-white/10">
             <nav className="flex -mb-px">
               <button
                 onClick={() => setActiveTab('timeline')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'timeline'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-brand-gold text-brand-gold'
+                    : 'border-transparent text-white/70 hover:text-white hover:border-white/40'
                 }`}
               >
                 <Activity className="w-4 h-4 inline mr-2" />
@@ -540,8 +540,8 @@ export default function EscrowDetailPage() {
                 onClick={() => setActiveTab('ledger')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'ledger'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-brand-gold text-brand-gold'
+                    : 'border-transparent text-white/70 hover:text-white hover:border-white/40'
                 }`}
               >
                 <List className="w-4 h-4 inline mr-2" />
@@ -552,8 +552,8 @@ export default function EscrowDetailPage() {
                   onClick={() => setActiveTab('milestones')}
                   className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === 'milestones'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-brand-gold text-brand-gold'
+                      : 'border-transparent text-white/70 hover:text-white hover:border-white/40'
                   }`}
                 >
                   <CheckCircle className="w-4 h-4 inline mr-2" />
@@ -564,8 +564,8 @@ export default function EscrowDetailPage() {
                 onClick={() => setActiveTab('messages')}
                 className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                   activeTab === 'messages'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-brand-gold text-brand-gold'
+                    : 'border-transparent text-white/70 hover:text-white hover:border-white/40'
                 }`}
               >
                 <MessageSquare className="w-4 h-4 inline mr-2" />

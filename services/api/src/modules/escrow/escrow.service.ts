@@ -43,6 +43,14 @@ export class EscrowService {
     return result;
   }
 
+  /** Generate 6-digit numeric transaction PIN */
+  private generateTransactionPin(): string {
+    const bytes = randomBytes(6);
+    let pin = '';
+    for (let i = 0; i < 6; i++) pin += String(bytes[i]! % 10);
+    return pin;
+  }
+
   async createEscrow(data: {
     buyerId: string;
     sellerId: string;
@@ -101,13 +109,10 @@ export class EscrowService {
     const useWallet = data.useWallet !== false;
     const deliveryMode = data.deliveryConfirmationMode === 'pin' ? 'pin' : 'code';
     let deliveryPinHash: string | null = null;
-    if (deliveryMode === 'pin' && data.deliveryPin) {
-      const pin = String(data.deliveryPin).trim();
-      if (pin.length >= 4 && pin.length <= 8 && /^\d+$/.test(pin)) {
-        deliveryPinHash = await bcrypt.hash(pin, 10);
-      } else {
-        throw new BadRequestException('Delivery PIN must be 4–8 digits.');
-      }
+    let generatedDeliveryPin: string | null = null;
+    if (deliveryMode === 'pin') {
+      generatedDeliveryPin = this.generateTransactionPin();
+      deliveryPinHash = await bcrypt.hash(generatedDeliveryPin, 10);
     }
 
     let buyerWalletId: string | null = null;
@@ -187,7 +192,10 @@ export class EscrowService {
       currency,
     });
 
-    return escrow;
+    return {
+      ...escrow,
+      generatedDeliveryPin: generatedDeliveryPin || undefined,
+    };
   }
 
   async fundEscrow(escrowId: string, userId: string) {
