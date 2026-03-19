@@ -28,7 +28,14 @@ const createEscrowSchema = z.object({
   deliveryCity: z.string().optional(),
   deliveryAddressLine: z.string().optional(),
   deliveryPhone: z.string().optional(),
+  useDeliveryPin: z.boolean().default(false),
+  deliveryPin: z.string().optional(),
 }).refine((data) => {
+  if (data.useDeliveryPin && (!data.deliveryPin || data.deliveryPin.length < 4 || data.deliveryPin.length > 8 || !/^\d+$/.test(data.deliveryPin))) {
+    return false;
+  }
+  return true;
+}, { message: 'PIN must be 4–8 digits', path: ['deliveryPin'] }).refine((data) => {
   if (data.useMilestones && data.milestones && data.milestones.length > 0) {
     const totalMilestones = data.milestones.reduce((sum, m) => sum + m.amountCents, 0);
     return totalMilestones <= data.amountCents;
@@ -78,6 +85,8 @@ export default function CreateEscrowPage() {
       currency: 'GHS',
       useMilestones: false,
       milestones: [],
+      useDeliveryPin: false,
+      deliveryPin: '',
     },
   });
 
@@ -101,6 +110,8 @@ export default function CreateEscrowPage() {
         deliveryCity: data.deliveryCity || undefined,
         deliveryAddressLine: data.deliveryAddressLine || undefined,
         deliveryPhone: data.deliveryPhone || undefined,
+        deliveryConfirmationMode: data.useDeliveryPin ? 'pin' : 'code',
+        deliveryPin: data.useDeliveryPin ? data.deliveryPin : undefined,
       };
       if (data.useMilestones && data.milestones && data.milestones.length > 0) {
         payload.milestones = data.milestones.map(m => ({
@@ -111,6 +122,7 @@ export default function CreateEscrowPage() {
         delete payload.milestones;
       }
       delete payload.useMilestones;
+      delete payload.useDeliveryPin;
       return apiClient.post('/escrows', payload);
     },
     onSuccess: (response) => {
@@ -232,6 +244,34 @@ export default function CreateEscrowPage() {
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
+          </div>
+
+          <div className="border-t border-gray-200 pt-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Delivery confirmation</h3>
+            <p className="text-xs text-gray-500 mb-3">Choose how delivery is confirmed. Default: reference + delivery code. PIN: only you (and whoever you share it with) can confirm at delivery; funds can auto-release when PIN is entered.</p>
+            <label className="flex items-center gap-2 cursor-pointer mb-3">
+              <input type="checkbox" {...register('useDeliveryPin')} className="rounded border-gray-300 text-brand-maroon focus:ring-brand-gold" />
+              <span className="text-sm font-medium text-gray-700">Use PIN to confirm delivery (funds release when PIN entered at delivery)</span>
+            </label>
+            {watch('useDeliveryPin') && (
+              <div className="mt-2">
+                <label htmlFor="deliveryPin" className="block text-sm font-medium text-gray-700 mb-1">Transaction PIN (4–8 digits)</label>
+                <input
+                  {...register('deliveryPin')}
+                  id="deliveryPin"
+                  type="password"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="e.g. 1234"
+                  maxLength={8}
+                  className="w-full max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent font-mono"
+                />
+                <p className="mt-1 text-xs text-gray-500">Only you and anyone you share it with can confirm delivery. Keep it safe.</p>
+                {errors.deliveryPin && (
+                  <p className="mt-1 text-sm text-red-600">{errors.deliveryPin.message}</p>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">

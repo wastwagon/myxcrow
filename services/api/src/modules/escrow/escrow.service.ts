@@ -7,6 +7,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
+import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { EscrowStatus } from '@prisma/client';
 import { SettingsService } from '../settings/settings.service';
@@ -59,6 +60,8 @@ export class EscrowService {
     deliveryCity?: string;
     deliveryAddressLine?: string;
     deliveryPhone?: string;
+    deliveryConfirmationMode?: 'code' | 'pin';
+    deliveryPin?: string; // Plain PIN when mode is 'pin'; stored hashed
   }) {
     let sellerId = data.sellerId;
 
@@ -96,6 +99,16 @@ export class EscrowService {
 
     // Wallet is used for all escrow funding. Paystack is only for wallet top-up.
     const useWallet = data.useWallet !== false;
+    const deliveryMode = data.deliveryConfirmationMode === 'pin' ? 'pin' : 'code';
+    let deliveryPinHash: string | null = null;
+    if (deliveryMode === 'pin' && data.deliveryPin) {
+      const pin = String(data.deliveryPin).trim();
+      if (pin.length >= 4 && pin.length <= 8 && /^\d+$/.test(pin)) {
+        deliveryPinHash = await bcrypt.hash(pin, 10);
+      } else {
+        throw new BadRequestException('Delivery PIN must be 4–8 digits.');
+      }
+    }
 
     let buyerWalletId: string | null = null;
     let sellerWalletId: string | null = null;
@@ -129,6 +142,8 @@ export class EscrowService {
         deliveryCity: data.deliveryCity,
         deliveryAddressLine: data.deliveryAddressLine,
         deliveryPhone: data.deliveryPhone,
+        deliveryConfirmationMode: deliveryMode,
+        deliveryPinHash,
       },
     });
 
@@ -580,6 +595,82 @@ export class EscrowService {
       }
     }
     return { success: true, escrowId, message: 'Delivery confirmed successfully.' };
+  }
+
+  /**
+   * Confirm delivery by transaction PIN (public: e.g. at delivery point).
+   * Only for escrows with deliveryConfirmationMode = 'pin'. Verifies PIN then marks delivered and auto-releases if applicable.
+   */
+  async confirmDeliveryByPin(shortReference: string, deliveryPin: string) {
+    const ref = shortReference.trim().toUpperCase();
+    const pin = deliveryPin.trim();
+    if (!ref || !pin) {
+      throw new BadRequestException('Reference and PIN are required.');
+    }
+    const shipment = await this.prisma.shipment.findFirst({
+      where: { shortReference: ref },
+      include: { escrow: true },
+    });
+    if (!shipment) {
+      throw new BadRequestException('Invalid reference. Please check and try again.');
+    }
+    const escrow = shipment.escrow;
+    if (escrow.deliveryConfirmationMode !== 'pin' || !escrow.deliveryPinHash) {
+      throw new BadRequestException('This escrow uses delivery code, not PIN. Use the code instead.');
+    }
+    const pinValid = await bcrypt.compare(pin, escrow.deliveryPinHash);
+    if (!pinValid) {
+      throw new BadRequestException('Invalid PIN. Please check and try again.');
+    }
+    if (escrow.status !== EscrowStatus.SHIPPED && escrow.status !== EscrowStatus.IN_TRANSIT) {
+      throw new BadRequestException(`This delivery was already confirmed or escrow is in ${escrow.status} status.`);
+    }
+    const escrowId = escrow.id;
+    await this.prisma.escrowAgreement.update({
+      where: { id: escrowId },
+      data: { status: EscrowStatus.DELIVERED, deliveredAt: new Date() },
+    });
+    await this.prisma.shipment.update({
+      where: { id: shipment.id },
+      data: { deliveredAt: new Date(), status: 'delivered' },
+    });
+    const buyer = await this.prisma.user.findUnique({ where: { id: escrow.buyerId } });
+    const seller = await this.prisma.user.findUnique({ where: { id: escrow.sellerId } });
+    await this.notificationsService.sendEscrowDeliveredNotifications({
+      emails: [buyer!.email, seller!.email],
+      phones: [buyer!.phone, seller!.phone].filter((p): p is string => !!p),
+      escrowId,
+    });
+    await this.auditService.log({
+      userId: null,
+      action: 'delivery_confirmed_by_pin',
+      resource: 'escrow',
+      resourceId: escrowId,
+      details: { shortReference: ref, shipmentId: shipment.id },
+    });
+    if (this.rulesEngine) {
+      await this.rulesEngine
+        .evaluateRules(
+          { type: 'escrow_status_changed', fromStatus: escrow.status, toStatus: EscrowStatus.DELIVERED },
+          { escrowId, userId: 'delivery_pin', status: EscrowStatus.DELIVERED, buyerId: escrow.buyerId, sellerId: escrow.sellerId },
+        )
+        .catch((err) => this.logger.error(`Failed to evaluate rules: ${err.message}`));
+    }
+    const autoReleaseDays = escrow.autoReleaseDays ?? 0;
+    if (autoReleaseDays === 0) {
+      const activeDisputes = await this.prisma.dispute.count({
+        where: { escrowId, status: { notIn: ['RESOLVED', 'CLOSED'] } },
+      });
+      if (activeDisputes === 0) {
+        try {
+          await this.releaseFunds(escrowId, 'system');
+          this.logger.log(`Auto-settled escrow ${escrowId} on PIN delivery confirm (autoReleaseDays=0)`);
+        } catch (err: any) {
+          this.logger.warn(`Auto-settle on PIN deliver failed for ${escrowId}: ${err.message}`);
+        }
+      }
+    }
+    return { success: true, escrowId, message: 'Delivery confirmed successfully. Funds have been released.' };
   }
 
   /**
@@ -1134,6 +1225,10 @@ export class EscrowService {
       })) as typeof escrow.shipments;
     }
 
+    // Never expose PIN hash to client
+    if ((escrow as any).deliveryPinHash) {
+      delete (escrow as any).deliveryPinHash;
+    }
     return escrow;
   }
 

@@ -46,6 +46,7 @@ interface Escrow {
   deliveryCity?: string;
   deliveryAddressLine?: string;
   deliveryPhone?: string;
+  deliveryConfirmationMode?: 'code' | 'pin';
   milestones?: any[];
   shipments?: Shipment[];
   buyer?: {
@@ -364,11 +365,22 @@ export default function EscrowDetailPage() {
               )}
               {isBuyer && firstShipmentWithCode && (
                 <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                  <p className="text-sm font-semibold text-amber-900 mb-1">Your delivery verification code</p>
-                  <p className="text-xs text-amber-800 mb-2">Give the reference and code to the delivery person so they can confirm delivery. Only you and the system know this code.</p>
-                  <p className="font-mono text-lg font-bold text-amber-900">Ref: {firstShipmentWithCode.shortReference} · Code: {firstShipmentWithCode.deliveryCode}</p>
+                  {escrow.deliveryConfirmationMode === 'pin' ? (
+                    <>
+                      <p className="text-sm font-semibold text-amber-900 mb-1">Confirm delivery with your PIN</p>
+                      <p className="text-xs text-amber-800 mb-2">At delivery, use the reference below and your transaction PIN on the confirm-delivery page. Funds will release automatically when confirmed.</p>
+                      <p className="font-mono text-lg font-bold text-amber-900">Ref: {firstShipmentWithCode.shortReference}</p>
+                      <p className="text-xs text-amber-800 mt-1">Enter this reference + your PIN on the confirm-delivery page (you set the PIN when creating this escrow).</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-sm font-semibold text-amber-900 mb-1">Your delivery verification code</p>
+                      <p className="text-xs text-amber-800 mb-2">Give the reference and code to the delivery person so they can confirm delivery. Only you and the system know this code.</p>
+                      <p className="font-mono text-lg font-bold text-amber-900">Ref: {firstShipmentWithCode.shortReference} · Code: {firstShipmentWithCode.deliveryCode}</p>
+                    </>
+                  )}
                   <a href={`${confirmDeliveryBaseUrl}?ref=${encodeURIComponent(firstShipmentWithCode.shortReference!)}`} target="_blank" rel="noopener noreferrer" className="text-sm text-amber-700 hover:underline mt-2 inline-block">
-                    Open confirm-delivery page (share with delivery person) →
+                    Open confirm-delivery page {escrow.deliveryConfirmationMode === 'pin' ? '(enter ref + PIN)' : '(share with delivery person)'} →
                   </a>
                 </div>
               )}
@@ -423,7 +435,7 @@ export default function EscrowDetailPage() {
                       ? 'Confirm Received & Release Funds'
                       : 'Confirm Delivery (no code)'}
                   </button>
-                  {firstShipmentWithCode && (
+                  {firstShipmentWithCode && escrow.deliveryConfirmationMode !== 'pin' && (
                     <div className="flex gap-2">
                       <input
                         type="text"
@@ -441,6 +453,9 @@ export default function EscrowDetailPage() {
                         {confirmDeliveryByCodeMutation.isPending ? 'Checking...' : 'Confirm with code'}
                       </button>
                     </div>
+                  )}
+                  {firstShipmentWithCode && escrow.deliveryConfirmationMode === 'pin' && (
+                    <p className="text-sm text-gray-600 mt-2">Use the reference above and your PIN on the confirm-delivery page to confirm. Funds will release automatically.</p>
                   )}
                 </>
               )}

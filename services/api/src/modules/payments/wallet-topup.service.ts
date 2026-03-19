@@ -6,6 +6,9 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { WalletFundingSource, WalletFundingStatus } from '@prisma/client';
 import { AuditService } from '../audit/audit.service';
 
+/** Paystack processing fee percentage passed to customer on wallet top-up (e.g. 1.95 = 1.95%) */
+const PAYSTACK_FEE_PERCENT = 1.95;
+
 @Injectable()
 export class WalletTopupService {
   private readonly logger = new Logger(WalletTopupService.name);
@@ -35,6 +38,7 @@ export class WalletTopupService {
     const wallet = await this.walletService.getOrCreateWallet(data.userId, data.currency || 'GHS');
 
     const reference = `WALLET_${wallet.id}_${Date.now()}`;
+    const paystackFeeCents = Math.round((data.amountCents * PAYSTACK_FEE_PERCENT) / 100);
 
     const paystackResponse = await this.paystackService.initializePayment({
       email: data.email,
@@ -57,6 +61,7 @@ export class WalletTopupService {
         sourceType: WalletFundingSource.PAYSTACK_TOPUP,
         externalRef: paystackResponse.data.reference,
         amountCents: data.amountCents,
+        feeCents: paystackFeeCents,
         currency: data.currency || 'GHS',
         status: WalletFundingStatus.PENDING,
         metadata: {
@@ -80,6 +85,9 @@ export class WalletTopupService {
       authorizationUrl: paystackResponse.data.authorization_url,
       accessCode: paystackResponse.data.access_code,
       reference: paystackResponse.data.reference,
+      amountCents: data.amountCents,
+      feeCents: paystackFeeCents,
+      creditCents: data.amountCents - paystackFeeCents,
     };
   }
 

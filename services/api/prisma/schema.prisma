@@ -368,6 +368,10 @@ model EscrowAgreement {
   autoReleaseDays     Int?         @default(0) // Auto-release when complete + no dispute (0=immediate, N=days after deliveredAt)
   disputeWindowDays   Int?         @default(14) // Days buyer has to dispute after delivery
   
+  // Delivery confirmation: "code" = ref+deliveryCode (default), "pin" = transaction PIN at delivery (funds release on PIN confirm)
+  deliveryConfirmationMode String?  @default("code") // "code" | "pin"
+  deliveryPinHash          String?  // bcrypt hash of PIN when deliveryConfirmationMode = "pin"
+  
   // Delivery address (ship to)
   deliveryRegion      String?
   deliveryCity        String?

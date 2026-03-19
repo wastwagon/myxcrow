@@ -12,12 +12,24 @@ export class DeliveryController {
 
   @Post('verify')
   async verifyDelivery(
-    @Body() body: { shortReference?: string; deliveryCode?: string },
+    @Body() body: { shortReference?: string; deliveryCode?: string; deliveryPin?: string },
   ) {
     const shortReference = body.shortReference?.trim();
+    const deliveryPin = body.deliveryPin?.trim();
     const deliveryCode = body.deliveryCode?.trim();
-    if (!shortReference || !deliveryCode) {
-      throw new BadRequestException('shortReference and deliveryCode are required');
+
+    if (!shortReference) {
+      throw new BadRequestException('shortReference is required');
+    }
+
+    // PIN flow: reference + PIN (for escrows with deliveryConfirmationMode = 'pin')
+    if (deliveryPin) {
+      return this.escrowService.confirmDeliveryByPin(shortReference, deliveryPin);
+    }
+
+    // Code flow: reference + delivery code (default)
+    if (!deliveryCode) {
+      throw new BadRequestException('deliveryCode or deliveryPin is required');
     }
     return this.escrowService.confirmDeliveryByCode(shortReference, deliveryCode);
   }

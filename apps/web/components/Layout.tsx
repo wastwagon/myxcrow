@@ -12,7 +12,7 @@ interface LayoutProps {
 
 export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10] flex flex-col" suppressHydrationWarning>
+    <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10] flex flex-col">
       <Navigation />
       <main className="container mx-auto px-4 py-6 md:py-8 max-w-7xl flex-1">{children}</main>
     </div>
