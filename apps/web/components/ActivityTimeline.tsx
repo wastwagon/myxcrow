@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDate } from '@/lib/utils';
+import { getUser } from '@/lib/auth';
 import { 
   Clock, DollarSign, Truck, Package, CheckCircle, 
   AlertCircle, XCircle, FileText, MessageSquare 
@@ -66,6 +67,10 @@ const actionColors: Record<string, string> = {
 };
 
 export default function ActivityTimeline({ escrowId }: ActivityTimelineProps) {
+  const user = getUser();
+  const roles = user?.roles || [];
+  const canViewAudit = roles.includes('ADMIN') || roles.includes('AUDITOR');
+
   const { data: auditLogs, isLoading } = useQuery<AuditLog[]>({
     queryKey: ['audit-logs', escrowId],
     queryFn: async () => {
@@ -86,8 +91,18 @@ export default function ActivityTimeline({ escrowId }: ActivityTimelineProps) {
         throw error;
       }
     },
-    enabled: !!escrowId,
+    enabled: !!escrowId && canViewAudit,
   });
+
+  if (!canViewAudit) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
+        <p>Activity timeline</p>
+        <p className="text-sm mt-1">Visible to admin/auditor roles</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
