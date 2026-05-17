@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    /* Brand */
     --brand-gold: #d0ab63;
     --brand-maroon: #8f2126;
     --brand-maroon-dark: #59191f;
@@ -12,6 +13,25 @@
     --brand-maroon-black: #160f10;
     --brand-maroon-charcoal: #1f1414;
     --brand-maroon-rust: #3f181c;
+
+    /* App surfaces (dark shell) */
+    --app-bg-from: #1f1414;
+    --app-bg-via: #331518;
+    --app-bg-to: #160f10;
+    --surface-grouped: rgba(255, 255, 255, 0.07);
+    --surface-elevated: rgba(255, 255, 255, 0.1);
+    --separator: rgba(255, 255, 255, 0.1);
+    --label-primary: #ffffff;
+    --label-secondary: rgba(255, 255, 255, 0.72);
+    --label-tertiary: rgba(255, 255, 255, 0.55);
+    --tint: #d0ab63;
+    --destructive: #ff453a;
+
+    /* Tab bar / chrome */
+    --tab-bar-bg: rgba(22, 15, 16, 0.92);
+    --nav-bar-bg: rgba(22, 15, 16, 0.94);
+
+    /* shadcn-compat (light forms on auth pages) */
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
@@ -26,12 +46,19 @@
     --muted-foreground: 0 10% 45%;
     --accent: 38 52% 94%;
     --accent-foreground: 0 20% 15%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive-hsl: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 0 15% 90%;
     --input: 0 15% 90%;
     --ring: 38 52% 64%;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Safe areas (fallbacks overridden on supporting browsers) */
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --tab-bar-height: 3.5rem;
   }
 }
 
@@ -39,37 +66,103 @@
   * {
     @apply border-border;
   }
-  body {
-    @apply bg-background text-foreground;
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
   }
-  /* Reduce 300ms tap delay on touch devices – mobile-first */
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui,
+      'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-feature-settings: 'kern' 1;
+  }
+
   button,
   a,
-  [role="button"],
-  input[type="submit"],
-  input[type="button"] {
+  [role='button'],
+  input[type='submit'],
+  input[type='button'] {
     touch-action: manipulation;
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+@layer utilities {
+  .app-gradient-bg {
+    @apply bg-gradient-to-br from-[var(--app-bg-from)] via-[var(--app-bg-via)] to-[var(--app-bg-to)];
+  }
+
+  .surface-grouped {
+    background: var(--surface-grouped);
+    border: 1px solid var(--separator);
+  }
+
+  .text-label-primary {
+    color: var(--label-primary);
+  }
+
+  .text-label-secondary {
+    color: var(--label-secondary);
+  }
+
+  .text-label-tertiary {
+    color: var(--label-tertiary);
+  }
+
+  .pb-tab-bar {
+    padding-bottom: calc(var(--tab-bar-height) + var(--safe-bottom));
+  }
+
+  .pt-safe {
+    padding-top: var(--safe-top);
+  }
 }
 
-::-webkit-scrollbar-track {
-  @apply bg-gray-100;
+/* Dark-theme scrollbars inside app shell */
+.app-gradient-bg::-webkit-scrollbar,
+.app-gradient-bg *::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+.app-gradient-bg::-webkit-scrollbar-track,
+.app-gradient-bg *::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+.app-gradient-bg::-webkit-scrollbar-thumb,
+.app-gradient-bg *::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
 }
 
+.page-transition-in {
+  animation: page-enter 0.28s ease-out both;
+}
 
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 
+  .page-transition-in {
+    animation: none !important;
+  }
+}

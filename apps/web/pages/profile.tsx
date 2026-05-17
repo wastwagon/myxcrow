@@ -2,15 +2,37 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
-import { isAuthenticated, getUser, setUser, clearAuth } from '@/lib/auth';
+import { isAuthenticated, getUser, setUser, clearAuth, isAdmin } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { getErrorMessage } from '@/lib/error-messages';
-import { User, Mail, Phone, Calendar, Shield, Edit2, Save, X, Loader2, Key, Trash2, AlertTriangle } from 'lucide-react';
+import {
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  Shield,
+  Edit2,
+  Save,
+  X,
+  Loader2,
+  Key,
+  Trash2,
+  AlertTriangle,
+  LayoutDashboard,
+  LogOut,
+  HelpCircle,
+} from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import PageHeader from '@/components/PageHeader';
+import { ListGroup, ListRow } from '@/components/ui/ListGroup';
+import { Button } from '@/components/ui/Button';
+import { Sheet } from '@/components/ui/Sheet';
+import { UserAvatar } from '@/components/ui/UserAvatar';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
 interface ProfileData {
   firstName?: string;
@@ -25,6 +47,7 @@ interface ProfileData {
 export default function ProfilePage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
   const user = getUser();
   const [isEditing, setIsEditing] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -146,6 +169,10 @@ export default function ProfilePage() {
   const displayUser = profile || user;
   const phoneRequired = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('phone_required') === '1';
 
+  const refreshProfile = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['profile'] });
+  };
+
   return (
     <Layout>
       {phoneRequired && !displayUser?.phone && (
@@ -154,20 +181,17 @@ export default function ProfilePage() {
           <p className="text-sm mt-1 opacity-90">Add your Ghana phone number below to use escrows, payments, and other features.</p>
         </div>
       )}
-      <div className="max-w-2xl mx-auto">
+      <PullToRefresh onRefresh={refreshProfile} disabled={!isMobile} className="max-w-2xl mx-auto">
         <PageHeader
           title="Profile"
           subtitle="Manage your account information"
           icon={<User className="w-6 h-6" />}
           action={
             !isEditing ? (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 min-h-[48px] bg-brand-gold/20 text-brand-gold rounded-xl hover:bg-brand-gold/30 font-medium shadow-lg transition-all border border-brand-gold/40 flex items-center gap-2 touch-manipulation"
-              >
+              <Button variant="tinted" size="sm" onClick={() => setIsEditing(true)}>
                 <Edit2 className="w-4 h-4" />
-                Edit Profile
-              </button>
+                Edit
+              </Button>
             ) : undefined
           }
         />
@@ -182,9 +206,10 @@ export default function ProfilePage() {
           ) : (
             <>
               <div className="flex items-center gap-4 pb-6 border-b border-white/10">
-                <div className="w-16 h-16 bg-gradient-to-br from-brand-gold to-amber-600 rounded-full flex items-center justify-center text-brand-maroon-black font-bold text-xl ring-2 ring-brand-gold/40">
-                  {(displayUser?.phone || displayUser?.email)?.[0]?.toUpperCase() || 'U'}
-                </div>
+                <UserAvatar
+                  label={displayUser?.phone || displayUser?.email || 'User'}
+                  size="lg"
+                />
                 <div>
                   <h2 className="text-2xl font-semibold text-white">{displayUser?.phone || displayUser?.email}</h2>
                   {displayUser?.firstName && displayUser?.lastName && (
@@ -252,32 +277,27 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="flex gap-3 pt-4">
-                    <button
+                    <Button
                       type="submit"
-                      disabled={updateMutation.isPending}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[48px] bg-gradient-to-r from-brand-gold to-amber-600 text-brand-maroon-black rounded-xl hover:from-brand-gold/90 hover:to-amber-500 font-semibold disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation"
+                      variant="filled"
+                      size="lg"
+                      fullWidth
+                      loading={updateMutation.isPending}
                     >
-                      {updateMutation.isPending ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Save Changes
-                        </>
-                      )}
-                    </button>
-                    <button
+                      <Save className="w-4 h-4" />
+                      Save Changes
+                    </Button>
+                    <Button
                       type="button"
+                      variant="secondary"
+                      size="lg"
+                      fullWidth
                       onClick={handleCancel}
                       disabled={updateMutation.isPending}
-                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2 min-h-[48px] border border-white/30 text-white/90 rounded-xl hover:bg-white/10 disabled:opacity-50 touch-manipulation"
                     >
                       <X className="w-4 h-4" />
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 </form>
               ) : (
@@ -348,107 +368,101 @@ export default function ProfilePage() {
               )}
 
               {!isEditing && (
-                <div className="mt-8 pt-6 border-t border-white/10 space-y-4">
-                  <h3 className="text-lg font-semibold text-white mb-4">Security</h3>
-                  <Link
-                    href="/change-password"
-                    className="flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 rounded-xl transition border border-white/10 touch-manipulation"
-                  >
-                    <Key className="w-5 h-5 text-brand-gold shrink-0" />
-                    <div className="flex-1">
-                      <p className="font-medium text-white">Change Password</p>
-                      <p className="text-sm text-white/70">Update your account password</p>
-                    </div>
-                    <span className="text-brand-gold">→</span>
-                  </Link>
-                  <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/5">
-                    <p className="text-sm text-white/80 mb-2">Permanently delete your account and personal data. This cannot be undone.</p>
-                    <button
-                      type="button"
+                <div className="mt-8 space-y-6">
+                  <ListGroup title="Account">
+                    {isAdmin() && (
+                      <ListRow
+                        href="/admin"
+                        leading={<LayoutDashboard className="w-5 h-5 text-brand-gold" />}
+                        title="Admin dashboard"
+                        subtitle="Manage users, withdrawals, settings"
+                      />
+                    )}
+                    <ListRow
+                      href="/change-password"
+                      leading={<Key className="w-5 h-5 text-brand-gold" />}
+                      title="Change password"
+                      subtitle="Update your account password"
+                    />
+                    <ListRow
+                      href="/support"
+                      leading={<HelpCircle className="w-5 h-5 text-brand-gold" />}
+                      title="Support"
+                      subtitle="Get help with your account"
+                    />
+                    <ListRow
+                      onClick={() => {
+                        clearAuth();
+                        queryClient.clear();
+                        router.push('/login');
+                      }}
+                      leading={<LogOut className="w-5 h-5 text-label-secondary" />}
+                      title="Sign out"
+                      showChevron={false}
+                    />
+                  </ListGroup>
+
+                  <ListGroup title="Danger zone" footer="This action is permanent.">
+                    <ListRow
                       onClick={() => setDeleteModalOpen(true)}
-                      className="flex items-center gap-2 px-4 py-2 min-h-[44px] text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg border border-red-500/40 transition touch-manipulation"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Delete my account
-                    </button>
-                  </div>
+                      leading={<Trash2 className="w-5 h-5 text-ios-destructive" />}
+                      title="Delete account"
+                      subtitle="Permanently remove your data"
+                      destructive
+                      showChevron={false}
+                    />
+                  </ListGroup>
                 </div>
               )}
             </>
           )}
         </div>
-      </div>
+      </PullToRefresh>
 
-      {/* Delete account confirmation modal */}
-      {deleteModalOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          onClick={closeDeleteModal}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="delete-account-title"
-        >
-          <div
-            className="bg-[#1f1414] border border-white/10 rounded-2xl shadow-xl max-w-md w-full p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-400" />
-              </div>
-              <h2 id="delete-account-title" className="text-xl font-semibold text-white">
-                Delete account
-              </h2>
-            </div>
-            <p className="text-white/80 text-sm mb-4">
-              This will permanently delete your account and anonymize your data. You will be signed out and cannot recover this account.
-            </p>
-            <label htmlFor="delete-password" className="block text-sm font-medium text-white/80 mb-1">
-              Enter your password to confirm
-            </label>
-            <input
-              id="delete-password"
-              type="password"
-              value={deletePassword}
-              onChange={(e) => setDeletePassword(e.target.value)}
-              placeholder="Your password"
-              className="w-full px-4 py-2 rounded-lg border border-white/20 bg-white/5 text-white placeholder-white/50 focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 mb-4"
-              autoComplete="current-password"
-            />
-            {deleteError && (
-              <p className="text-red-400 text-sm mb-4">{deleteError}</p>
-            )}
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={closeDeleteModal}
-                disabled={deleteAccountMutation.isPending}
-                className="flex-1 py-2 min-h-[44px] rounded-lg border border-white/20 text-white/90 hover:bg-white/10 transition touch-manipulation"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleDeleteAccount}
-                disabled={deleteAccountMutation.isPending || !deletePassword.trim()}
-                className="flex-1 flex items-center justify-center gap-2 py-2 min-h-[44px] rounded-lg bg-red-600 hover:bg-red-500 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition touch-manipulation"
-              >
-                {deleteAccountMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Trash2 className="w-4 h-4" />
-                    Delete my account
-                  </>
-                )}
-              </button>
-            </div>
+      <Sheet
+        open={deleteModalOpen}
+        onClose={closeDeleteModal}
+        title="Delete account"
+        footer={
+          <div className="flex flex-col gap-2 pb-2">
+            <Button
+              fullWidth
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              loading={deleteAccountMutation.isPending}
+              disabled={!deletePassword.trim()}
+            >
+              Delete my account
+            </Button>
+            <Button fullWidth variant="plain" onClick={closeDeleteModal}>
+              Cancel
+            </Button>
           </div>
+        }
+      >
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+            <AlertTriangle className="w-5 h-5 text-red-400" />
+          </div>
+          <p className="text-ios-subhead text-label-secondary">
+            This permanently deletes your account and anonymizes your data.
+          </p>
         </div>
-      )}
+        <label htmlFor="delete-password" className="block text-ios-footnote text-label-secondary mb-2">
+          Enter your password to confirm
+        </label>
+        <input
+          id="delete-password"
+          type="password"
+          value={deletePassword}
+          onChange={(e) => setDeletePassword(e.target.value)}
+          placeholder="Your password"
+          className="w-full min-h-[48px] px-4 py-3 rounded-ios-lg border border-white/20 bg-white/5 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-red-500/50 outline-none"
+          autoComplete="current-password"
+        />
+        {deleteError && <p className="text-red-400 text-ios-footnote mt-3">{deleteError}</p>}
+      </Sheet>
+
     </Layout>
   );
 }

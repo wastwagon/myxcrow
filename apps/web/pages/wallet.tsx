@@ -2,12 +2,14 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { DollarSign, Clock, ArrowUpCircle, ArrowDownCircle, Loader2, Plus, Users, Wallet as WalletIcon } from 'lucide-react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
 interface Wallet {
   id: string;
@@ -31,6 +33,8 @@ interface Transaction {
 
 export default function WalletPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
   const admin = isAdmin();
 
   useEffect(() => {
@@ -69,9 +73,17 @@ export default function WalletPage() {
     return null;
   }
 
+  const refreshWallet = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['wallet'] }),
+      queryClient.invalidateQueries({ queryKey: ['wallet-funding'] }),
+      queryClient.invalidateQueries({ queryKey: ['wallet-withdrawals'] }),
+    ]);
+  };
+
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshWallet} disabled={!isMobile} className="space-y-6">
         <PageHeader
           title="Wallet"
           subtitle="Manage your wallet balance and transactions"
@@ -117,14 +129,14 @@ export default function WalletPage() {
           <div className="flex flex-wrap gap-4">
             <Link
               href="/wallet/topup"
-              className="min-h-[48px] px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white rounded-xl hover:from-emerald-500 hover:to-emerald-600 flex items-center justify-center gap-2 touch-manipulation font-medium shadow-lg transition-all"
+              className="min-h-[48px] px-4 py-3 rounded-ios-lg bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30 flex items-center justify-center gap-2 touch-manipulation font-semibold transition-colors"
             >
               <Plus className="w-4 h-4" />
               Top Up Wallet
             </Link>
             <Link
               href="/wallet/withdraw"
-              className="min-h-[48px] px-4 py-3 bg-gradient-to-r from-brand-gold to-amber-600 text-brand-maroon-black rounded-xl hover:from-brand-gold/90 hover:to-amber-500 flex items-center justify-center gap-2 touch-manipulation font-semibold shadow-lg transition-all"
+              className="min-h-[48px] px-4 py-3 rounded-ios-lg bg-brand-gold text-brand-maroon-black hover:bg-brand-gold/90 flex items-center justify-center gap-2 touch-manipulation font-semibold transition-colors"
             >
               <ArrowUpCircle className="w-4 h-4" />
               Request Withdrawal
@@ -232,7 +244,7 @@ export default function WalletPage() {
                 <p className="text-white/60 mb-4">No withdrawal history</p>
                 <Link
                   href="/wallet/withdraw"
-                  className="inline-block px-4 py-2 min-h-[48px] bg-gradient-to-r from-brand-gold to-amber-600 text-brand-maroon-black rounded-xl hover:from-brand-gold/90 hover:to-amber-500 font-semibold flex items-center justify-center mx-auto gap-2 touch-manipulation"
+                  className="inline-flex px-4 py-2 min-h-[48px] rounded-ios-lg bg-brand-gold text-brand-maroon-black hover:bg-brand-gold/90 font-semibold items-center justify-center mx-auto gap-2 touch-manipulation transition-colors"
                 >
                   Request Withdrawal
                 </Link>
@@ -240,7 +252,7 @@ export default function WalletPage() {
             )}
           </div>
         </div>
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import apiClient from '@/lib/api-client';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 
 export default function EscrowPaymentCallbackPage() {
   const router = useRouter();
@@ -33,10 +34,15 @@ export default function EscrowPaymentCallbackPage() {
             2000
           );
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!cancelled) {
           setStatus('error');
-          setMessage(e.response?.data?.message || 'Payment verification failed.');
+          const raw =
+            e &&
+            typeof e === 'object' &&
+            'response' in e &&
+            (e as { response?: { data?: { message?: string } } }).response?.data?.message;
+          setMessage(typeof raw === 'string' ? raw : 'Payment verification failed.');
         }
       }
     })();
@@ -51,27 +57,24 @@ export default function EscrowPaymentCallbackPage() {
       <div className="max-w-md mx-auto text-center py-12">
         {status === 'loading' && (
           <>
-            <Loader2 className="w-12 h-12 text-blue-600 animate-spin mx-auto mb-4" />
-            <p className="text-gray-600">Verifying payment…</p>
+            <Loader2 className="w-12 h-12 text-brand-gold animate-spin mx-auto mb-4" />
+            <p className="text-label-secondary">Verifying payment…</p>
           </>
         )}
         {status === 'success' && (
           <>
-            <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-            <p className="text-gray-900 font-medium">{message}</p>
-            <p className="text-sm text-gray-500 mt-2">Redirecting to escrow…</p>
+            <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
+            <p className="text-label-primary font-medium">{message}</p>
+            <p className="text-sm text-label-tertiary mt-2">Redirecting to escrow…</p>
           </>
         )}
         {status === 'error' && (
           <>
-            <XCircle className="w-12 h-12 text-red-600 mx-auto mb-4" />
-            <p className="text-gray-900 font-medium">{message}</p>
-            <button
-              onClick={() => router.replace('/escrows')}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
+            <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+            <p className="text-label-primary font-medium">{message}</p>
+            <Button variant="filled" className="mt-4" onClick={() => router.replace('/escrows')}>
               Back to Escrows
-            </button>
+            </Button>
           </>
         )}
       </div>

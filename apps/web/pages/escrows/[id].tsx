@@ -6,9 +6,16 @@ import { isAuthenticated, getUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { 
-  Package, Truck, CheckCircle, DollarSign, Clock, AlertCircle,
-  Send, Upload, FileText, MessageSquare, List, Activity, Star
+import {
+  Package,
+  Truck,
+  CheckCircle,
+  DollarSign,
+  Clock,
+  AlertCircle,
+  Upload,
+  FileText,
+  Star,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ActivityTimeline from '@/components/ActivityTimeline';
@@ -18,6 +25,10 @@ import EscrowMessaging from '@/components/EscrowMessaging';
 import RatingModal from '@/components/RatingModal';
 import UserProfileLink from '@/components/UserProfileLink';
 import PageHeader from '@/components/PageHeader';
+import { useConfirm, usePrompt } from '@/components/providers/UIProvider';
+import { Button } from '@/components/ui/Button';
+import { NavBar } from '@/components/ui/NavBar';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 
 interface Shipment {
   id: string;
@@ -68,6 +79,8 @@ export default function EscrowDetailPage() {
   const { id } = router.query;
   const queryClient = useQueryClient();
   const user = getUser();
+  const confirm = useConfirm();
+  const prompt = usePrompt();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [deliveryCodeInput, setDeliveryCodeInput] = useState('');
   const [activeTab, setActiveTab] = useState<'timeline' | 'ledger' | 'milestones' | 'messages'>('timeline');
@@ -195,25 +208,38 @@ export default function EscrowDetailPage() {
     },
   });
 
-  const handleFund = () => {
-    if (confirm('Fund this escrow from your wallet?')) {
-      fundMutation.mutate();
-    }
+  const handleFund = async () => {
+    const ok = await confirm({
+      title: 'Fund escrow',
+      message: 'Fund this escrow from your wallet?',
+      confirmLabel: 'Fund',
+    });
+    if (ok) fundMutation.mutate();
   };
 
-  const handleShip = () => {
-    const tracking = prompt('Enter tracking number (optional):');
+  const handleShip = async () => {
+    const tracking = await prompt({
+      title: 'Mark as shipped',
+      message: 'Add a tracking number if you have one (optional).',
+      placeholder: 'Tracking number',
+      submitLabel: 'Mark shipped',
+    });
+    if (tracking === null) return;
     shipMutation.mutate({ trackingNumber: tracking || undefined });
   };
 
-  const handleDeliver = () => {
+  const handleDeliver = async () => {
     const msg =
       escrow?.status === 'FUNDED'
         ? 'Confirm that you have received the item and release funds to the seller? This action cannot be undone.'
         : 'Confirm that you have received the item?';
-    if (confirm(msg)) {
-      deliverMutation.mutate();
-    }
+    const ok = await confirm({
+      title: 'Confirm delivery',
+      message: msg,
+      confirmLabel: 'Confirm',
+      destructive: escrow?.status === 'FUNDED',
+    });
+    if (ok) deliverMutation.mutate();
   };
 
   const handleConfirmDeliveryByCode = () => {
@@ -228,20 +254,28 @@ export default function EscrowDetailPage() {
   const confirmDeliveryBaseUrl = typeof window !== 'undefined' ? `${window.location.origin}/confirm-delivery` : '/confirm-delivery';
   const firstShipmentWithCode = escrow?.shipments?.find((s) => s.deliveryCode && s.shortReference);
 
-  const handleRelease = () => {
+  const handleRelease = async () => {
     const msg =
       escrow?.status === 'AWAITING_RELEASE'
         ? 'Confirm service completion and release funds to seller? This action cannot be undone.'
         : 'Release funds to seller? This action cannot be undone.';
-    if (confirm(msg)) {
-      releaseMutation.mutate();
-    }
+    const ok = await confirm({
+      title: 'Release funds',
+      message: msg,
+      confirmLabel: 'Release',
+      destructive: true,
+    });
+    if (ok) releaseMutation.mutate();
   };
 
-  const handleServiceCompleted = () => {
-    if (confirm('Mark this escrow as "Service Completed" (no shipping)? Buyer will then be able to release funds.')) {
-      serviceCompletedMutation.mutate();
-    }
+  const handleServiceCompleted = async () => {
+    const ok = await confirm({
+      title: 'Service completed',
+      message:
+        'Mark this escrow as "Service Completed" (no shipping)? Buyer will then be able to release funds.',
+      confirmLabel: 'Mark completed',
+    });
+    if (ok) serviceCompletedMutation.mutate();
   };
 
   if (!isAuthenticated()) {
@@ -252,8 +286,8 @@ export default function EscrowDetailPage() {
     return (
       <Layout>
         <div className="space-y-6">
-          <div className="h-8 bg-gray-200 animate-pulse rounded w-1/3" />
-          <div className="h-64 bg-gray-200 animate-pulse rounded" />
+          <div className="h-8 bg-white/10 animate-pulse rounded-ios w-1/3" />
+          <div className="h-64 bg-white/10 animate-pulse rounded-ios-xl" />
         </div>
       </Layout>
     );
@@ -263,8 +297,8 @@ export default function EscrowDetailPage() {
     return (
       <Layout>
         <div className="text-center py-12">
-          <AlertCircle className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600">Escrow not found</p>
+          <AlertCircle className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
+          <p className="text-label-secondary">Escrow not found</p>
         </div>
       </Layout>
     );
@@ -272,16 +306,20 @@ export default function EscrowDetailPage() {
 
   const StatusIcon = statusConfig[escrow.status]?.icon || AlertCircle;
 
+  const tabOptions = [
+    { value: 'timeline' as const, label: 'Timeline' },
+    { value: 'ledger' as const, label: 'Ledger' },
+    ...(escrow.milestones && escrow.milestones.length > 0
+      ? [{ value: 'milestones' as const, label: 'Milestones' }]
+      : []),
+    { value: 'messages' as const, label: 'Messages' },
+  ];
+
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="mb-4">
-          <button
-            onClick={() => router.back()}
-            className="text-white/70 hover:text-white flex items-center gap-2 transition-colors"
-          >
-            ← Back
-          </button>
+        <div className="xl:hidden -mx-4 -mt-6 mb-2">
+          <NavBar title="Escrow" showBack />
         </div>
         <PageHeader
           title="Escrow Details"
@@ -392,41 +430,47 @@ export default function EscrowDetailPage() {
             <h2 className="text-xl font-semibold text-white mb-4">Actions</h2>
             <div className="space-y-3">
               {canFund && (
-                <button
+                <Button
+                  fullWidth
                   onClick={handleFund}
+                  loading={fundMutation.isPending}
                   disabled={fundMutation.isPending}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <DollarSign className="w-4 h-4" />
                   {fundMutation.isPending ? 'Funding...' : 'Fund from Wallet'}
-                </button>
+                </Button>
               )}
               {canShip && (
-                <button
+                <Button
+                  fullWidth
+                  variant="tinted"
                   onClick={handleShip}
+                  loading={shipMutation.isPending}
                   disabled={shipMutation.isPending}
-                  className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <Truck className="w-4 h-4" />
                   {shipMutation.isPending ? 'Updating...' : 'Mark as Shipped'}
-                </button>
+                </Button>
               )}
               {canMarkServiceCompleted && (
-                <button
+                <Button
+                  fullWidth
+                  variant="tinted"
                   onClick={handleServiceCompleted}
+                  loading={serviceCompletedMutation.isPending}
                   disabled={serviceCompletedMutation.isPending}
-                  className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <CheckCircle className="w-4 h-4" />
                   {serviceCompletedMutation.isPending ? 'Updating...' : 'Mark Service Completed'}
-                </button>
+                </Button>
               )}
               {canDeliver && (
                 <>
-                  <button
+                  <Button
+                    fullWidth
                     onClick={handleDeliver}
+                    loading={deliverMutation.isPending}
                     disabled={deliverMutation.isPending}
-                    className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <Package className="w-4 h-4" />
                     {deliverMutation.isPending
@@ -434,7 +478,7 @@ export default function EscrowDetailPage() {
                       : escrow?.status === 'FUNDED'
                       ? 'Confirm Received & Release Funds'
                       : 'Confirm Delivery (no code)'}
-                  </button>
+                  </Button>
                   {firstShipmentWithCode && escrow.deliveryConfirmationMode !== 'pin' && (
                     <div className="flex gap-2">
                       <input
@@ -442,28 +486,30 @@ export default function EscrowDetailPage() {
                         placeholder="Enter delivery code"
                         value={deliveryCodeInput}
                         onChange={(e) => setDeliveryCodeInput(e.target.value.toUpperCase())}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono uppercase"
+                        className="flex-1 min-h-[44px] px-3 py-2 border border-white/20 rounded-ios-lg bg-white/5 text-white text-sm font-mono uppercase placeholder:text-white/40"
                         maxLength={6}
                       />
-                      <button
+                      <Button
+                        size="sm"
                         onClick={handleConfirmDeliveryByCode}
+                        loading={confirmDeliveryByCodeMutation.isPending}
                         disabled={confirmDeliveryByCodeMutation.isPending || !deliveryCodeInput.trim()}
-                        className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 disabled:opacity-50 text-sm"
                       >
-                        {confirmDeliveryByCodeMutation.isPending ? 'Checking...' : 'Confirm with code'}
-                      </button>
+                        {confirmDeliveryByCodeMutation.isPending ? 'Checking...' : 'Confirm'}
+                      </Button>
                     </div>
                   )}
                   {firstShipmentWithCode && escrow.deliveryConfirmationMode === 'pin' && (
-                    <p className="text-sm text-gray-600 mt-2">Use the reference above and your PIN on the confirm-delivery page to confirm. Funds will release automatically.</p>
+                    <p className="text-sm text-label-secondary mt-2">Use the reference above and your PIN on the confirm-delivery page to confirm. Funds will release automatically.</p>
                   )}
                 </>
               )}
               {canRelease && (
-                <button
+                <Button
+                  fullWidth
                   onClick={handleRelease}
+                  loading={releaseMutation.isPending}
                   disabled={releaseMutation.isPending}
-                  className="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   <CheckCircle className="w-4 h-4" />
                   {releaseMutation.isPending
@@ -471,7 +517,7 @@ export default function EscrowDetailPage() {
                     : escrow?.status === 'AWAITING_RELEASE'
                     ? 'Confirm Service & Release Funds'
                     : 'Release Funds'}
-                </button>
+                </Button>
               )}
               {!canFund && !canShip && !canMarkServiceCompleted && !canDeliver && !canRelease && (
                 <p className="text-sm text-white/70 text-center py-4">
@@ -511,7 +557,7 @@ export default function EscrowDetailPage() {
                       role: isBuyer ? 'seller' : 'buyer',
                     });
                   }}
-                  className="block w-full px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 text-center"
+                  className="block w-full min-h-[44px] px-4 py-2 bg-brand-gold/20 text-brand-gold rounded-ios-lg hover:bg-brand-gold/30 text-center border border-brand-gold/30 touch-manipulation"
                 >
                   <Star className="w-4 h-4 inline mr-2" />
                   Rate {isBuyer ? 'Seller' : 'Buyer'}
@@ -523,55 +569,13 @@ export default function EscrowDetailPage() {
 
         {/* Tabs: Timeline, Ledger, Milestones */}
         <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10">
-          <div className="border-b border-white/10">
-            <nav className="flex -mb-px">
-              <button
-                onClick={() => setActiveTab('timeline')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'timeline'
-                    ? 'border-brand-gold text-brand-gold'
-                    : 'border-transparent text-white/70 hover:text-white hover:border-white/40'
-                }`}
-              >
-                <Activity className="w-4 h-4 inline mr-2" />
-                Activity Timeline
-              </button>
-              <button
-                onClick={() => setActiveTab('ledger')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'ledger'
-                    ? 'border-brand-gold text-brand-gold'
-                    : 'border-transparent text-white/70 hover:text-white hover:border-white/40'
-                }`}
-              >
-                <List className="w-4 h-4 inline mr-2" />
-                Ledger View
-              </button>
-              {(escrow.milestones && escrow.milestones.length > 0) && (
-                <button
-                  onClick={() => setActiveTab('milestones')}
-                  className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'milestones'
-                      ? 'border-brand-gold text-brand-gold'
-                      : 'border-transparent text-white/70 hover:text-white hover:border-white/40'
-                  }`}
-                >
-                  <CheckCircle className="w-4 h-4 inline mr-2" />
-                  Milestones
-                </button>
-              )}
-              <button
-                onClick={() => setActiveTab('messages')}
-                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
-                  activeTab === 'messages'
-                    ? 'border-brand-gold text-brand-gold'
-                    : 'border-transparent text-white/70 hover:text-white hover:border-white/40'
-                }`}
-              >
-                <MessageSquare className="w-4 h-4 inline mr-2" />
-                Messages
-              </button>
-            </nav>
+          <div className="p-4 border-b border-white/10 overflow-x-auto">
+            <SegmentedControl
+              options={tabOptions}
+              value={activeTab}
+              onChange={setActiveTab}
+              scrollable
+            />
           </div>
           <div className="p-6">
             {activeTab === 'timeline' && <ActivityTimeline escrowId={escrow.id} />}

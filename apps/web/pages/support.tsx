@@ -95,22 +95,22 @@ export default function SupportPage() {
                   Quick help topics
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/80">
+                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
                     <Shield className="w-5 h-5 text-brand-maroon mb-2" />
                     <h3 className="font-semibold text-brand-maroon-black mb-1">Escrow & payments</h3>
                     <p className="text-sm text-gray-600">Creating escrows, funding, milestones, release, and refunds.</p>
                   </div>
-                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/80">
+                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
                     <Wallet className="w-5 h-5 text-brand-maroon mb-2" />
                     <h3 className="font-semibold text-brand-maroon-black mb-1">Wallet & withdrawals</h3>
                     <p className="text-sm text-gray-600">Top-up via Paystack, balance, and withdrawal requests.</p>
                   </div>
-                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/80">
+                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
                     <AlertCircle className="w-5 h-5 text-brand-maroon mb-2" />
                     <h3 className="font-semibold text-brand-maroon-black mb-1">Disputes</h3>
                     <p className="text-sm text-gray-600">Opening a dispute, evidence, and resolution process.</p>
                   </div>
-                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50/80">
+                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
                     <FileText className="w-5 h-5 text-brand-maroon mb-2" />
                     <h3 className="font-semibold text-brand-maroon-black mb-1">Account & KYC</h3>
                     <p className="text-sm text-gray-600">Registration, verification, password, and account settings.</p>
@@ -135,7 +135,7 @@ export default function SupportPage() {
                         <button
                           type="button"
                           onClick={() => setOpenFaqId(isOpen ? null : id)}
-                          className="w-full flex items-center justify-between gap-4 p-4 text-left font-medium text-brand-maroon-black hover:bg-gray-50 transition-colors"
+                          className="w-full flex items-center justify-between gap-4 p-4 text-left font-medium text-brand-maroon-black hover:bg-white/10 transition-colors"
                         >
                           <span>{faq.q}</span>
                           {isOpen ? (

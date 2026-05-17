@@ -155,19 +155,13 @@ export default function Home() {
             <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
               {features.map((feature, index) => {
                 const Icon = feature.icon;
-                const colorClasses = {
-                  blue: 'from-brand-maroon to-brand-maroon-dark',
-                  green: 'from-brand-maroon-dark to-brand-maroon-darker',
-                  yellow: 'from-brand-gold to-primary-600',
-                  purple: 'from-brand-maroon-rust to-brand-maroon-dark',
-                };
                 return (
                   <div
                     key={index}
                     className="bg-white/95 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border border-brand-gold/20"
                   >
-                    <div className={`w-12 h-12 bg-gradient-to-br ${colorClasses[feature.color as keyof typeof colorClasses]} rounded-lg flex items-center justify-center mb-4`}>
-                      <Icon className="w-6 h-6 text-white" />
+                    <div className="w-12 h-12 rounded-ios-lg bg-brand-gold/20 ring-1 ring-brand-gold/35 flex items-center justify-center mb-4">
+                      <Icon className="w-6 h-6 text-brand-maroon" />
                     </div>
                     <h3 className="text-lg font-semibold text-brand-maroon-black mb-2">{feature.title}</h3>
                     <p className="text-sm text-gray-600">{feature.description}</p>

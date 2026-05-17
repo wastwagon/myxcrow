@@ -4,6 +4,7 @@ import { formatCurrency, formatDate } from '@/lib/utils';
 import { CheckCircle, Clock, DollarSign, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getUser } from '@/lib/auth';
+import { useConfirm } from '@/components/providers/UIProvider';
 
 interface Milestone {
   id: string;
@@ -28,6 +29,7 @@ interface MilestoneManagementProps {
 export default function MilestoneManagement({ escrowId, buyerId, sellerId }: MilestoneManagementProps) {
   const queryClient = useQueryClient();
   const user = getUser();
+  const confirm = useConfirm();
   const isBuyer = user?.id === buyerId;
 
   const { data: milestones, isLoading } = useQuery<Milestone[]>({
@@ -82,22 +84,32 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
     },
   });
 
-  const handleSubmitMilestone = (milestoneId: string, milestoneName: string) => {
-    if (confirm(`Submit "${milestoneName}" for buyer review?`)) {
-      completeMutation.mutate(milestoneId);
-    }
+  const handleSubmitMilestone = async (milestoneId: string, milestoneName: string) => {
+    const ok = await confirm({
+      title: 'Submit milestone',
+      message: `Submit "${milestoneName}" for buyer review?`,
+      confirmLabel: 'Submit',
+    });
+    if (ok) completeMutation.mutate(milestoneId);
   };
 
-  const handleApprove = (milestoneId: string, milestoneName: string) => {
-    if (confirm(`Approve "${milestoneName}"?`)) {
-      approveMutation.mutate(milestoneId);
-    }
+  const handleApprove = async (milestoneId: string, milestoneName: string) => {
+    const ok = await confirm({
+      title: 'Approve milestone',
+      message: `Approve "${milestoneName}"?`,
+      confirmLabel: 'Approve',
+    });
+    if (ok) approveMutation.mutate(milestoneId);
   };
 
-  const handleRelease = (milestoneId: string, milestoneName: string) => {
-    if (confirm(`Release funds for "${milestoneName}" to seller?`)) {
-      releaseMutation.mutate(milestoneId);
-    }
+  const handleRelease = async (milestoneId: string, milestoneName: string) => {
+    const ok = await confirm({
+      title: 'Release funds',
+      message: `Release funds for "${milestoneName}" to seller?`,
+      confirmLabel: 'Release',
+      destructive: true,
+    });
+    if (ok) releaseMutation.mutate(milestoneId);
   };
 
   const getApprovalMeta = (milestone: Milestone) => {
@@ -115,7 +127,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
     return (
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-gray-200 animate-pulse rounded" />
+          <div key={i} className="h-24 bg-white/10 animate-pulse rounded-ios" />
         ))}
       </div>
     );
@@ -123,7 +135,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
 
   if (!milestones || milestones.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-label-tertiary">
         <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
         <p>No milestones found</p>
         <p className="text-sm mt-1">This escrow does not use milestone payments</p>
@@ -137,21 +149,21 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
 
   return (
     <div className="space-y-4">
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="border border-brand-gold/30 bg-brand-gold/10 rounded-lg p-4">
         <div className="flex items-center justify-between text-sm">
           <div>
-            <span className="text-gray-600">Total Milestones:</span>
-            <span className="font-medium text-gray-900 ml-2">{milestones.length}</span>
+            <span className="text-label-secondary">Total Milestones:</span>
+            <span className="font-medium text-label-primary ml-2">{milestones.length}</span>
           </div>
           <div>
-            <span className="text-gray-600">Total Amount:</span>
-            <span className="font-medium text-gray-900 ml-2">
+            <span className="text-label-secondary">Total Amount:</span>
+            <span className="font-medium text-label-primary ml-2">
               {formatCurrency(totalAmount, 'GHS')}
             </span>
           </div>
           <div>
-            <span className="text-gray-600">Progress:</span>
-            <span className="font-medium text-gray-900 ml-2">
+            <span className="text-label-secondary">Progress:</span>
+            <span className="font-medium text-label-primary ml-2">
               {completedCount}/{milestones.length} completed, {releasedCount} released
             </span>
           </div>
@@ -171,9 +183,9 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
               key={milestone.id}
               className={`border rounded-lg p-4 ${
                 milestone.status === 'released'
-                  ? 'bg-green-50 border-green-200'
+                  ? 'border border-emerald-500/30 bg-emerald-500/15'
                   : milestone.status === 'completed'
-                  ? 'bg-blue-50 border-blue-200'
+                  ? 'border border-brand-gold/30 bg-brand-gold/10'
                   : 'bg-white border-gray-200'
               }`}
             >
@@ -183,18 +195,18 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                     <div
                       className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                         milestone.status === 'released'
-                          ? 'bg-green-500 text-white'
+                          ? 'bg-emerald-600 text-white'
                           : milestone.status === 'completed'
-                          ? 'bg-blue-500 text-white'
-                          : 'bg-gray-300 text-gray-700'
+                          ? 'bg-brand-maroon text-white'
+                          : 'bg-gray-300 text-label-secondary'
                       }`}
                     >
                       {index + 1}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-gray-900">{milestone.name}</h4>
+                      <h4 className="font-semibold text-label-primary">{milestone.name}</h4>
                       {milestone.description && (
-                        <p className="text-sm text-gray-600 mt-1">{milestone.description}</p>
+                        <p className="text-sm text-label-secondary mt-1">{milestone.description}</p>
                       )}
                       <div className="flex flex-wrap items-center gap-2 mt-2">
                         {milestone.targetDate && (
@@ -217,7 +229,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900">
+                      <p className="font-semibold text-label-primary">
                         {formatCurrency(milestone.amountCents, 'GHS')}
                       </p>
                       <span
@@ -229,7 +241,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                             : milestone.status === 'submitted'
                             ? 'bg-amber-100 text-amber-800'
                             : milestone.status === 'completed'
-                            ? 'bg-blue-100 text-blue-800'
+                            ? 'bg-blue-100 text-label-primary'
                             : 'bg-gray-100 text-gray-800'
                         }`}
                       >
@@ -247,22 +259,22 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                   </div>
 
                   {milestone.submittedAt && (
-                    <p className="text-xs text-gray-500 ml-11">
+                    <p className="text-xs text-label-tertiary ml-11">
                       Submitted: {formatDate(milestone.submittedAt)}
                     </p>
                   )}
                   {milestone.approvedAt && (
-                    <p className="text-xs text-gray-500 ml-11">
+                    <p className="text-xs text-label-tertiary ml-11">
                       Approved: {formatDate(milestone.approvedAt)}
                     </p>
                   )}
                   {milestone.completedAt && (
-                    <p className="text-xs text-gray-500 ml-11">
+                    <p className="text-xs text-label-tertiary ml-11">
                       Completed: {formatDate(milestone.completedAt)}
                     </p>
                   )}
                   {milestone.releasedAt && (
-                    <p className="text-xs text-gray-500 ml-11">
+                    <p className="text-xs text-label-tertiary ml-11">
                       Released: {formatDate(milestone.releasedAt)}
                     </p>
                   )}
@@ -275,7 +287,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                     <button
                       onClick={() => handleSubmitMilestone(milestone.id, milestone.name)}
                       disabled={completeMutation.isPending}
-                      className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+                      className="px-3 py-1.5 text-sm bg-brand-gold text-brand-maroon rounded-ios-lg hover:bg-brand-gold/90 disabled:opacity-50 flex items-center gap-2 font-semibold"
                     >
                       {completeMutation.isPending ? (
                         <>

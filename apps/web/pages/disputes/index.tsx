@@ -2,12 +2,16 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated } from '@/lib/auth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDateShort } from '@/lib/utils';
-import { AlertCircle, Search } from 'lucide-react';
-import Link from 'next/link';
+import { AlertCircle } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { ListGroup, ListRow } from '@/components/ui/ListGroup';
+import { StatusBadge } from '@/components/StatusBadge';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
 interface Dispute {
   id: string;
@@ -20,6 +24,8 @@ interface Dispute {
 
 export default function DisputesPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -39,73 +45,61 @@ export default function DisputesPage() {
     return null;
   }
 
-  const statusColors: Record<string, string> = {
-    OPEN: 'bg-yellow-100 text-yellow-800',
-    RESOLVED: 'bg-green-100 text-green-800',
-    CLOSED: 'bg-gray-100 text-gray-800',
+  const refreshDisputes = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['disputes'] });
   };
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshDisputes} disabled={!isMobile} className="space-y-6">
         <PageHeader
           title="Disputes"
           subtitle="View and manage disputes"
           icon={<AlertCircle className="w-6 h-6" />}
         />
 
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 overflow-hidden">
-          {isLoading ? (
-            <div className="p-6 space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 bg-white/10 animate-pulse rounded-xl" />
-              ))}
-            </div>
-          ) : disputes && disputes.length > 0 ? (
-            <div className="divide-y divide-white/10">
-              {disputes.map((dispute) => (
-                <Link
-                  key={dispute.id}
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-white/10 animate-pulse rounded-ios-xl" />
+            ))}
+          </div>
+        ) : disputes && disputes.length > 0 ? (
+          <ListGroup>
+            {disputes.map((dispute) => (
+              <SwipeableListRow
+                key={dispute.id}
+                disabled={!isMobile}
+                actions={[
+                  { label: 'Open', href: `/disputes/${dispute.id}` },
+                  { label: 'Escrow', href: `/escrows/${dispute.escrowId}` },
+                ]}
+              >
+                <ListRow
                   href={`/disputes/${dispute.id}`}
-                  className="block p-6 min-h-[48px] hover:bg-white/5 transition-colors touch-manipulation"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <AlertCircle className="w-5 h-5 text-red-400 shrink-0" />
-                        <h3 className="font-semibold text-white">
-                          Dispute: {dispute.reason.replace('_', ' ')}
-                        </h3>
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded ${
-                            statusColors[dispute.status] || 'bg-white/10 text-white/90'
-                          }`}
-                        >
-                          {dispute.status}
-                        </span>
-                      </div>
-                      <p className="text-sm text-white/70 mb-2">{dispute.description}</p>
-                      <div className="flex items-center gap-4 text-xs text-white/60">
-                        <span>Escrow: {dispute.escrowId.slice(0, 8)}...</span>
-                        <span>•</span>
-                        <span>{formatDateShort(dispute.createdAt)}</span>
-                      </div>
-                    </div>
-                    <div className="text-brand-gold">→</div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="p-12 text-center text-white/70">
-              <AlertCircle className="w-12 h-12 mx-auto mb-3 text-white/40" />
-              <p className="text-lg mb-2 text-white">No disputes found</p>
-              <p className="text-sm">Disputes will appear here when created</p>
-            </div>
-          )}
-        </div>
-      </div>
+                  showChevron={false}
+                  leading={<AlertCircle className="w-5 h-5 text-red-400" />}
+                  title={dispute.reason.replace(/_/g, ' ')}
+                  subtitle={
+                    <>
+                      Escrow {dispute.escrowId.slice(0, 8)}… · {formatDateShort(dispute.createdAt)}
+                    </>
+                  }
+                  trailing={<StatusBadge status={dispute.status} />}
+                />
+              </SwipeableListRow>
+            ))}
+          </ListGroup>
+        ) : (
+          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] p-12 text-center">
+            <AlertCircle className="w-14 h-14 mx-auto mb-4 text-white/30" />
+            <p className="text-ios-headline text-label-primary font-semibold mb-1">No disputes</p>
+            <p className="text-ios-subhead text-label-secondary">
+              Disputes you open on escrows will appear here.
+            </p>
+          </div>
+        )}
+      </PullToRefresh>
     </Layout>
   );
 }
-

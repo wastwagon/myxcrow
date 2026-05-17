@@ -8,6 +8,7 @@ import { z } from 'zod';
 import apiClient from '@/lib/api-client';
 import { Loader2, AlertCircle, Mail } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
+import { publicForm } from '@/lib/form-classes';
 
 const schema = z.object({
   identifier: z.string().min(1, 'Enter email or phone').refine(
@@ -65,7 +66,7 @@ export default function ForgotPasswordPage() {
 
         <div className="bg-white/95 rounded-2xl shadow-xl p-6 md:p-8 border border-brand-gold/20">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+            <div className={publicForm.calloutError}>
               <AlertCircle className="w-5 h-5" />
               <span className="text-sm">{error}</span>
             </div>
@@ -73,7 +74,7 @@ export default function ForgotPasswordPage() {
 
           {sent ? (
             <div className="space-y-4">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
+              <div className={publicForm.calloutSuccess}>
                 If an account exists for that email, a reset link has been sent.
               </div>
               <button
@@ -86,7 +87,7 @@ export default function ForgotPasswordPage() {
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
-                <label htmlFor="identifier" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="identifier" className={publicForm.label}>
                   <Mail className="w-4 h-4 inline mr-1" />
                   Email or Phone
                 </label>
@@ -94,12 +95,12 @@ export default function ForgotPasswordPage() {
                   {...register('identifier')}
                   type="text"
                   id="identifier"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
+                  className={publicForm.input}
                   placeholder="you@example.com or 0551234567"
                 />
-                <p className="mt-1 text-xs text-gray-500">Reset link will be sent to your email</p>
+                <p className={publicForm.hint}>Reset link will be sent to your email</p>
                 {errors.identifier && (
-                  <p className="mt-1 text-sm text-red-600">{errors.identifier.message}</p>
+                  <p className={publicForm.error}>{errors.identifier.message}</p>
                 )}
               </div>
 
@@ -118,7 +119,7 @@ export default function ForgotPasswordPage() {
                 )}
               </button>
 
-              <div className="text-center text-sm text-gray-600">
+              <div className={`text-center ${publicForm.footerText}`}>
                 Remembered your password?{' '}
                 <Link href="/login" className="text-brand-maroon hover:text-brand-maroon-dark font-semibold">
                   Sign in

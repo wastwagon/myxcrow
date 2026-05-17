@@ -8,8 +8,14 @@ import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency } from '@/lib/utils';
-import { Loader2, ArrowUpCircle } from 'lucide-react';
+import { ArrowUpCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import PageHeader from '@/components/PageHeader';
+import { Button } from '@/components/ui/Button';
+
+const inputClass =
+  'w-full px-4 py-3 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none';
+const labelClass = 'block text-ios-footnote font-medium text-label-secondary mb-1.5';
 
 const withdrawalSchema = z.object({
   amountCents: z.number().min(100, 'Amount must be at least 1.00'),
@@ -56,7 +62,7 @@ export default function WithdrawPage() {
 
   const withdrawMutation = useMutation({
     mutationFn: async (data: WithdrawalFormData) => {
-      const methodDetails: any = {};
+      const methodDetails: Record<string, string | undefined> = {};
       if (data.methodType === 'BANK_ACCOUNT') {
         methodDetails.accountNumber = data.accountNumber;
         methodDetails.bankName = data.bankName;
@@ -77,7 +83,7 @@ export default function WithdrawPage() {
       toast.success('Withdrawal request submitted');
       router.push('/wallet');
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Failed to request withdrawal');
     },
   });
@@ -94,29 +100,30 @@ export default function WithdrawPage() {
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-900 mb-4"
-          >
-            ← Back
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Request Withdrawal</h1>
-          <p className="text-gray-600 mt-1">Withdraw funds from your wallet</p>
-        </div>
+      <div className="max-w-2xl mx-auto space-y-6">
+        <PageHeader
+          title="Request withdrawal"
+          subtitle="Withdraw funds from your wallet"
+          icon={<ArrowUpCircle className="w-6 h-6" />}
+        />
 
         {wallet && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800">
-              <strong>Available Balance:</strong> {formatCurrency(availableBalance * 100, 'GHS')}
+          <div className="rounded-ios-lg border border-brand-gold/30 bg-brand-gold/10 px-4 py-3">
+            <p className="text-ios-subhead text-label-primary">
+              <span className="text-label-secondary">Available balance: </span>
+              <span className="font-semibold text-brand-gold">
+                {formatCurrency(wallet.availableCents, wallet.currency || 'GHS')}
+              </span>
             </p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-6 space-y-6">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 space-y-6"
+        >
           <div>
-            <label htmlFor="amountCents" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="amountCents" className={labelClass}>
               Amount (₵) *
             </label>
             <input
@@ -127,58 +134,53 @@ export default function WithdrawPage() {
               min="1"
               max={availableBalance}
               placeholder="100.00"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={inputClass}
             />
             {errors.amountCents && (
-              <p className="mt-1 text-sm text-red-600">{errors.amountCents.message}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.amountCents.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="methodType" className="block text-sm font-medium text-gray-700 mb-1">
-              Withdrawal Method *
+            <label htmlFor="methodType" className={labelClass}>
+              Withdrawal method *
             </label>
-            <select
-              {...register('methodType')}
-              id="methodType"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Select method</option>
-              <option value="BANK_ACCOUNT">Bank Transfer</option>
-              <option value="MOBILE_MONEY">Mobile Money</option>
+            <select {...register('methodType')} id="methodType" className={inputClass}>
+              <option value="BANK_ACCOUNT">Bank transfer</option>
+              <option value="MOBILE_MONEY">Mobile money</option>
             </select>
             {errors.methodType && (
-              <p className="mt-1 text-sm text-red-600">{errors.methodType.message}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.methodType.message}</p>
             )}
           </div>
 
           {methodType === 'BANK_ACCOUNT' && (
             <>
               <div>
-                <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                  Account Number *
+                <label htmlFor="accountNumber" className={labelClass}>
+                  Account number *
                 </label>
                 <input
                   {...register('accountNumber')}
                   type="text"
                   id="accountNumber"
                   placeholder="1234567890"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputClass}
                 />
                 {errors.accountNumber && (
-                  <p className="mt-1 text-sm text-red-600">{errors.accountNumber.message}</p>
+                  <p className="mt-1 text-sm text-red-400">{errors.accountNumber.message}</p>
                 )}
               </div>
               <div>
-                <label htmlFor="bankName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Bank Name
+                <label htmlFor="bankName" className={labelClass}>
+                  Bank name
                 </label>
                 <input
                   {...register('bankName')}
                   type="text"
                   id="bankName"
                   placeholder="e.g., GCB Bank"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputClass}
                 />
               </div>
             </>
@@ -187,77 +189,54 @@ export default function WithdrawPage() {
           {methodType === 'MOBILE_MONEY' && (
             <>
               <div>
-                <label htmlFor="mobileNumber" className="block text-sm font-medium text-gray-700 mb-1">
-                  Mobile Number *
+                <label htmlFor="mobileNumber" className={labelClass}>
+                  Mobile number *
                 </label>
                 <input
                   {...register('mobileNumber')}
                   type="tel"
                   id="mobileNumber"
                   placeholder="0244123456"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className={inputClass}
                 />
                 {errors.mobileNumber && (
-                  <p className="mt-1 text-sm text-red-600">{errors.mobileNumber.message}</p>
+                  <p className="mt-1 text-sm text-red-400">{errors.mobileNumber.message}</p>
                 )}
               </div>
               <div>
-                <label htmlFor="network" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="network" className={labelClass}>
                   Network *
                 </label>
-                <select
-                  {...register('network')}
-                  id="network"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
+                <select {...register('network')} id="network" className={inputClass}>
                   <option value="">Select network</option>
                   <option value="MTN">MTN</option>
                   <option value="VODAFONE">Vodafone</option>
                   <option value="AIRTELTIGO">AirtelTigo</option>
                 </select>
                 {errors.network && (
-                  <p className="mt-1 text-sm text-red-600">{errors.network.message}</p>
+                  <p className="mt-1 text-sm text-red-400">{errors.network.message}</p>
                 )}
               </div>
             </>
           )}
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-sm text-yellow-800">
-              <strong>Note:</strong> Withdrawal requests are processed manually by administrators.
+          <div className="rounded-ios-lg border border-amber-500/35 bg-amber-500/15 p-4">
+            <p className="text-sm text-amber-100/90">
+              <strong className="text-amber-200">Note:</strong> Withdrawal requests are processed manually.
               You will be notified once your request is approved or denied.
             </p>
           </div>
 
           <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-            >
+            <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={withdrawMutation.isPending}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {withdrawMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <ArrowUpCircle className="w-4 h-4" />
-                  Request Withdrawal
-                </>
-              )}
-            </button>
+            </Button>
+            <Button type="submit" variant="filled" size="lg" fullWidth loading={withdrawMutation.isPending}>
+              Submit request
+            </Button>
           </div>
         </form>
       </div>
     </Layout>
   );
 }
-

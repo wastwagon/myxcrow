@@ -5,6 +5,8 @@ import { formatDate } from '@/lib/utils';
 import { Send, MessageSquare, User } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getUser } from '@/lib/auth';
+import { form } from '@/lib/form-classes';
+import { Button } from '@/components/ui/Button';
 
 interface EscrowMessage {
   id: string;
@@ -12,18 +14,8 @@ interface EscrowMessage {
   content: string;
   createdAt: string;
   escrow?: {
-    buyer?: {
-      id: string;
-      email: string;
-      firstName?: string;
-      lastName?: string;
-    };
-    seller?: {
-      id: string;
-      email: string;
-      firstName?: string;
-      lastName?: string;
-    };
+    buyer?: { id: string; email: string; firstName?: string; lastName?: string };
+    seller?: { id: string; email: string; firstName?: string; lastName?: string };
   };
 }
 
@@ -36,6 +28,7 @@ export default function EscrowMessaging({ escrowId }: EscrowMessagingProps) {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const user = getUser();
+  const queryClient = useQueryClient();
 
   const { data: messages, isLoading } = useQuery<EscrowMessage[]>({
     queryKey: ['escrow-messages', escrowId],
@@ -44,24 +37,20 @@ export default function EscrowMessaging({ escrowId }: EscrowMessagingProps) {
       return response.data;
     },
     enabled: !!escrowId,
-    refetchInterval: 5000, // Poll every 5 seconds for new messages
+    refetchInterval: 5000,
   });
 
   const sendMessageMutation = useMutation({
-    mutationFn: async (content: string) => {
-      return apiClient.post(`/escrows/${escrowId}/messages`, { content });
-    },
+    mutationFn: async (content: string) => apiClient.post(`/escrows/${escrowId}/messages`, { content }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['escrow-messages', escrowId] });
       setMessage('');
       toast.success('Message sent');
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Failed to send message');
     },
   });
-
-  const queryClient = useQueryClient();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -70,7 +59,6 @@ export default function EscrowMessaging({ escrowId }: EscrowMessagingProps) {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim() || sending) return;
-
     setSending(true);
     try {
       await sendMessageMutation.mutateAsync(message);
@@ -79,97 +67,79 @@ export default function EscrowMessaging({ escrowId }: EscrowMessagingProps) {
     }
   };
 
-  const getSenderName = (message: EscrowMessage) => {
-    if (!message.escrow) return 'Unknown';
-    const isBuyer = message.escrow.buyer?.id === message.userId;
-    const person = isBuyer ? message.escrow.buyer : message.escrow.seller;
+  const getSenderName = (msg: EscrowMessage) => {
+    if (!msg.escrow) return 'Unknown';
+    const isBuyer = msg.escrow.buyer?.id === msg.userId;
+    const person = isBuyer ? msg.escrow.buyer : msg.escrow.seller;
     return person?.firstName && person?.lastName
       ? `${person.firstName} ${person.lastName}`
       : person?.email || 'Unknown';
   };
 
-  const isOwnMessage = (message: EscrowMessage) => {
-    return message.userId === user?.id;
-  };
+  const isOwnMessage = (msg: EscrowMessage) => msg.userId === user?.id;
+
+  const header = (
+    <div className="flex items-center gap-2 mb-4">
+      <MessageSquare className="w-5 h-5 text-brand-gold" />
+      <h3 className="text-ios-headline font-semibold text-label-primary">Messages</h3>
+    </div>
+  );
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <MessageSquare className="w-5 h-5 text-gray-600" />
-          <h3 className="text-lg font-semibold text-gray-900">Messages</h3>
-        </div>
-        <div className="text-center py-8 text-gray-500">Loading messages...</div>
+      <div className={form.panel}>
+        {header}
+        <div className="text-center py-8 text-label-tertiary">Loading messages…</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center gap-2 mb-4">
-        <MessageSquare className="w-5 h-5 text-gray-600" />
-        <h3 className="text-lg font-semibold text-gray-900">Messages</h3>
-      </div>
+    <div className={form.panel}>
+      {header}
 
-      {/* Messages List */}
-      <div className="border border-gray-200 rounded-lg h-96 overflow-y-auto p-4 mb-4 space-y-4">
+      <div className="border border-white/10 rounded-ios-lg h-96 overflow-y-auto p-4 mb-4 space-y-4 bg-white/[0.03]">
         {messages && messages.length > 0 ? (
           messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`flex ${isOwnMessage(msg) ? 'justify-end' : 'justify-start'}`}
-            >
+            <div key={msg.id} className={`flex ${isOwnMessage(msg) ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-ios-lg ${
                   isOwnMessage(msg)
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-900'
+                    ? 'bg-brand-gold/25 text-label-primary border border-brand-gold/30'
+                    : 'bg-white/10 text-label-primary border border-white/10'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <User className="w-3 h-3" />
-                  <span className="text-xs font-medium opacity-75">
+                  <User className="w-3 h-3 opacity-70" />
+                  <span className="text-ios-caption font-medium text-label-secondary">
                     {isOwnMessage(msg) ? 'You' : getSenderName(msg)}
                   </span>
                 </div>
-                <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
-                <p className={`text-xs mt-1 ${isOwnMessage(msg) ? 'text-blue-100' : 'text-gray-500'}`}>
-                  {formatDate(msg.createdAt)}
-                </p>
+                <p className="text-ios-subhead whitespace-pre-wrap">{msg.content}</p>
+                <p className="text-ios-caption mt-1 text-label-tertiary">{formatDate(msg.createdAt)}</p>
               </div>
             </div>
           ))
         ) : (
-          <div className="text-center py-8 text-gray-500">
-            No messages yet. Start the conversation!
-          </div>
+          <div className="text-center py-8 text-label-tertiary">No messages yet. Start the conversation!</div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input */}
       <form onSubmit={handleSend} className="flex gap-2">
         <input
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          placeholder="Type your message..."
-          className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          placeholder="Type your message…"
+          className={`flex-1 ${form.input}`}
           disabled={sending}
         />
-        <button
-          type="submit"
-          disabled={!message.trim() || sending}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
+        <Button type="submit" variant="filled" disabled={!message.trim() || sending} loading={sending}>
           <Send className="w-4 h-4" />
-          {sending ? 'Sending...' : 'Send'}
-        </button>
+          Send
+        </Button>
       </form>
     </div>
   );
 }
-
-
-
-

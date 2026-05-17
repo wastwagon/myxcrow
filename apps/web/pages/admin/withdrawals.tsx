@@ -18,6 +18,11 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
+import { AdminAvatar } from '@/components/admin/AdminIconBadge';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { Sheet } from '@/components/ui/Sheet';
+import { Button } from '@/components/ui/Button';
 
 interface Withdrawal {
   id: string;
@@ -43,6 +48,7 @@ interface Withdrawal {
 export default function AdminWithdrawalsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
   const [showProcessModal, setShowProcessModal] = useState(false);
@@ -110,46 +116,50 @@ export default function AdminWithdrawalsPage() {
     switch (status) {
       case 'REQUESTED':
         return (
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800 border border-yellow-200 flex items-center gap-1">
+          <span className="px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 border border-amber-500/30 flex items-center gap-1">
             <Clock className="w-3 h-3" />
             Pending
           </span>
         );
       case 'SUCCEEDED':
         return (
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800 border border-green-200 flex items-center gap-1">
+          <span className="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 flex items-center gap-1">
             <CheckCircle className="w-3 h-3" />
             Approved
           </span>
         );
       case 'FAILED':
         return (
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-100 text-red-800 border border-red-200 flex items-center gap-1">
+          <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-500/20 text-red-200 border border-red-500/30 flex items-center gap-1">
             <XCircle className="w-3 h-3" />
             Denied
           </span>
         );
       default:
         return (
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-800 border border-gray-200">
+          <span className="px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white/80 border border-white/20">
             {status}
           </span>
         );
     }
   };
 
+  const refreshWithdrawals = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['admin-withdrawals'] });
+  };
+
   const pendingWithdrawals = withdrawalsData?.withdrawals?.filter((w) => w.status === 'REQUESTED') || [];
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshWithdrawals} disabled={!isMobile} className="space-y-6">
         <PageHeader
           title="Withdrawal Management"
           subtitle="Approve or deny withdrawal requests"
           icon={<ArrowUpCircle className="w-6 h-6" />}
           action={
             pendingWithdrawals.length > 0 ? (
-              <div className="px-4 py-2 bg-amber-100 text-amber-800 rounded-lg border border-amber-200">
+              <div className="px-4 py-2 bg-amber-500/20 text-amber-200 rounded-ios-lg border border-amber-500/30">
                 <p className="text-sm font-semibold">
                   {pendingWithdrawals.length} pending withdrawal{pendingWithdrawals.length !== 1 ? 's' : ''}
                 </p>
@@ -159,13 +169,13 @@ export default function AdminWithdrawalsPage() {
         />
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
           <div className="flex items-center gap-4">
-            <Filter className="w-5 h-5 text-gray-400" />
+            <Filter className="w-5 h-5 text-white/50" />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-2 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
             >
               <option value="all">All Status</option>
               <option value="REQUESTED">Pending</option>
@@ -176,27 +186,27 @@ export default function AdminWithdrawalsPage() {
         </div>
 
         {/* Withdrawals Table */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-white/5 border-b border-white/10">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     User
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     Amount
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     Method
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     Requested
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -206,68 +216,60 @@ export default function AdminWithdrawalsPage() {
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center">
                       <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
                       </div>
                     </td>
                   </tr>
                 ) : withdrawalsData?.withdrawals && withdrawalsData.withdrawals.length > 0 ? (
                   withdrawalsData.withdrawals.map((withdrawal) => (
-                    <tr key={withdrawal.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={withdrawal.id} className="hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                            {withdrawal.wallet.user.email[0].toUpperCase()}
-                          </div>
+                          <AdminAvatar label={withdrawal.wallet.user.email} variant="maroon" />
                           <div>
-                            <p className="font-medium text-gray-900">{withdrawal.wallet.user.email}</p>
-                            <p className="text-sm text-gray-500">ID: {withdrawal.wallet.user.id.slice(0, 8)}...</p>
+                            <p className="font-medium text-white">{withdrawal.wallet.user.email}</p>
+                            <p className="text-sm text-white/55">ID: {withdrawal.wallet.user.id.slice(0, 8)}...</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold text-white">
                           {formatCurrency(withdrawal.amountCents, 'GHS')}
                         </p>
                         {withdrawal.feeCents > 0 && (
-                          <p className="text-xs text-gray-500">Fee: {formatCurrency(withdrawal.feeCents, 'GHS')}</p>
+                          <p className="text-xs text-white/55">Fee: {formatCurrency(withdrawal.feeCents, 'GHS')}</p>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm text-gray-900">{withdrawal.methodType}</p>
+                        <p className="text-sm text-white">{withdrawal.methodType}</p>
                         {withdrawal.methodDetails?.accountNumber && (
-                          <p className="text-xs text-gray-500">***{withdrawal.methodDetails.accountNumber.slice(-4)}</p>
+                          <p className="text-xs text-white/55">***{withdrawal.methodDetails.accountNumber.slice(-4)}</p>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(withdrawal.status)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
                         {formatDate(withdrawal.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         {withdrawal.status === 'REQUESTED' ? (
                           <div className="flex items-center gap-2">
-                            <button
-                              onClick={() => handleProcess(withdrawal, 'approve')}
-                              className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors"
-                            >
+                            <Button size="sm" variant="tinted" onClick={() => handleProcess(withdrawal, 'approve')}>
                               Approve
-                            </button>
-                            <button
-                              onClick={() => handleProcess(withdrawal, 'deny')}
-                              className="px-3 py-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm font-medium transition-colors"
-                            >
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleProcess(withdrawal, 'deny')}>
                               Deny
-                            </button>
+                            </Button>
                           </div>
                         ) : (
-                          <span className="text-sm text-gray-400">Processed</span>
+                          <span className="text-sm text-white/50">Processed</span>
                         )}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                      <ArrowUpCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <td colSpan={6} className="px-6 py-12 text-center text-white/55">
+                      <ArrowUpCircle className="w-12 h-12 mx-auto mb-3 text-white/50" />
                       <p>No withdrawals found</p>
                     </td>
                   </tr>
@@ -276,8 +278,8 @@ export default function AdminWithdrawalsPage() {
             </table>
           </div>
           {withdrawalsData && (
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
+            <div className="px-6 py-4 bg-white/5 border-t border-white/10">
+              <p className="text-sm text-white/70">
                 Showing <span className="font-medium">{withdrawalsData.withdrawals.length}</span> of{' '}
                 <span className="font-medium">{withdrawalsData.total}</span> withdrawals
               </p>
@@ -285,68 +287,74 @@ export default function AdminWithdrawalsPage() {
           )}
         </div>
 
-        {/* Process Modal */}
-        {showProcessModal && selectedWithdrawal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                {processAction === 'approve' ? 'Approve Withdrawal' : 'Deny Withdrawal'}
-              </h3>
-              <div className="space-y-4">
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">User Email</p>
-                  <p className="font-medium text-gray-900">{selectedWithdrawal.wallet.user.email}</p>
-                  <p className="text-xs text-gray-500 mt-1">ID: {selectedWithdrawal.wallet.user.id.slice(0, 8)}...</p>
-                </div>
-                <div className="p-4 bg-gray-50 rounded-lg">
-                  <p className="text-sm text-gray-600 mb-1">Amount</p>
-                  <p className="font-bold text-lg text-gray-900">
-                    {formatCurrency(selectedWithdrawal.amountCents, 'GHS')}
-                  </p>
-                </div>
-                {processAction === 'deny' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Reason <span className="text-red-600">*</span>
-                    </label>
-                    <textarea
-                      value={reason}
-                      onChange={(e) => setReason(e.target.value)}
-                      rows={3}
-                      placeholder="Enter reason for denial..."
-                      className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      required
-                    />
-                  </div>
-                )}
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={() => {
-                      setShowProcessModal(false);
-                      setSelectedWithdrawal(null);
-                      setReason('');
-                    }}
-                    className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={confirmProcess}
-                    disabled={processMutation.isPending || (processAction === 'deny' && !reason)}
-                    className={`flex-1 px-4 py-2 rounded-lg font-medium text-white transition-colors ${
-                      processAction === 'approve'
-                        ? 'bg-green-600 hover:bg-green-700'
-                        : 'bg-red-600 hover:bg-red-700'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    {processMutation.isPending ? 'Processing...' : processAction === 'approve' ? 'Approve' : 'Deny'}
-                  </button>
-                </div>
-              </div>
+        <Sheet
+          open={showProcessModal && !!selectedWithdrawal}
+          onClose={() => {
+            setShowProcessModal(false);
+            setSelectedWithdrawal(null);
+            setReason('');
+          }}
+          title={processAction === 'approve' ? 'Approve withdrawal' : 'Deny withdrawal'}
+          footer={
+            <div className="flex gap-3 pb-2">
+              <Button
+                type="button"
+                variant="secondary"
+                fullWidth
+                onClick={() => {
+                  setShowProcessModal(false);
+                  setSelectedWithdrawal(null);
+                  setReason('');
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant={processAction === 'approve' ? 'filled' : 'destructive'}
+                fullWidth
+                loading={processMutation.isPending}
+                disabled={processAction === 'deny' && !reason}
+                onClick={confirmProcess}
+              >
+                {processAction === 'approve' ? 'Approve' : 'Deny'}
+              </Button>
             </div>
-          </div>
-        )}
-      </div>
+          }
+        >
+          {selectedWithdrawal && (
+            <div className="space-y-4 pb-2">
+              <div className="p-4 rounded-ios-lg bg-white/5 border border-white/10">
+                <p className="text-ios-footnote text-label-secondary mb-1">User</p>
+                <p className="font-medium text-label-primary">{selectedWithdrawal.wallet.user.email}</p>
+                <p className="text-ios-caption text-label-tertiary mt-1">
+                  ID: {selectedWithdrawal.wallet.user.id.slice(0, 8)}…
+                </p>
+              </div>
+              <div className="p-4 rounded-ios-lg bg-white/5 border border-white/10">
+                <p className="text-ios-footnote text-label-secondary mb-1">Amount</p>
+                <p className="text-ios-title-2 font-bold text-label-primary">
+                  {formatCurrency(selectedWithdrawal.amountCents, 'GHS')}
+                </p>
+              </div>
+              {processAction === 'deny' && (
+                <div>
+                  <label className="block text-ios-footnote font-medium text-label-secondary mb-2">
+                    Reason <span className="text-red-400">*</span>
+                  </label>
+                  <textarea
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
+                    rows={3}
+                    placeholder="Enter reason for denial…"
+                    className="w-full px-4 py-3 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 outline-none resize-none"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </Sheet>
+      </PullToRefresh>
     </Layout>
   );
 }

@@ -4,9 +4,12 @@ import Layout from '@/components/Layout';
 import { isAuthenticated, getUser } from '@/lib/auth';
 import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Loader2 } from 'lucide-react';
+import { Wallet } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/utils';
+import PageHeader from '@/components/PageHeader';
+import { Button } from '@/components/ui/Button';
+import { form } from '@/lib/form-classes';
 
 /** Paystack processing fee % passed to customer (must match backend) */
 const PAYSTACK_FEE_PERCENT = 1.95;
@@ -50,18 +53,15 @@ export default function WalletTopupPage() {
   return (
     <Layout>
       <div className="max-w-md mx-auto space-y-6">
-        <button
-          onClick={() => router.back()}
-          className="text-brand-gold hover:text-brand-gold/80 font-medium transition-colors"
-        >
-          ← Back
-        </button>
-        <h1 className="text-2xl font-bold text-white">Top Up Wallet</h1>
-        <p className="text-white/80">Add funds via Paystack (card, bank, mobile money).</p>
+        <PageHeader
+          title="Top up wallet"
+          subtitle="Add funds via Paystack (card, bank, mobile money)"
+          icon={<Wallet className="w-6 h-6" />}
+        />
 
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl p-6 space-y-4">
+        <div className={`${form.panel} space-y-4`}>
           <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-white/90 mb-1">
+            <label htmlFor="amount" className={form.label}>
               Amount to add to wallet (₵) *
             </label>
             <input
@@ -71,7 +71,7 @@ export default function WalletTopupPage() {
               step="0.01"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="w-full min-h-[48px] px-4 py-3 border-2 border-white/20 rounded-xl bg-white/5 text-white placeholder-white/50 focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none"
+              className={form.input}
             />
           </div>
           {amountCents >= 100 && (
@@ -87,21 +87,17 @@ export default function WalletTopupPage() {
               </p>
             </div>
           )}
-          <button
+          <Button
             type="button"
+            variant="filled"
+            size="lg"
+            fullWidth
+            loading={topupMutation.isPending}
+            disabled={amountCents < 100}
             onClick={() => topupMutation.mutate()}
-            disabled={topupMutation.isPending || amountCents < 100}
-            className="w-full min-h-[48px] py-3 px-6 bg-gradient-to-r from-brand-gold to-amber-600 text-brand-maroon-black rounded-xl hover:from-brand-gold/90 hover:to-amber-500 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all touch-manipulation"
           >
-            {topupMutation.isPending ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Redirecting…
-              </>
-            ) : (
-              'Continue to Paystack'
-            )}
-          </button>
+            Continue to Paystack
+          </Button>
         </div>
       </div>
     </Layout>

@@ -2,14 +2,20 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated } from '@/lib/auth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
 import Link from 'next/link';
 import { Plus, Search, Filter, Download, Calendar, DollarSign, Mail, FileText } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
+import { DISPUTE_ELIGIBLE_ESCROW_STATUSES } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
+import { ListGroup, ListRow } from '@/components/ui/ListGroup';
+import { Button } from '@/components/ui/Button';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
 interface Escrow {
   id: string;
@@ -24,6 +30,8 @@ interface Escrow {
 
 export default function EscrowsPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -111,9 +119,27 @@ export default function EscrowsPage() {
     { value: 'DISPUTED', label: 'Disputed' },
   ];
 
+  const refreshEscrows = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['escrows'] });
+  };
+
+  const getEscrowSwipeActions = (escrow: Escrow) => {
+    const actions: { label: string; href: string; variant?: 'default' | 'destructive' }[] = [
+      { label: 'Open', href: `/escrows/${escrow.id}` },
+    ];
+    if (DISPUTE_ELIGIBLE_ESCROW_STATUSES.includes(escrow.status)) {
+      actions.push({
+        label: 'Dispute',
+        href: `/disputes/new?escrowId=${escrow.id}`,
+        variant: 'destructive',
+      });
+    }
+    return actions;
+  };
+
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshEscrows} disabled={!isMobile} className="space-y-6">
         <PageHeader
           title="Escrows"
           subtitle="Manage your escrow agreements"
@@ -268,56 +294,64 @@ export default function EscrowsPage() {
         )}
 
         {/* Escrows List */}
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 overflow-hidden">
-          {isLoading ? (
-            <div className="p-6 space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 bg-white/10 animate-pulse rounded-xl" />
-              ))}
-            </div>
-          ) : escrows && escrows.length > 0 ? (
-            <div className="divide-y divide-white/10">
-              {escrows.map((escrow) => (
-                <Link
-                  key={escrow.id}
-                  href={`/escrows/${escrow.id}`}
-                  className="block p-6 min-h-[48px] hover:bg-white/5 transition-colors touch-manipulation"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <h3 className="font-semibold text-white">
-                          {escrow.description || 'Escrow Agreement'}
-                        </h3>
-                        <StatusBadge status={escrow.status} />
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-white/70 flex-wrap">
-                        <span className="font-medium text-white">
-                          {formatCurrency(escrow.amountCents, 'GHS')}
-                        </span>
-                        <span>•</span>
-                        <span>ID: {escrow.id.slice(0, 8)}...</span>
-                        <span>•</span>
-                        <span>{formatDateShort(escrow.createdAt)}</span>
-                      </div>
-                    </div>
-                    <div className="text-brand-gold">→</div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <div className="p-12 text-center text-white/70">
-              <p className="text-lg mb-2 text-white">No escrows found</p>
-              <p className="text-sm">
-                {searchTerm || statusFilter !== 'all' || minAmount || maxAmount || currency || counterpartyEmail || startDate || endDate
-                  ? 'Try adjusting your filters'
-                  : 'Create your first escrow to get started'}
-              </p>
-            </div>
-          )}
-        </div>
-      </div>
+        {isLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-white/10 animate-pulse rounded-ios-xl" />
+            ))}
+          </div>
+        ) : escrows && escrows.length > 0 ? (
+          <ListGroup>
+            {escrows.map((escrow) => (
+              <SwipeableListRow
+                key={escrow.id}
+                disabled={!isMobile}
+                actions={getEscrowSwipeActions(escrow)}
+              >
+                <ListRow
+                href={`/escrows/${escrow.id}`}
+                showChevron={false}
+                title={escrow.description || 'Escrow Agreement'}
+                subtitle={
+                  <>
+                    <span className="text-label-primary font-medium">
+                      {formatCurrency(escrow.amountCents, 'GHS')}
+                    </span>
+                    {' · '}
+                    {escrow.id.slice(0, 8)}… · {formatDateShort(escrow.createdAt)}
+                  </>
+                }
+                trailing={<StatusBadge status={escrow.status} />}
+                />
+              </SwipeableListRow>
+            ))}
+          </ListGroup>
+        ) : (
+          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] p-12 text-center">
+            <p className="text-ios-headline text-label-primary font-semibold mb-2">No escrows found</p>
+            <p className="text-ios-subhead text-label-secondary mb-6">
+              {searchTerm ||
+              statusFilter !== 'all' ||
+              minAmount ||
+              maxAmount ||
+              currency ||
+              counterpartyEmail ||
+              startDate ||
+              endDate
+                ? 'Try adjusting your filters'
+                : 'Create your first escrow to get started'}
+            </p>
+            {!searchTerm && statusFilter === 'all' && (
+              <Link href="/escrows/new">
+                <Button>
+                  <Plus className="w-5 h-5" />
+                  New escrow
+                </Button>
+              </Link>
+            )}
+          </div>
+        )}
+      </PullToRefresh>
     </Layout>
   );
 }

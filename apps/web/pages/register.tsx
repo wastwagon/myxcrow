@@ -10,6 +10,7 @@ import { getErrorMessage } from '@/lib/error-messages';
 import { setAuthTokens, setUser } from '@/lib/auth';
 import { Loader2, AlertCircle, X, Check, User, Mail, Lock, Phone, MessageCircle, Eye, EyeOff } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
+import { publicForm } from '@/lib/form-classes';
 
 const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -146,16 +147,12 @@ export default function Register() {
             <div className="p-6 md:p-8">
               {/* Header */}
               <div className="text-center mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-                  Create Your Account
-                </h2>
-                <p className="text-gray-600 text-sm md:text-base">
-                  Get started with MYXCROW in seconds
-                </p>
+                <h2 className={publicForm.cardTitleLg}>Create Your Account</h2>
+                <p className={publicForm.cardSubtitleMd}>Get started with MYXCROW in seconds</p>
               </div>
 
               {error && (
-                <div id="register-error" className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3" role="alert">
+                <div id="register-error" className={publicForm.calloutErrorBanner} role="alert">
                   <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
                     <p className="text-sm font-medium text-red-800">{error}</p>
@@ -173,7 +170,7 @@ export default function Register() {
                 {/* Name Fields */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="firstName" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label htmlFor="firstName" className={publicForm.label}>
                       <User className="w-4 h-4 inline mr-1" />
                       First Name
                     </label>
@@ -181,33 +178,33 @@ export default function Register() {
                       {...register('firstName')}
                       type="text"
                       id="firstName"
-                      className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation"
+                      className={publicForm.inputTouch}
                       placeholder="John"
                     />
                     {errors.firstName && (
-                      <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
+                      <p className={publicForm.error}>{errors.firstName.message}</p>
                     )}
                   </div>
                   <div>
-                    <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label htmlFor="lastName" className={publicForm.label}>
                       Last Name
                     </label>
                     <input
                       {...register('lastName')}
                       type="text"
                       id="lastName"
-                      className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation"
+                      className={publicForm.inputTouch}
                       placeholder="Doe"
                     />
                     {errors.lastName && (
-                      <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
+                      <p className={publicForm.error}>{errors.lastName.message}</p>
                     )}
                   </div>
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="email" className={publicForm.label}>
                     <Mail className="w-4 h-4 inline mr-1" />
                     Email Address
                   </label>
@@ -215,17 +212,17 @@ export default function Register() {
                     {...register('email')}
                     type="email"
                     id="email"
-                    className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation"
+                    className={publicForm.inputTouch}
                     placeholder="you@example.com"
                   />
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                    <p className={publicForm.error}>{errors.email.message}</p>
                   )}
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="phone" className={publicForm.label}>
                     <Phone className="w-4 h-4 inline mr-1" />
                     Phone Number
                   </label>
@@ -233,23 +230,23 @@ export default function Register() {
                     {...register('phone')}
                     type="tel"
                     id="phone"
-                    className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation"
+                    className={publicForm.inputTouch}
                     placeholder="0551234567"
                   />
                   {errors.phone && (
-                    <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                    <p className={publicForm.error}>{errors.phone.message}</p>
                   )}
-                  <p className="mt-1 text-xs text-gray-500">Ghana phone number (MTN, Vodafone, or AirtelTigo)</p>
+                  <p className={publicForm.hint}>Ghana phone number (MTN, Vodafone, or AirtelTigo)</p>
                   {codeSent ? (
                     <div className="mt-3 space-y-2">
                       {devCode ? (
-                        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-sm">
+                        <div className={publicForm.calloutWarning}>
                           <p className="font-medium">SMS not configured – use this code to test:</p>
                           <p className="mt-1 font-mono text-lg tracking-widest">{devCode}</p>
                           <p className="mt-1 text-xs">Set OTP_DEV_BYPASS=false and configure Arkesel for real SMS.</p>
                         </div>
                       ) : (
-                        <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
+                        <div className={publicForm.calloutSuccess}>
                           Code sent! Check your phone for the 6-digit verification code.
                         </div>
                       )}
@@ -259,7 +256,7 @@ export default function Register() {
                       type="button"
                       onClick={onSendCode}
                       disabled={loading || countdown > 0 || !phone || !/^0[0-9]{9}$/.test(phone)}
-                      className="mt-3 w-full min-h-[48px] py-3 px-4 border-2 border-brand-maroon text-brand-maroon rounded-xl hover:bg-brand-maroon/5 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation"
+                      className={publicForm.outlineBtn}
                     >
                       <MessageCircle className="w-4 h-4" />
                       {loading ? 'Sending...' : countdown > 0 ? `Resend in ${countdown}s` : 'Send verification code'}
@@ -270,7 +267,7 @@ export default function Register() {
                 {/* Verification Code - shown after code sent */}
                 {codeSent && (
                   <div>
-                    <label htmlFor="code" className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label htmlFor="code" className={publicForm.label}>
                       Verification Code
                     </label>
                     <input
@@ -279,13 +276,13 @@ export default function Register() {
                       inputMode="numeric"
                       maxLength={6}
                       id="code"
-                      className="w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none text-center text-lg tracking-widest touch-manipulation"
+                      className={publicForm.inputCode}
                       placeholder="123456"
                     />
                     {errors.code && (
-                      <p className="mt-1 text-sm text-red-600">{errors.code.message}</p>
+                      <p className={publicForm.error}>{errors.code.message}</p>
                     )}
-                    <p className="mt-1 text-xs text-gray-500">Enter the 6-digit code sent to your phone</p>
+                    <p className={publicForm.hint}>Enter the 6-digit code sent to your phone</p>
                     <button
                       type="button"
                       onClick={onSendCode}
@@ -299,7 +296,7 @@ export default function Register() {
 
                 {/* Password */}
                 <div>
-                  <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label htmlFor="password" className={publicForm.label}>
                     <Lock className="w-4 h-4 inline mr-1" />
                     Password
                   </label>
@@ -308,29 +305,29 @@ export default function Register() {
                       {...register('password')}
                       type={showPassword ? 'text' : 'password'}
                       id="password"
-                      className="w-full min-h-[48px] px-4 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation"
+                      className={publicForm.passwordInput}
                       placeholder="••••••••"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((v) => !v)}
-                      className="absolute inset-y-0 right-0 px-3 text-gray-500 hover:text-brand-maroon flex items-center justify-center"
+                      className={publicForm.passwordToggle}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                    <p className={publicForm.error}>{errors.password.message}</p>
                   )}
-                  <p className="mt-1 text-xs text-gray-500">Minimum 8 characters</p>
+                  <p className={publicForm.hint}>Minimum 8 characters</p>
                 </div>
 
                 {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={loading || !codeSent}
-                  className="w-full min-h-[48px] py-3 px-6 bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white rounded-xl hover:from-brand-maroon-dark hover:to-brand-maroon-darker focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl touch-manipulation"
+                  className={publicForm.submitTouch}
                 >
                   {loading ? (
                     <>
@@ -348,16 +345,16 @@ export default function Register() {
             </div>
 
             {/* Footer */}
-            <div className="bg-gray-50 px-6 md:px-8 py-4 border-t border-gray-200 space-y-2">
-              <p className="text-center text-xs text-gray-500">
+            <div className={publicForm.cardFooter}>
+              <p className={`text-center ${publicForm.footerMuted}`}>
                 By registering you agree to our{' '}
                 <Link href="/terms" className="text-brand-maroon font-semibold hover:underline">Terms and Conditions</Link>
                 {' '}and{' '}
                 <Link href="/privacy" className="text-brand-maroon font-semibold hover:underline">Privacy Policy</Link>.
               </p>
-              <p className="text-center text-sm text-gray-600">
+              <p className={`text-center ${publicForm.footerText}`}>
                 Already have an account?{' '}
-                <Link href="/login" className="text-brand-maroon hover:text-blue-700 font-semibold transition-colors">
+                <Link href="/login" className="text-brand-maroon hover:text-brand-maroon-dark font-semibold transition-colors">
                   Sign in
                 </Link>
               </p>
@@ -365,8 +362,8 @@ export default function Register() {
           </div>
 
           {/* Security Note */}
-          <p className="mt-6 text-center text-xs text-gray-500 max-w-md mx-auto">
-            🔒 Your information is secure. We use industry-standard encryption to protect your data.
+          <p className="mt-6 text-center text-xs text-white/60 max-w-md mx-auto">
+            Your information is secure. We use industry-standard encryption to protect your data.
           </p>
         </div>
       </div>

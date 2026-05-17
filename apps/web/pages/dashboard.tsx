@@ -2,24 +2,27 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import {
   FileText,
-  DollarSign,
   Clock,
   CheckCircle,
-  TrendingUp,
   ArrowRight,
   Plus,
   Wallet,
   Activity,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { extractArrayData } from '@/lib/api-helpers';
-import { ESCROW_STATUS_COLORS, ACTIVE_ESCROW_STATUSES, COMPLETED_ESCROW_STATUSES, formatStatus } from '@/lib/constants';
+import { COMPLETED_ESCROW_STATUSES } from '@/lib/constants';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
+import { MetricCard } from '@/components/ui/MetricCard';
+import { ListGroup, ListRow } from '@/components/ui/ListGroup';
+import { StatusBadge } from '@/components/StatusBadge';
+import { Button } from '@/components/ui/Button';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
 interface WalletData {
   availableCents: number;
@@ -38,6 +41,8 @@ interface Escrow {
 
 export default function Dashboard() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
   const [userName, setUserName] = useState<string>('');
   const [mounted, setMounted] = useState(false);
 
@@ -50,15 +55,13 @@ export default function Dashboard() {
     if (!isAuthenticated()) {
       router.push('/login');
     } else {
-      // Redirect admins to admin dashboard instead of regular dashboard
       if (isAdmin()) {
         router.push('/admin');
         return;
       }
-      
+
       const user = getUser();
       if (user) {
-        // Use firstName if available, otherwise use email prefix
         const name = user.firstName || user.email?.split('@')[0] || 'User';
         setUserName(name);
       }
@@ -76,7 +79,9 @@ export default function Dashboard() {
     enabled: mounted && isAuthenticated(),
   });
 
-  const { data: escrowsData, isLoading: escrowsLoading } = useQuery<{ data?: Escrow[]; escrows?: Escrow[]; total?: number } | Escrow[]>({
+  const { data: escrowsData, isLoading: escrowsLoading } = useQuery<
+    { data?: Escrow[]; escrows?: Escrow[]; total?: number } | Escrow[]
+  >({
     queryKey: ['escrows'],
     queryFn: async () => {
       const response = await apiClient.get('/escrows');
@@ -85,12 +90,10 @@ export default function Dashboard() {
     enabled: mounted && isAuthenticated(),
   });
 
-  // Extract escrows array from response (handle both formats)
-  const escrows: Escrow[] = Array.isArray(escrowsData) 
-    ? escrowsData 
-    : (escrowsData?.data || escrowsData?.escrows || []);
+  const escrows: Escrow[] = Array.isArray(escrowsData)
+    ? escrowsData
+    : escrowsData?.data || escrowsData?.escrows || [];
 
-  // Render consistent placeholder until mounted to avoid hydration mismatch
   if (!mounted || !isAuthenticated()) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -102,220 +105,197 @@ export default function Dashboard() {
   const activeEscrows = escrows?.filter((e) => !['RELEASED', 'CANCELLED'].includes(e.status)) || [];
   const recentEscrows = escrows?.slice(0, 5) || [];
 
+  const refreshDashboard = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['wallet'] }),
+      queryClient.invalidateQueries({ queryKey: ['escrows'] }),
+    ]);
+  };
+
   return (
     <Layout>
-      <div className="space-y-6">
-        {/* Welcome Header */}
+      <PullToRefresh onRefresh={refreshDashboard} disabled={!isMobile} className="space-y-6">
         <PageHeader
           title={`Welcome Back${userName ? `, ${userName}` : ''}!`}
           subtitle="Here's your account overview"
           icon={<FileText className="w-6 h-6" />}
         />
 
-        {/* Wallet Summary Cards */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <Wallet className="w-8 h-8 opacity-90" />
-              <TrendingUp className="w-5 h-5 opacity-75" />
-            </div>
-            <h3 className="text-sm font-medium opacity-90 mb-1">Available Balance</h3>
-            {walletLoading ? (
-              <div className="h-8 bg-green-400/30 animate-pulse rounded" />
-            ) : (
-              <p className="text-3xl font-bold">
-                {wallet ? formatCurrency(wallet.availableCents, 'GHS') : '--'}
-              </p>
-            )}
-            <p className="text-sm opacity-75 mt-2">Ready to use</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <Clock className="w-8 h-8 opacity-90" />
-              <Activity className="w-5 h-5 opacity-75" />
-            </div>
-            <h3 className="text-sm font-medium opacity-90 mb-1">Pending Balance</h3>
-            {walletLoading ? (
-              <div className="h-8 bg-yellow-400/30 animate-pulse rounded" />
-            ) : (
-              <p className="text-3xl font-bold">
-                {wallet ? formatCurrency(wallet.pendingCents, 'GHS') : '--'}
-              </p>
-            )}
-            <p className="text-sm opacity-75 mt-2">In escrow or pending</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <FileText className="w-8 h-8 opacity-90" />
-              <CheckCircle className="w-5 h-5 opacity-75" />
-            </div>
-            <h3 className="text-sm font-medium opacity-90 mb-1">Active Escrows</h3>
-            {escrowsLoading ? (
-              <div className="h-8 bg-blue-400/30 animate-pulse rounded" />
-            ) : (
-              <p className="text-3xl font-bold">{activeEscrows.length}</p>
-            )}
-            <p className="text-sm opacity-75 mt-2">In progress</p>
+        {/* Hero balance + metrics */}
+        <div className="rounded-ios-xl border border-brand-gold/30 bg-white/[0.09] backdrop-blur-sm p-6 shadow-ios-card ring-1 ring-brand-gold/20">
+          <p className="text-ios-footnote font-medium text-label-secondary mb-1">Available balance</p>
+          {walletLoading ? (
+            <div className="h-10 w-40 bg-white/10 animate-pulse rounded-ios mb-2" />
+          ) : (
+            <p className="text-4xl font-bold text-label-primary tracking-tight mb-1">
+              {wallet ? formatCurrency(wallet.availableCents, 'GHS') : '--'}
+            </p>
+          )}
+          <p className="text-ios-subhead text-label-tertiary">
+            {walletLoading
+              ? 'Loading…'
+              : wallet
+                ? `${formatCurrency(wallet.pendingCents, 'GHS')} pending in escrow`
+                : 'Top up your wallet to start'}
+          </p>
+          <div className="flex flex-wrap gap-3 mt-5">
+            <Link href="/wallet/topup">
+              <Button size="sm">Top up</Button>
+            </Link>
+            <Link href="/wallet">
+              <Button size="sm" variant="tinted">
+                Wallet
+              </Button>
+            </Link>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 shadow-xl shadow-black/10">
-          <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link
-              href="/escrows/new"
-              className="flex items-center gap-4 p-4 min-h-[48px] border border-white/10 rounded-xl hover:border-brand-gold/50 hover:bg-white/5 transition-all group touch-manipulation"
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-brand-gold to-amber-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform ring-1 ring-brand-gold/30">
-                <Plus className="w-6 h-6 text-brand-maroon-black" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-white">Create Escrow</h3>
-                <p className="text-sm text-white/70">Start a new transaction</p>
-              </div>
-              <ArrowRight className="w-5 h-5 text-white/50 group-hover:text-brand-gold transition-colors" />
-            </Link>
+        <div className="grid md:grid-cols-3 gap-4">
+          <MetricCard
+            label="Pending balance"
+            value={wallet ? formatCurrency(wallet.pendingCents, 'GHS') : '--'}
+            hint="Held in escrow"
+            icon={<Clock className="w-5 h-5" />}
+            accent="amber"
+            loading={walletLoading}
+          />
+          <MetricCard
+            label="Active escrows"
+            value={activeEscrows.length}
+            hint="In progress"
+            icon={<FileText className="w-5 h-5" />}
+            accent="maroon"
+            loading={escrowsLoading}
+          />
+          <MetricCard
+            label="Completed"
+            value={escrows?.filter((e) => COMPLETED_ESCROW_STATUSES.includes(e.status)).length ?? 0}
+            hint="All time"
+            icon={<CheckCircle className="w-5 h-5" />}
+            accent="emerald"
+            loading={escrowsLoading}
+          />
+        </div>
 
-            <Link
-              href="/wallet"
-              className="flex items-center gap-4 p-4 min-h-[48px] border border-white/10 rounded-xl hover:border-brand-gold/50 hover:bg-white/5 transition-all group touch-manipulation"
-            >
-              <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform ring-1 ring-emerald-400/30">
-                <Wallet className="w-6 h-6 text-white" />
+        <ListGroup title="Quick actions">
+          <ListRow
+            href="/escrows/new"
+            leading={
+              <div className="w-9 h-9 rounded-ios-lg bg-brand-gold/20 flex items-center justify-center">
+                <Plus className="w-5 h-5 text-brand-gold" />
               </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-white">Manage Wallet</h3>
-                <p className="text-sm text-white/70">View transactions</p>
+            }
+            title="Create escrow"
+            subtitle="Start a new transaction"
+          />
+          <ListRow
+            href="/wallet"
+            leading={
+              <div className="w-9 h-9 rounded-ios-lg bg-emerald-500/20 flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-emerald-400" />
               </div>
-              <ArrowRight className="w-5 h-5 text-white/50 group-hover:text-brand-gold transition-colors" />
-            </Link>
+            }
+            title="Manage wallet"
+            subtitle="Transactions & withdrawals"
+          />
+          <ListRow
+            href="/escrows"
+            leading={
+              <div className="w-9 h-9 rounded-ios-lg bg-brand-maroon/40 flex items-center justify-center">
+                <FileText className="w-5 h-5 text-white/90" />
+              </div>
+            }
+            title="All escrows"
+            subtitle="View and filter agreements"
+          />
+        </ListGroup>
 
+        <div>
+          <div className="flex items-center justify-between px-1 mb-3">
+            <h2 className="text-ios-title-3 text-label-primary font-semibold">Recent escrows</h2>
             <Link
               href="/escrows"
-              className="flex items-center gap-4 p-4 min-h-[48px] border border-white/10 rounded-xl hover:border-brand-gold/50 hover:bg-white/5 transition-all group touch-manipulation"
+              className="text-brand-gold text-ios-footnote font-medium flex items-center gap-1"
             >
-              <div className="w-12 h-12 bg-gradient-to-br from-brand-maroon to-brand-maroon-dark rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform ring-1 ring-brand-maroon/50">
-                <FileText className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-white">View All Escrows</h3>
-                <p className="text-sm text-white/70">See all transactions</p>
-              </div>
-              <ArrowRight className="w-5 h-5 text-white/50 group-hover:text-brand-gold transition-colors" />
+              View all <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-        </div>
 
-        {/* Recent Escrows */}
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 overflow-hidden">
-          <div className="p-6 border-b border-white/10">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">Recent Escrows</h2>
-              <Link
-                href="/escrows"
-                className="text-brand-gold hover:text-brand-gold/80 text-sm font-medium flex items-center gap-1 transition-colors"
-              >
-                View all <ArrowRight className="w-4 h-4" />
+          {escrowsLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-16 bg-white/10 animate-pulse rounded-ios-xl" />
+              ))}
+            </div>
+          ) : recentEscrows.length > 0 ? (
+            <ListGroup>
+              {recentEscrows.map((escrow) => (
+                <ListRow
+                  key={escrow.id}
+                  href={`/escrows/${escrow.id}`}
+                  title={escrow.description || 'Escrow Agreement'}
+                  subtitle={
+                    <span className="flex flex-wrap items-center gap-2">
+                      <span className="text-label-primary font-medium">
+                        {formatCurrency(escrow.amountCents, 'GHS')}
+                      </span>
+                      <span>·</span>
+                      <span>{formatDate(escrow.createdAt)}</span>
+                    </span>
+                  }
+                  trailing={<StatusBadge status={escrow.status} />}
+                />
+              ))}
+            </ListGroup>
+          ) : (
+            <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] p-10 text-center">
+              <FileText className="w-14 h-14 mx-auto mb-4 text-white/30" />
+              <p className="text-ios-headline text-label-primary font-semibold mb-1">No escrows yet</p>
+              <p className="text-ios-subhead text-label-secondary mb-6">
+                Create your first escrow to protect a transaction
+              </p>
+              <Link href="/escrows/new">
+                <Button>
+                  <Plus className="w-5 h-5" />
+                  Create escrow
+                </Button>
               </Link>
             </div>
-          </div>
-          <div className="p-6">
-            {escrowsLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-20 bg-white/10 animate-pulse rounded-xl" />
-                ))}
-              </div>
-            ) : recentEscrows.length > 0 ? (
-              <div className="space-y-4">
-                {recentEscrows.map((escrow) => (
-                  <Link
-                    key={escrow.id}
-                    href={`/escrows/${escrow.id}`}
-                    className="block p-5 min-h-[48px] border border-white/10 rounded-xl hover:border-brand-gold/40 hover:bg-white/5 transition-all group touch-manipulation"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                          <h3 className="font-semibold text-white group-hover:text-brand-gold transition-colors">
-                            {escrow.description || 'Escrow Agreement'}
-                          </h3>
-                          <span
-                            className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                              ESCROW_STATUS_COLORS[escrow.status] || 'bg-white/10 text-white/90 border-white/20'
-                            }`}
-                          >
-                            {formatStatus(escrow.status)}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-4 text-sm text-white/70">
-                          <span className="font-medium text-white">
-                            {formatCurrency(escrow.amountCents, 'GHS')}
-                          </span>
-                          <span>•</span>
-                          <span>{formatDate(escrow.createdAt)}</span>
-                        </div>
-                      </div>
-                      <ArrowRight className="w-5 h-5 text-white/50 group-hover:text-brand-gold group-hover:translate-x-1 transition-all" />
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 text-white/70">
-                <FileText className="w-16 h-16 mx-auto mb-4 text-white/40" />
-                <p className="text-lg font-medium text-white mb-2">No escrows yet</p>
-                <p className="text-sm mb-6">Get started by creating your first escrow agreement</p>
-                <Link
-                  href="/escrows/new"
-                  className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] bg-gradient-to-r from-brand-gold to-amber-600 text-brand-maroon-black rounded-xl hover:from-brand-gold/90 hover:to-amber-500 font-semibold shadow-lg transition-all touch-manipulation"
-                >
-                  <Plus className="w-5 h-5" />
-                  Create Your First Escrow
-                </Link>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* Activity Summary */}
         {activeEscrows.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 border-l-4 border-l-amber-500 shadow-xl shadow-black/10">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-white/80">Awaiting Action</h3>
-                <Clock className="w-5 h-5 text-amber-500" />
-              </div>
-              <p className="text-2xl font-bold text-white">
-                {escrows?.filter((e) => ['AWAITING_FUNDING', 'AWAITING_SHIPMENT'].includes(e.status)).length || 0}
-              </p>
-            </div>
-
-            <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 border-l-4 border-l-emerald-500 shadow-xl shadow-black/10">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-white/80">In Progress</h3>
-                <Activity className="w-5 h-5 text-emerald-500" />
-              </div>
-              <p className="text-2xl font-bold text-white">
-                {escrows?.filter((e) => ['FUNDED', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED'].includes(e.status)).length || 0}
-              </p>
-            </div>
-
-            <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 border-l-4 border-l-brand-gold shadow-xl shadow-black/10">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-white/80">Completed</h3>
-                <CheckCircle className="w-5 h-5 text-brand-gold" />
-              </div>
-              <p className="text-2xl font-bold text-white">
-                {escrows?.filter((e) => COMPLETED_ESCROW_STATUSES.includes(e.status)).length || 0}
-              </p>
-            </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <MetricCard
+              label="Awaiting action"
+              value={
+                escrows?.filter((e) => ['AWAITING_FUNDING', 'AWAITING_SHIPMENT'].includes(e.status))
+                  .length || 0
+              }
+              icon={<Clock className="w-5 h-5" />}
+              accent="amber"
+            />
+            <MetricCard
+              label="In progress"
+              value={
+                escrows?.filter((e) =>
+                  ['FUNDED', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED'].includes(e.status)
+                ).length || 0
+              }
+              icon={<Activity className="w-5 h-5" />}
+              accent="emerald"
+            />
+            <MetricCard
+              label="Completed"
+              value={
+                escrows?.filter((e) => COMPLETED_ESCROW_STATUSES.includes(e.status)).length || 0
+              }
+              icon={<CheckCircle className="w-5 h-5" />}
+              accent="gold"
+            />
           </div>
         )}
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

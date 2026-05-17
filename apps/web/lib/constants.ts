@@ -91,6 +91,16 @@ export const ACTIVE_ESCROW_STATUSES = [
  */
 export const COMPLETED_ESCROW_STATUSES = ['RELEASED', 'REFUNDED', 'CANCELLED'];
 
+/** Escrow statuses where a dispute can be opened */
+export const DISPUTE_ELIGIBLE_ESCROW_STATUSES = [
+  'FUNDED',
+  'SHIPPED',
+  'IN_TRANSIT',
+  'DELIVERED',
+  'AWAITING_RELEASE',
+  'RELEASED',
+];
+
 /**
  * Format status for display (replace underscores with spaces)
  */

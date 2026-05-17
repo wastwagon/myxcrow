@@ -10,6 +10,11 @@ import apiClient from '@/lib/api-client';
 import { Loader2, Search, User, X, AlertTriangle } from 'lucide-react';
 import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
+import { AdminAvatar } from '@/components/admin/AdminIconBadge';
+import { Button } from '@/components/ui/Button';
+import { admin } from '@/components/admin/adminClasses';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
 const debitSchema = z.object({
   userId: z.string().min(1, 'User is required'),
@@ -29,6 +34,7 @@ interface UserOption {
 export default function DebitWalletPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
   const userIdFromQuery = typeof router.query.userId === 'string' ? router.query.userId : undefined;
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserSearch, setShowUserSearch] = useState(false);
@@ -118,45 +124,50 @@ export default function DebitWalletPage() {
     return null;
   }
 
+  const refreshDebitPage = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['users'] }),
+      queryClient.invalidateQueries({ queryKey: ['wallet'] }),
+    ]);
+  };
+
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto">
+      <PullToRefresh onRefresh={refreshDebitPage} disabled={!isMobile} className="max-w-3xl mx-auto">
         <div className="mb-6">
           <button
             onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-900 mb-4 flex items-center gap-2"
+            className="text-white/70 hover:text-white mb-4 flex items-center gap-2"
           >
             ← Back
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Debit Wallet</h1>
-          <p className="text-gray-600 mt-1">Manually debit a user&apos;s wallet</p>
+          <h1 className="text-3xl font-bold text-white">Debit Wallet</h1>
+          <p className="text-white/70 mt-1">Manually debit a user&apos;s wallet</p>
         </div>
 
-        <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+        <div className={`${admin.calloutWarning} mb-6`}>
+          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-yellow-900">Warning</p>
-            <p className="text-sm text-yellow-800">
+            <p className="text-sm font-semibold text-amber-200">Warning</p>
+            <p className="text-sm text-amber-100/90">
               This will deduct funds from the user&apos;s wallet. Make sure you have a valid reason and provide a detailed description for audit purposes.
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-xl shadow-lg p-8 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-8 space-y-6">
           {/* User Selection */}
           <div className="relative">
-            <label htmlFor="user" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="user" className="block text-sm font-semibold text-white/80 mb-2">
               Select User *
             </label>
             {selectedUser ? (
-              <div className="flex items-center justify-between p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+              <div className={admin.selectedUserCardDanger}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white font-semibold">
-                    {selectedUser.email[0].toUpperCase()}
-                  </div>
+                  <AdminAvatar label={selectedUser.email} variant="destructive" />
                   <div>
-                    <p className="font-medium text-gray-900">{selectedUser.email}</p>
-                    <p className="text-sm text-gray-500">User ID: {selectedUser.id.slice(0, 8)}...</p>
+                    <p className="font-medium text-white">{selectedUser.email}</p>
+                    <p className="text-sm text-white/55">User ID: {selectedUser.id.slice(0, 8)}...</p>
                   </div>
                 </div>
                 <button
@@ -165,7 +176,7 @@ export default function DebitWalletPage() {
                     setSelectedUser(null);
                     setValue('userId', '');
                   }}
-                  className="text-gray-400 hover:text-gray-600"
+                  className="text-white/50 hover:text-white/70"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -173,7 +184,7 @@ export default function DebitWalletPage() {
             ) : (
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
+                  <Search className="h-5 w-5 text-white/50" />
                 </div>
                 <input
                   type="text"
@@ -184,13 +195,13 @@ export default function DebitWalletPage() {
                   }}
                   onFocus={() => setShowUserSearch(true)}
                   placeholder="Search by email or name..."
-                  className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 outline-none"
                 />
                 {showUserSearch && searchTerm && (
-                  <div className="absolute z-10 w-full mt-2 bg-white border-2 border-gray-200 rounded-lg shadow-xl max-h-64 overflow-y-auto">
+                  <div className={admin.searchDropdown}>
                     {usersLoading ? (
                       <div className="p-4 text-center">
-                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-gray-400" />
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-white/50" />
                       </div>
                     ) : usersData?.users?.length > 0 ? (
                       usersData.users.map((user: UserOption) => (
@@ -198,19 +209,17 @@ export default function DebitWalletPage() {
                           key={user.id}
                           type="button"
                           onClick={() => handleUserSelect(user)}
-                          className="w-full px-4 py-3 text-left hover:bg-red-50 flex items-center gap-3 border-b border-gray-100 last:border-0"
+                          className={admin.searchDropdownItem}
                         >
-                          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-red-600 font-semibold text-sm">
-                            {user.email[0].toUpperCase()}
-                          </div>
+                          <AdminAvatar label={user.email} variant="destructive" className="w-8 h-8 text-xs" />
                           <div className="flex-1">
-                            <p className="font-medium text-gray-900">{user.email}</p>
-                            <p className="text-sm text-gray-500">ID: {user.id.slice(0, 8)}...</p>
+                            <p className="font-medium text-white">{user.email}</p>
+                            <p className="text-sm text-white/55">ID: {user.id.slice(0, 8)}...</p>
                           </div>
                         </button>
                       ))
                     ) : (
-                      <div className="p-4 text-center text-gray-500">No users found</div>
+                      <div className="p-4 text-center text-white/55">No users found</div>
                     )}
                   </div>
                 )}
@@ -224,11 +233,11 @@ export default function DebitWalletPage() {
 
           {/* Amount */}
           <div>
-            <label htmlFor="amountCents" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="amountCents" className="block text-sm font-semibold text-white/80 mb-2">
               Amount ({CURRENCY_SYMBOL}) *
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">{CURRENCY_SYMBOL}</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/55 font-medium">{CURRENCY_SYMBOL}</span>
               <input
                 {...register('amountCents', { valueAsNumber: true })}
                 type="number"
@@ -236,11 +245,11 @@ export default function DebitWalletPage() {
                 step="0.01"
                 min="0.01"
                 placeholder="50.00"
-                className="w-full pl-16 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent text-lg font-semibold"
+                className="w-full pl-16 pr-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 outline-none text-lg font-semibold"
               />
             </div>
             {amountGHS && (
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-white/55">
                 Will debit: <span className="font-medium">{Math.round(amountGHS * 100).toLocaleString()}</span> cents
               </p>
             )}
@@ -251,7 +260,7 @@ export default function DebitWalletPage() {
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-semibold text-gray-700 mb-2">
+            <label htmlFor="description" className="block text-sm font-semibold text-white/80 mb-2">
               Description * <span className="text-red-600">(Required for audit)</span>
             </label>
             <textarea
@@ -259,9 +268,9 @@ export default function DebitWalletPage() {
               id="description"
               rows={4}
               placeholder="e.g., Refund for cancelled order #12345 - Customer requested full refund"
-              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+              className="w-full px-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 outline-none resize-none"
             />
-            <p className="mt-1 text-xs text-gray-500">Please provide a detailed reason for this debit operation</p>
+            <p className="mt-1 text-xs text-white/55">Please provide a detailed reason for this debit operation</p>
             {errors.description && (
               <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
             )}
@@ -269,33 +278,23 @@ export default function DebitWalletPage() {
 
           {/* Actions */}
           <div className="flex gap-4 pt-4">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
-            >
+            <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={debitMutation.isPending || !selectedUser}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold shadow-lg transition-all"
+              variant="destructive"
+              size="lg"
+              fullWidth
+              disabled={!selectedUser}
+              loading={debitMutation.isPending}
             >
-              {debitMutation.isPending ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Debiting...
-                </>
-              ) : (
-                <>
-                  <User className="w-5 h-5" />
-                  Debit Wallet
-                </>
-              )}
-            </button>
+              <User className="w-5 h-5" />
+              Debit Wallet
+            </Button>
           </div>
         </form>
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

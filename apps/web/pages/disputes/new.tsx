@@ -7,17 +7,18 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/utils';
+import { form } from '@/lib/form-classes';
+import PageHeader from '@/components/PageHeader';
+import { Button } from '@/components/ui/Button';
 
 const disputeSchema = z.object({
   escrowId: z.string().min(1, 'Escrow ID is required'),
   reason: z.enum(
     ['NOT_RECEIVED', 'NOT_AS_DESCRIBED', 'DEFECTIVE', 'WRONG_ITEM', 'PARTIAL_DELIVERY', 'OTHER'],
-    {
-    required_error: 'Please select a reason',
-    }
+    { required_error: 'Please select a reason' }
   ),
   description: z.string().min(10, 'Description must be at least 10 characters'),
 });
@@ -56,117 +57,93 @@ export default function CreateDisputePage() {
     setValue,
   } = useForm<DisputeFormData>({
     resolver: zodResolver(disputeSchema),
-    defaultValues: {
-      escrowId: escrowId as string,
-    },
+    defaultValues: { escrowId: escrowId as string },
   });
 
   useEffect(() => {
-    if (escrowId) {
-      setValue('escrowId', escrowId as string);
-    }
+    if (escrowId) setValue('escrowId', escrowId as string);
   }, [escrowId, setValue]);
 
   const createMutation = useMutation({
-    mutationFn: async (data: DisputeFormData) => {
-      return apiClient.post('/disputes', data);
-    },
+    mutationFn: async (data: DisputeFormData) => apiClient.post('/disputes', data),
     onSuccess: (response) => {
-      const disputeId = response.data.id;
       queryClient.invalidateQueries({ queryKey: ['escrows'] });
       queryClient.invalidateQueries({ queryKey: ['disputes'] });
       toast.success('Dispute created successfully');
-      router.push(`/disputes/${disputeId}`);
+      router.push(`/disputes/${response.data.id}`);
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Failed to create dispute');
     },
   });
 
-  const onSubmit = (data: DisputeFormData) => {
-    createMutation.mutate(data);
-  };
-
-  if (!mounted || !isAuthenticated()) {
-    return null;
-  }
+  if (!mounted || !isAuthenticated()) return null;
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto">
-        <div className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-900 mb-4"
-          >
-            ← Back
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Open Dispute</h1>
-          <p className="text-gray-600 mt-1">Create a dispute for this escrow</p>
-        </div>
+      <div className="max-w-2xl mx-auto space-y-6">
+        <PageHeader
+          title="Open dispute"
+          subtitle="Create a dispute for this escrow"
+          icon={<AlertCircle className="w-6 h-6" />}
+        />
 
         {escrow && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-blue-800">
-              <strong>Escrow:</strong> {escrow.description || escrow.id}
+          <div className={form.calloutInfo}>
+            <p className="text-ios-subhead text-label-primary">
+              <span className="text-label-secondary">Escrow: </span>
+              {escrow.description || escrow.id}
             </p>
-            <p className="text-sm text-blue-800 mt-1">
-              <strong>Amount:</strong> {formatCurrency(escrow.amountCents, 'GHS')}
+            <p className="text-ios-subhead text-label-primary mt-1">
+              <span className="text-label-secondary">Amount: </span>
+              {formatCurrency(escrow.amountCents, 'GHS')}
             </p>
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-6 space-y-6">
+        <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} className={`${form.panel} space-y-6`}>
           <input type="hidden" {...register('escrowId')} />
 
           <div>
-            <label htmlFor="reason" className="block text-sm font-medium text-gray-700 mb-1">
-              Reason for Dispute *
+            <label htmlFor="reason" className={form.label}>
+              Reason for dispute *
             </label>
-            <select
-              {...register('reason')}
-              id="reason"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
+            <select {...register('reason')} id="reason" className={form.input}>
               <option value="">Select a reason</option>
-              <option value="NOT_RECEIVED">Item Not Received</option>
-              <option value="NOT_AS_DESCRIBED">Not As Described</option>
-              <option value="DEFECTIVE">Item Defective/Damaged</option>
-              <option value="WRONG_ITEM">Wrong Item Received</option>
-              <option value="PARTIAL_DELIVERY">Partial Delivery</option>
+              <option value="NOT_RECEIVED">Item not received</option>
+              <option value="NOT_AS_DESCRIBED">Not as described</option>
+              <option value="DEFECTIVE">Item defective / damaged</option>
+              <option value="WRONG_ITEM">Wrong item received</option>
+              <option value="PARTIAL_DELIVERY">Partial delivery</option>
               <option value="OTHER">Other</option>
             </select>
-            {errors.reason && (
-              <p className="mt-1 text-sm text-red-600">{errors.reason.message}</p>
-            )}
+            {errors.reason && <p className={form.inputError}>{errors.reason.message}</p>}
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="description" className={form.label}>
               Description *
             </label>
             <textarea
               {...register('description')}
               id="description"
               rows={6}
-              placeholder="Please provide details about the issue..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Please provide details about the issue…"
+              className={`${form.input} resize-none`}
             />
-            <p className="mt-1 text-xs text-gray-500">Minimum 10 characters</p>
-            {errors.description && (
-              <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-            )}
+            <p className="mt-1 text-ios-caption text-label-tertiary">Minimum 10 characters</p>
+            {errors.description && <p className={form.inputError}>{errors.description.message}</p>}
           </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className={form.calloutWarning}>
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
-              <div className="text-sm text-yellow-800">
-                <p className="font-medium mb-1">Important:</p>
+              <AlertCircle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+              <div className="text-sm text-amber-100/90">
+                <p className="font-medium text-amber-200 mb-1">Important</p>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>Opening a dispute will change the escrow status to DISPUTED</li>
-                  <li>Funds will be held until the dispute is resolved</li>
-                  <li>Both parties can add messages to the dispute</li>
+                  <li>Opening a dispute sets the escrow status to DISPUTED</li>
+                  <li>Funds are held until the dispute is resolved</li>
+                  <li>Both parties can add messages</li>
                   <li>An admin will review and resolve the dispute</li>
                 </ul>
               </div>
@@ -174,34 +151,22 @@ export default function CreateDisputePage() {
           </div>
 
           <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-            >
+            <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={createMutation.isPending}
-              className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              variant="destructive"
+              size="lg"
+              fullWidth
+              loading={createMutation.isPending}
             >
-              {createMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="w-4 h-4" />
-                  Open Dispute
-                </>
-              )}
-            </button>
+              <AlertCircle className="w-4 h-4" />
+              Open dispute
+            </Button>
           </div>
         </form>
       </div>
     </Layout>
   );
 }
-

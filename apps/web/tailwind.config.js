@@ -7,6 +7,45 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: [
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"SF Pro Text"',
+          '"SF Pro Display"',
+          'system-ui',
+          'Segoe UI',
+          'Roboto',
+          'Helvetica Neue',
+          'Arial',
+          'sans-serif',
+        ],
+      },
+      fontSize: {
+        'ios-large-title': ['2.125rem', { lineHeight: '2.5rem', fontWeight: '700', letterSpacing: '-0.02em' }],
+        'ios-title-1': ['1.75rem', { lineHeight: '2.125rem', fontWeight: '700', letterSpacing: '-0.02em' }],
+        'ios-title-2': ['1.375rem', { lineHeight: '1.75rem', fontWeight: '700', letterSpacing: '-0.01em' }],
+        'ios-title-3': ['1.25rem', { lineHeight: '1.5rem', fontWeight: '600' }],
+        'ios-headline': ['1.0625rem', { lineHeight: '1.375rem', fontWeight: '600' }],
+        'ios-body': ['1.0625rem', { lineHeight: '1.375rem', fontWeight: '400' }],
+        'ios-callout': ['1rem', { lineHeight: '1.25rem', fontWeight: '400' }],
+        'ios-subhead': ['0.9375rem', { lineHeight: '1.25rem', fontWeight: '400' }],
+        'ios-footnote': ['0.8125rem', { lineHeight: '1.125rem', fontWeight: '400' }],
+        'ios-caption': ['0.75rem', { lineHeight: '1rem', fontWeight: '400' }],
+      },
+      borderRadius: {
+        ios: '0.625rem',
+        'ios-lg': '0.875rem',
+        'ios-xl': '1.25rem',
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)',
+      },
+      spacing: {
+        'tab-bar': 'var(--tab-bar-height)',
+        'safe-top': 'var(--safe-top)',
+        'safe-bottom': 'var(--safe-bottom)',
+      },
       colors: {
         border: 'hsl(var(--border))',
         background: 'hsl(var(--background))',
@@ -48,7 +87,7 @@ module.exports = {
           foreground: 'hsl(var(--accent-foreground))',
         },
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
+          DEFAULT: 'hsl(var(--destructive-hsl))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
         card: {
@@ -59,14 +98,17 @@ module.exports = {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
         },
+        tint: 'var(--tint)',
+        'ios-destructive': 'var(--destructive)',
       },
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)',
+      boxShadow: {
+        'ios-card': '0 4px 24px -4px rgba(0, 0, 0, 0.35)',
+        'tab-bar': '0 -1px 0 rgba(255, 255, 255, 0.08)',
+      },
+      backdropBlur: {
+        ios: '20px',
       },
     },
   },
   plugins: [],
-}
-
+};

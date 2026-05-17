@@ -8,6 +8,7 @@ import { z } from 'zod';
 import apiClient from '@/lib/api-client';
 import { Loader2, AlertCircle, Lock } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
+import { publicForm } from '@/lib/form-classes';
 
 const schema = z
   .object({
@@ -84,42 +85,39 @@ export default function ResetPasswordPage() {
 
         <div className="bg-white/95 rounded-2xl shadow-xl p-6 md:p-8 border border-brand-gold/20">
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
-              <AlertCircle className="w-5 h-5" />
+            <div className={publicForm.calloutError}>
+              <AlertCircle className="w-5 h-5 shrink-0" />
               <span className="text-sm">{error}</span>
             </div>
           )}
 
           {done ? (
             <div className="space-y-4">
-              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-800 text-sm">
+              <div className={publicForm.calloutSuccess}>
                 Password reset successful. You can now sign in.
               </div>
-              <button
-                onClick={() => router.push('/login')}
-                className="w-full py-3 px-6 bg-brand-maroon text-white rounded-xl hover:bg-brand-maroon-dark font-semibold"
-              >
+              <button type="button" onClick={() => router.push('/login')} className={publicForm.submitMaroon}>
                 Go to login
               </button>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
-                <label htmlFor="token" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="token" className={publicForm.label}>
                   Reset Token
                 </label>
                 <input
                   {...register('token')}
                   type="text"
                   id="token"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
+                  className={publicForm.input}
                   placeholder="(auto-filled from link)"
                 />
-                {errors.token && <p className="mt-1 text-sm text-red-600">{errors.token.message}</p>}
+                {errors.token && <p className={publicForm.error}>{errors.token.message}</p>}
               </div>
 
               <div>
-                <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="newPassword" className={publicForm.label}>
                   <Lock className="w-4 h-4 inline mr-1" />
                   New Password
                 </label>
@@ -127,35 +125,29 @@ export default function ResetPasswordPage() {
                   {...register('newPassword')}
                   type="password"
                   id="newPassword"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
+                  className={publicForm.input}
                   placeholder="••••••••"
                 />
-                {errors.newPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.newPassword.message}</p>
-                )}
+                {errors.newPassword && <p className={publicForm.error}>{errors.newPassword.message}</p>}
               </div>
 
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
+                <label htmlFor="confirmPassword" className={publicForm.label}>
                   Confirm Password
                 </label>
                 <input
                   {...register('confirmPassword')}
                   type="password"
                   id="confirmPassword"
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none"
+                  className={publicForm.input}
                   placeholder="••••••••"
                 />
                 {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
+                  <p className={publicForm.error}>{errors.confirmPassword.message}</p>
                 )}
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 px-6 bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white rounded-xl hover:from-brand-maroon-dark hover:to-brand-maroon-darker disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl"
-              >
+              <button type="submit" disabled={loading} className={publicForm.submit}>
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -166,7 +158,7 @@ export default function ResetPasswordPage() {
                 )}
               </button>
 
-              <div className="text-center text-sm text-gray-600">
+              <div className={`text-center ${publicForm.footerText}`}>
                 <Link href="/login" className="text-brand-maroon hover:text-brand-maroon-dark font-semibold">
                   Back to login
                 </Link>

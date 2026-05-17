@@ -1,0 +1,65 @@
+import { forwardRef, type ButtonHTMLAttributes } from 'react';
+import { Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+const variants = {
+  filled: 'bg-brand-gold text-brand-maroon-black hover:bg-brand-gold/90 active:opacity-80',
+  tinted:
+    'bg-brand-gold/20 text-brand-gold border border-brand-gold/35 hover:bg-brand-gold/30 active:opacity-80',
+  plain: 'bg-transparent text-brand-gold hover:bg-white/10 active:opacity-80',
+  destructive: 'bg-ios-destructive text-white hover:opacity-90 active:opacity-80',
+  secondary:
+    'bg-white/10 text-white border border-white/15 hover:bg-white/15 active:opacity-80',
+} as const;
+
+const sizes = {
+  sm: 'min-h-[36px] px-3 py-2 text-ios-footnote rounded-ios',
+  md: 'min-h-[44px] px-4 py-2.5 text-ios-body rounded-ios-lg',
+  lg: 'min-h-[50px] px-5 py-3 text-ios-headline rounded-ios-lg',
+} as const;
+
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: keyof typeof variants;
+  size?: keyof typeof sizes;
+  fullWidth?: boolean;
+  loading?: boolean;
+}
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  (
+    {
+      className,
+      variant = 'filled',
+      size = 'md',
+      fullWidth,
+      loading,
+      disabled,
+      children,
+      type = 'button',
+      ...props
+    },
+    ref
+  ) => {
+    return (
+      <button
+        ref={ref}
+        type={type}
+        disabled={disabled || loading}
+        className={cn(
+          'inline-flex items-center justify-center gap-2 font-semibold transition-colors',
+          'disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation',
+          variants[variant],
+          sizes[size],
+          fullWidth && 'w-full',
+          className
+        )}
+        {...props}
+      >
+        {loading && <Loader2 className="w-4 h-4 animate-spin shrink-0" aria-hidden />}
+        {children}
+      </button>
+    );
+  }
+);
+
+Button.displayName = 'Button';

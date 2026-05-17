@@ -8,6 +8,8 @@ import { formatDate } from '@/lib/utils';
 import { MessageSquare, Send, CheckCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import DisputeSLATimer from '@/components/DisputeSLATimer';
+import { useConfirm } from '@/components/providers/UIProvider';
+import { Button } from '@/components/ui/Button';
 
 interface Dispute {
   id: string;
@@ -31,6 +33,7 @@ interface DisputeMessage {
 
 export default function DisputeDetailPage() {
   const router = useRouter();
+  const confirm = useConfirm();
   const { id } = router.query;
   const queryClient = useQueryClient();
   const user = getUser();
@@ -138,10 +141,13 @@ export default function DisputeDetailPage() {
     resolveMutation.mutate({ resolution, outcome });
   };
 
-  const handleClose = () => {
-    if (confirm('Close this dispute?')) {
-      closeMutation.mutate();
-    }
+  const handleClose = async () => {
+    const ok = await confirm({
+      title: 'Close dispute',
+      message: 'Close this dispute? You can reopen it later if needed.',
+      confirmLabel: 'Close',
+    });
+    if (ok) closeMutation.mutate();
   };
 
   if (!isAuthenticated()) {
@@ -152,8 +158,8 @@ export default function DisputeDetailPage() {
     return (
       <Layout>
         <div className="space-y-6">
-          <div className="h-8 bg-gray-200 animate-pulse rounded w-1/3" />
-          <div className="h-64 bg-gray-200 animate-pulse rounded" />
+          <div className="h-8 bg-white/10 animate-pulse rounded-ios w-1/3" />
+          <div className="h-64 bg-white/10 animate-pulse rounded-ios-xl" />
         </div>
       </Layout>
     );
@@ -163,20 +169,20 @@ export default function DisputeDetailPage() {
     return (
       <Layout>
         <div className="text-center py-12">
-          <AlertCircle className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-          <p className="text-gray-600">Dispute not found</p>
+          <AlertCircle className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
+          <p className="text-label-secondary">Dispute not found</p>
         </div>
       </Layout>
     );
   }
 
   const statusColors: Record<string, string> = {
-    OPEN: 'bg-yellow-100 text-yellow-800',
-    NEGOTIATION: 'bg-amber-100 text-amber-800',
-    MEDIATION: 'bg-orange-100 text-orange-800',
-    ARBITRATION: 'bg-orange-100 text-orange-800',
-    RESOLVED: 'bg-green-100 text-green-800',
-    CLOSED: 'bg-gray-100 text-gray-800',
+    OPEN: 'bg-yellow-500/20 text-yellow-200 border border-yellow-500/30',
+    NEGOTIATION: 'bg-amber-500/20 text-amber-200 border border-amber-500/30',
+    MEDIATION: 'bg-orange-500/20 text-orange-200 border border-orange-500/30',
+    ARBITRATION: 'bg-orange-500/20 text-orange-200 border border-orange-500/30',
+    RESOLVED: 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30',
+    CLOSED: 'bg-white/10 text-label-secondary border border-white/15',
   };
 
   const canSendMessage = dispute.status === 'OPEN';
@@ -188,18 +194,18 @@ export default function DisputeDetailPage() {
         <div>
           <button
             onClick={() => router.back()}
-            className="text-gray-600 hover:text-gray-900 mb-4"
+            className="text-label-secondary hover:text-label-primary mb-4"
           >
             ← Back
           </button>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dispute Details</h1>
-              <p className="text-gray-600 mt-1">ID: {dispute.id}</p>
+              <h1 className="text-3xl font-bold text-label-primary">Dispute Details</h1>
+              <p className="text-label-secondary mt-1">ID: {dispute.id}</p>
             </div>
             <span
               className={`px-3 py-1 rounded-full text-sm font-medium ${
-                statusColors[dispute.status] || 'bg-gray-100 text-gray-800'
+                statusColors[dispute.status] || 'bg-white/10 text-label-primary border border-white/15'
               }`}
             >
               {dispute.status}
@@ -211,13 +217,13 @@ export default function DisputeDetailPage() {
         {dispute && dispute.status === 'OPEN' && <DisputeSLATimer disputeId={dispute.id} />}
 
         {/* Dispute Info */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Dispute Information</h2>
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
+          <h2 className="text-xl font-semibold text-label-primary mb-4">Dispute Information</h2>
           <div className="space-y-3">
             {escrow && (
               <div>
-                <p className="text-sm text-gray-600">Escrow</p>
-                <p className="font-medium text-gray-900">
+                <p className="text-sm text-label-secondary">Escrow</p>
+                <p className="font-medium text-label-primary">
                   {escrow.description || escrow.id}
                 </p>
               </div>
@@ -225,25 +231,25 @@ export default function DisputeDetailPage() {
             {dispute && (
               <>
                 <div>
-                  <p className="text-sm text-gray-600">Reason</p>
-                  <p className="font-medium text-gray-900">
+                  <p className="text-sm text-label-secondary">Reason</p>
+                  <p className="font-medium text-label-primary">
                     {dispute.reason.replace('_', ' ')}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Description</p>
-                  <p className="font-medium text-gray-900">{dispute.description}</p>
+                  <p className="text-sm text-label-secondary">Description</p>
+                  <p className="font-medium text-label-primary">{dispute.description}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Created</p>
-                  <p className="font-medium text-gray-900">{formatDate(dispute.createdAt)}</p>
+                  <p className="text-sm text-label-secondary">Created</p>
+                  <p className="font-medium text-label-primary">{formatDate(dispute.createdAt)}</p>
                 </div>
                 {dispute.status === 'RESOLVED' && (
                   <>
                     {dispute.resolutionOutcome && (
                       <div>
-                        <p className="text-sm text-gray-600">Outcome</p>
-                        <p className="font-medium text-green-700">
+                        <p className="text-sm text-label-secondary">Outcome</p>
+                        <p className="font-medium text-emerald-400">
                           {dispute.resolutionOutcome === 'RELEASE_TO_SELLER'
                             ? 'Released to seller'
                             : 'Refunded to buyer'}
@@ -252,14 +258,14 @@ export default function DisputeDetailPage() {
                     )}
                     {dispute.resolution && (
                       <div>
-                        <p className="text-sm text-gray-600">Resolution notes</p>
-                        <p className="font-medium text-gray-900">{dispute.resolution}</p>
+                        <p className="text-sm text-label-secondary">Resolution notes</p>
+                        <p className="font-medium text-label-primary">{dispute.resolution}</p>
                       </div>
                     )}
                     {dispute.resolvedAt && (
                       <div>
-                        <p className="text-sm text-gray-600">Resolved at</p>
-                        <p className="font-medium text-gray-900">{formatDate(dispute.resolvedAt)}</p>
+                        <p className="text-sm text-label-secondary">Resolved at</p>
+                        <p className="font-medium text-label-primary">{formatDate(dispute.resolvedAt)}</p>
                       </div>
                     )}
                   </>
@@ -270,15 +276,15 @@ export default function DisputeDetailPage() {
         </div>
 
         {/* Messages */}
-        <div className="bg-white rounded-lg shadow">
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card overflow-hidden">
           <div className="p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
+            <h2 className="text-xl font-semibold text-label-primary">Messages</h2>
           </div>
           <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
             {messagesLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-20 bg-gray-200 animate-pulse rounded" />
+                  <div key={i} className="h-20 bg-white/10 animate-pulse rounded-ios-lg" />
                 ))}
               </div>
             ) : messages && messages.length > 0 ? (
@@ -287,23 +293,23 @@ export default function DisputeDetailPage() {
                   key={msg.id}
                   className={`p-4 rounded-lg ${
                     msg.senderId === user?.id
-                      ? 'bg-blue-50 ml-8'
+                      ? 'bg-brand-gold/15 ml-8 border border-brand-gold/25'
                       : msg.isSystem
-                      ? 'bg-gray-50'
-                      : 'bg-gray-50 mr-8'
+                      ? 'bg-white/10'
+                      : 'bg-white/10 mr-8 border border-white/10'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-label-primary">
                       {msg.isSystem ? 'System' : msg.senderId === user?.id ? 'You' : 'Other Party'}
                     </span>
-                    <span className="text-xs text-gray-500">{formatDate(msg.createdAt)}</span>
+                    <span className="text-xs text-label-tertiary">{formatDate(msg.createdAt)}</span>
                   </div>
-                  <p className="text-gray-700">{msg.content}</p>
+                  <p className="text-label-secondary">{msg.content}</p>
                 </div>
               ))
             ) : (
-              <p className="text-center text-gray-500 py-8">No messages yet</p>
+              <p className="text-center text-label-tertiary py-8">No messages yet</p>
             )}
           </div>
 
@@ -316,13 +322,13 @@ export default function DisputeDetailPage() {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Type your message..."
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="flex-1 px-4 py-2 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
                   disabled={sending}
                 />
                 <button
                   type="submit"
                   disabled={sending || !message.trim()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-brand-gold text-brand-maroon-black rounded-ios-lg hover:bg-brand-gold/90 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
                   {sending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
@@ -338,29 +344,29 @@ export default function DisputeDetailPage() {
 
         {/* Admin Actions */}
         {isAdminUser && dispute && ['OPEN', 'NEGOTIATION', 'MEDIATION', 'ARBITRATION'].includes(dispute.status) && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Admin Actions</h2>
+          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
+            <h2 className="text-xl font-semibold text-label-primary mb-4">Admin Actions</h2>
             <form onSubmit={handleResolve} className="space-y-4">
               <div>
-                <label htmlFor="outcome" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="outcome" className="block text-sm font-medium text-label-secondary mb-1">
                   Resolution outcome *
                 </label>
                 <select
                   id="outcome"
                   name="outcome"
                   required
-                  className="w-full max-w-md px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full max-w-md px-3 py-2 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
                 >
                   <option value="">Select outcome</option>
                   <option value="RELEASE_TO_SELLER">Release to seller</option>
                   <option value="REFUND_TO_BUYER">Refund to buyer</option>
                 </select>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-label-tertiary">
                   Release pays the seller; Refund returns funds to the buyer.
                 </p>
               </div>
               <div>
-                <label htmlFor="resolution" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="resolution" className="block text-sm font-medium text-label-secondary mb-1">
                   Resolution notes
                 </label>
                 <textarea
@@ -368,27 +374,28 @@ export default function DisputeDetailPage() {
                   name="resolution"
                   rows={3}
                   placeholder="Brief notes on the resolution decision..."
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
                 />
               </div>
-              <div className="flex gap-4">
-                <button
+              <div className="flex flex-wrap gap-3">
+                <Button
                   type="submit"
-                  disabled={resolveMutation.isPending}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                  variant="filled"
+                  loading={resolveMutation.isPending}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
                   <CheckCircle className="w-4 h-4" />
                   {resolveMutation.isPending ? 'Resolving...' : 'Resolve & apply funds'}
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
+                  variant="secondary"
                   onClick={handleClose}
-                  disabled={closeMutation.isPending}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 disabled:opacity-50 flex items-center gap-2"
+                  loading={closeMutation.isPending}
                 >
                   <XCircle className="w-4 h-4" />
                   {closeMutation.isPending ? 'Closing...' : 'Close only (no funds)'}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

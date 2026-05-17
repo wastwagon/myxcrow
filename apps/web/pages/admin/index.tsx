@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency } from '@/lib/utils';
 import { extractArrayData } from '@/lib/api-helpers';
@@ -22,9 +22,15 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
+import { MetricCard } from '@/components/ui/MetricCard';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { AdminIconBadge } from '@/components/admin/AdminIconBadge';
 
 export default function AdminDashboard() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -121,8 +127,8 @@ export default function AdminDashboard() {
       <Layout>
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-gold mx-auto mb-4"></div>
+            <p className="text-white/70">Loading...</p>
           </div>
         </div>
       </Layout>
@@ -150,9 +156,19 @@ export default function AdminDashboard() {
   const recentEscrows = escrows.slice(0, 5);
   const recentDisputes = disputes.filter((d: any) => d.status === 'OPEN').slice(0, 5);
 
+  const refreshAdmin = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['admin-escrows'] }),
+      queryClient.invalidateQueries({ queryKey: ['admin-disputes'] }),
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
+      queryClient.invalidateQueries({ queryKey: ['admin-wallets'] }),
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] }),
+    ]);
+  };
+
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshAdmin} disabled={!isMobile} className="space-y-6">
         {/* Header */}
         <PageHeader
           title="Admin Dashboard"
@@ -170,112 +186,94 @@ export default function AdminDashboard() {
         />
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <FileText className="w-8 h-8 opacity-90" />
-              <TrendingUp className="w-5 h-5 opacity-75" />
-            </div>
-            <h3 className="text-sm font-medium opacity-90 mb-1">Total Escrows</h3>
-            <p className="text-3xl font-bold">{stats.totalEscrows}</p>
-            <p className="text-sm opacity-75 mt-2">{stats.activeEscrows} active</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <DollarSign className="w-8 h-8 opacity-90" />
-              <TrendingUp className="w-5 h-5 opacity-75" />
-            </div>
-            <h3 className="text-sm font-medium opacity-90 mb-1">Total Value</h3>
-            <p className="text-3xl font-bold">{formatCurrency(stats.totalValue, 'GHS')}</p>
-            <p className="text-sm opacity-75 mt-2">{stats.fundedEscrows} funded</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <AlertCircle className="w-8 h-8 opacity-90" />
-              <Clock className="w-5 h-5 opacity-75" />
-            </div>
-            <h3 className="text-sm font-medium opacity-90 mb-1">Open Disputes</h3>
-            <p className="text-3xl font-bold">{stats.openDisputes}</p>
-            <p className="text-sm opacity-75 mt-2">Requires attention</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6 text-white">
-            <div className="flex items-center justify-between mb-4">
-              <Users className="w-8 h-8 opacity-90" />
-              <TrendingUp className="w-5 h-5 opacity-75" />
-            </div>
-            <h3 className="text-sm font-medium opacity-90 mb-1">Total Users</h3>
-            <p className="text-3xl font-bold">{stats.totalUsers}</p>
-            <p className="text-sm opacity-75 mt-2">{stats.activeUsers} active</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <MetricCard
+            label="Total escrows"
+            value={stats.totalEscrows}
+            hint={`${stats.activeEscrows} active`}
+            icon={<FileText className="w-5 h-5" />}
+            accent="maroon"
+          />
+          <MetricCard
+            label="Total value"
+            value={formatCurrency(stats.totalValue, 'GHS')}
+            hint={`${stats.fundedEscrows} funded`}
+            icon={<DollarSign className="w-5 h-5" />}
+            accent="emerald"
+          />
+          <MetricCard
+            label="Open disputes"
+            value={stats.openDisputes}
+            hint="Requires attention"
+            icon={<AlertCircle className="w-5 h-5" />}
+            accent="amber"
+          />
+          <MetricCard
+            label="Total users"
+            value={stats.totalUsers}
+            hint={`${stats.activeUsers} active`}
+            icon={<Users className="w-5 h-5" />}
+            accent="gold"
+          />
         </div>
 
         {/* Secondary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-gray-600">Active Escrows</h3>
-              <CheckCircle className="w-5 h-5 text-green-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.activeEscrows}</p>
-            <p className="text-xs text-gray-500 mt-1">In progress</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-gray-600">Total Wallet Balance</h3>
-              <Wallet className="w-5 h-5 text-green-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">
-              {formatCurrency(stats.totalWalletBalance, 'GHS')}
-            </p>
-            <p className="text-xs text-gray-500 mt-1">Across all users</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-semibold text-gray-600">Funded Escrows</h3>
-              <DollarSign className="w-5 h-5 text-yellow-600" />
-            </div>
-            <p className="text-2xl font-bold text-gray-900">{stats.fundedEscrows}</p>
-            <p className="text-xs text-gray-500 mt-1">Awaiting completion</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <MetricCard
+            label="Active escrows"
+            value={stats.activeEscrows}
+            hint="In progress"
+            icon={<CheckCircle className="w-5 h-5" />}
+            accent="emerald"
+          />
+          <MetricCard
+            label="Total wallet balance"
+            value={formatCurrency(stats.totalWalletBalance, 'GHS')}
+            hint="Across all users"
+            icon={<Wallet className="w-5 h-5" />}
+            accent="gold"
+          />
+          <MetricCard
+            label="Funded escrows"
+            value={stats.fundedEscrows}
+            hint="Awaiting completion"
+            icon={<DollarSign className="w-5 h-5" />}
+            accent="amber"
+          />
         </div>
 
         {/* Last 24 Hours Stats */}
         {statsData && (
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Last 24 Hours</h2>
+            <h2 className="text-xl font-bold text-white mb-4">Last 24 Hours</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              <div className="bg-white rounded-xl shadow p-4 border-l-4 border-emerald-500">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase">Wallet Top-ups</h3>
-                <p className="text-xl font-bold text-gray-900 mt-1">
+              <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-4 border-l-4 border-emerald-500">
+                <h3 className="text-xs font-semibold text-white/55 uppercase">Wallet Top-ups</h3>
+                <p className="text-xl font-bold text-white mt-1">
                   {formatCurrency(statsData.last24Hours?.topUpAmountCents ?? 0, 'GHS')}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">{statsData.last24Hours?.topUpCount ?? 0} transactions</p>
+                <p className="text-xs text-white/55 mt-1">{statsData.last24Hours?.topUpCount ?? 0} transactions</p>
               </div>
-              <div className="bg-white rounded-xl shadow p-4 border-l-4 border-blue-500">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase">Escrows Created</h3>
-                <p className="text-xl font-bold text-gray-900 mt-1">{statsData.last24Hours?.escrowsCreated ?? 0}</p>
-                <p className="text-xs text-gray-500 mt-1">
+              <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-4 border-l-4 border-blue-500">
+                <h3 className="text-xs font-semibold text-white/55 uppercase">Escrows Created</h3>
+                <p className="text-xl font-bold text-white mt-1">{statsData.last24Hours?.escrowsCreated ?? 0}</p>
+                <p className="text-xs text-white/55 mt-1">
                   {formatCurrency(statsData.last24Hours?.escrowValueCents ?? 0, 'GHS')} value
                 </p>
               </div>
-              <div className="bg-white rounded-xl shadow p-4 border-l-4 border-amber-500">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase">System Earnings</h3>
-                <p className="text-xl font-bold text-gray-900 mt-1">
+              <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-4 border-l-4 border-amber-500">
+                <h3 className="text-xs font-semibold text-white/55 uppercase">System Earnings</h3>
+                <p className="text-xl font-bold text-white mt-1">
                   {formatCurrency(statsData.last24Hours?.feesRevenueCents ?? 0, 'GHS')}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Fees last 24h</p>
+                <p className="text-xs text-white/55 mt-1">Fees last 24h</p>
               </div>
-              <div className="bg-white rounded-xl shadow p-4 border-l-4 border-purple-500">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase">Total Wallet Balance</h3>
-                <p className="text-xl font-bold text-gray-900 mt-1">
+              <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-4 border-l-4 border-purple-500">
+                <h3 className="text-xs font-semibold text-white/55 uppercase">Total Wallet Balance</h3>
+                <p className="text-xl font-bold text-white mt-1">
                   {formatCurrency(statsData.totals?.walletBalanceCents ?? 0, 'GHS')}
                 </p>
-                <p className="text-xs text-gray-500 mt-1">Across all users</p>
+                <p className="text-xs text-white/55 mt-1">Across all users</p>
               </div>
             </div>
           </div>
@@ -283,109 +281,109 @@ export default function AdminDashboard() {
 
         {/* Quick Actions */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <Link
               href="/admin/wallet/credit"
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-green-200 group"
+              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-green-200 group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <DollarSign className="w-6 h-6 text-white" />
-                </div>
+                <AdminIconBadge variant="emerald" className="group-hover:scale-110 transition-transform">
+                  <DollarSign />
+                </AdminIconBadge>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Credit Wallet</h3>
-                  <p className="text-sm text-gray-600">Add funds to user wallet</p>
+                  <h3 className="text-lg font-semibold text-white">Credit Wallet</h3>
+                  <p className="text-sm text-white/70">Add funds to user wallet</p>
                 </div>
               </div>
             </Link>
 
             <Link
               href="/admin/wallet/debit"
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-red-200 group"
+              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-red-200 group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-red-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <DollarSign className="w-6 h-6 text-white" />
-                </div>
+                <AdminIconBadge variant="destructive" className="group-hover:scale-110 transition-transform">
+                  <DollarSign />
+                </AdminIconBadge>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Debit Wallet</h3>
-                  <p className="text-sm text-gray-600">Deduct funds from wallet</p>
+                  <h3 className="text-lg font-semibold text-white">Debit Wallet</h3>
+                  <p className="text-sm text-white/70">Deduct funds from wallet</p>
                 </div>
               </div>
             </Link>
 
             <Link
               href="/admin/users"
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-purple-200 group"
+              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-purple-200 group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="w-6 h-6 text-white" />
-                </div>
+                <AdminIconBadge variant="maroon" className="group-hover:scale-110 transition-transform">
+                  <Users />
+                </AdminIconBadge>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">User Management</h3>
-                  <p className="text-sm text-gray-600">View and manage users</p>
+                  <h3 className="text-lg font-semibold text-white">User Management</h3>
+                  <p className="text-sm text-white/70">View and manage users</p>
                 </div>
               </div>
             </Link>
 
             <Link
               href="/disputes"
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-orange-200 group"
+              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-orange-200 group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <AlertCircle className="w-6 h-6 text-white" />
-                </div>
+                <AdminIconBadge variant="amber" className="group-hover:scale-110 transition-transform">
+                  <AlertCircle />
+                </AdminIconBadge>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Manage Disputes</h3>
-                  <p className="text-sm text-gray-600">Resolve conflicts</p>
+                  <h3 className="text-lg font-semibold text-white">Manage Disputes</h3>
+                  <p className="text-sm text-white/70">Resolve conflicts</p>
                 </div>
               </div>
             </Link>
 
             <Link
               href="/escrows"
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-200 group"
+              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-200 group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <FileText className="w-6 h-6 text-white" />
-                </div>
+                <AdminIconBadge variant="gold" className="group-hover:scale-110 transition-transform">
+                  <FileText />
+                </AdminIconBadge>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">All Escrows</h3>
-                  <p className="text-sm text-gray-600">View all agreements</p>
+                  <h3 className="text-lg font-semibold text-white">All Escrows</h3>
+                  <p className="text-sm text-white/70">View all agreements</p>
                 </div>
               </div>
             </Link>
 
             <Link
               href="/admin/withdrawals"
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-yellow-200 group"
+              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-yellow-200 group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <ArrowUpCircle className="w-6 h-6 text-white" />
-                </div>
+                <AdminIconBadge variant="gold" className="group-hover:scale-110 transition-transform">
+                  <ArrowUpCircle />
+                </AdminIconBadge>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Withdrawals</h3>
-                  <p className="text-sm text-gray-600">Approve/deny requests</p>
+                  <h3 className="text-lg font-semibold text-white">Withdrawals</h3>
+                  <p className="text-sm text-white/70">Approve/deny requests</p>
                 </div>
               </div>
             </Link>
 
             <Link
               href="/admin/settings"
-              className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-gray-200 group"
+              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-white/10 group"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Settings className="w-6 h-6 text-white" />
-                </div>
+                <AdminIconBadge variant="muted" className="group-hover:scale-110 transition-transform">
+                  <Settings />
+                </AdminIconBadge>
                 <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-gray-900">Settings</h3>
-                  <p className="text-sm text-gray-600">Platform configuration</p>
+                  <h3 className="text-lg font-semibold text-white">Settings</h3>
+                  <p className="text-sm text-white/70">Platform configuration</p>
                 </div>
               </div>
             </Link>
@@ -396,10 +394,10 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Top-ups */}
           {statsData?.recentTransactions && statsData.recentTransactions.length > 0 && (
-            <div className="bg-white rounded-xl shadow-lg">
-              <div className="p-6 border-b border-gray-200">
+            <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
+              <div className="p-6 border-b border-white/10">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gray-900">Recent Top-ups</h2>
+                  <h2 className="text-xl font-bold text-white">Recent Top-ups</h2>
                 </div>
               </div>
               <div className="p-6 max-h-64 overflow-y-auto">
@@ -407,10 +405,10 @@ export default function AdminDashboard() {
                   {statsData.recentTransactions.slice(0, 8).map((tx: any) => (
                     <div key={tx.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                       <div>
-                        <p className="font-medium text-gray-900">{formatCurrency(tx.amountCents, 'GHS')}</p>
-                        <p className="text-xs text-gray-500">{tx.userEmail || '—'} • {new Date(tx.createdAt).toLocaleString()}</p>
+                        <p className="font-medium text-white">{formatCurrency(tx.amountCents, 'GHS')}</p>
+                        <p className="text-xs text-white/55">{tx.userEmail || '—'} • {new Date(tx.createdAt).toLocaleString()}</p>
                       </div>
-                      <span className={`px-2 py-1 text-xs font-medium rounded ${tx.status === 'SUCCEEDED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                      <span className={`px-2 py-1 text-xs font-medium rounded ${tx.status === 'SUCCEEDED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-white/70'}`}>
                         {tx.status}
                       </span>
                     </div>
@@ -421,13 +419,13 @@ export default function AdminDashboard() {
           )}
 
           {/* Recent Escrows */}
-          <div className="bg-white rounded-xl shadow-lg">
-            <div className="p-6 border-b border-gray-200">
+          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
+            <div className="p-6 border-b border-white/10">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Recent Escrows</h2>
+                <h2 className="text-xl font-bold text-white">Recent Escrows</h2>
                 <Link
                   href="/escrows"
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  className="text-brand-gold hover:text-brand-gold/80 text-sm font-medium"
                 >
                   View all →
                 </Link>
@@ -437,7 +435,7 @@ export default function AdminDashboard() {
               {escrowsLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-16 bg-gray-200 animate-pulse rounded-lg" />
+                    <div key={i} className="h-16 bg-white/10 animate-pulse rounded-ios-lg" />
                   ))}
                 </div>
               ) : recentEscrows.length > 0 ? (
@@ -446,20 +444,20 @@ export default function AdminDashboard() {
                     <Link
                       key={escrow.id}
                       href={`/escrows/${escrow.id}`}
-                      className="block p-4 border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-all"
+                      className="block p-4 border border-white/10 rounded-ios-lg hover:border-brand-gold/35 hover:bg-white/10 transition-all"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-white">
                             {escrow.description || 'Escrow Agreement'}
                           </p>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="text-sm text-white/70 mt-1">
                             {formatCurrency(escrow.amountCents, 'GHS')}
                           </p>
                         </div>
                         <span
                           className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                            ESCROW_STATUS_COLORS[escrow.status] || 'bg-gray-100 text-gray-800 border-gray-200'
+                            ESCROW_STATUS_COLORS[escrow.status] || 'bg-gray-100 text-white/90 border-white/10'
                           }`}
                         >
                           {escrow.status.replace(/_/g, ' ')}
@@ -469,8 +467,8 @@ export default function AdminDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <div className="text-center py-8 text-white/55">
+                  <FileText className="w-12 h-12 mx-auto mb-3 text-white/50" />
                   <p>No escrows yet</p>
                 </div>
               )}
@@ -478,10 +476,10 @@ export default function AdminDashboard() {
           </div>
 
           {/* Recent Disputes */}
-          <div className="bg-white rounded-xl shadow-lg">
-            <div className="p-6 border-b border-gray-200">
+          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
+            <div className="p-6 border-b border-white/10">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">Open Disputes</h2>
+                <h2 className="text-xl font-bold text-white">Open Disputes</h2>
                 <Link
                   href="/disputes"
                   className="text-orange-600 hover:text-orange-700 text-sm font-medium"
@@ -494,7 +492,7 @@ export default function AdminDashboard() {
               {disputesLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-16 bg-gray-200 animate-pulse rounded-lg" />
+                    <div key={i} className="h-16 bg-white/10 animate-pulse rounded-ios-lg" />
                   ))}
                 </div>
               ) : recentDisputes.length > 0 ? (
@@ -507,8 +505,8 @@ export default function AdminDashboard() {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
-                          <p className="font-medium text-gray-900">Dispute #{dispute.id.slice(0, 8)}</p>
-                          <p className="text-sm text-gray-600 mt-1">
+                          <p className="font-medium text-white">Dispute #{dispute.id.slice(0, 8)}</p>
+                          <p className="text-sm text-white/70 mt-1">
                             {dispute.reason} • {dispute.escrowId.slice(0, 8)}
                           </p>
                         </div>
@@ -518,7 +516,7 @@ export default function AdminDashboard() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-white/55">
                   <CheckCircle className="w-12 h-12 mx-auto mb-3 text-green-400" />
                   <p>No open disputes</p>
                 </div>
@@ -526,7 +524,7 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

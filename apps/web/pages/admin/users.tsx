@@ -9,6 +9,10 @@ import { formatDate } from '@/lib/utils';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { AdminAvatar } from '@/components/admin/AdminIconBadge';
+import { admin } from '@/components/admin/adminClasses';
 
 interface User {
   id: string;
@@ -25,6 +29,7 @@ interface User {
 export default function AdminUsersPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
@@ -160,16 +165,20 @@ export default function AdminUsersPage() {
   }
 
   const getRoleBadgeColor = (roles: string[]) => {
-    if (roles.includes('ADMIN')) return 'bg-purple-100 text-purple-800';
-    if (roles.includes('AUDITOR')) return 'bg-blue-100 text-blue-800';
-    if (roles.includes('SUPPORT')) return 'bg-green-100 text-green-800';
-    if (roles.includes('SELLER')) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-gray-100 text-gray-800';
+    if (roles.includes('ADMIN')) return 'bg-purple-500/20 text-purple-200 border border-purple-500/30';
+    if (roles.includes('AUDITOR')) return 'bg-blue-500/20 text-blue-200 border border-blue-500/30';
+    if (roles.includes('SUPPORT')) return 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30';
+    if (roles.includes('SELLER')) return 'bg-amber-500/20 text-amber-200 border border-amber-500/30';
+    return 'bg-white/10 text-white/80 border border-white/20';
+  };
+
+  const refreshUsers = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['users', searchTerm, roleFilter] });
   };
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshUsers} disabled={!isMobile} className="space-y-6">
         <PageHeader
           title="User Management"
           subtitle="View and manage all platform users"
@@ -178,22 +187,22 @@ export default function AdminUsersPage() {
         />
 
         {/* Filters */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search by email, name..."
-                className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
               />
             </div>
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
             >
               <option value="all">All Roles</option>
               <option value="ADMIN">Admin</option>
@@ -206,27 +215,27 @@ export default function AdminUsersPage() {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-white/5 border-b border-white/10">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     User
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     KYC Status
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     Joined
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -236,7 +245,7 @@ export default function AdminUsersPage() {
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center">
                       <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
                       </div>
                     </td>
                   </tr>
@@ -245,20 +254,20 @@ export default function AdminUsersPage() {
                     <td colSpan={6} className="px-6 py-12 text-center">
                       <div className="max-w-md mx-auto">
                         <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-                        <p className="font-semibold text-lg text-gray-900 mb-2">API Connection Error</p>
-                        <p className="text-sm text-gray-600 mb-4">
+                        <p className="font-semibold text-lg text-white mb-2">API Connection Error</p>
+                        <p className="text-sm text-white/70 mb-4">
                           {usersError instanceof Error && usersError.message?.includes('Network Error')
                             ? 'Cannot connect to API server. The API may not be running.'
                             : usersError instanceof Error
                             ? usersError.message
                             : 'Failed to connect to API'}
                         </p>
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left text-sm text-gray-700">
-                          <p className="font-semibold mb-2">To fix this:</p>
+                        <div className={admin.calloutInfo}>
+                          <p className="font-semibold mb-2 text-label-primary">To fix this:</p>
                           <ol className="list-decimal list-inside space-y-1">
-                            <li>Start the API server: <code className="bg-gray-100 px-1 rounded">docker-compose up -d</code></li>
-                            <li>Or start manually: <code className="bg-gray-100 px-1 rounded">cd services/api && npm run start:dev</code></li>
-                            <li>Verify API is running: <code className="bg-gray-100 px-1 rounded">curl YOUR_API_URL/api/health</code> (use your API base URL)</li>
+                            <li>Start the API server: <code className="bg-white/10 px-1 rounded">docker-compose up -d</code></li>
+                            <li>Or start manually: <code className="bg-white/10 px-1 rounded">cd services/api && npm run start:dev</code></li>
+                            <li>Verify API is running: <code className="bg-white/10 px-1 rounded">curl YOUR_API_URL/api/health</code> (use your API base URL)</li>
                             <li>Refresh this page after starting the API</li>
                           </ol>
                         </div>
@@ -267,15 +276,13 @@ export default function AdminUsersPage() {
                   </tr>
                 ) : usersData?.users && usersData.users.length > 0 ? (
                   usersData.users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={user.id} className="hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                            {user.email[0].toUpperCase()}
-                          </div>
+                          <AdminAvatar label={user.email} variant="maroon" />
                           <div>
-                            <p className="font-medium text-gray-900">{user.email}</p>
-                            <p className="text-sm text-gray-500">ID: {user.id.slice(0, 8)}...</p>
+                            <p className="font-medium text-white">{user.email}</p>
+                            <p className="text-sm text-white/55">ID: {user.id.slice(0, 8)}...</p>
                           </div>
                         </div>
                       </td>
@@ -292,7 +299,7 @@ export default function AdminUsersPage() {
                                     type="checkbox"
                                     checked={editingRoles.includes(role)}
                                     onChange={() => toggleRole(role)}
-                                    className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                    className="w-4 h-4 text-brand-gold border-white/20 rounded focus:ring-brand-gold"
                                   />
                                   <span className={`px-2 py-1 text-xs font-medium rounded ${getRoleBadgeColor([role])}`}>
                                     {role}
@@ -304,14 +311,14 @@ export default function AdminUsersPage() {
                               <button
                                 onClick={() => handleSaveRoles(user.id)}
                                 disabled={updateRoleMutation.isPending}
-                                className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 flex items-center gap-1"
+                                className="px-3 py-1 text-xs bg-brand-maroon text-white rounded-ios-md hover:bg-brand-maroon-dark disabled:opacity-50 flex items-center gap-1"
                               >
                                 <Save className="w-3 h-3" />
                                 Save
                               </button>
                               <button
                                 onClick={handleCancelEdit}
-                                className="px-3 py-1 text-xs bg-gray-600 text-white rounded hover:bg-gray-700 flex items-center gap-1"
+                                className="px-3 py-1 text-xs bg-white/15 text-white rounded-ios-md hover:bg-white/25 flex items-center gap-1"
                               >
                                 <X className="w-3 h-3" />
                                 Cancel
@@ -332,7 +339,7 @@ export default function AdminUsersPage() {
                             </div>
                             <button
                               onClick={() => handleEditRoles(user)}
-                              className="p-1 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                              className={`${admin.rowAction} text-brand-gold hover:bg-brand-gold/15`}
                               title="Edit Roles"
                             >
                               <Edit className="w-4 h-4" />
@@ -345,10 +352,10 @@ export default function AdminUsersPage() {
                           <span
                             className={`px-2 py-1 text-xs font-medium rounded ${
                               user.kycStatus === 'VERIFIED'
-                                ? 'bg-green-100 text-green-800'
+                                ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30'
                                 : user.kycStatus === 'PENDING'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-gray-100 text-gray-800'
+                                ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30'
+                                : 'bg-white/10 text-white/80 border border-white/20'
                             }`}
                           >
                             {user.kycStatus}
@@ -357,7 +364,7 @@ export default function AdminUsersPage() {
                             <button
                               onClick={() => approveMutation.mutate(user.id)}
                               disabled={approveMutation.isPending}
-                              className="px-2 py-1 text-xs font-medium bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              className="px-2 py-1 text-xs font-medium bg-emerald-600/90 text-white rounded-ios-md hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                               title="Approve user"
                             >
                               {approveMutation.isPending ? '...' : 'Approve'}
@@ -371,10 +378,10 @@ export default function AdminUsersPage() {
                             updateStatusMutation.mutate({ userId: user.id, isActive: !user.isActive })
                           }
                           disabled={updateStatusMutation.isPending}
-                          className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+                          className={`flex items-center gap-1 px-2 py-1 rounded-ios-md transition-colors ${
                             user.isActive
-                              ? 'text-green-600 hover:bg-green-50'
-                              : 'text-red-600 hover:bg-red-50'
+                              ? 'text-emerald-400 hover:bg-emerald-500/15'
+                              : 'text-red-400 hover:bg-red-500/15'
                           } disabled:opacity-50`}
                         >
                           {user.isActive ? (
@@ -390,7 +397,7 @@ export default function AdminUsersPage() {
                           )}
                         </button>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
                         {formatDate(user.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -398,28 +405,28 @@ export default function AdminUsersPage() {
                           <button
                             onClick={() => impersonateMutation.mutate(user.id)}
                             disabled={impersonateMutation.isPending || user.roles.includes('ADMIN')}
-                            className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`${admin.rowAction} text-indigo-400 hover:bg-indigo-500/15 disabled:opacity-50 disabled:cursor-not-allowed`}
                             title="Login as User"
                           >
                             <LogIn className="w-4 h-4" />
                           </button>
                           <Link
                             href={`/admin/wallet/credit?userId=${user.id}`}
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            className={`${admin.rowAction} text-emerald-400 hover:bg-emerald-500/15`}
                             title="Credit (Top-up) Wallet"
                           >
                             <DollarSign className="w-4 h-4" />
                           </Link>
                           <Link
                             href={`/admin/wallet/debit?userId=${user.id}`}
-                            className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                            className={`${admin.rowAction} text-amber-400 hover:bg-amber-500/15`}
                             title="Debit (Deduct) Wallet"
                           >
                             <Minus className="w-4 h-4" />
                           </Link>
                           <Link
                             href={`/wallet/admin/${user.id}`}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className={`${admin.rowAction} text-brand-gold hover:bg-brand-gold/15`}
                             title="View Wallet"
                           >
                             <Eye className="w-4 h-4" />
@@ -430,8 +437,8 @@ export default function AdminUsersPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
-                      <User className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <td colSpan={6} className="px-6 py-12 text-center text-white/55">
+                      <User className="w-12 h-12 mx-auto mb-3 text-white/50" />
                       <p>No users found</p>
                     </td>
                   </tr>
@@ -440,15 +447,15 @@ export default function AdminUsersPage() {
             </table>
           </div>
           {usersData && (
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-              <p className="text-sm text-gray-600">
+            <div className="px-6 py-4 bg-white/5 border-t border-white/10">
+              <p className="text-sm text-white/70">
                 Showing <span className="font-medium">{usersData.users.length}</span> of{' '}
                 <span className="font-medium">{usersData.total}</span> users
               </p>
             </div>
           )}
         </div>
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

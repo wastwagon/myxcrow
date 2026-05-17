@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import PublicHeader from '@/components/PublicHeader';
+import { publicForm } from '@/lib/form-classes';
 
 export default function PrivacyPage() {
   return (
@@ -16,16 +17,16 @@ export default function PrivacyPage() {
           <div className="bg-white/95 rounded-2xl shadow-xl border border-brand-gold/20 overflow-hidden">
             <div className="p-6 md:p-10">
               <h1 className="text-3xl font-bold text-brand-maroon-black mb-2">Privacy Policy</h1>
-              <p className="text-sm text-gray-500 mb-8">Last updated: February 2025. Ghana-based. Applies to web, Android and iOS.</p>
+              <p className={publicForm.legalMeta}>Last updated: February 2025. Ghana-based. Applies to web, Android and iOS.</p>
 
-              <section className="space-y-6 text-gray-700">
+              <section className={publicForm.legalProse}>
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">1. Who we are</h2>
+                  <h2 className={publicForm.legalSectionTitle}>1. Who we are</h2>
                   <p>MYXCROW (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) is a Ghana-based escrow platform. We operate the MYXCROW website, Android app, and iOS app. We are the data controller for the personal data we collect in connection with these services. This Privacy Policy explains how we collect, use, store, and protect your information in line with the Data Protection Act 2012 (Act 843) of Ghana and applicable law.</p>
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">2. Data we collect</h2>
+                  <h2 className={publicForm.legalSectionTitle}>2. Data we collect</h2>
                   <p className="mb-2">We collect the following categories of data:</p>
                   <ul className="list-disc pl-6 space-y-1">
                     <li><strong>Account data:</strong> Email, name, phone number, password (stored in hashed form), account type (buyer/seller), and registration date.</li>
@@ -38,7 +39,7 @@ export default function PrivacyPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">3. How we use your data</h2>
+                  <h2 className={publicForm.legalSectionTitle}>3. How we use your data</h2>
                   <p>We use your data to:</p>
                   <ul className="list-disc pl-6 space-y-1 mt-2">
                     <li>Provide and operate the escrow, wallet, and support services.</li>
@@ -52,12 +53,12 @@ export default function PrivacyPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">4. Legal basis</h2>
+                  <h2 className={publicForm.legalSectionTitle}>4. Legal basis</h2>
                   <p>We process your data on the basis of: (a) performance of our contract with you (e.g. providing escrow and account services); (b) your consent where we ask for it (e.g. marketing, optional features); (c) our legitimate interests (e.g. security, fraud prevention, improving the service); and (d) compliance with legal obligations (e.g. KYC, anti-fraud, regulatory reporting where required).</p>
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">5. Sharing your data</h2>
+                  <h2 className={publicForm.legalSectionTitle}>5. Sharing your data</h2>
                   <p>We may share your data with:</p>
                   <ul className="list-disc pl-6 space-y-1 mt-2">
                     <li><strong>Payment and service providers:</strong> To process top-ups, withdrawals, or other payments (e.g. mobile money, bank transfers) in line with our terms and your instructions.</li>
@@ -68,17 +69,17 @@ export default function PrivacyPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">6. Retention</h2>
+                  <h2 className={publicForm.legalSectionTitle}>6. Retention</h2>
                   <p>We retain your data for as long as your account is active and as needed to provide the service, resolve disputes, and comply with legal obligations (e.g. tax, anti-fraud). After account closure, we may retain certain data for a limited period for legal, security, or dispute-resolution purposes. KYC and transaction records may be retained as required by law or our policies.</p>
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">7. Security</h2>
+                  <h2 className={publicForm.legalSectionTitle}>7. Security</h2>
                   <p>We implement appropriate technical and organisational measures to protect your data against unauthorised access, loss, or misuse (e.g. encryption, access controls, secure storage). In the event of a data breach that affects your rights, we will notify you and the Data Protection Commission as required by the Data Protection Act 2012 (Act 843).</p>
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">8. Your rights (Ghana Data Protection Act 2012)</h2>
+                  <h2 className={publicForm.legalSectionTitle}>8. Your rights (Ghana Data Protection Act 2012)</h2>
                   <p>Under the Data Protection Act 2012 (Act 843), you have rights including:</p>
                   <ul className="list-disc pl-6 space-y-1 mt-2">
                     <li><strong>Access:</strong> To request a copy of the personal data we hold about you.</li>
@@ -91,32 +92,32 @@ export default function PrivacyPage() {
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">9. Age</h2>
+                  <h2 className={publicForm.legalSectionTitle}>9. Age</h2>
                   <p>We do not impose a minimum age to use the Platform. Users are responsible for ensuring they have the legal capacity to enter into binding agreements in their jurisdiction. We do not knowingly collect personal data from minors without appropriate consent where required by law. If you become aware that data has been provided without such consent, please contact us so we can address it.</p>
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">10. International transfer</h2>
+                  <h2 className={publicForm.legalSectionTitle}>10. International transfer</h2>
                   <p>Your data is primarily processed in Ghana. If we transfer data outside Ghana, we will ensure appropriate safeguards (e.g. contracts, adequacy decisions) in line with the Data Protection Act 2012.</p>
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">11. Changes</h2>
+                  <h2 className={publicForm.legalSectionTitle}>11. Changes</h2>
                   <p>We may update this Privacy Policy from time to time. We will notify you of material changes via the Platform, email, or in-app notice. Continued use after the effective date constitutes acceptance. We encourage you to review this policy periodically.</p>
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">12. Web and Mobile Web</h2>
+                  <h2 className={publicForm.legalSectionTitle}>12. Web and Mobile Web</h2>
                   <p>This Privacy Policy applies to your use of MYXCROW on the web (including on mobile browsers). The same data practices and rights apply. By using the service, you acknowledge that you have read and understood this policy.</p>
                 </div>
 
                 <div>
-                  <h2 className="text-xl font-semibold text-brand-maroon-black mb-2">13. Contact</h2>
+                  <h2 className={publicForm.legalSectionTitle}>13. Contact</h2>
                   <p>For privacy-related questions, to exercise your rights, or to contact a data protection officer (where applicable), use the in-app chat widget or email from your registered account. Include your account/escrow ID when relevant. See our <Link href="/support" className="text-brand-maroon font-semibold hover:underline">Support</Link> page for more information.</p>
                 </div>
               </section>
 
-              <div className="mt-10 pt-6 border-t border-gray-200 flex flex-wrap gap-4">
+              <div className={publicForm.legalFooter}>
                 <Link href="/terms" className="text-brand-maroon font-semibold hover:underline">Terms and Conditions</Link>
                 <Link href="/support" className="text-brand-maroon font-semibold hover:underline">Support</Link>
                 <Link href="/" className="text-brand-maroon font-semibold hover:underline">Home</Link>

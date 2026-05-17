@@ -65,7 +65,7 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="bg-[#160f10]/95 backdrop-blur-md border-b border-white/10 sticky top-0 z-50 shadow-lg shadow-black/20">
+    <nav className="hidden xl:block bg-[var(--nav-bar-bg)] backdrop-blur-ios border-b border-white/10 sticky top-0 z-50 shadow-lg shadow-black/20 pt-safe">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo & Brand */}

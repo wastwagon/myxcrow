@@ -4,9 +4,13 @@ import Layout from '@/components/Layout';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Settings, Save, RefreshCw, Shield, DollarSign, Bell, Lock, Globe } from 'lucide-react';
+import { Settings, Save, Shield, DollarSign, Bell, Lock, Globe } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
+import { admin } from '@/components/admin/adminClasses';
+import { Button } from '@/components/ui/Button';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
 interface PlatformSettings {
   fees: {
@@ -33,6 +37,7 @@ interface PlatformSettings {
 export default function AdminSettingsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
 
   useEffect(() => {
     if (!isAuthenticated() || !isAdmin()) {
@@ -115,9 +120,13 @@ export default function AdminSettingsPage() {
     }
   };
 
+  const refreshSettings = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['fee-settings'] });
+  };
+
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshSettings} disabled={!isMobile} className="space-y-6">
         <PageHeader
           title="Platform Settings"
           subtitle="Configure system-wide settings and preferences"
@@ -126,8 +135,8 @@ export default function AdminSettingsPage() {
         />
 
         {/* Tabs */}
-        <div className="bg-white rounded-xl shadow-lg">
-          <div className="border-b border-gray-200">
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
+          <div className="border-b border-white/10">
             <nav className="flex -mb-px">
               {[
                 { id: 'fees', label: 'Fees', icon: DollarSign },
@@ -140,8 +149,8 @@ export default function AdminSettingsPage() {
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
                     activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      ? 'border-brand-gold text-brand-gold'
+                      : 'border-transparent text-white/55 hover:text-white/80 hover:border-white/20'
                   }`}
                 >
                   <tab.icon className="w-4 h-4" />
@@ -156,10 +165,10 @@ export default function AdminSettingsPage() {
             {activeTab === 'fees' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Fee Configuration</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">Fee Configuration</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         Percentage Fee (%)
                       </label>
                       <input
@@ -174,15 +183,15 @@ export default function AdminSettingsPage() {
                             fees: { ...settings.fees, percentage: parseFloat(e.target.value) || 0 },
                           })
                         }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className={admin.input}
                       />
-                      <p className="mt-1 text-sm text-gray-500">
+                      <p className="mt-1 text-sm text-white/55">
                         Percentage of escrow amount charged as fee (e.g., 5 for 5%)
                       </p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         Fixed Fee (₵)
                       </label>
                       <input
@@ -199,13 +208,13 @@ export default function AdminSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className={admin.input}
                       />
-                      <p className="mt-1 text-sm text-gray-500">Fixed amount charged per transaction</p>
+                      <p className="mt-1 text-sm text-white/55">Fixed amount charged per transaction</p>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         Fee Paid By
                       </label>
                       <select
@@ -216,7 +225,7 @@ export default function AdminSettingsPage() {
                             fees: { ...settings.fees, paidBy: e.target.value },
                           })
                         }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className={admin.input}
                       >
                         <option value="buyer">Buyer</option>
                         <option value="seller">Seller</option>
@@ -224,23 +233,16 @@ export default function AdminSettingsPage() {
                       </select>
                     </div>
 
-                    <button
+                    <Button
+                      type="button"
                       onClick={() => handleSave('fees')}
                       disabled={updateMutation.isPending || feesLoading}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      loading={updateMutation.isPending}
+                      size="lg"
                     >
-                      {updateMutation.isPending ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Save Fee Settings
-                        </>
-                      )}
-                    </button>
+                      <Save className="w-4 h-4" />
+                      Save Fee Settings
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -250,10 +252,10 @@ export default function AdminSettingsPage() {
             {activeTab === 'general' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">General Settings</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">General Settings</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         Platform Name
                       </label>
                       <input
@@ -265,12 +267,12 @@ export default function AdminSettingsPage() {
                             general: { ...settings.general, platformName: e.target.value },
                           })
                         }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className={admin.input}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         Support Email
                       </label>
                       <input
@@ -282,7 +284,7 @@ export default function AdminSettingsPage() {
                             general: { ...settings.general, supportEmail: e.target.value },
                           })
                         }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className={admin.input}
                       />
                     </div>
 
@@ -297,30 +299,23 @@ export default function AdminSettingsPage() {
                             general: { ...settings.general, maintenanceMode: e.target.checked },
                           })
                         }
-                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-5 h-5 text-brand-gold border-white/20 rounded focus:ring-brand-gold"
                       />
-                      <label htmlFor="maintenanceMode" className="text-sm font-medium text-gray-700">
+                      <label htmlFor="maintenanceMode" className="text-sm font-medium text-white/80">
                         Maintenance Mode
                       </label>
                     </div>
 
-                    <button
+                    <Button
+                      type="button"
                       onClick={() => handleSave('general')}
                       disabled={updateMutation.isPending}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      loading={updateMutation.isPending}
+                      size="lg"
                     >
-                      {updateMutation.isPending ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Save General Settings
-                        </>
-                      )}
-                    </button>
+                      <Save className="w-4 h-4" />
+                      Save General Settings
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -330,7 +325,7 @@ export default function AdminSettingsPage() {
             {activeTab === 'security' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Security Settings</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">Security Settings</h3>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <input
@@ -343,15 +338,15 @@ export default function AdminSettingsPage() {
                             security: { ...settings.security, requireKYC: e.target.checked },
                           })
                         }
-                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-5 h-5 text-brand-gold border-white/20 rounded focus:ring-brand-gold"
                       />
-                      <label htmlFor="requireKYC" className="text-sm font-medium text-gray-700">
+                      <label htmlFor="requireKYC" className="text-sm font-medium text-white/80">
                         Require KYC Verification
                       </label>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         Minimum Password Length
                       </label>
                       <input
@@ -368,12 +363,12 @@ export default function AdminSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className={admin.input}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-white/80 mb-2">
                         Session Timeout (days)
                       </label>
                       <input
@@ -390,27 +385,20 @@ export default function AdminSettingsPage() {
                             },
                           })
                         }
-                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className={admin.input}
                       />
                     </div>
 
-                    <button
+                    <Button
+                      type="button"
                       onClick={() => handleSave('security')}
                       disabled={updateMutation.isPending}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      loading={updateMutation.isPending}
+                      size="lg"
                     >
-                      {updateMutation.isPending ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Save Security Settings
-                        </>
-                      )}
-                    </button>
+                      <Save className="w-4 h-4" />
+                      Save Security Settings
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -420,7 +408,7 @@ export default function AdminSettingsPage() {
             {activeTab === 'notifications' && (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Notification Settings</h3>
+                  <h3 className="text-lg font-semibold text-white mb-4">Notification Settings</h3>
                   <div className="space-y-4">
                     <div className="flex items-center gap-3">
                       <input
@@ -433,9 +421,9 @@ export default function AdminSettingsPage() {
                             notifications: { ...settings.notifications, emailEnabled: e.target.checked },
                           })
                         }
-                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-5 h-5 text-brand-gold border-white/20 rounded focus:ring-brand-gold"
                       />
-                      <label htmlFor="emailEnabled" className="text-sm font-medium text-gray-700">
+                      <label htmlFor="emailEnabled" className="text-sm font-medium text-white/80">
                         Enable Email Notifications
                       </label>
                     </div>
@@ -451,37 +439,30 @@ export default function AdminSettingsPage() {
                             notifications: { ...settings.notifications, smsEnabled: e.target.checked },
                           })
                         }
-                        className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                        className="w-5 h-5 text-brand-gold border-white/20 rounded focus:ring-brand-gold"
                       />
-                      <label htmlFor="smsEnabled" className="text-sm font-medium text-gray-700">
+                      <label htmlFor="smsEnabled" className="text-sm font-medium text-white/80">
                         Enable SMS Notifications
                       </label>
                     </div>
 
-                    <button
+                    <Button
+                      type="button"
                       onClick={() => handleSave('notifications')}
                       disabled={updateMutation.isPending}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      loading={updateMutation.isPending}
+                      size="lg"
                     >
-                      {updateMutation.isPending ? (
-                        <>
-                          <RefreshCw className="w-4 h-4 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4" />
-                          Save Notification Settings
-                        </>
-                      )}
-                    </button>
+                      <Save className="w-4 h-4" />
+                      Save Notification Settings
+                    </Button>
                   </div>
                 </div>
               </div>
             )}
           </div>
         </div>
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

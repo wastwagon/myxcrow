@@ -10,6 +10,9 @@ import apiClient from '@/lib/api-client';
 import { Loader2, AlertCircle, Plus, X, Copy } from 'lucide-react';
 import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
+import { form } from '@/lib/form-classes';
+import PageHeader from '@/components/PageHeader';
+import { Button } from '@/components/ui/Button';
 
 const milestoneSchema = z.object({
   name: z.string().min(1, 'Milestone name is required'),
@@ -192,9 +195,9 @@ export default function CreateEscrowPage() {
           <p className="text-white/90 mt-1">Set up a new escrow agreement</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-lg shadow p-6 space-y-6">
+        <form onSubmit={handleSubmit(onSubmit)} className={`${form.panel} space-y-6`}>
           <div>
-            <label htmlFor="sellerId" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="sellerId" className="block text-sm font-medium text-label-secondary mb-1">
               Seller Phone *
             </label>
             <input
@@ -202,18 +205,18 @@ export default function CreateEscrowPage() {
               type="tel"
               id="sellerId"
               placeholder="0551234567"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent"
             />
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-label-tertiary">
               Enter the seller&apos;s Ghana phone number. They must be registered.
             </p>
             {errors.sellerId && (
-              <p className="mt-1 text-sm text-red-600">{errors.sellerId.message}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.sellerId.message}</p>
             )}
           </div>
 
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="description" className="block text-sm font-medium text-label-secondary mb-1">
               Description *
             </label>
             <textarea
@@ -221,67 +224,67 @@ export default function CreateEscrowPage() {
               id="description"
               rows={4}
               placeholder="Describe the item or service being escrowed..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent"
             />
             {errors.description && (
               <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
             )}
           </div>
 
-          <div className="border-t border-gray-200 pt-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Delivery address (ship to)</h3>
-            <p className="text-xs text-gray-500 mb-3">Where the seller should send the item. Only you and the seller see this.</p>
+          <div className="border-t border-white/10 pt-4">
+            <h3 className="text-sm font-semibold text-label-primary mb-3">Delivery address (ship to)</h3>
+            <p className="text-xs text-label-tertiary mb-3">Where the seller should send the item. Only you and the seller see this.</p>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="deliveryRegion" className="block text-sm font-medium text-gray-700 mb-1">Region</label>
+                <label htmlFor="deliveryRegion" className="block text-sm font-medium text-label-secondary mb-1">Region</label>
                 <input
                   {...register('deliveryRegion')}
                   id="deliveryRegion"
                   placeholder="e.g. Greater Accra"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent"
                 />
               </div>
               <div>
-                <label htmlFor="deliveryCity" className="block text-sm font-medium text-gray-700 mb-1">City / Town</label>
+                <label htmlFor="deliveryCity" className="block text-sm font-medium text-label-secondary mb-1">City / Town</label>
                 <input
                   {...register('deliveryCity')}
                   id="deliveryCity"
                   placeholder="e.g. Accra"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent"
                 />
               </div>
             </div>
             <div className="mt-4">
-              <label htmlFor="deliveryAddressLine" className="block text-sm font-medium text-gray-700 mb-1">Street address / Landmark</label>
+              <label htmlFor="deliveryAddressLine" className="block text-sm font-medium text-label-secondary mb-1">Street address / Landmark</label>
               <input
                 {...register('deliveryAddressLine')}
                 id="deliveryAddressLine"
                 placeholder="Street, area, or landmark"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent"
               />
             </div>
             <div className="mt-4">
-              <label htmlFor="deliveryPhone" className="block text-sm font-medium text-gray-700 mb-1">Contact phone for delivery (optional)</label>
+              <label htmlFor="deliveryPhone" className="block text-sm font-medium text-label-secondary mb-1">Contact phone for delivery (optional)</label>
               <input
                 {...register('deliveryPhone')}
                 id="deliveryPhone"
                 type="tel"
                 placeholder="0551234567"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent"
               />
             </div>
           </div>
 
-          <div className="border-t border-gray-200 pt-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">Delivery confirmation</h3>
-            <p className="text-xs text-gray-500 mb-3">Default: reference + delivery code. Or use a <strong>transaction PIN</strong>: only you (the person creating this transaction) set this PIN. At delivery, entering the PIN confirms the <strong>rightful owner</strong> of the transaction before escrow funds are auto-released.</p>
+          <div className="border-t border-white/10 pt-4">
+            <h3 className="text-sm font-semibold text-label-primary mb-2">Delivery confirmation</h3>
+            <p className="text-xs text-label-tertiary mb-3">Default: reference + delivery code. Or use a <strong>transaction PIN</strong>: only you (the person creating this transaction) set this PIN. At delivery, entering the PIN confirms the <strong>rightful owner</strong> of the transaction before escrow funds are auto-released.</p>
             <label className="flex items-center gap-2 cursor-pointer mb-3">
               <input type="checkbox" {...register('useDeliveryPin')} className="rounded border-gray-300 text-brand-maroon focus:ring-brand-gold" />
-              <span className="text-sm font-medium text-gray-700">Use PIN to confirm delivery (auto-generate secure PIN for this escrow)</span>
+              <span className="text-sm font-medium text-label-secondary">Use PIN to confirm delivery (auto-generate secure PIN for this escrow)</span>
             </label>
             {useDeliveryPin && (
               <div className="mt-2">
-                <label htmlFor="deliveryPin" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="deliveryPin" className="block text-sm font-medium text-label-secondary mb-1">
                   Generated Transaction PIN (6 digits)
                 </label>
                 <div className="flex items-center gap-2">
@@ -289,7 +292,7 @@ export default function CreateEscrowPage() {
                     id="deliveryPin"
                     value={deliveryPin || ''}
                     readOnly
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-900 font-mono tracking-[0.3em] select-all"
+                    className="w-full px-4 py-2 border border-white/20 rounded-lg bg-white/10 text-label-primary font-mono tracking-[0.3em] select-all"
                     aria-readonly="true"
                   />
                   <button
@@ -299,12 +302,12 @@ export default function CreateEscrowPage() {
                       await navigator.clipboard.writeText(deliveryPin);
                       toast.success('PIN copied');
                     }}
-                    className="px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+                    className="px-3 py-2 border border-white/20 text-label-secondary rounded-lg hover:bg-white/5"
                   >
                     <Copy className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">This PIN is auto-generated and locked (not editable). Keep it safe and share only with someone authorized to confirm delivery.</p>
+                <p className="mt-1 text-xs text-label-tertiary">This PIN is auto-generated and locked (not editable). Keep it safe and share only with someone authorized to confirm delivery.</p>
                 {errors.deliveryPin && (
                   <p className="mt-1 text-sm text-red-600">{errors.deliveryPin.message}</p>
                 )}
@@ -314,7 +317,7 @@ export default function CreateEscrowPage() {
 
           <div className="grid md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="amountCents" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="amountCents" className="block text-sm font-medium text-label-secondary mb-1">
                 Amount ({CURRENCY_SYMBOL}) *
               </label>
               <input
@@ -323,10 +326,10 @@ export default function CreateEscrowPage() {
                 step="0.01"
                 min="1"
                 placeholder="100.00"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent"
                 {...register('amountCents', { valueAsNumber: true })}
               />
-              <p className="mt-1 text-xs text-gray-500">
+              <p className="mt-1 text-xs text-label-tertiary">
                 Enter amount in Ghana Cedis
               </p>
               {errors.amountCents && (
@@ -339,8 +342,8 @@ export default function CreateEscrowPage() {
             </div>
           </div>
 
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
+          <div className="p-4 border border-brand-gold/30 bg-brand-gold/10 rounded-lg">
+            <p className="text-sm text-label-primary">
                 <strong>Note:</strong> The escrow will be funded immediately from your wallet balance.
                 Make sure you have sufficient funds.
               </p>
@@ -352,22 +355,22 @@ export default function CreateEscrowPage() {
                 {...register('useMilestones')}
                 type="checkbox"
                 id="useMilestones"
-                className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                className="w-4 h-4 text-brand-gold border-gray-300 rounded focus:ring-brand-gold"
               />
-              <label htmlFor="useMilestones" className="ml-2 text-sm font-medium text-gray-700">
+              <label htmlFor="useMilestones" className="ml-2 text-sm font-medium text-label-secondary">
                 Use Milestone Payments
               </label>
             </div>
-            <p className="text-xs text-gray-500 mb-4">
+            <p className="text-xs text-label-tertiary mb-4">
               Split the escrow into multiple milestone payments. Funds will be released incrementally as milestones are completed.
             </p>
 
             {useMilestones && (
               <div className="space-y-4">
                 {fields.map((field, index) => (
-                  <div key={field.id} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div key={field.id} className="p-4 border border-white/10 rounded-lg bg-white/5">
                     <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-medium text-gray-900">Milestone {index + 1}</h4>
+                      <h4 className="font-medium text-label-primary">Milestone {index + 1}</h4>
                       <button
                         type="button"
                         onClick={() => remove(index)}
@@ -378,12 +381,12 @@ export default function CreateEscrowPage() {
                     </div>
                     <div className="space-y-3">
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                        <label className="block text-xs font-medium text-label-secondary mb-1">
                           Milestone Name *
                         </label>
                         <input
                           {...register(`milestones.${index}.name`)}
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 text-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold"
                           placeholder="e.g., Phase 1, Design Complete"
                         />
                         {errors.milestones?.[index]?.name && (
@@ -393,25 +396,25 @@ export default function CreateEscrowPage() {
                         )}
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                        <label className="block text-xs font-medium text-label-secondary mb-1">
                           Description (Optional)
                         </label>
                         <textarea
                           {...register(`milestones.${index}.description`)}
                           rows={2}
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 text-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold"
                           placeholder="Describe what needs to be completed..."
                         />
                       </div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                          <label className="block text-xs font-medium text-label-secondary mb-1">
                             Target Date (Optional)
                           </label>
                           <input
                             type="date"
                             {...register(`milestones.${index}.targetDate`)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 text-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold"
                           />
                           {errors.milestones?.[index]?.targetDate && (
                             <p className="mt-1 text-xs text-red-600">
@@ -420,7 +423,7 @@ export default function CreateEscrowPage() {
                           )}
                         </div>
                         <div>
-                          <label className="block text-xs font-medium text-gray-700 mb-1">
+                          <label className="block text-xs font-medium text-label-secondary mb-1">
                             Approval Window (Days)
                           </label>
                           <input
@@ -428,7 +431,7 @@ export default function CreateEscrowPage() {
                             min="1"
                             max="30"
                             {...register(`milestones.${index}.approvalWindowDays`, { valueAsNumber: true })}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 text-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold"
                             placeholder="5"
                           />
                           {errors.milestones?.[index]?.approvalWindowDays && (
@@ -439,7 +442,7 @@ export default function CreateEscrowPage() {
                         </div>
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                        <label className="block text-xs font-medium text-label-secondary mb-1">
                           Amount ({CURRENCY_SYMBOL}) *
                         </label>
                         <input
@@ -447,7 +450,7 @@ export default function CreateEscrowPage() {
                           step="0.01"
                           min="0.01"
                           {...register(`milestones.${index}.amountCents`, { valueAsNumber: true })}
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          className="w-full px-3 py-2 text-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold"
                           placeholder="0.00"
                         />
                         {errors.milestones?.[index]?.amountCents && (
@@ -463,20 +466,20 @@ export default function CreateEscrowPage() {
                 <button
                   type="button"
                   onClick={addMilestone}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-blue-600 border border-blue-300 rounded-lg hover:bg-blue-50"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-brand-gold border border-blue-300 rounded-lg hover:bg-brand-gold/10"
                 >
                   <Plus className="w-4 h-4" />
                   Add Milestone
                 </button>
 
                 {fields.length > 0 && (
-                  <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Total Milestones:</span>
+                      <span className="text-label-secondary">Total Milestones:</span>
                       <span className="font-medium">{CURRENCY_SYMBOL} {totalMilestoneAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm mt-2">
-                      <span className="text-gray-600">Remaining Amount:</span>
+                      <span className="text-label-secondary">Remaining Amount:</span>
                       <span className={`font-medium ${remainingAmount < 0 ? 'text-red-600' : 'text-green-600'}`}>
                         {CURRENCY_SYMBOL} {remainingAmount.toFixed(2)}
                       </span>
@@ -497,27 +500,12 @@ export default function CreateEscrowPage() {
           </div>
 
           <div className="flex gap-4">
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-            >
+            <Button type="button" variant="secondary" fullWidth onClick={() => router.back()}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={createMutation.isPending}
-              className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {createMutation.isPending ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                'Create Escrow'
-              )}
-            </button>
+            </Button>
+            <Button type="submit" variant="filled" fullWidth loading={createMutation.isPending}>
+              {createMutation.isPending ? 'Creating...' : 'Create Escrow'}
+            </Button>
           </div>
         </form>
       </div>

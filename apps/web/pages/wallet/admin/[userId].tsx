@@ -6,7 +6,10 @@ import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import Link from 'next/link';
+import { User } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
+import { form } from '@/lib/form-classes';
+import { AdminAvatar } from '@/components/admin/AdminIconBadge';
 
 export default function AdminViewWalletPage() {
   const router = useRouter();
@@ -33,7 +36,7 @@ export default function AdminViewWalletPage() {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[200px]">
-          <p className="text-gray-600">Loading wallet…</p>
+          <p className="text-label-secondary">Loading wallet…</p>
         </div>
       </Layout>
     );
@@ -43,10 +46,10 @@ export default function AdminViewWalletPage() {
     return (
       <Layout>
         <div className="space-y-4">
-          <button onClick={() => router.back()} className="text-blue-600 hover:underline">
+          <button onClick={() => router.back()} className="text-brand-gold hover:text-brand-gold/80 transition-colors">
             ← Back
           </button>
-          <p className="text-red-600">Failed to load wallet.</p>
+          <p className="text-red-400">Failed to load wallet.</p>
         </div>
       </Layout>
     );
@@ -58,35 +61,38 @@ export default function AdminViewWalletPage() {
     <Layout>
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="text-blue-600 hover:underline">
+          <button onClick={() => router.back()} className="text-brand-gold hover:text-brand-gold/80 transition-colors">
             ← Back
           </button>
         </div>
         <PageHeader
           title="View User Wallet"
           subtitle={user?.email}
-          icon={<span className="text-2xl">👤</span>}
+          icon={<User className="w-6 h-6" />}
           gradient="blue"
         />
 
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">User</h2>
+        <div className={form.panel}>
+          <div className="flex items-center gap-3 mb-4">
+            <AdminAvatar label={user?.email || 'User'} variant="maroon" />
+            <h2 className="text-lg font-semibold text-label-primary">User</h2>
+          </div>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <dt className="text-gray-500">Email</dt>
+            <dt className="text-label-secondary">Email</dt>
             <dd className="font-medium">{user?.email}</dd>
-            <dt className="text-gray-500">Name</dt>
+            <dt className="text-label-secondary">Name</dt>
             <dd className="font-medium">{user?.firstName || user?.lastName ? `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() : '—'}</dd>
           </dl>
         </div>
 
-        <div className="bg-white rounded-xl shadow p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Wallet</h2>
+        <div className={form.panel}>
+          <h2 className="text-lg font-semibold text-label-primary mb-4">Wallet</h2>
           <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <dt className="text-gray-500">Available</dt>
+            <dt className="text-label-secondary">Available</dt>
             <dd className="font-medium">{formatCurrency(wallet?.availableCents ?? 0, wallet?.currency ?? 'GHS')}</dd>
-            <dt className="text-gray-500">Pending</dt>
+            <dt className="text-label-secondary">Pending</dt>
             <dd className="font-medium">{formatCurrency(wallet?.pendingCents ?? 0, wallet?.currency ?? 'GHS')}</dd>
-            <dt className="text-gray-500">Currency</dt>
+            <dt className="text-label-secondary">Currency</dt>
             <dd className="font-medium">{wallet?.currency ?? 'GHS'}</dd>
           </dl>
         </div>
@@ -94,17 +100,17 @@ export default function AdminViewWalletPage() {
         <div className="flex gap-3 flex-wrap">
           <Link
             href={`/admin/wallet/credit?userId=${userId}`}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            className="inline-flex px-4 py-2 rounded-ios-lg bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30 font-semibold transition-colors"
           >
             Credit (Top-up)
           </Link>
           <Link
             href={`/admin/wallet/debit?userId=${userId}`}
-            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700"
+            className="inline-flex px-4 py-2 rounded-ios-lg bg-amber-500/20 text-amber-200 border border-amber-500/30 hover:bg-amber-500/30 font-semibold transition-colors"
           >
             Debit (Deduct)
           </Link>
-          <Link href="/admin/users" className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+          <Link href="/admin/users" className="inline-flex px-4 py-2 rounded-ios-lg bg-white/10 text-label-primary border border-white/15 hover:bg-white/15 font-medium transition-colors">
             Back to Users
           </Link>
         </div>

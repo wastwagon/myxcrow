@@ -1,5 +1,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Camera, X, Check, Upload } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { useConfirm } from '@/components/providers/UIProvider';
+import { Button } from '@/components/ui/Button';
 
 interface SelfieCaptureProps {
   onCapture: (file: File) => void;
@@ -9,6 +12,7 @@ interface SelfieCaptureProps {
 }
 
 export default function SelfieCapture({ onCapture, onRemove, value, error }: SelfieCaptureProps) {
+  const confirm = useConfirm();
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -16,7 +20,6 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
 
   useEffect(() => {
     return () => {
-      // Cleanup: stop camera when component unmounts
       if (stream) {
         stream.getTracks().forEach((track) => track.stop());
       }
@@ -33,9 +36,8 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
         videoRef.current.srcObject = mediaStream;
       }
       setIsCapturing(true);
-    } catch (err) {
-      console.error('Error accessing camera:', err);
-      alert('Unable to access camera. Please ensure camera permissions are granted.');
+    } catch {
+      toast.error('Unable to access camera. Please grant camera permissions.');
     }
   };
 
@@ -56,14 +58,10 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
 
     if (!context) return;
 
-    // Set canvas dimensions to match video
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
-
-    // Draw video frame to canvas
     context.drawImage(video, 0, 0);
 
-    // Convert canvas to blob/file
     canvas.toBlob((blob) => {
       if (blob) {
         const file = new File([blob], 'selfie.jpg', { type: 'image/jpeg' });
@@ -73,97 +71,78 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
     }, 'image/jpeg', 0.9);
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      // Check if file was captured from camera (has capture attribute)
-      // This helps ensure the image is from a live camera, not uploaded
-      const isFromCamera = e.target.hasAttribute('capture');
-      
-      // Add metadata to help backend verify it's a live capture
-      // Note: This is a basic check - the backend will do the actual face matching
-      if (!isFromCamera) {
-        // Warn user that camera capture is preferred for better verification
-        const useCamera = window.confirm(
-          'For better security, we recommend using the camera to take a live photo. ' +
-          'Uploaded files may not pass verification. Continue with upload?'
-        );
-        if (!useCamera) {
-          e.target.value = ''; // Reset input
-          return;
-        }
+    if (!file) return;
+
+    const isFromCamera = e.target.hasAttribute('capture');
+
+    if (!isFromCamera) {
+      const proceed = await confirm({
+        title: 'Use live camera?',
+        message:
+          'For better security, we recommend taking a live photo with your camera. Uploaded files may not pass verification. Continue with this file?',
+        confirmLabel: 'Continue',
+        cancelLabel: 'Cancel',
+      });
+      if (!proceed) {
+        e.target.value = '';
+        return;
       }
-      
-      onCapture(file);
     }
+
+    onCapture(file);
   };
 
   return (
     <div className="space-y-2">
       {value ? (
         <div className="relative">
-          {/* eslint-disable-next-line @next/next/no-img-element -- Blob URLs from createObjectURL are not supported by next/image */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- Blob URLs from createObjectURL */}
           <img
             src={URL.createObjectURL(value)}
             alt="Selfie preview"
-            className="w-full h-48 md:h-64 object-cover rounded-xl border-2 border-green-500 bg-gray-50"
+            className="w-full h-48 md:h-64 object-cover rounded-ios-xl border-2 border-emerald-500/60 bg-white/5"
           />
           <button
             type="button"
             onClick={onRemove}
-            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg"
+            className="absolute top-2 right-2 p-2 bg-red-500/90 text-white rounded-full hover:bg-red-600 transition-colors shadow-lg min-w-[44px] min-h-[44px] flex items-center justify-center"
           >
             <X className="w-4 h-4" />
           </button>
-          <div className="absolute bottom-2 left-2 bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
+          <div className="absolute bottom-2 left-2 bg-emerald-500/90 text-white px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 shadow-lg">
             <Check className="w-3 h-3" />
             Photo captured
           </div>
         </div>
       ) : isCapturing ? (
-        <div className="relative rounded-xl overflow-hidden border-2 border-blue-500 bg-gray-900">
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            className="w-full h-48 md:h-64 object-cover"
-          />
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              onClick={capturePhoto}
-              className="px-6 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 font-semibold shadow-lg transition-all"
-            >
+        <div className="relative rounded-ios-xl overflow-hidden border-2 border-brand-gold/50 bg-black/40">
+          <video ref={videoRef} autoPlay playsInline className="w-full h-48 md:h-64 object-cover" />
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col sm:flex-row gap-2 px-4">
+            <Button type="button" variant="filled" size="sm" onClick={capturePhoto}>
               Capture Photo
-            </button>
-            <button
-              type="button"
-              onClick={stopCamera}
-              className="px-6 py-3 bg-gray-600 text-white rounded-full hover:bg-gray-700 font-semibold transition-all"
-            >
+            </Button>
+            <Button type="button" variant="secondary" size="sm" onClick={stopCamera}>
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       ) : (
-        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 md:p-8 text-center hover:border-blue-400 hover:bg-gray-50 transition-all group">
-          <Camera className="w-12 h-12 md:w-16 md:h-16 mx-auto text-gray-400 mb-4 group-hover:text-blue-500 transition-colors" />
-          <p className="text-sm md:text-base font-medium text-gray-700 mb-2">
+        <div className="border-2 border-dashed border-white/20 rounded-ios-xl p-6 md:p-8 text-center hover:border-brand-gold/40 hover:bg-white/5 transition-all group">
+          <Camera className="w-12 h-12 md:w-16 md:h-16 mx-auto text-label-tertiary mb-4 group-hover:text-brand-gold transition-colors" />
+          <p className="text-sm md:text-base font-medium text-label-primary mb-2">
             Take a clear selfie matching your Ghana Card photo
           </p>
-          <p className="text-xs text-gray-500 mb-4">
+          <p className="text-xs text-label-tertiary mb-4">
             Ensure good lighting and your face is clearly visible
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <button
-              type="button"
-              onClick={startCamera}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-            >
+            <Button type="button" variant="filled" onClick={startCamera} className="gap-2">
               <Camera className="w-4 h-4" />
               Use Camera
-            </button>
-            <label className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 font-semibold cursor-pointer transition-all flex items-center justify-center gap-2">
+            </Button>
+            <label className="inline-flex min-h-[44px] px-4 py-2.5 items-center justify-center gap-2 rounded-ios-lg bg-white/10 text-white border border-white/15 hover:bg-white/15 font-semibold text-ios-body cursor-pointer transition-colors">
               <Upload className="w-4 h-4" />
               Upload File
               <input
@@ -179,17 +158,15 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
       )}
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{error}</p>
+        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-ios-lg">
+          <p className="text-sm text-red-400">{error}</p>
         </div>
       )}
-      <p className="text-xs text-gray-500 mt-2">
-        💡 Requirements: Clear face, good lighting, similar angle to Ghana Card photo
+      <p className="text-xs text-label-tertiary mt-2">
+        Requirements: clear face, good lighting, similar angle to Ghana Card photo
       </p>
 
-      {/* Hidden canvas for capturing */}
       <canvas ref={canvasRef} className="hidden" />
     </div>
   );
 }
-

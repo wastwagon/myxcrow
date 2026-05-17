@@ -5,8 +5,12 @@ import { isAuthenticated } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDate } from '@/lib/utils';
-import { Upload, File, Download, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { Upload, File, Download, Trash2, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { useConfirm } from '@/components/providers/UIProvider';
+import PageHeader from '@/components/PageHeader';
+import { Button } from '@/components/ui/Button';
+import { form } from '@/lib/form-classes';
 
 interface Evidence {
   id: string;
@@ -23,15 +27,14 @@ export default function EvidencePage() {
   const router = useRouter();
   const { id: escrowId } = router.query;
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const [uploading, setUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [includeLocation, setIncludeLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-    }
+    if (!isAuthenticated()) router.push('/login');
   }, [router]);
 
   const { data: escrow } = useQuery({
@@ -67,33 +70,29 @@ export default function EvidencePage() {
         lat = pos.coords.latitude;
         lng = pos.coords.longitude;
         setLocationError(null);
-      } catch (err: any) {
-        setLocationError(err.message || 'Could not get location');
-        toast.error('Location not available. Upload without location?');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Could not get location';
+        setLocationError(msg);
+        toast.error('Location not available.');
         return;
       }
     }
 
     try {
       setUploading(true);
-
       const presignedResponse = await apiClient.post('/evidence/presigned-url', {
         escrowId,
         fileName: selectedFile.name,
         fileSize: selectedFile.size,
         mimeType: selectedFile.type,
       });
-
       const { uploadUrl, objectName } = presignedResponse.data;
-
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
         body: selectedFile,
         headers: { 'Content-Type': selectedFile.type },
       });
-
       if (!uploadResponse.ok) throw new Error('Upload failed');
-
       await apiClient.post('/evidence/verify-upload', {
         escrowId,
         objectName,
@@ -104,13 +103,17 @@ export default function EvidencePage() {
         description: `Uploaded evidence: ${selectedFile.name}`,
         ...(lat != null && lng != null ? { latitude: lat, longitude: lng } : {}),
       });
-
       toast.success('File uploaded successfully');
       setSelectedFile(null);
       setIncludeLocation(false);
       queryClient.invalidateQueries({ queryKey: ['escrow', escrowId] });
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to upload file');
+    } catch (error: unknown) {
+      const raw =
+        error &&
+        typeof error === 'object' &&
+        'response' in error &&
+        (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(typeof raw === 'string' ? raw : 'Failed to upload file');
     } finally {
       setUploading(false);
     }
@@ -119,155 +122,138 @@ export default function EvidencePage() {
   const handleDownload = async (evidenceId: string) => {
     try {
       const response = await apiClient.get(`/evidence/${evidenceId}/download`);
-      const { downloadUrl } = response.data;
-      window.open(downloadUrl, '_blank');
-    } catch (error: any) {
+      window.open(response.data.downloadUrl, '_blank');
+    } catch {
       toast.error('Failed to get download URL');
     }
   };
 
   const deleteMutation = useMutation({
-    mutationFn: async (evidenceId: string) => {
-      return apiClient.delete(`/evidence/${evidenceId}`);
-    },
+    mutationFn: async (evidenceId: string) => apiClient.delete(`/evidence/${evidenceId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['escrow', escrowId] });
       toast.success('Evidence deleted');
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Failed to delete evidence');
     },
   });
 
-  if (!isAuthenticated()) {
-    return null;
-  }
+  if (!isAuthenticated()) return null;
 
   const evidenceList: Evidence[] = escrow?.evidence ?? [];
 
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <button
-            onClick={() => router.push(`/escrows/${escrowId}`)}
-            className="text-gray-600 hover:text-gray-900 mb-4"
-          >
-            ← Back to Escrow
-          </button>
-          <h1 className="text-3xl font-bold text-gray-900">Evidence</h1>
-          <p className="text-gray-600 mt-1">Upload and manage evidence for this escrow</p>
-        </div>
+        <button
+          onClick={() => router.push(`/escrows/${escrowId}`)}
+          className="text-brand-gold hover:text-brand-gold/80 font-medium transition-colors"
+        >
+          ← Back to escrow
+        </button>
 
-        {/* Upload Section */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Upload Evidence</h2>
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-              <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-              <input
-                type="file"
-                id="file-upload"
-                onChange={handleFileSelect}
-                className="hidden"
-                accept="image/*,application/pdf,.doc,.docx"
-              />
-              <label
-                htmlFor="file-upload"
-                className="cursor-pointer inline-block px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              >
-                Select File
-              </label>
-              {selectedFile && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm text-gray-600">
-                    Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
-                  </p>
-                  <label className="flex items-center gap-2 text-sm text-gray-700">
-                    <input
-                      type="checkbox"
-                      checked={includeLocation}
-                      onChange={(e) => setIncludeLocation(e.target.checked)}
-                      className="rounded border-gray-300"
-                    />
-                    Include my location (proof of delivery)
-                  </label>
-                  {locationError && <p className="text-xs text-red-600">{locationError}</p>}
-                  <button
-                    onClick={handleUpload}
-                    disabled={uploading}
-                    className="mt-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2 mx-auto"
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-4 h-4" />
-                        Upload File
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-            <p className="text-xs text-gray-500 text-center">
-              Supported formats: Images, PDF, Word documents. Max size: 10MB
-            </p>
+        <PageHeader
+          title="Evidence"
+          subtitle="Upload and manage evidence for this escrow"
+          icon={<File className="w-6 h-6" />}
+        />
+
+        <div className={`${form.panel}`}>
+          <h2 className="text-ios-headline font-semibold text-label-primary mb-4">Upload evidence</h2>
+          <div className="border-2 border-dashed border-white/20 rounded-ios-lg p-8 text-center">
+            <Upload className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
+            <input
+              type="file"
+              id="file-upload"
+              onChange={handleFileSelect}
+              className="hidden"
+              accept="image/*,application/pdf,.doc,.docx"
+            />
+            <label htmlFor="file-upload" className="cursor-pointer inline-block">
+              <span className="inline-flex items-center px-4 py-2 rounded-ios-lg bg-brand-gold text-brand-maroon-black font-semibold hover:bg-brand-gold/90">
+                Select file
+              </span>
+            </label>
+            {selectedFile && (
+              <div className="mt-4 space-y-3">
+                <p className="text-ios-subhead text-label-secondary">
+                  Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
+                </p>
+                <label className="flex items-center justify-center gap-2 text-ios-subhead text-label-secondary">
+                  <input
+                    type="checkbox"
+                    checked={includeLocation}
+                    onChange={(e) => setIncludeLocation(e.target.checked)}
+                    className="rounded border-white/20 text-brand-gold focus:ring-brand-gold"
+                  />
+                  Include my location (proof of delivery)
+                </label>
+                {locationError && <p className="text-ios-caption text-red-400">{locationError}</p>}
+                <Button type="button" variant="filled" loading={uploading} onClick={handleUpload}>
+                  <Upload className="w-4 h-4" />
+                  Upload file
+                </Button>
+              </div>
+            )}
           </div>
+          <p className="text-ios-caption text-label-tertiary text-center mt-3">
+            Images, PDF, Word — max 10MB
+          </p>
         </div>
 
-        {/* Evidence List */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">Uploaded Evidence</h2>
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card overflow-hidden">
+          <div className="p-6 border-b border-white/10">
+            <h2 className="text-ios-headline font-semibold text-label-primary">Uploaded evidence</h2>
           </div>
           <div className="p-6">
             {evidenceList.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {evidenceList.map((evidence) => (
                   <div
                     key={evidence.id}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                    className="flex items-center justify-between p-4 border border-white/10 rounded-ios-lg hover:bg-white/5 transition-colors"
                   >
-                    <div className="flex items-center gap-4">
-                      <File className="w-8 h-8 text-blue-600" />
-                      <div>
-                        <p className="font-medium text-gray-900">{evidence.fileName}</p>
-                        <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                          <span>{(evidence.fileSize / 1024).toFixed(2)} KB</span>
-                          <span>•</span>
-                          <span>{evidence.type}</span>
-                          <span>•</span>
-                          <span>{formatDate(evidence.createdAt)}</span>
-                        </div>
+                    <div className="flex items-center gap-4 min-w-0">
+                      <File className="w-8 h-8 text-brand-gold shrink-0" />
+                      <div className="min-w-0">
+                        <p className="font-medium text-label-primary truncate">{evidence.fileName}</p>
+                        <p className="text-ios-caption text-label-secondary mt-1">
+                          {(evidence.fileSize / 1024).toFixed(2)} KB · {evidence.type} ·{' '}
+                          {formatDate(evidence.createdAt)}
+                        </p>
                         {evidence.description && (
-                          <p className="text-sm text-gray-500 mt-1">{evidence.description}</p>
+                          <p className="text-ios-caption text-label-tertiary mt-1">{evidence.description}</p>
                         )}
                         {evidence.metadata?.latitude != null && evidence.metadata?.longitude != null && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            Location: {evidence.metadata.latitude.toFixed(5)}, {evidence.metadata.longitude.toFixed(5)}
+                          <p className="text-ios-caption text-label-tertiary mt-1">
+                            Location: {evidence.metadata.latitude.toFixed(5)},{' '}
+                            {evidence.metadata.longitude.toFixed(5)}
                           </p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 shrink-0">
                       <button
+                        type="button"
                         onClick={() => handleDownload(evidence.id)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                        className="p-2 min-w-[44px] min-h-[44px] text-brand-gold hover:bg-brand-gold/15 rounded-ios-lg touch-manipulation"
                         title="Download"
                       >
                         <Download className="w-5 h-5" />
                       </button>
                       <button
-                        onClick={() => {
-                          if (confirm('Delete this evidence?')) {
-                            deleteMutation.mutate(evidence.id);
-                          }
+                        type="button"
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: 'Delete evidence',
+                            message: 'Delete this evidence? This cannot be undone.',
+                            confirmLabel: 'Delete',
+                            destructive: true,
+                          });
+                          if (ok) deleteMutation.mutate(evidence.id);
                         }}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        className="p-2 min-w-[44px] min-h-[44px] text-red-400 hover:bg-red-500/10 rounded-ios-lg touch-manipulation"
                         title="Delete"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -277,10 +263,10 @@ export default function EvidencePage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 text-gray-500">
-                <File className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+              <div className="text-center py-12 text-label-tertiary">
+                <File className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>No evidence uploaded yet</p>
-                <p className="text-sm mt-1">Upload files to provide proof of shipment or delivery</p>
+                <p className="text-ios-caption mt-1">Upload files as proof of shipment or delivery</p>
               </div>
             )}
           </div>
@@ -289,7 +275,3 @@ export default function EvidencePage() {
     </Layout>
   );
 }
-
-
-
-
