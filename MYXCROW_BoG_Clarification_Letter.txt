@@ -1,0 +1,59 @@
+MYXCROW
+Escrow Platform Management Company
+Leponsere Link, Adenta, Accra, Ghana
+Email: soy@myxcrow.com | Phone: 0551 534 546
+
+6 May 2026
+
+The Director
+Payment Systems Department
+Bank of Ghana
+P.O. Box GP 2674
+Accra, Ghana
+
+Dear Sir/Madam,
+
+Re: Request for Pre-Launch Regulatory Clarification on MYXCROW Escrow Operations under the Payment Systems and Services Act, 2019 (Act 987)
+
+I write in my capacity as Chief Executive Officer of MYXCROW, a Ghanaian startup building an escrow-enabled digital platform for safer commerce transactions. Before public launch, we respectfully seek the Bank of Ghana's guidance to ensure our operations align with Act 987 and all applicable directives.
+
+1) Business and transaction context
+MYXCROW supports marketplace transactions where trust risk is high, including goods and service transactions between independent buyers and sellers. Our platform role is to manage transaction conditions, escrow status, and dispute workflows so funds are only released when contract conditions are met.
+
+2) Operational model (current and intended)
+- Buyer and seller agree terms on MYXCROW (amount, fulfillment milestones, release conditions).
+- Buyer initiates funding through integrated licensed payment rails (including Paystack channels where enabled).
+- MYXCROW records user ledger balances and escrow states internally for conditional release logic.
+- Upon fulfillment confirmation (or valid dispute outcome), MYXCROW transitions escrow to release or refund.
+- Where withdrawal is requested, MYXCROW initiates payout/disbursement through licensed provider APIs to the beneficiary destination account.
+
+3) Important role split and funds-flow clarification
+- MYXCROW handles platform transaction management: escrow rules, state transitions, reconciliations, dispute decisions, and audit controls.
+- Licensed payment providers (e.g., Paystack and partner banks) provide collection and payout rails.
+- Paystack does not operate MYXCROW marketplace logic; MYXCROW does not delegate escrow decisioning to Paystack.
+- For withdrawal fulfillment, MYXCROW requires an approved payout/settlement setup with licensed rails to process user cash-out requests lawfully and reliably.
+
+4) Consumer protection and control framework
+- Customer identity and account controls (phone/OTP and access controls).
+- Reference-based transaction tracking, webhook/callback verification, and tamper-evident audit logging.
+- Dispute management workflow with evidence review before release/refund decisions.
+- Segregation principles, reconciliation controls, and restricted internal approval flows for sensitive actions.
+- Ongoing AML/CFT and risk monitoring measures, with escalation and reporting workflows as operations scale.
+
+5) Clarifications respectfully requested from Bank of Ghana
+- Whether MYXCROW's described model (conditional escrow management with third-party payment collections and payouts) constitutes a regulated payment service under Act 987, and the precise category applicable.
+- Whether MYXCROW requires prior licensing/authorization before launch, and if yes, the exact licensing route, documentary requirements, and expected timelines.
+- The expected safeguarding/segregation standards for customer-related funds and operational reconciliation expectations for our model.
+- Specific AML/CFT, consumer-protection, cybersecurity, and periodic-reporting obligations applicable to this operating structure.
+- Recommended pre-launch engagement process (including whether to pursue a formal pre-application meeting and which technical/compliance annexes to submit first).
+
+6) Readiness to provide supporting documents
+We are prepared to submit detailed documentation immediately, including: business model narrative, end-to-end funds flow diagrams, system architecture, risk register, AML/CFT control summary, dispute SOPs, and information security controls.
+
+We appreciate the Bank's guidance and remain fully committed to operating within Ghana's regulatory framework while improving transaction trust and consumer protection.
+
+Yours faithfully,
+
+Samuel Owusu-Yeboah
+Chief Executive Officer, MYXCROW
+soy@myxcrow.com | 0551 534 546
