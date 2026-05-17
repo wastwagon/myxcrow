@@ -403,12 +403,18 @@ export default function AdminDashboard() {
               <div className="p-6 max-h-64 overflow-y-auto">
                 <div className="space-y-3">
                   {statsData.recentTransactions.slice(0, 8).map((tx: any) => (
-                    <div key={tx.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div key={tx.id} className="flex items-center justify-between py-2 border-b border-white/10 last:border-0">
                       <div>
                         <p className="font-medium text-white">{formatCurrency(tx.amountCents, 'GHS')}</p>
                         <p className="text-xs text-white/55">{tx.userEmail || '—'} • {new Date(tx.createdAt).toLocaleString()}</p>
                       </div>
-                      <span className={`px-2 py-1 text-xs font-medium rounded ${tx.status === 'SUCCEEDED' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-white/70'}`}>
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded-full border ${
+                          tx.status === 'SUCCEEDED'
+                            ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30'
+                            : 'bg-white/10 text-white/70 border-white/15'
+                        }`}
+                      >
                         {tx.status}
                       </span>
                     </div>
@@ -457,7 +463,7 @@ export default function AdminDashboard() {
                         </div>
                         <span
                           className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                            ESCROW_STATUS_COLORS[escrow.status] || 'bg-gray-100 text-white/90 border-white/10'
+                            ESCROW_STATUS_COLORS[escrow.status] || 'bg-white/10 text-white/80 border-white/15'
                           }`}
                         >
                           {escrow.status.replace(/_/g, ' ')}

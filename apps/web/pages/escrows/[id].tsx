@@ -110,15 +110,15 @@ export default function EscrowDetailPage() {
   const canMarkServiceCompleted = isSeller && escrow?.status === 'FUNDED';
   const canRate = (isBuyer || isSeller) && escrow && ['RELEASED', 'REFUNDED'].includes(escrow.status);
 
-  const statusConfig: Record<string, { label: string; color: string; icon: any }> = {
-    AWAITING_FUNDING: { label: 'Awaiting Funding', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-    FUNDED: { label: 'Funded', color: 'bg-blue-100 text-blue-800', icon: DollarSign },
-    SHIPPED: { label: 'Shipped', color: 'bg-purple-100 text-purple-800', icon: Truck },
-    DELIVERED: { label: 'Delivered', color: 'bg-green-100 text-green-800', icon: Package },
-    AWAITING_RELEASE: { label: 'Awaiting Release', color: 'bg-indigo-100 text-indigo-800', icon: Clock },
-    RELEASED: { label: 'Released', color: 'bg-gray-100 text-gray-800', icon: CheckCircle },
-    DISPUTED: { label: 'Disputed', color: 'bg-red-100 text-red-800', icon: AlertCircle },
-    CANCELLED: { label: 'Cancelled', color: 'bg-gray-100 text-gray-800', icon: AlertCircle },
+  const statusConfig: Record<string, { label: string; icon: typeof Clock }> = {
+    AWAITING_FUNDING: { label: 'Awaiting Funding', icon: Clock },
+    FUNDED: { label: 'Funded', icon: DollarSign },
+    SHIPPED: { label: 'Shipped', icon: Truck },
+    DELIVERED: { label: 'Delivered', icon: Package },
+    AWAITING_RELEASE: { label: 'Awaiting Release', icon: Clock },
+    RELEASED: { label: 'Released', icon: CheckCircle },
+    DISPUTED: { label: 'Disputed', icon: AlertCircle },
+    CANCELLED: { label: 'Cancelled', icon: AlertCircle },
   };
 
   const fundMutation = useMutation({

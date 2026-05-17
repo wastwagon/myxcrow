@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import PublicHeader from '@/components/PublicHeader';
+import { publicForm } from '@/lib/form-classes';
 import { MessageCircle, HelpCircle, ChevronDown, ChevronRight, Shield, Wallet, FileText, AlertCircle } from 'lucide-react';
 
 const FAQ_ITEMS = [
@@ -50,11 +51,21 @@ const FAQ_ITEMS = [
 export default function SupportPage() {
   const [openFaqId, setOpenFaqId] = useState<number | null>(null);
 
+  const topics = [
+    { icon: Shield, title: 'Escrow & payments', body: 'Creating escrows, funding, milestones, release, and refunds.' },
+    { icon: Wallet, title: 'Wallet & withdrawals', body: 'Top-up via Paystack, balance, and withdrawal requests.' },
+    { icon: AlertCircle, title: 'Disputes', body: 'Opening a dispute, evidence, and resolution process.' },
+    { icon: FileText, title: 'Account & KYC', body: 'Registration, verification, password, and account settings.' },
+  ] as const;
+
   return (
     <>
       <Head>
         <title>Support - MYXCROW</title>
-        <meta name="description" content="Get help with MYXCROW escrow. Contact support via chat or email. FAQs on fees, escrow, wallet, disputes, and account." />
+        <meta
+          name="description"
+          content="Get help with MYXCROW escrow. Contact support via chat or email. FAQs on fees, escrow, wallet, disputes, and account."
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
       <PublicHeader />
@@ -62,65 +73,59 @@ export default function SupportPage() {
         <div className="container mx-auto px-4 py-8 md:py-12 max-w-3xl">
           <div className="bg-white/95 rounded-2xl shadow-xl border border-brand-gold/20 overflow-hidden">
             <div className="p-6 md:p-10">
-              <h1 className="text-3xl md:text-4xl font-bold text-brand-maroon-black mb-2">Support</h1>
-              <p className="text-gray-600 mb-8">
-                We’re here to help with escrows, payments, account issues, and disputes. Use the options below or contact us directly.
+              <h1 className={publicForm.pageTitle}>Support</h1>
+              <p className={publicForm.pageIntro}>
+                We’re here to help with escrows, payments, account issues, and disputes. Use the options
+                below or contact us directly.
               </p>
 
-              {/* Contact options */}
               <section className="mb-10">
-                <h2 className="text-xl font-semibold text-brand-maroon-black mb-4 flex items-center gap-2">
+                <h2 className={publicForm.sectionTitle}>
                   <MessageCircle className="w-5 h-5 text-brand-gold" />
                   How to contact us
                 </h2>
-                <ul className="space-y-3 text-gray-700">
+                <ul className={publicForm.bodyList}>
                   <li className="flex items-start gap-3">
                     <span className="text-brand-gold mt-0.5">•</span>
-                    <span><strong>Live chat:</strong> Use the chat widget in the bottom-right corner of the site. Fastest for quick questions and account-specific issues.</span>
+                    <span>
+                      <strong>Live chat:</strong> Use the chat widget in the bottom-right corner of the
+                      site. Fastest for quick questions and account-specific issues.
+                    </span>
                   </li>
                   <li className="flex items-start gap-3">
                     <span className="text-brand-gold mt-0.5">•</span>
-                    <span><strong>Email:</strong> If chat isn’t available, email us from your registered account so we can identify you. Include your escrow ID when the issue is about a transaction.</span>
+                    <span>
+                      <strong>Email:</strong> If chat isn’t available, email us from your registered
+                      account so we can identify you. Include your escrow ID when the issue is about a
+                      transaction.
+                    </span>
                   </li>
                 </ul>
-                <div className="mt-4 p-4 bg-brand-gold/10 border border-brand-gold/30 rounded-lg text-sm text-brand-maroon-black">
-                  <strong>Tip:</strong> When reporting an issue, include your <strong>escrow ID</strong> (from the escrow page or URL) and any <strong>screenshots</strong>. This helps us resolve things faster.
+                <div className={publicForm.tipCallout}>
+                  <strong>Tip:</strong> When reporting an issue, include your <strong>escrow ID</strong>{' '}
+                  (from the escrow page or URL) and any <strong>screenshots</strong>. This helps us resolve
+                  things faster.
                 </div>
               </section>
 
-              {/* Quick help topics */}
               <section className="mb-10">
-                <h2 className="text-xl font-semibold text-brand-maroon-black mb-4 flex items-center gap-2">
+                <h2 className={publicForm.sectionTitle}>
                   <HelpCircle className="w-5 h-5 text-brand-gold" />
                   Quick help topics
                 </h2>
                 <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
-                    <Shield className="w-5 h-5 text-brand-maroon mb-2" />
-                    <h3 className="font-semibold text-brand-maroon-black mb-1">Escrow & payments</h3>
-                    <p className="text-sm text-gray-600">Creating escrows, funding, milestones, release, and refunds.</p>
-                  </div>
-                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
-                    <Wallet className="w-5 h-5 text-brand-maroon mb-2" />
-                    <h3 className="font-semibold text-brand-maroon-black mb-1">Wallet & withdrawals</h3>
-                    <p className="text-sm text-gray-600">Top-up via Paystack, balance, and withdrawal requests.</p>
-                  </div>
-                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
-                    <AlertCircle className="w-5 h-5 text-brand-maroon mb-2" />
-                    <h3 className="font-semibold text-brand-maroon-black mb-1">Disputes</h3>
-                    <p className="text-sm text-gray-600">Opening a dispute, evidence, and resolution process.</p>
-                  </div>
-                  <div className="p-4 rounded-xl border border-gray-200 bg-gray-50">
-                    <FileText className="w-5 h-5 text-brand-maroon mb-2" />
-                    <h3 className="font-semibold text-brand-maroon-black mb-1">Account & KYC</h3>
-                    <p className="text-sm text-gray-600">Registration, verification, password, and account settings.</p>
-                  </div>
+                  {topics.map(({ icon: Icon, title, body }) => (
+                    <div key={title} className={publicForm.topicCard}>
+                      <Icon className="w-5 h-5 text-brand-maroon mb-2" />
+                      <h3 className={publicForm.topicCardTitle}>{title}</h3>
+                      <p className={publicForm.topicCardBody}>{body}</p>
+                    </div>
+                  ))}
                 </div>
               </section>
 
-              {/* FAQ */}
               <section className="mb-10">
-                <h2 className="text-xl font-semibold text-brand-maroon-black mb-4 flex items-center gap-2">
+                <h2 className={publicForm.sectionTitle}>
                   <HelpCircle className="w-5 h-5 text-brand-gold" />
                   Frequently asked questions
                 </h2>
@@ -128,25 +133,22 @@ export default function SupportPage() {
                   {FAQ_ITEMS.map((faq, id) => {
                     const isOpen = openFaqId === id;
                     return (
-                      <div
-                        key={id}
-                        className="border border-gray-200 rounded-xl overflow-hidden bg-white"
-                      >
+                      <div key={id} className={publicForm.faqItem}>
                         <button
                           type="button"
                           onClick={() => setOpenFaqId(isOpen ? null : id)}
-                          className="w-full flex items-center justify-between gap-4 p-4 text-left font-medium text-brand-maroon-black hover:bg-white/10 transition-colors"
+                          className={publicForm.faqButton}
                         >
                           <span>{faq.q}</span>
                           {isOpen ? (
                             <ChevronDown className="w-5 h-5 shrink-0 text-brand-gold" />
                           ) : (
-                            <ChevronRight className="w-5 h-5 shrink-0 text-gray-400" />
+                            <ChevronRight className={publicForm.faqChevronMuted} />
                           )}
                         </button>
                         {isOpen && (
                           <div className="px-4 pb-4 pt-0">
-                            <p className="text-gray-600 text-sm leading-relaxed pl-0">{faq.a}</p>
+                            <p className={publicForm.faqAnswer}>{faq.a}</p>
                           </div>
                         )}
                       </div>
@@ -155,19 +157,28 @@ export default function SupportPage() {
                 </div>
               </section>
 
-              {/* Legal */}
-              <section className="pt-6 border-t border-gray-200">
-                <p className="text-gray-600 text-sm mb-4">
+              <section className={publicForm.sectionDivider}>
+                <p className={`${publicForm.footerText} mb-4`}>
                   See our{' '}
-                  <Link href="/terms" className="text-brand-maroon font-semibold hover:underline">Terms and Conditions</Link>
-                  {' '}and{' '}
-                  <Link href="/privacy" className="text-brand-maroon font-semibold hover:underline">Privacy Policy</Link>
-                  {' '}for full legal and data protection information.
+                  <Link href="/terms" className="text-brand-maroon font-semibold hover:underline">
+                    Terms and Conditions
+                  </Link>{' '}
+                  and{' '}
+                  <Link href="/privacy" className="text-brand-maroon font-semibold hover:underline">
+                    Privacy Policy
+                  </Link>{' '}
+                  for full legal and data protection information.
                 </p>
                 <div className="flex flex-wrap gap-4">
-                  <Link href="/terms" className="text-brand-maroon font-semibold hover:underline text-sm">Terms</Link>
-                  <Link href="/privacy" className="text-brand-maroon font-semibold hover:underline text-sm">Privacy</Link>
-                  <Link href="/" className="text-brand-maroon font-semibold hover:underline text-sm">Home</Link>
+                  <Link href="/terms" className="text-brand-maroon font-semibold hover:underline text-sm">
+                    Terms
+                  </Link>
+                  <Link href="/privacy" className="text-brand-maroon font-semibold hover:underline text-sm">
+                    Privacy
+                  </Link>
+                  <Link href="/" className="text-brand-maroon font-semibold hover:underline text-sm">
+                    Home
+                  </Link>
                 </div>
               </section>
             </div>

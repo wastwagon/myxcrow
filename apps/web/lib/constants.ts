@@ -6,68 +6,81 @@
 /** Ghana Cedis symbol for display (₵) */
 export const CURRENCY_SYMBOL = '₵';
 
+/** Status badge classes for the dark app shell (translucent + border). */
+const darkStatus = {
+  neutral: 'bg-white/10 text-white/80 border-white/15',
+  yellow: 'bg-yellow-500/20 text-yellow-200 border-yellow-500/30',
+  blue: 'bg-blue-500/20 text-blue-200 border-blue-500/30',
+  purple: 'bg-purple-500/20 text-purple-200 border-purple-500/30',
+  indigo: 'bg-indigo-500/20 text-indigo-200 border-indigo-500/30',
+  cyan: 'bg-cyan-500/20 text-cyan-200 border-cyan-500/30',
+  green: 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30',
+  orange: 'bg-orange-500/20 text-orange-200 border-orange-500/30',
+  red: 'bg-red-500/20 text-red-200 border-red-500/30',
+} as const;
+
 /**
  * Escrow Status Colors
- * Consistent color mapping for escrow status badges
+ * Consistent color mapping for escrow status badges on dark backgrounds
  */
 export const ESCROW_STATUS_COLORS: Record<string, string> = {
-  DRAFT: 'bg-gray-100 text-gray-800 border-gray-200',
-  AWAITING_FUNDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  FUNDED: 'bg-blue-100 text-blue-800 border-blue-200',
-  AWAITING_SHIPMENT: 'bg-purple-100 text-purple-800 border-purple-200',
-  SHIPPED: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  IN_TRANSIT: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-  DELIVERED: 'bg-green-100 text-green-800 border-green-200',
-  AWAITING_RELEASE: 'bg-orange-100 text-orange-800 border-orange-200',
-  RELEASED: 'bg-gray-100 text-gray-800 border-gray-200',
-  REFUNDED: 'bg-red-100 text-red-800 border-red-200',
-  CANCELLED: 'bg-gray-100 text-gray-800 border-gray-200',
-  DISPUTED: 'bg-red-100 text-red-800 border-red-200',
+  DRAFT: darkStatus.neutral,
+  AWAITING_FUNDING: darkStatus.yellow,
+  FUNDED: darkStatus.blue,
+  AWAITING_SHIPMENT: darkStatus.purple,
+  SHIPPED: darkStatus.indigo,
+  IN_TRANSIT: darkStatus.cyan,
+  DELIVERED: darkStatus.green,
+  AWAITING_RELEASE: darkStatus.orange,
+  RELEASED: darkStatus.neutral,
+  REFUNDED: darkStatus.red,
+  CANCELLED: darkStatus.neutral,
+  DISPUTED: darkStatus.red,
 };
 
 /**
  * Dispute Status Colors
  */
 export const DISPUTE_STATUS_COLORS: Record<string, string> = {
-  OPEN: 'bg-red-100 text-red-800 border-red-200',
-  NEGOTIATION: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  MEDIATION: 'bg-orange-100 text-orange-800 border-orange-200',
-  ARBITRATION: 'bg-purple-100 text-purple-800 border-purple-200',
-  RESOLVED: 'bg-green-100 text-green-800 border-green-200',
-  CLOSED: 'bg-gray-100 text-gray-800 border-gray-200',
+  OPEN: darkStatus.red,
+  NEGOTIATION: darkStatus.yellow,
+  MEDIATION: darkStatus.orange,
+  ARBITRATION: darkStatus.purple,
+  RESOLVED: darkStatus.green,
+  CLOSED: darkStatus.neutral,
 };
 
 /**
  * Payment Status Colors
  */
 export const PAYMENT_STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  PROCESSING: 'bg-blue-100 text-blue-800 border-blue-200',
-  COMPLETED: 'bg-green-100 text-green-800 border-green-200',
-  FAILED: 'bg-red-100 text-red-800 border-red-200',
-  CANCELLED: 'bg-gray-100 text-gray-800 border-gray-200',
+  PENDING: darkStatus.yellow,
+  PROCESSING: darkStatus.blue,
+  COMPLETED: darkStatus.green,
+  FAILED: darkStatus.red,
+  CANCELLED: darkStatus.neutral,
 };
 
 /**
  * Withdrawal Status Colors
  */
 export const WITHDRAWAL_STATUS_COLORS: Record<string, string> = {
-  REQUESTED: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  PROCESSING: 'bg-blue-100 text-blue-800 border-blue-200',
-  SUCCEEDED: 'bg-green-100 text-green-800 border-green-200',
-  FAILED: 'bg-red-100 text-red-800 border-red-200',
-  CANCELED: 'bg-gray-100 text-gray-800 border-gray-200',
+  REQUESTED: darkStatus.yellow,
+  PROCESSING: darkStatus.blue,
+  SUCCEEDED: darkStatus.green,
+  FAILED: darkStatus.red,
+  CANCELED: darkStatus.neutral,
 };
 
 /**
  * KYC Status Colors
  */
 export const KYC_STATUS_COLORS: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  IN_PROGRESS: 'bg-blue-100 text-blue-800 border-blue-200',
-  VERIFIED: 'bg-green-100 text-green-800 border-green-200',
-  REJECTED: 'bg-red-100 text-red-800 border-red-200',
-  EXPIRED: 'bg-gray-100 text-gray-800 border-gray-200',
+  PENDING: darkStatus.yellow,
+  IN_PROGRESS: darkStatus.blue,
+  VERIFIED: darkStatus.green,
+  REJECTED: darkStatus.red,
+  EXPIRED: darkStatus.neutral,
 };
 
 /**

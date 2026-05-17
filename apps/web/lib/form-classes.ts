@@ -60,4 +60,20 @@ export const publicForm = {
   legalProse: 'space-y-6 text-gray-700',
   legalSectionTitle: 'text-xl font-semibold text-brand-maroon-black mb-2',
   legalFooter: 'mt-10 pt-6 border-t border-gray-200 flex flex-wrap gap-4',
+  /** Support / help pages on white cards */
+  pageTitle: 'text-3xl md:text-4xl font-bold text-brand-maroon-black mb-2',
+  pageIntro: 'text-gray-600 mb-8',
+  sectionTitle: 'text-xl font-semibold text-brand-maroon-black mb-4 flex items-center gap-2',
+  bodyList: 'space-y-3 text-gray-700',
+  topicCard: 'p-4 rounded-xl border border-gray-200 bg-gray-50',
+  topicCardTitle: 'font-semibold text-brand-maroon-black mb-1',
+  topicCardBody: 'text-sm text-gray-600',
+  tipCallout:
+    'mt-4 p-4 bg-brand-gold/10 border border-brand-gold/30 rounded-lg text-sm text-brand-maroon-black',
+  faqItem: 'border border-gray-200 rounded-xl overflow-hidden bg-white',
+  faqButton:
+    'w-full flex items-center justify-between gap-4 p-4 text-left font-medium text-brand-maroon-black hover:bg-gray-50 transition-colors',
+  faqAnswer: 'text-gray-600 text-sm leading-relaxed',
+  faqChevronMuted: 'w-5 h-5 shrink-0 text-gray-400',
+  sectionDivider: 'pt-6 border-t border-gray-200',
 };

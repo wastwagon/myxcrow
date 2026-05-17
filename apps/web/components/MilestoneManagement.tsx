@@ -198,7 +198,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                           ? 'bg-emerald-600 text-white'
                           : milestone.status === 'completed'
                           ? 'bg-brand-maroon text-white'
-                          : 'bg-gray-300 text-label-secondary'
+                          : 'bg-white/15 text-label-secondary'
                       }`}
                     >
                       {index + 1}
@@ -210,19 +210,21 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       )}
                       <div className="flex flex-wrap items-center gap-2 mt-2">
                         {milestone.targetDate && (
-                          <span className="inline-block px-2 py-0.5 text-xs rounded bg-indigo-100 text-indigo-800">
+                          <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-500/30">
                             Target: {formatDate(milestone.targetDate)}
                           </span>
                         )}
-                        <span className="inline-block px-2 py-0.5 text-xs rounded bg-amber-100 text-amber-800">
+                        <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-amber-500/20 text-amber-200 border border-amber-500/30">
                           Approval window: {milestone.approvalWindowDays ?? 5} day{(milestone.approvalWindowDays ?? 5) > 1 ? 's' : ''}
                         </span>
                         {milestone.status === 'submitted' && approvalMeta && (
-                          <span className={`inline-block px-2 py-0.5 text-xs rounded ${
-                            approvalMeta.daysLeft <= 1
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-orange-100 text-orange-800'
-                          }`}>
+                          <span
+                            className={`inline-block px-2 py-0.5 text-xs rounded-full border ${
+                              approvalMeta.daysLeft <= 1
+                                ? 'bg-red-500/20 text-red-200 border-red-500/30'
+                                : 'bg-orange-500/20 text-orange-200 border-orange-500/30'
+                            }`}
+                          >
                             Auto-approve due: {formatDate(approvalMeta.due)} ({approvalMeta.daysLeft <= 0 ? 'today/overdue' : `${approvalMeta.daysLeft} day(s) left`})
                           </span>
                         )}
@@ -233,16 +235,16 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                         {formatCurrency(milestone.amountCents, 'GHS')}
                       </p>
                       <span
-                        className={`inline-block px-2 py-1 text-xs font-medium rounded mt-1 ${
+                        className={`inline-block px-2 py-1 text-xs font-medium rounded-full border mt-1 ${
                           milestone.status === 'released'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30'
                             : milestone.status === 'approved'
-                            ? 'bg-emerald-100 text-emerald-800'
+                            ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30'
                             : milestone.status === 'submitted'
-                            ? 'bg-amber-100 text-amber-800'
+                            ? 'bg-amber-500/20 text-amber-200 border-amber-500/30'
                             : milestone.status === 'completed'
-                            ? 'bg-blue-100 text-label-primary'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-blue-500/20 text-blue-200 border-blue-500/30'
+                            : 'bg-white/10 text-label-secondary border-white/15'
                         }`}
                       >
                         {milestone.status === 'released'
