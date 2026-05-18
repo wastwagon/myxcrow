@@ -43,6 +43,10 @@ tmp/
 temp/
 *.tmp
 
+# Generated regulatory / one-off docs (keep scripts in repo)
+MYXCROW_BoG_Clarification_Letter.pdf
+MYXCROW_BoG_Clarification_Letter.txt
+
 # Face recognition models (large files, downloaded via script)
 services/api/models/
 

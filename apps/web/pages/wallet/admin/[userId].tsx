@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import Link from 'next/link';
@@ -10,10 +10,19 @@ import { User } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { form } from '@/lib/form-classes';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { PageDetailSkeleton } from '@/components/LoadingSkeleton';
 
 export default function AdminViewWalletPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
   const { userId } = router.query;
+
+  const refreshAdminWallet = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['admin-wallet', userId] });
+  };
 
   useEffect(() => {
     if (!isAuthenticated() || !isAdmin()) {
@@ -35,9 +44,7 @@ export default function AdminViewWalletPage() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="flex items-center justify-center min-h-[200px]">
-          <p className="text-label-secondary">Loading wallet…</p>
-        </div>
+        <PageDetailSkeleton />
       </Layout>
     );
   }
@@ -59,7 +66,7 @@ export default function AdminViewWalletPage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshAdminWallet} disabled={!isMobile} className="space-y-6">
         <div className="flex items-center gap-4">
           <button onClick={() => router.back()} className="text-brand-gold hover:text-brand-gold/80 transition-colors">
             ← Back
@@ -114,7 +121,7 @@ export default function AdminViewWalletPage() {
             Back to Users
           </Link>
         </div>
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

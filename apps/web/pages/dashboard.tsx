@@ -23,6 +23,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 
 interface WalletData {
   availableCents: number;
@@ -222,11 +223,7 @@ export default function Dashboard() {
           </div>
 
           {escrowsLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-white/10 animate-pulse rounded-ios-xl" />
-              ))}
-            </div>
+            <ListRowsSkeleton rows={3} rowClassName="h-16" />
           ) : recentEscrows.length > 0 ? (
             <ListGroup>
               {recentEscrows.map((escrow) => (

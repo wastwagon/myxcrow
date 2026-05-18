@@ -11,6 +11,8 @@ import { useConfirm } from '@/components/providers/UIProvider';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { form } from '@/lib/form-classes';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
 interface Evidence {
   id: string;
@@ -28,7 +30,12 @@ export default function EvidencePage() {
   const { id: escrowId } = router.query;
   const queryClient = useQueryClient();
   const confirm = useConfirm();
+  const isMobile = useIsMobileNav();
   const [uploading, setUploading] = useState(false);
+
+  const refreshEvidence = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['escrow', escrowId] });
+  };
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [includeLocation, setIncludeLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
@@ -145,7 +152,7 @@ export default function EvidencePage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshEvidence} disabled={!isMobile} className="space-y-6">
         <button
           onClick={() => router.push(`/escrows/${escrowId}`)}
           className="text-brand-gold hover:text-brand-gold/80 font-medium transition-colors"
@@ -159,7 +166,7 @@ export default function EvidencePage() {
           icon={<File className="w-6 h-6" />}
         />
 
-        <div className={`${form.panel}`}>
+        <div className={form.panel}>
           <h2 className="text-ios-headline font-semibold text-label-primary mb-4">Upload evidence</h2>
           <div className="border-2 border-dashed border-white/20 rounded-ios-lg p-8 text-center">
             <Upload className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
@@ -271,7 +278,7 @@ export default function EvidencePage() {
             )}
           </div>
         </div>
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

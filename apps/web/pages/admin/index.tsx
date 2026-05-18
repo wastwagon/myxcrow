@@ -24,6 +24,7 @@ import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { AdminIconBadge } from '@/components/admin/AdminIconBadge';
 
@@ -440,9 +441,7 @@ export default function AdminDashboard() {
             <div className="p-6">
               {escrowsLoading ? (
                 <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-16 bg-white/10 animate-pulse rounded-ios-lg" />
-                  ))}
+                  <ListRowsSkeleton rows={3} rowClassName="h-16" />
                 </div>
               ) : recentEscrows.length > 0 ? (
                 <div className="space-y-4">
@@ -488,7 +487,7 @@ export default function AdminDashboard() {
                 <h2 className="text-xl font-bold text-white">Open Disputes</h2>
                 <Link
                   href="/disputes"
-                  className="text-orange-600 hover:text-orange-700 text-sm font-medium"
+                  className="text-brand-gold hover:text-brand-gold/80 text-sm font-medium"
                 >
                   View all →
                 </Link>
@@ -497,9 +496,7 @@ export default function AdminDashboard() {
             <div className="p-6">
               {disputesLoading ? (
                 <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="h-16 bg-white/10 animate-pulse rounded-ios-lg" />
-                  ))}
+                  <ListRowsSkeleton rows={3} rowClassName="h-16" />
                 </div>
               ) : recentDisputes.length > 0 ? (
                 <div className="space-y-4">

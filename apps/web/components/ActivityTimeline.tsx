@@ -59,7 +59,7 @@ const actionColors: Record<string, string> = {
   escrow_delivered: 'bg-indigo-500',
   escrow_released: 'bg-teal-500',
   escrow_refunded: 'bg-orange-500',
-  escrow_cancelled: 'bg-gray-500',
+  escrow_cancelled: 'bg-white/25',
   escrow_disputed: 'bg-red-500',
   dispute_resolved: 'bg-green-500',
   milestone_completed: 'bg-blue-500',
@@ -135,7 +135,7 @@ export default function ActivityTimeline({ escrowId }: ActivityTimelineProps) {
       {auditLogs.map((log, index) => {
         const Icon = actionIcons[log.action] || Clock;
         const label = actionLabels[log.action] || log.action.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-        const color = actionColors[log.action] || 'bg-gray-500';
+        const color = actionColors[log.action] || 'bg-white/25';
 
         return (
           <div key={log.id} className="flex items-start gap-4">

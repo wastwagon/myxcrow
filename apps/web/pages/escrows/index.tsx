@@ -14,6 +14,7 @@ import PageHeader from '@/components/PageHeader';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { Button } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
@@ -296,9 +297,7 @@ export default function EscrowsPage() {
         {/* Escrows List */}
         {isLoading ? (
           <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-white/10 animate-pulse rounded-ios-xl" />
-            ))}
+            <ListRowsSkeleton rows={3} />
           </div>
         ) : escrows && escrows.length > 0 ? (
           <ListGroup>

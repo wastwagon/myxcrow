@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { FileText, TrendingUp, TrendingDown } from 'lucide-react';
+import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 
 interface LedgerEntry {
   id: string;
@@ -35,13 +36,7 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
   });
 
   if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 bg-white/10 animate-pulse rounded-ios-lg" />
-        ))}
-      </div>
-    );
+    return <ListRowsSkeleton rows={3} rowClassName="h-20" />;
   }
 
   if (!journals || journals.length === 0) {

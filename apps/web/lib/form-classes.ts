@@ -9,6 +9,9 @@ export const form = {
   calloutInfo: 'rounded-ios-lg border border-brand-gold/30 bg-brand-gold/10 p-4',
   calloutWarning: 'rounded-ios-lg border border-amber-500/35 bg-amber-500/15 p-4',
   calloutDestructive: 'rounded-ios-lg border border-red-500/30 bg-red-500/10 p-4',
+  checkbox:
+    'rounded border-white/25 bg-white/5 text-brand-gold focus:ring-brand-gold focus:ring-offset-0',
+  checkboxLabel: 'text-sm font-medium text-label-secondary',
 };
 
 /** Light card forms on the public gradient (login, register, support). */
@@ -76,4 +79,8 @@ export const publicForm = {
   faqAnswer: 'text-gray-600 text-sm leading-relaxed',
   faqChevronMuted: 'w-5 h-5 shrink-0 text-gray-400',
   sectionDivider: 'pt-6 border-t border-gray-200',
+  /** Landing page light sections on gradient */
+  marketingMuted: 'text-xs text-gray-600',
+  marketingBody: 'text-sm text-gray-600',
+  marketingBodyLg: 'text-gray-600 text-sm md:text-base leading-relaxed',
 };

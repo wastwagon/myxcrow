@@ -1,12 +1,15 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDate, formatCurrency } from '@/lib/utils';
 import { Star, CheckCircle, User, Calendar, TrendingUp, Shield } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { form } from '@/lib/form-classes';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { ProfilePageSkeleton } from '@/components/LoadingSkeleton';
 
 interface PublicProfile {
   userId: string;
@@ -32,7 +35,14 @@ interface PublicProfile {
 
 export default function PublicProfilePage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
   const { userId } = router.query;
+
+  const refreshProfile = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['public-profile', userId] });
+    await queryClient.invalidateQueries({ queryKey: ['user-ratings', userId] });
+  };
 
   const { data: profile, isLoading } = useQuery<PublicProfile>({
     queryKey: ['public-profile', userId],
@@ -55,10 +65,7 @@ export default function PublicProfilePage() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="space-y-6">
-          <div className="h-32 bg-white/10 animate-pulse rounded-ios-lg" />
-          <div className="h-64 bg-white/10 animate-pulse rounded-ios-lg" />
-        </div>
+        <ProfilePageSkeleton />
       </Layout>
     );
   }
@@ -99,7 +106,7 @@ export default function PublicProfilePage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshProfile} disabled={!isMobile} className="space-y-6">
         {/* Profile Header */}
         <div className={form.panel}>
           <div className="flex items-start justify-between">
@@ -254,7 +261,7 @@ export default function PublicProfilePage() {
             </div>
           </div>
         )}
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

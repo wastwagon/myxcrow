@@ -29,6 +29,9 @@ import { useConfirm, usePrompt } from '@/components/providers/UIProvider';
 import { Button } from '@/components/ui/Button';
 import { NavBar } from '@/components/ui/NavBar';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { PageDetailSkeleton } from '@/components/LoadingSkeleton';
 
 interface Shipment {
   id: string;
@@ -85,6 +88,11 @@ export default function EscrowDetailPage() {
   const [deliveryCodeInput, setDeliveryCodeInput] = useState('');
   const [activeTab, setActiveTab] = useState<'timeline' | 'ledger' | 'milestones' | 'messages'>('timeline');
   const [ratingModal, setRatingModal] = useState<{ isOpen: boolean; rateeId?: string; rateeName?: string; role?: 'buyer' | 'seller' }>({ isOpen: false });
+  const isMobile = useIsMobileNav();
+
+  const refreshEscrow = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['escrow', id] });
+  };
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -285,10 +293,7 @@ export default function EscrowDetailPage() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="space-y-6">
-          <div className="h-8 bg-white/10 animate-pulse rounded-ios w-1/3" />
-          <div className="h-64 bg-white/10 animate-pulse rounded-ios-xl" />
-        </div>
+        <PageDetailSkeleton />
       </Layout>
     );
   }
@@ -317,7 +322,7 @@ export default function EscrowDetailPage() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshEscrow} disabled={!isMobile} className="space-y-6">
         <div className="xl:hidden -mx-4 -mt-6 mb-2">
           <NavBar title="Escrow" showBack />
         </div>
@@ -602,7 +607,7 @@ export default function EscrowDetailPage() {
             role={ratingModal.role}
           />
         )}
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

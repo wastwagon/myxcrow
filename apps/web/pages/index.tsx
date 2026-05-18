@@ -6,6 +6,7 @@ import { useRouter } from 'next/router';
 import { Shield, Lock, Zap, Users, ArrowRight, CheckCircle2, MapPin, X, ChevronRight } from 'lucide-react';
 import { isAuthenticated } from '@/lib/auth';
 import PublicHeader from '@/components/PublicHeader';
+import { publicForm } from '@/lib/form-classes';
 
 const HOW_IT_WORKS = [
   { step: 1, title: 'Agree on terms', desc: 'Buyer and seller agree on the amount, goods or services, and delivery terms before starting.' },
@@ -99,7 +100,7 @@ export default function Home() {
               ].map((badge) => (
                 <div key={badge.label} className="bg-white/95 rounded-xl px-4 py-3 md:py-4 border border-brand-gold/20 text-center">
                   <p className="text-sm font-semibold text-brand-maroon-black">{badge.label}</p>
-                  <p className="text-xs text-gray-600 mt-0.5">{badge.sub}</p>
+                  <p className={`${publicForm.marketingMuted} mt-0.5`}>{badge.sub}</p>
                 </div>
               ))}
             </div>
@@ -144,7 +145,7 @@ export default function Home() {
                         <Icon className="w-5 h-5 text-brand-maroon" />
                       </div>
                       <h3 className="font-semibold text-brand-maroon-black mb-2">{uc.title}</h3>
-                      <p className="text-sm text-gray-600">{uc.desc}</p>
+                      <p className={publicForm.marketingBody}>{uc.desc}</p>
                     </div>
                   );
                 })}
@@ -164,7 +165,7 @@ export default function Home() {
                       <Icon className="w-6 h-6 text-brand-maroon" />
                     </div>
                     <h3 className="text-lg font-semibold text-brand-maroon-black mb-2">{feature.title}</h3>
-                    <p className="text-sm text-gray-600">{feature.description}</p>
+                    <p className={publicForm.marketingBody}>{feature.description}</p>
                   </div>
                 );
               })}
@@ -175,7 +176,7 @@ export default function Home() {
               <h2 className="text-2xl md:text-3xl font-bold text-brand-maroon-black mb-4 text-center">
                 Simple, transparent pricing
               </h2>
-              <p className="text-gray-600 text-center max-w-2xl mx-auto mb-6">
+              <p className={`${publicForm.marketingBody} text-center max-w-2xl mx-auto mb-6`}>
                 A small percentage fee on each successful transaction. No subscriptions, no hidden charges. Fees are shown before you confirm. See our <Link href="/terms" className="text-brand-maroon font-semibold hover:underline">Terms</Link> for details.
               </p>
               <div className="flex flex-wrap justify-center gap-6 text-sm">
@@ -213,7 +214,7 @@ export default function Home() {
                       </span>
                       <ChevronRight className="flex-shrink-0 w-5 h-5 text-brand-gold/70 group-hover:text-brand-maroon group-hover:translate-x-0.5 transition-all" />
                     </div>
-                    <p className="mt-2 text-gray-500 text-xs line-clamp-2">{faq.a}</p>
+                    <p className={`mt-2 ${publicForm.marketingMuted} line-clamp-2`}>{faq.a}</p>
                   </button>
                 ))}
               </div>
@@ -250,7 +251,7 @@ export default function Home() {
                       <X className="w-5 h-5" />
                     </button>
                   </div>
-                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">{faqModal.a}</p>
+                  <p className={publicForm.marketingBodyLg}>{faqModal.a}</p>
                   <div className="mt-6 flex justify-end">
                     <Link
                       href="/support"

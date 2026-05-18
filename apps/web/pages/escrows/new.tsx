@@ -279,8 +279,8 @@ export default function CreateEscrowPage() {
             <h3 className="text-sm font-semibold text-label-primary mb-2">Delivery confirmation</h3>
             <p className="text-xs text-label-tertiary mb-3">Default: reference + delivery code. Or use a <strong>transaction PIN</strong>: only you (the person creating this transaction) set this PIN. At delivery, entering the PIN confirms the <strong>rightful owner</strong> of the transaction before escrow funds are auto-released.</p>
             <label className="flex items-center gap-2 cursor-pointer mb-3">
-              <input type="checkbox" {...register('useDeliveryPin')} className="rounded border-gray-300 text-brand-maroon focus:ring-brand-gold" />
-              <span className="text-sm font-medium text-label-secondary">Use PIN to confirm delivery (auto-generate secure PIN for this escrow)</span>
+              <input type="checkbox" {...register('useDeliveryPin')} className={form.checkbox} />
+              <span className={form.checkboxLabel}>Use PIN to confirm delivery (auto-generate secure PIN for this escrow)</span>
             </label>
             {useDeliveryPin && (
               <div className="mt-2">
@@ -355,7 +355,7 @@ export default function CreateEscrowPage() {
                 {...register('useMilestones')}
                 type="checkbox"
                 id="useMilestones"
-                className="w-4 h-4 text-brand-gold border-gray-300 rounded focus:ring-brand-gold"
+                className={`w-4 h-4 ${form.checkbox}`}
               />
               <label htmlFor="useMilestones" className="ml-2 text-sm font-medium text-label-secondary">
                 Use Milestone Payments

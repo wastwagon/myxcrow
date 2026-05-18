@@ -32,6 +32,7 @@ import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
 interface ProfileData {
@@ -198,11 +199,7 @@ export default function ProfilePage() {
 
         <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 space-y-6 shadow-xl shadow-black/10">
           {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-white/10 animate-pulse rounded-xl" />
-              ))}
-            </div>
+            <ListRowsSkeleton rows={3} rowClassName="h-16" />
           ) : (
             <>
               <div className="flex items-center gap-4 pb-6 border-b border-white/10">

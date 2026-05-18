@@ -5,6 +5,7 @@ import { CheckCircle, Clock, DollarSign, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getUser } from '@/lib/auth';
 import { useConfirm } from '@/components/providers/UIProvider';
+import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 
 interface Milestone {
   id: string;
@@ -124,13 +125,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
   };
 
   if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-24 bg-white/10 animate-pulse rounded-ios" />
-        ))}
-      </div>
-    );
+    return <ListRowsSkeleton rows={3} rowClassName="h-24" />;
   }
 
   if (!milestones || milestones.length === 0) {

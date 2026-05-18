@@ -9,6 +9,7 @@ import { DollarSign, Clock, ArrowUpCircle, ArrowDownCircle, Loader2, Plus, Users
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
 interface Wallet {
@@ -160,11 +161,7 @@ export default function WalletPage() {
           </div>
           <div className="p-6">
             {fundingLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-white/10 animate-pulse rounded-xl" />
-                ))}
-              </div>
+              <ListRowsSkeleton rows={3} rowClassName="h-16" />
             ) : fundingHistory && fundingHistory.length > 0 ? (
               <div className="space-y-4">
                 {fundingHistory.map((funding) => (
@@ -205,11 +202,7 @@ export default function WalletPage() {
           </div>
           <div className="p-6">
             {withdrawalLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 bg-white/10 animate-pulse rounded-xl" />
-                ))}
-              </div>
+              <ListRowsSkeleton rows={3} rowClassName="h-16" />
             ) : withdrawalHistory && withdrawalHistory.length > 0 ? (
               <div className="space-y-4">
                 {withdrawalHistory.map((withdrawal) => (

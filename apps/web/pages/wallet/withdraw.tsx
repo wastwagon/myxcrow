@@ -12,10 +12,9 @@ import { ArrowUpCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
-
-const inputClass =
-  'w-full px-4 py-3 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none';
-const labelClass = 'block text-ios-footnote font-medium text-label-secondary mb-1.5';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { form } from '@/lib/form-classes';
 
 const withdrawalSchema = z.object({
   amountCents: z.number().min(100, 'Amount must be at least 1.00'),
@@ -33,6 +32,11 @@ type WithdrawalFormData = z.infer<typeof withdrawalSchema>;
 export default function WithdrawPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobileNav();
+
+  const refreshWithdraw = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['wallet'] });
+  };
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -100,7 +104,7 @@ export default function WithdrawPage() {
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto space-y-6">
+      <PullToRefresh onRefresh={refreshWithdraw} disabled={!isMobile} className="max-w-2xl mx-auto space-y-6">
         <PageHeader
           title="Request withdrawal"
           subtitle="Withdraw funds from your wallet"
@@ -123,7 +127,7 @@ export default function WithdrawPage() {
           className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 space-y-6"
         >
           <div>
-            <label htmlFor="amountCents" className={labelClass}>
+            <label htmlFor="amountCents" className={form.label}>
               Amount (₵) *
             </label>
             <input
@@ -134,7 +138,7 @@ export default function WithdrawPage() {
               min="1"
               max={availableBalance}
               placeholder="100.00"
-              className={inputClass}
+              className={form.input}
             />
             {errors.amountCents && (
               <p className="mt-1 text-sm text-red-400">{errors.amountCents.message}</p>
@@ -142,10 +146,10 @@ export default function WithdrawPage() {
           </div>
 
           <div>
-            <label htmlFor="methodType" className={labelClass}>
+            <label htmlFor="methodType" className={form.label}>
               Withdrawal method *
             </label>
-            <select {...register('methodType')} id="methodType" className={inputClass}>
+            <select {...register('methodType')} id="methodType" className={form.input}>
               <option value="BANK_ACCOUNT">Bank transfer</option>
               <option value="MOBILE_MONEY">Mobile money</option>
             </select>
@@ -157,7 +161,7 @@ export default function WithdrawPage() {
           {methodType === 'BANK_ACCOUNT' && (
             <>
               <div>
-                <label htmlFor="accountNumber" className={labelClass}>
+                <label htmlFor="accountNumber" className={form.label}>
                   Account number *
                 </label>
                 <input
@@ -165,14 +169,14 @@ export default function WithdrawPage() {
                   type="text"
                   id="accountNumber"
                   placeholder="1234567890"
-                  className={inputClass}
+                  className={form.input}
                 />
                 {errors.accountNumber && (
                   <p className="mt-1 text-sm text-red-400">{errors.accountNumber.message}</p>
                 )}
               </div>
               <div>
-                <label htmlFor="bankName" className={labelClass}>
+                <label htmlFor="bankName" className={form.label}>
                   Bank name
                 </label>
                 <input
@@ -180,7 +184,7 @@ export default function WithdrawPage() {
                   type="text"
                   id="bankName"
                   placeholder="e.g., GCB Bank"
-                  className={inputClass}
+                  className={form.input}
                 />
               </div>
             </>
@@ -189,7 +193,7 @@ export default function WithdrawPage() {
           {methodType === 'MOBILE_MONEY' && (
             <>
               <div>
-                <label htmlFor="mobileNumber" className={labelClass}>
+                <label htmlFor="mobileNumber" className={form.label}>
                   Mobile number *
                 </label>
                 <input
@@ -197,17 +201,17 @@ export default function WithdrawPage() {
                   type="tel"
                   id="mobileNumber"
                   placeholder="0244123456"
-                  className={inputClass}
+                  className={form.input}
                 />
                 {errors.mobileNumber && (
                   <p className="mt-1 text-sm text-red-400">{errors.mobileNumber.message}</p>
                 )}
               </div>
               <div>
-                <label htmlFor="network" className={labelClass}>
+                <label htmlFor="network" className={form.label}>
                   Network *
                 </label>
-                <select {...register('network')} id="network" className={inputClass}>
+                <select {...register('network')} id="network" className={form.input}>
                   <option value="">Select network</option>
                   <option value="MTN">MTN</option>
                   <option value="VODAFONE">Vodafone</option>
@@ -236,7 +240,7 @@ export default function WithdrawPage() {
             </Button>
           </div>
         </form>
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }

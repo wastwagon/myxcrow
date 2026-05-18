@@ -10,6 +10,10 @@ import { toast } from 'react-hot-toast';
 import DisputeSLATimer from '@/components/DisputeSLATimer';
 import { useConfirm } from '@/components/providers/UIProvider';
 import { Button } from '@/components/ui/Button';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { StatusBadge } from '@/components/StatusBadge';
+import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { ListRowsSkeleton, PageDetailSkeleton } from '@/components/LoadingSkeleton';
 
 interface Dispute {
   id: string;
@@ -39,6 +43,16 @@ export default function DisputeDetailPage() {
   const user = getUser();
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const isMobile = useIsMobileNav();
+
+  const refreshDispute = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['dispute', id] });
+    await queryClient.invalidateQueries({ queryKey: ['dispute-messages', id] });
+    const cached = queryClient.getQueryData<{ escrowId?: string }>(['dispute', id]);
+    if (cached?.escrowId) {
+      await queryClient.invalidateQueries({ queryKey: ['escrow', cached.escrowId] });
+    }
+  };
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -157,10 +171,7 @@ export default function DisputeDetailPage() {
   if (isLoading) {
     return (
       <Layout>
-        <div className="space-y-6">
-          <div className="h-8 bg-white/10 animate-pulse rounded-ios w-1/3" />
-          <div className="h-64 bg-white/10 animate-pulse rounded-ios-xl" />
-        </div>
+        <PageDetailSkeleton />
       </Layout>
     );
   }
@@ -176,21 +187,12 @@ export default function DisputeDetailPage() {
     );
   }
 
-  const statusColors: Record<string, string> = {
-    OPEN: 'bg-yellow-500/20 text-yellow-200 border border-yellow-500/30',
-    NEGOTIATION: 'bg-amber-500/20 text-amber-200 border border-amber-500/30',
-    MEDIATION: 'bg-orange-500/20 text-orange-200 border border-orange-500/30',
-    ARBITRATION: 'bg-orange-500/20 text-orange-200 border border-orange-500/30',
-    RESOLVED: 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30',
-    CLOSED: 'bg-white/10 text-label-secondary border border-white/15',
-  };
-
   const canSendMessage = dispute.status === 'OPEN';
   const isAdminUser = isAdmin();
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <PullToRefresh onRefresh={refreshDispute} disabled={!isMobile} className="space-y-6">
         <div>
           <button
             onClick={() => router.back()}
@@ -198,18 +200,12 @@ export default function DisputeDetailPage() {
           >
             ← Back
           </button>
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-label-primary">Dispute Details</h1>
               <p className="text-label-secondary mt-1">ID: {dispute.id}</p>
             </div>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${
-                statusColors[dispute.status] || 'bg-white/10 text-label-primary border border-white/15'
-              }`}
-            >
-              {dispute.status}
-            </span>
+            <StatusBadge status={dispute.status} />
           </div>
         </div>
 
@@ -282,11 +278,7 @@ export default function DisputeDetailPage() {
           </div>
           <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
             {messagesLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-20 bg-white/10 animate-pulse rounded-ios-lg" />
-                ))}
-              </div>
+              <ListRowsSkeleton rows={3} rowClassName="h-20" />
             ) : messages && messages.length > 0 ? (
               messages.map((msg) => (
                 <div
@@ -400,7 +392,7 @@ export default function DisputeDetailPage() {
             </form>
           </div>
         )}
-      </div>
+      </PullToRefresh>
     </Layout>
   );
 }
