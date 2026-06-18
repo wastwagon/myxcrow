@@ -24,7 +24,7 @@ services:
     runtime: node
     plan: starter
     region: oregon
-    buildCommand: pnpm install --no-frozen-lockfile && cd services/api && pnpm build && ls -lah dist/
+    buildCommand: pnpm install --no-frozen-lockfile --config.production=false && pnpm --filter @myxcrow/shared build && cd services/api && pnpm build && ls -lah dist/
     startCommand: cd services/api && node dist/src/main.js
     preDeployCommand: cd services/api && npx prisma migrate deploy
     healthCheckPath: /api/health/readiness
@@ -105,7 +105,7 @@ services:
     runtime: node
     plan: starter
     region: oregon
-    buildCommand: pnpm install --no-frozen-lockfile && cd apps/web && pnpm build
+    buildCommand: pnpm install --no-frozen-lockfile --config.production=false && pnpm --filter @myxcrow/shared build && cd apps/web && pnpm build
     startCommand: cd apps/web && pnpm start
     envVars:
       - key: NODE_ENV

@@ -1,10 +1,15 @@
 export type WithdrawalMethodType = 'BANK_ACCOUNT' | 'MOBILE_MONEY';
 
-export {
-  GHANA_BANKS,
-  MOBILE_MONEY_NETWORKS,
+import {
+  GHANA_BANKS as SHARED_GHANA_BANKS,
+  MOBILE_MONEY_NETWORKS as SHARED_MOBILE_MONEY_NETWORKS,
+  type GhanaBank,
+  type MobileMoneyNetwork,
 } from '@myxcrow/shared';
-export type { MobileMoneyNetwork } from '@myxcrow/shared';
+
+export const GHANA_BANKS: readonly GhanaBank[] = SHARED_GHANA_BANKS;
+export const MOBILE_MONEY_NETWORKS = SHARED_MOBILE_MONEY_NETWORKS;
+export type { MobileMoneyNetwork };
 
 import {
   formatWithdrawalMethodLabel,

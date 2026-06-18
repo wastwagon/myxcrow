@@ -3,6 +3,7 @@ import { Building2, Smartphone } from 'lucide-react';
 import { form } from '@/lib/form-classes';
 import { cn } from '@/lib/utils';
 import { GHANA_BANKS, MOBILE_MONEY_NETWORKS } from '@/lib/withdrawal-payout';
+import type { GhanaBank } from '@myxcrow/shared';
 import type { PayoutDetailsFormData } from '@/lib/payout-form-schema';
 
 interface PayoutDetailsFieldsProps {
@@ -72,7 +73,7 @@ export function PayoutDetailsFields({
               <option value="" disabled>
                 Select your bank
               </option>
-              {GHANA_BANKS.map((bank) => (
+              {GHANA_BANKS.map((bank: GhanaBank) => (
                 <option key={bank} value={bank}>
                   {bank}
                 </option>
