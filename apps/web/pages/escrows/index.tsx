@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, getUser } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
@@ -22,6 +22,9 @@ interface Escrow {
   id: string;
   status: string;
   amountCents: number;
+  fundingAmountCents?: number;
+  netAmountCents?: number;
+  buyerFeeCents?: number;
   currency: string;
   description: string;
   createdAt: string;
@@ -33,6 +36,7 @@ export default function EscrowsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
+  const user = getUser();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -301,7 +305,14 @@ export default function EscrowsPage() {
           </div>
         ) : escrows && escrows.length > 0 ? (
           <ListGroup>
-            {escrows.map((escrow) => (
+            {escrows.map((escrow) => {
+              const isBuyer = user?.id === escrow.buyerId;
+              const displayCents = isBuyer
+                ? escrow.fundingAmountCents || escrow.amountCents + (escrow.buyerFeeCents ?? 0)
+                : escrow.netAmountCents ?? escrow.amountCents;
+              const amountLabel = isBuyer ? 'Funded' : 'Receive';
+
+              return (
               <SwipeableListRow
                 key={escrow.id}
                 disabled={!isMobile}
@@ -314,8 +325,9 @@ export default function EscrowsPage() {
                 subtitle={
                   <>
                     <span className="text-label-primary font-medium">
-                      {formatCurrency(escrow.amountCents, 'GHS')}
+                      {formatCurrency(displayCents, 'GHS')}
                     </span>
+                    <span className="text-label-tertiary text-xs ml-1">({amountLabel})</span>
                     {' · '}
                     {escrow.id.slice(0, 8)}… · {formatDateShort(escrow.createdAt)}
                   </>
@@ -323,7 +335,8 @@ export default function EscrowsPage() {
                 trailing={<StatusBadge status={escrow.status} />}
                 />
               </SwipeableListRow>
-            ))}
+            );
+            })}
           </ListGroup>
         ) : (
           <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] p-12 text-center">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated } from '@/lib/auth';
@@ -13,6 +13,8 @@ import { toast } from 'react-hot-toast';
 import { form } from '@/lib/form-classes';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
+import EscrowFeeSummary from '@/components/EscrowFeeSummary';
+import { calculateEscrowFees } from '@/lib/fee-calculator';
 
 const milestoneSchema = z.object({
   name: z.string().min(1, 'Milestone name is required'),
@@ -81,6 +83,11 @@ export default function CreateEscrowPage() {
       return [];
     },
     enabled: false,
+  });
+
+  const { data: feeSettings } = useQuery({
+    queryKey: ['fee-settings'],
+    queryFn: async () => (await apiClient.get('/settings/fees')).data,
   });
 
   const {
@@ -177,6 +184,11 @@ export default function CreateEscrowPage() {
   const totalMilestoneAmount = milestones?.reduce((sum, m) => sum + (m.amountCents || 0), 0) || 0;
   const remainingAmount = (amountCents || 0) - totalMilestoneAmount;
 
+  const feePreview = useMemo(() => {
+    if (!feeSettings || !amountCents || amountCents < 1) return null;
+    return calculateEscrowFees(Math.round(amountCents * 100), feeSettings);
+  }, [amountCents, feeSettings]);
+
   if (!isAuthenticated()) {
     return null;
   }
@@ -227,7 +239,7 @@ export default function CreateEscrowPage() {
               className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent"
             />
             {errors.description && (
-              <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.description.message}</p>
             )}
           </div>
 
@@ -277,7 +289,7 @@ export default function CreateEscrowPage() {
 
           <div className="border-t border-white/10 pt-4">
             <h3 className="text-sm font-semibold text-label-primary mb-2">Delivery confirmation</h3>
-            <p className="text-xs text-label-tertiary mb-3">Default: reference + delivery code. Or use a <strong>transaction PIN</strong>: only you (the person creating this transaction) set this PIN. At delivery, entering the PIN confirms the <strong>rightful owner</strong> of the transaction before escrow funds are auto-released.</p>
+            <p className="text-xs text-label-tertiary mb-3">Default: reference + delivery code. Or use a <strong>transaction PIN</strong>: you and the seller will see this PIN on the escrow details so it can be written on the parcel. At delivery, entering the PIN confirms the transaction before funds auto-release.</p>
             <label className="flex items-center gap-2 cursor-pointer mb-3">
               <input type="checkbox" {...register('useDeliveryPin')} className={form.checkbox} />
               <span className={form.checkboxLabel}>Use PIN to confirm delivery (auto-generate secure PIN for this escrow)</span>
@@ -307,9 +319,9 @@ export default function CreateEscrowPage() {
                     <Copy className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="mt-1 text-xs text-label-tertiary">This PIN is auto-generated and locked (not editable). Keep it safe and share only with someone authorized to confirm delivery.</p>
+                <p className="mt-1 text-xs text-label-tertiary">This PIN is saved on your escrow details and shared with the seller for parcel labelling. You can view it anytime before delivery.</p>
                 {errors.deliveryPin && (
-                  <p className="mt-1 text-sm text-red-600">{errors.deliveryPin.message}</p>
+                  <p className="mt-1 text-sm text-red-400">{errors.deliveryPin.message}</p>
                 )}
               </div>
             )}
@@ -333,7 +345,7 @@ export default function CreateEscrowPage() {
                 Enter amount in Ghana Cedis
               </p>
               {errors.amountCents && (
-                <p className="mt-1 text-sm text-red-600">{errors.amountCents.message}</p>
+                <p className="mt-1 text-sm text-red-400">{errors.amountCents.message}</p>
               )}
             </div>
 
@@ -342,10 +354,15 @@ export default function CreateEscrowPage() {
             </div>
           </div>
 
+          {feePreview && <EscrowFeeSummary fees={feePreview} />}
+
           <div className="p-4 border border-brand-gold/30 bg-brand-gold/10 rounded-lg">
             <p className="text-sm text-label-primary">
-                <strong>Note:</strong> The escrow will be funded immediately from your wallet balance.
-                Make sure you have sufficient funds.
+                <strong>Note:</strong> The escrow will be funded from your wallet balance.
+                {feePreview && feePreview.buyerFeeCents > 0 && (
+                  <> You will be charged <strong>{CURRENCY_SYMBOL} {(feePreview.fundingAmountCents / 100).toFixed(2)}</strong> (deal amount + your fee share).</>
+                )}
+                {' '}Make sure you have sufficient funds.
               </p>
           </div>
 
@@ -374,7 +391,7 @@ export default function CreateEscrowPage() {
                       <button
                         type="button"
                         onClick={() => remove(index)}
-                        className="text-red-600 hover:text-red-800"
+                        className="text-red-400 hover:text-red-300"
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -390,7 +407,7 @@ export default function CreateEscrowPage() {
                           placeholder="e.g., Phase 1, Design Complete"
                         />
                         {errors.milestones?.[index]?.name && (
-                          <p className="mt-1 text-xs text-red-600">
+                          <p className="mt-1 text-xs text-red-400">
                             {errors.milestones[index]?.name?.message}
                           </p>
                         )}
@@ -417,7 +434,7 @@ export default function CreateEscrowPage() {
                             className="w-full px-3 py-2 text-sm border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold"
                           />
                           {errors.milestones?.[index]?.targetDate && (
-                            <p className="mt-1 text-xs text-red-600">
+                            <p className="mt-1 text-xs text-red-400">
                               {errors.milestones[index]?.targetDate?.message as string}
                             </p>
                           )}
@@ -435,7 +452,7 @@ export default function CreateEscrowPage() {
                             placeholder="5"
                           />
                           {errors.milestones?.[index]?.approvalWindowDays && (
-                            <p className="mt-1 text-xs text-red-600">
+                            <p className="mt-1 text-xs text-red-400">
                               {errors.milestones[index]?.approvalWindowDays?.message as string}
                             </p>
                           )}
@@ -454,7 +471,7 @@ export default function CreateEscrowPage() {
                           placeholder="0.00"
                         />
                         {errors.milestones?.[index]?.amountCents && (
-                          <p className="mt-1 text-xs text-red-600">
+                          <p className="mt-1 text-xs text-red-400">
                             {errors.milestones[index]?.amountCents?.message}
                           </p>
                         )}
@@ -466,7 +483,7 @@ export default function CreateEscrowPage() {
                 <button
                   type="button"
                   onClick={addMilestone}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-brand-gold border border-blue-300 rounded-lg hover:bg-brand-gold/10"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-brand-gold border border-brand-gold/40 rounded-lg hover:bg-brand-gold/15 font-medium transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   Add Milestone
@@ -476,16 +493,16 @@ export default function CreateEscrowPage() {
                   <div className="p-4 bg-white/5 border border-white/10 rounded-lg">
                     <div className="flex justify-between text-sm">
                       <span className="text-label-secondary">Total Milestones:</span>
-                      <span className="font-medium">{CURRENCY_SYMBOL} {totalMilestoneAmount.toFixed(2)}</span>
+                      <span className="font-medium text-white">{CURRENCY_SYMBOL} {totalMilestoneAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm mt-2">
                       <span className="text-label-secondary">Remaining Amount:</span>
-                      <span className={`font-medium ${remainingAmount < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      <span className={`font-medium ${remainingAmount < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
                         {CURRENCY_SYMBOL} {remainingAmount.toFixed(2)}
                       </span>
                     </div>
                     {remainingAmount < 0 && (
-                      <p className="mt-2 text-xs text-red-600">
+                      <p className="mt-2 text-xs text-red-400">
                         Total milestone amounts exceed escrow amount
                       </p>
                     )}
@@ -493,7 +510,7 @@ export default function CreateEscrowPage() {
                 )}
 
                 {errors.milestones && (
-                  <p className="text-sm text-red-600">{errors.milestones.message}</p>
+                  <p className="text-sm text-red-400">{errors.milestones.message}</p>
                 )}
               </div>
             )}

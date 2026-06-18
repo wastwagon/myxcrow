@@ -1,29 +1,23 @@
 #!/bin/bash
-
-# Database seeding script for local development
-# This script seeds the database with test users and transactions
+# Seed database via registration API container or local API directory
 
 set -e
 
-echo "🌱 Seeding database with test data..."
-echo ""
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# Check if API container is running
-if ! docker ps | grep -q escrow_api; then
-    echo "❌ API container is not running!"
-    echo "Please start services first: ./setup-local.sh"
-    exit 1
+if docker ps --format '{{.Names}}' | grep -q '^myxcrow_reg_api$'; then
+  echo "🌱 Seeding via myxcrow_reg_api container..."
+  docker exec myxcrow_reg_api sh -c 'cd /usr/src/app && pnpm seed'
+elif docker ps --format '{{.Names}}' | grep -q '^escrow_api$'; then
+  echo "🌱 Seeding via escrow_api container..."
+  docker exec escrow_api pnpm seed
+else
+  echo "🌱 Seeding locally (services/api)..."
+  cd "$ROOT/services/api"
+  if [ -f "$ROOT/.env" ]; then set -a; source "$ROOT/.env"; set +a; fi
+  pnpm seed
 fi
 
-# Run seed script
-echo "Running seed script..."
-docker exec escrow_api pnpm seed
-
 echo ""
-echo "✅ Database seeded successfully!"
-echo ""
-echo "📝 Test Accounts:"
-echo "   Admin: admin@myxcrow.com / password123"
-echo "   Users: buyer1@test.com through buyer5@test.com (password: password123)"
-echo "   Users: seller1@test.com through seller5@test.com (password: password123)"
-
+echo "✅ Database seeded"
+echo "   buyer1@test.com / seller1@test.com — password: password123"

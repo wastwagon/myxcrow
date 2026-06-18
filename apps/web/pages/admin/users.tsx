@@ -178,7 +178,7 @@ export default function AdminUsersPage() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshUsers} disabled={!isMobile} className="space-y-6">
+      <PullToRefresh onRefresh={refreshUsers} disabled={!isMobile} className="space-y-5">
         <PageHeader
           title="User Management"
           subtitle="View and manage all platform users"
@@ -186,61 +186,46 @@ export default function AdminUsersPage() {
           gradient="purple"
         />
 
-        {/* Filters */}
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-white/50" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search by email, name..."
-                className="w-full pl-10 pr-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
-              />
+        <div className={admin.tableWrap}>
+          <div className={admin.tableToolbar}>
+            <div className="grid md:grid-cols-2 gap-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search by email, name..."
+                  className={`${admin.input} pl-9`}
+                />
+              </div>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className={admin.select}
+              >
+                <option value="all">All Roles</option>
+                <option value="ADMIN">Admin</option>
+                <option value="BUYER">Buyer</option>
+                <option value="SELLER">Seller</option>
+                <option value="AUDITOR">Auditor</option>
+                <option value="SUPPORT">Support</option>
+              </select>
             </div>
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
-            >
-              <option value="all">All Roles</option>
-              <option value="ADMIN">Admin</option>
-              <option value="BUYER">Buyer</option>
-              <option value="SELLER">Seller</option>
-              <option value="AUDITOR">Auditor</option>
-              <option value="SUPPORT">Support</option>
-            </select>
           </div>
-        </div>
-
-        {/* Users Table */}
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white/5 border-b border-white/10">
+              <thead className={admin.tableHead}>
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    KYC Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    Joined
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th className={admin.th}>User</th>
+                  <th className={admin.th}>Role</th>
+                  <th className={admin.th}>KYC Status</th>
+                  <th className={admin.th}>Status</th>
+                  <th className={admin.th}>Joined</th>
+                  <th className={admin.th}>Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className={admin.tbody}>
                 {isLoading ? (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center">
@@ -447,7 +432,7 @@ export default function AdminUsersPage() {
             </table>
           </div>
           {usersData && (
-            <div className="px-6 py-4 bg-white/5 border-t border-white/10">
+            <div className={admin.footerBar}>
               <p className="text-sm text-white/70">
                 Showing <span className="font-medium">{usersData.users.length}</span> of{' '}
                 <span className="font-medium">{usersData.total}</span> users

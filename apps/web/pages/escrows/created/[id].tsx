@@ -8,6 +8,7 @@ import apiClient from '@/lib/api-client';
 import { CheckCircle2, Copy, Shield } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
+import EscrowFeeSummary from '@/components/EscrowFeeSummary';
 
 export default function EscrowCreatedPage() {
   const router = useRouter();
@@ -40,6 +41,25 @@ export default function EscrowCreatedPage() {
     return formatCurrency(escrow.amountCents, escrow.currency || 'GHS');
   }, [escrow]);
 
+  const feeSummary = useMemo(() => {
+    if (!escrow?.amountCents) return null;
+    return {
+      amountCents: escrow.amountCents,
+      feeCents: escrow.feeCents ?? 0,
+      feePercentage: escrow.feePercentage ?? 0,
+      buyerFeeCents: escrow.buyerFeeCents ?? 0,
+      sellerFeeCents: escrow.sellerFeeCents ?? escrow.feeCents ?? 0,
+      fundingAmountCents: escrow.fundingAmountCents || escrow.amountCents,
+      netAmountCents: escrow.netAmountCents ?? escrow.amountCents,
+      paidBy: escrow.feePaidBy || 'seller',
+    };
+  }, [escrow]);
+
+  const fundAmountText = useMemo(() => {
+    if (!feeSummary) return amountText;
+    return formatCurrency(feeSummary.fundingAmountCents, escrow?.currency || 'GHS');
+  }, [feeSummary, amountText, escrow?.currency]);
+
   if (!isAuthenticated()) return null;
 
   return (
@@ -57,15 +77,25 @@ export default function EscrowCreatedPage() {
           </div>
 
           <div className="mt-6 grid sm:grid-cols-2 gap-4 text-sm">
-            <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+            <div className="rounded-xl bg-white/5 border border-white/10 p-4 sm:col-span-2">
               <p className="text-white/60">Escrow ID</p>
               <p className="text-white font-medium break-all">{id}</p>
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 p-4">
-              <p className="text-white/60">Amount</p>
+              <p className="text-white/60">Deal amount</p>
               <p className="text-white font-medium">{amountText || '—'}</p>
             </div>
+            <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+              <p className="text-white/60">To fund from wallet</p>
+              <p className="text-white font-medium">{fundAmountText || '—'}</p>
+            </div>
           </div>
+
+          {feeSummary && feeSummary.feeCents > 0 && (
+            <div className="mt-4">
+              <EscrowFeeSummary fees={feeSummary} />
+            </div>
+          )}
 
           {generatedPin && (
             <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 p-4">
@@ -74,7 +104,7 @@ export default function EscrowCreatedPage() {
                 Delivery PIN (auto-generated)
               </div>
               <p className="text-sm text-amber-800 mb-2">
-                This PIN confirms the rightful owner at delivery before auto-release. Save it now.
+                This PIN confirms delivery before auto-release. It is also saved on your escrow details page.
               </p>
               <div className="flex items-center gap-2">
                 <code className="font-mono text-lg font-bold text-amber-950 bg-amber-100 px-3 py-1 rounded">{generatedPin}</code>

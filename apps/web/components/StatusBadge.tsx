@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { formatStatus } from '@/lib/constants';
+import { formatStatus, WITHDRAWAL_STATUS_COLORS, formatWithdrawalStatusLabel } from '@/lib/constants';
 
 interface StatusBadgeProps {
   status: string;
@@ -175,6 +175,29 @@ export function StatusBadge({ status, className, onDark = true }: StatusBadgePro
       )}
     >
       {label}
+    </span>
+  );
+}
+
+const defaultWithdrawalColor =
+  'bg-white/10 text-white/80 border-white/20';
+
+export function WithdrawalStatusBadge({
+  status,
+  className,
+}: {
+  status: string;
+  className?: string;
+}) {
+  return (
+    <span
+      className={cn(
+        'px-2.5 py-0.5 text-ios-caption font-medium rounded-full border',
+        WITHDRAWAL_STATUS_COLORS[status] ?? defaultWithdrawalColor,
+        className,
+      )}
+    >
+      {formatWithdrawalStatusLabel(status)}
     </span>
   );
 }

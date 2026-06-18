@@ -8,6 +8,7 @@ import { formatCurrency } from '@/lib/utils';
 import { DollarSign, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
+import { admin } from '@/components/admin/adminClasses';
 import { StatusBadge } from '@/components/StatusBadge';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
@@ -192,21 +193,21 @@ export default function ReconciliationPage() {
             <h2 className="text-xl font-semibold text-white mb-4">Escrows by Status</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-white/80">Status</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-white/80">Count</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-white/80">Total Amount</th>
+                <thead className={admin.tableHead}>
+                  <tr>
+                    <th className={`${admin.th} text-left`}>Status</th>
+                    <th className={`${admin.th} text-right`}>Count</th>
+                    <th className={`${admin.th} text-right`}>Total Amount</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className={admin.tbody}>
                   {summary.escrowsByStatus.map((item) => (
-                    <tr key={item.status} className="border-b hover:bg-white/5">
-                      <td className="py-3 px-4">
+                    <tr key={item.status} className={admin.trHover}>
+                      <td className={admin.td}>
                         <StatusBadge status={item.status} />
                       </td>
-                      <td className="py-3 px-4 text-right font-medium">{item.count}</td>
-                      <td className="py-3 px-4 text-right font-medium">
+                      <td className={`${admin.td} text-right font-medium`}>{item.count}</td>
+                      <td className={`${admin.td} text-right font-medium`}>
                         {formatCurrency(item.totalAmountCents, 'GHS')}
                       </td>
                     </tr>
@@ -227,27 +228,27 @@ export default function ReconciliationPage() {
             <h2 className="text-xl font-semibold text-white mb-4">Escrows by Currency</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-white/80">Currency</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-white/80">Count</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-white/80">Total Amount</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-white/80">Total Fees</th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-white/80">Net Amount</th>
+                <thead className={admin.tableHead}>
+                  <tr>
+                    <th className={`${admin.th} text-left`}>Currency</th>
+                    <th className={`${admin.th} text-right`}>Count</th>
+                    <th className={`${admin.th} text-right`}>Total Amount</th>
+                    <th className={`${admin.th} text-right`}>Total Fees</th>
+                    <th className={`${admin.th} text-right`}>Net Amount</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className={admin.tbody}>
                   {summary.escrowsByCurrency.map((item) => (
-                    <tr key={item.currency} className="border-b hover:bg-white/5">
-                      <td className="py-3 px-4 font-medium">₵</td>
-                      <td className="py-3 px-4 text-right">{item.count}</td>
-                      <td className="py-3 px-4 text-right font-medium">
+                    <tr key={item.currency} className={admin.trHover}>
+                      <td className={`${admin.td} font-medium`}>₵</td>
+                      <td className={`${admin.td} text-right`}>{item.count}</td>
+                      <td className={`${admin.td} text-right font-medium`}>
                         {formatCurrency(item.totalAmountCents, 'GHS')}
                       </td>
-                      <td className="py-3 px-4 text-right text-white/70">
+                      <td className={`${admin.td} text-right ${admin.tdMuted}`}>
                         {formatCurrency(item.totalFeesCents, 'GHS')}
                       </td>
-                      <td className="py-3 px-4 text-right font-medium">
+                      <td className={`${admin.td} text-right font-medium`}>
                         {formatCurrency(item.totalNetAmountCents, 'GHS')}
                       </td>
                     </tr>

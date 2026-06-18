@@ -10,6 +10,15 @@ import { AuditService } from '../audit/audit.service';
 import { LedgerHelperService } from '../payments/ledger-helper.service';
 import { EmailService } from '../email/email.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { formatCurrency } from '../../common/utils/format-currency';
+import { EncryptionService } from '../../common/crypto/encryption.service';
+import {
+  encryptPayoutDetailsForStorage,
+  serializeWithdrawalForAdmin,
+  serializeWithdrawalForUser,
+  validatePayoutDetails,
+} from './withdrawal-payout.util';
+import { PayoutMethodService } from './payout-method.service';
 
 @Injectable()
 export class WalletService {
@@ -21,6 +30,8 @@ export class WalletService {
     private ledgerHelper: LedgerHelperService,
     private emailService: EmailService,
     private notificationsService: NotificationsService,
+    private encryptionService: EncryptionService,
+    private payoutMethodService: PayoutMethodService,
   ) {}
 
   /**
@@ -336,11 +347,35 @@ export class WalletService {
    */
   async requestWithdrawal(data: {
     userId: string;
-    methodType: WithdrawalMethod;
-    methodDetails: any;
     amountCents: number;
     feeCents?: number;
+    payoutMethodId?: string;
+    methodType?: WithdrawalMethod;
+    methodDetails?: Record<string, unknown>;
+    savePayoutMethod?: boolean;
+    payoutLabel?: string;
   }) {
+    let methodType = data.methodType;
+    let payoutDetails;
+
+    if (data.payoutMethodId) {
+      const saved = await this.payoutMethodService.getDecryptedForUser(
+        data.userId,
+        data.payoutMethodId,
+      );
+      methodType = saved.methodType;
+      payoutDetails = saved.details;
+    } else {
+      if (!methodType || !data.methodDetails) {
+        throw new BadRequestException('Select a saved payout method or enter payout details');
+      }
+      payoutDetails = validatePayoutDetails(methodType, data.methodDetails);
+    }
+
+    if (!methodType || methodType === WithdrawalMethod.MANUAL) {
+      throw new BadRequestException('Manual withdrawals are not available for users');
+    }
+
     const wallet = await this.getOrCreateWallet(data.userId);
     const feeCents = data.feeCents || 0;
 
@@ -348,12 +383,18 @@ export class WalletService {
       throw new BadRequestException('Insufficient available balance for withdrawal');
     }
 
+    const payoutDetailsValidated = payoutDetails;
+    const encryptedDetails = encryptPayoutDetailsForStorage(
+      payoutDetailsValidated,
+      this.encryptionService,
+    );
+
     const withdrawal = await this.prisma.$transaction(async (tx) => {
       const w = await tx.withdrawal.create({
         data: {
           walletId: wallet.id,
-          methodType: data.methodType,
-          methodDetails: data.methodDetails,
+          methodType,
+          methodDetails: encryptedDetails,
           amountCents: data.amountCents,
           feeCents,
           status: WithdrawalStatus.REQUESTED,
@@ -383,12 +424,57 @@ export class WalletService {
       action: 'withdrawal_request',
       resource: 'withdrawal',
       resourceId: withdrawal.id,
-      details: { amountCents: data.amountCents, methodType: data.methodType, status: withdrawal.status },
+      details: { amountCents: data.amountCents, methodType, status: withdrawal.status },
       beforeState: { availableCents: wallet.availableCents },
       afterState: { availableCents: wallet.availableCents - (data.amountCents + feeCents) },
     });
 
-    return withdrawal;
+    const user = await this.prisma.user.findUnique({
+      where: { id: data.userId },
+      select: { email: true, phone: true },
+    });
+
+    if (user?.email) {
+      const amount = formatCurrency(data.amountCents, wallet.currency);
+      const currency = wallet.currency ?? 'GHS';
+
+      try {
+        await Promise.all([
+          this.notificationsService.sendWithdrawalRequestedAdminNotifications({
+            userEmail: user.email,
+            userPhone: user.phone,
+            amount,
+            currency,
+            withdrawalId: withdrawal.id,
+            methodType,
+          }),
+          this.notificationsService.sendWithdrawalRequestedUserNotifications({
+            email: user.email,
+            phone: user.phone,
+            amount,
+            currency,
+            withdrawalId: withdrawal.id,
+          }),
+        ]);
+      } catch (err: any) {
+        this.logger.warn(`Failed to send withdrawal-request notifications: ${err.message}`);
+      }
+    }
+
+    if (data.savePayoutMethod && !data.payoutMethodId) {
+      try {
+        await this.payoutMethodService.createFromValidatedDetails(
+          data.userId,
+          methodType,
+          payoutDetailsValidated,
+          data.payoutLabel,
+        );
+      } catch (err: any) {
+        this.logger.warn(`Failed to save payout method: ${err.message}`);
+      }
+    }
+
+    return serializeWithdrawalForUser(withdrawal, this.encryptionService);
   }
 
   /**
@@ -400,6 +486,10 @@ export class WalletService {
     succeeded: boolean,
     reason?: string,
   ) {
+    if (!succeeded && !reason?.trim()) {
+      throw new BadRequestException('A reason is required when denying a withdrawal');
+    }
+
     const withdrawal = await this.prisma.withdrawal.findUnique({
       where: { id: withdrawalId },
       include: { wallet: { include: { user: true } } },
@@ -454,7 +544,7 @@ export class WalletService {
     const user = (withdrawal.wallet as any).user;
     const email = user?.email ?? '';
     const phone = user?.phone ?? null;
-    const amount = `${withdrawal.amountCents / 100}`;
+    const amount = formatCurrency(withdrawal.amountCents, withdrawal.wallet.currency ?? 'GHS');
     const currency = withdrawal.wallet.currency ?? 'GHS';
 
     if (email) {
@@ -480,7 +570,54 @@ export class WalletService {
       }
     }
 
-    return updated;
+    return serializeWithdrawalForAdmin(
+      { ...updated, wallet: withdrawal.wallet },
+      this.encryptionService,
+    );
+  }
+
+  /**
+   * Get withdrawal history
+   */
+  async getWithdrawalHistory(userId: string, limit: number = 50) {
+    const wallet = await this.getWallet(userId);
+    const rows = await this.prisma.withdrawal.findMany({
+      where: { walletId: wallet.id },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+
+    return rows.map((row) => serializeWithdrawalForUser(row, this.encryptionService));
+  }
+
+  /**
+   * Get a single withdrawal with full payout details (admin)
+   */
+  async getWithdrawalForAdmin(withdrawalId: string) {
+    const withdrawal = await this.prisma.withdrawal.findUnique({
+      where: { id: withdrawalId },
+      include: {
+        wallet: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                phone: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!withdrawal) {
+      throw new NotFoundException('Withdrawal not found');
+    }
+
+    return serializeWithdrawalForAdmin(withdrawal, this.encryptionService);
   }
 
   /**
@@ -489,18 +626,6 @@ export class WalletService {
   async getFundingHistory(userId: string, limit: number = 50) {
     const wallet = await this.getWallet(userId);
     return this.prisma.walletFunding.findMany({
-      where: { walletId: wallet.id },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-    });
-  }
-
-  /**
-   * Get withdrawal history
-   */
-  async getWithdrawalHistory(userId: string, limit: number = 50) {
-    const wallet = await this.getWallet(userId);
-    return this.prisma.withdrawal.findMany({
       where: { walletId: wallet.id },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -880,6 +1005,7 @@ export class WalletService {
                 select: {
                   id: true,
                   email: true,
+                  phone: true,
                   firstName: true,
                   lastName: true,
                 },
@@ -895,7 +1021,9 @@ export class WalletService {
     ]);
 
     return {
-      withdrawals,
+      withdrawals: withdrawals.map((row) =>
+        serializeWithdrawalForAdmin(row, this.encryptionService),
+      ),
       total,
       limit,
       offset,

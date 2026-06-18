@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "description": "MYXCROW Escrow Platform - Full Stack Application",
-  "workspaces": ["apps/*", "services/*"],
+  "workspaces": ["apps/*", "services/*", "packages/*"],
   "scripts": {
     "dev": "echo 'Use docker-compose for local development'",
     "build": "echo 'Build individual services'",

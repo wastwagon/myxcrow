@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { calculateEscrowFees } from '../../common/utils/fee-calculator';
 
 interface DefaultSettings {
   fees: {
@@ -40,7 +41,7 @@ export class SettingsService implements OnModuleInit {
       fees: {
         percentage: 2.0,
         fixedCents: 0,
-        paidBy: 'buyer',
+        paidBy: 'split',
       },
       security: {
         rateLimitRequestsPerMinute: 60,
@@ -111,7 +112,7 @@ export class SettingsService implements OnModuleInit {
   }
 
   async getFeeSettings() {
-    const defaults = { percentage: 2, fixedCents: 0, paidBy: 'buyer' };
+    const defaults = { percentage: 2, fixedCents: 0, paidBy: 'split' };
     try {
       const [percentage, fixedCents, paidBy] = await Promise.all([
         this.prisma.platformSettings.findUnique({ where: { key: 'fees.percentage' } }),
@@ -131,15 +132,7 @@ export class SettingsService implements OnModuleInit {
 
   async calculateFee(amountCents: number) {
     const feeSettings = await this.getFeeSettings();
-    const percentageFee = Math.round((amountCents * feeSettings.percentage) / 100);
-    const totalFee = percentageFee + feeSettings.fixedCents;
-    const netAmount = amountCents - totalFee;
-
-    return {
-      feeCents: totalFee,
-      feePercentage: feeSettings.percentage,
-      netAmountCents: netAmount,
-    };
+    return calculateEscrowFees(amountCents, feeSettings);
   }
 
   async getRateLimitConfig(): Promise<number> {

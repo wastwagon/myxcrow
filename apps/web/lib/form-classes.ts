@@ -4,7 +4,7 @@ export const form = {
     'rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6',
   label: 'block text-ios-footnote font-medium text-label-secondary mb-1.5',
   input:
-    'w-full px-4 py-3 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none',
+    'w-full px-4 py-3 border border-white/20 rounded-ios-lg bg-white/5 text-white placeholder:text-white/45 focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none',
   inputError: 'mt-1 text-sm text-red-400',
   calloutInfo: 'rounded-ios-lg border border-brand-gold/30 bg-brand-gold/10 p-4',
   calloutWarning: 'rounded-ios-lg border border-amber-500/35 bg-amber-500/15 p-4',

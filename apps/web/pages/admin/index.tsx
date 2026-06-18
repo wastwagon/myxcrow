@@ -27,6 +27,7 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { AdminIconBadge } from '@/components/admin/AdminIconBadge';
+import { admin } from '@/components/admin/adminClasses';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -169,7 +170,7 @@ export default function AdminDashboard() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshAdmin} disabled={!isMobile} className="space-y-6">
+      <PullToRefresh onRefresh={refreshAdmin} disabled={!isMobile} className="space-y-5">
         {/* Header */}
         <PageHeader
           title="Admin Dashboard"
@@ -178,16 +179,16 @@ export default function AdminDashboard() {
           action={
             <Link
               href="/admin/users"
-              className="px-4 py-2 bg-brand-maroon text-white rounded-lg hover:bg-brand-maroon-dark font-medium shadow-sm transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-brand-gold text-brand-maroon-black rounded-lg hover:bg-brand-gold/90 font-semibold shadow-sm transition-all"
             >
-              <Users className="w-4 h-4 inline mr-2" />
+              <Users className="w-4 h-4" />
               Manage Users
             </Link>
           }
         />
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           <MetricCard
             label="Total escrows"
             value={stats.totalEscrows}
@@ -219,7 +220,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Secondary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           <MetricCard
             label="Active escrows"
             value={stats.activeEscrows}
@@ -246,8 +247,8 @@ export default function AdminDashboard() {
         {/* Last 24 Hours Stats */}
         {statsData && (
           <div>
-            <h2 className="text-xl font-bold text-white mb-4">Last 24 Hours</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <h2 className={admin.sectionTitle}>Last 24 Hours</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-4 border-l-4 border-emerald-500">
                 <h3 className="text-xs font-semibold text-white/55 uppercase">Wallet Top-ups</h3>
                 <p className="text-xl font-bold text-white mt-1">
@@ -280,111 +281,89 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Quick Actions */}
         <div>
-          <h2 className="text-2xl font-bold text-white mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Link
-              href="/admin/wallet/credit"
-              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-green-200 group"
-            >
-              <div className="flex items-center gap-4">
-                <AdminIconBadge variant="emerald" className="group-hover:scale-110 transition-transform">
+          <h2 className={admin.sectionTitle}>Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link href="/admin/wallet/credit" className={admin.actionCard}>
+              <div className="flex items-center gap-3">
+                <AdminIconBadge variant="emerald" className="group-hover:scale-105 transition-transform shrink-0">
                   <DollarSign />
                 </AdminIconBadge>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white">Credit Wallet</h3>
-                  <p className="text-sm text-white/70">Add funds to user wallet</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-white">Credit Wallet</h3>
+                  <p className="text-sm text-white/65">Add funds to user wallet</p>
                 </div>
               </div>
             </Link>
 
-            <Link
-              href="/admin/wallet/debit"
-              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-red-200 group"
-            >
-              <div className="flex items-center gap-4">
-                <AdminIconBadge variant="destructive" className="group-hover:scale-110 transition-transform">
+            <Link href="/admin/wallet/debit" className={admin.actionCard}>
+              <div className="flex items-center gap-3">
+                <AdminIconBadge variant="destructive" className="group-hover:scale-105 transition-transform shrink-0">
                   <DollarSign />
                 </AdminIconBadge>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white">Debit Wallet</h3>
-                  <p className="text-sm text-white/70">Deduct funds from wallet</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-white">Debit Wallet</h3>
+                  <p className="text-sm text-white/65">Deduct funds from wallet</p>
                 </div>
               </div>
             </Link>
 
-            <Link
-              href="/admin/users"
-              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-purple-200 group"
-            >
-              <div className="flex items-center gap-4">
-                <AdminIconBadge variant="maroon" className="group-hover:scale-110 transition-transform">
+            <Link href="/admin/users" className={admin.actionCard}>
+              <div className="flex items-center gap-3">
+                <AdminIconBadge variant="maroon" className="group-hover:scale-105 transition-transform shrink-0">
                   <Users />
                 </AdminIconBadge>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white">User Management</h3>
-                  <p className="text-sm text-white/70">View and manage users</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-white">User Management</h3>
+                  <p className="text-sm text-white/65">View and manage users</p>
                 </div>
               </div>
             </Link>
 
-            <Link
-              href="/disputes"
-              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-orange-200 group"
-            >
-              <div className="flex items-center gap-4">
-                <AdminIconBadge variant="amber" className="group-hover:scale-110 transition-transform">
+            <Link href="/disputes" className={admin.actionCard}>
+              <div className="flex items-center gap-3">
+                <AdminIconBadge variant="amber" className="group-hover:scale-105 transition-transform shrink-0">
                   <AlertCircle />
                 </AdminIconBadge>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white">Manage Disputes</h3>
-                  <p className="text-sm text-white/70">Resolve conflicts</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-white">Manage Disputes</h3>
+                  <p className="text-sm text-white/65">Resolve conflicts</p>
                 </div>
               </div>
             </Link>
 
-            <Link
-              href="/escrows"
-              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-200 group"
-            >
-              <div className="flex items-center gap-4">
-                <AdminIconBadge variant="gold" className="group-hover:scale-110 transition-transform">
+            <Link href="/escrows" className={admin.actionCard}>
+              <div className="flex items-center gap-3">
+                <AdminIconBadge variant="gold" className="group-hover:scale-105 transition-transform shrink-0">
                   <FileText />
                 </AdminIconBadge>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white">All Escrows</h3>
-                  <p className="text-sm text-white/70">View all agreements</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-white">All Escrows</h3>
+                  <p className="text-sm text-white/65">View all agreements</p>
                 </div>
               </div>
             </Link>
 
-            <Link
-              href="/admin/withdrawals"
-              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-yellow-200 group"
-            >
-              <div className="flex items-center gap-4">
-                <AdminIconBadge variant="gold" className="group-hover:scale-110 transition-transform">
+            <Link href="/admin/withdrawals" className={admin.actionCard}>
+              <div className="flex items-center gap-3">
+                <AdminIconBadge variant="gold" className="group-hover:scale-105 transition-transform shrink-0">
                   <ArrowUpCircle />
                 </AdminIconBadge>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white">Withdrawals</h3>
-                  <p className="text-sm text-white/70">Approve/deny requests</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-white">Withdrawals</h3>
+                  <p className="text-sm text-white/65">Approve/deny requests</p>
                 </div>
               </div>
             </Link>
 
-            <Link
-              href="/admin/settings"
-              className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6 hover:shadow-xl transition-all border-2 border-transparent hover:border-white/10 group"
-            >
-              <div className="flex items-center gap-4">
-                <AdminIconBadge variant="muted" className="group-hover:scale-110 transition-transform">
+            <Link href="/admin/settings" className={admin.actionCard}>
+              <div className="flex items-center gap-3">
+                <AdminIconBadge variant="muted" className="group-hover:scale-105 transition-transform shrink-0">
                   <Settings />
                 </AdminIconBadge>
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-white">Settings</h3>
-                  <p className="text-sm text-white/70">Platform configuration</p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-semibold text-white">Settings</h3>
+                  <p className="text-sm text-white/65">Platform configuration</p>
                 </div>
               </div>
             </Link>
@@ -392,16 +371,14 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           {/* Recent Top-ups */}
           {statsData?.recentTransactions && statsData.recentTransactions.length > 0 && (
-            <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
-              <div className="p-6 border-b border-white/10">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-white">Recent Top-ups</h2>
-                </div>
+            <div className={admin.panel}>
+              <div className="px-4 py-3 border-b border-white/10">
+                <h2 className="text-base font-semibold text-white">Recent Top-ups</h2>
               </div>
-              <div className="p-6 max-h-64 overflow-y-auto">
+              <div className="p-4 max-h-64 overflow-y-auto">
                 <div className="space-y-3">
                   {statsData.recentTransactions.slice(0, 8).map((tx: any) => (
                     <div key={tx.id} className="flex items-center justify-between py-2 border-b border-white/10 last:border-0">
@@ -426,37 +403,32 @@ export default function AdminDashboard() {
           )}
 
           {/* Recent Escrows */}
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
-            <div className="p-6 border-b border-white/10">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">Recent Escrows</h2>
-                <Link
-                  href="/escrows"
-                  className="text-brand-gold hover:text-brand-gold/80 text-sm font-medium"
-                >
-                  View all →
-                </Link>
-              </div>
+          <div className={admin.panel}>
+            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-white">Recent Escrows</h2>
+              <Link href="/escrows" className={admin.linkAccent}>
+                View all →
+              </Link>
             </div>
-            <div className="p-6">
+            <div className="p-4">
               {escrowsLoading ? (
                 <div className="space-y-4">
                   <ListRowsSkeleton rows={3} rowClassName="h-16" />
                 </div>
               ) : recentEscrows.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {recentEscrows.map((escrow: any) => (
                     <Link
                       key={escrow.id}
                       href={`/escrows/${escrow.id}`}
-                      className="block p-4 border border-white/10 rounded-ios-lg hover:border-brand-gold/35 hover:bg-white/10 transition-all"
+                      className="block p-3 border border-white/10 rounded-ios-lg hover:border-brand-gold/35 hover:bg-white/10 transition-all"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-white">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-white text-sm truncate">
                             {escrow.description || 'Escrow Agreement'}
                           </p>
-                          <p className="text-sm text-white/70 mt-1">
+                          <p className="text-xs text-white/60 mt-0.5">
                             {formatCurrency(escrow.amountCents, 'GHS')}
                           </p>
                         </div>
@@ -481,47 +453,42 @@ export default function AdminDashboard() {
           </div>
 
           {/* Recent Disputes */}
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
-            <div className="p-6 border-b border-white/10">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">Open Disputes</h2>
-                <Link
-                  href="/disputes"
-                  className="text-brand-gold hover:text-brand-gold/80 text-sm font-medium"
-                >
-                  View all →
-                </Link>
-              </div>
+          <div className={admin.panel}>
+            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-white">Open Disputes</h2>
+              <Link href="/disputes" className={admin.linkAccent}>
+                View all →
+              </Link>
             </div>
-            <div className="p-6">
+            <div className="p-4">
               {disputesLoading ? (
-                <div className="space-y-4">
-                  <ListRowsSkeleton rows={3} rowClassName="h-16" />
+                <div className="space-y-3">
+                  <ListRowsSkeleton rows={3} rowClassName="h-14" />
                 </div>
               ) : recentDisputes.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {recentDisputes.map((dispute: any) => (
                     <Link
                       key={dispute.id}
                       href={`/disputes/${dispute.id}`}
-                      className="block p-4 border-2 border-orange-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-all"
+                      className="block p-3 border border-amber-500/35 rounded-ios-lg hover:border-amber-500/55 hover:bg-amber-500/10 transition-all"
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1">
-                          <p className="font-medium text-white">Dispute #{dispute.id.slice(0, 8)}</p>
-                          <p className="text-sm text-white/70 mt-1">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-white text-sm">Dispute #{dispute.id.slice(0, 8)}</p>
+                          <p className="text-xs text-white/60 mt-0.5 truncate">
                             {dispute.reason} • {dispute.escrowId.slice(0, 8)}
                           </p>
                         </div>
-                        <AlertCircle className="w-5 h-5 text-orange-600" />
+                        <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
                       </div>
                     </Link>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-white/55">
-                  <CheckCircle className="w-12 h-12 mx-auto mb-3 text-green-400" />
-                  <p>No open disputes</p>
+                <div className="text-center py-6 text-white/55">
+                  <CheckCircle className="w-10 h-10 mx-auto mb-2 text-emerald-400" />
+                  <p className="text-sm">No open disputes</p>
                 </div>
               )}
             </div>

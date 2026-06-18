@@ -5,6 +5,7 @@ import { WalletService } from '../wallet/wallet.service';
 import { LedgerHelperService } from '../payments/ledger-helper.service';
 import { AuditService } from '../audit/audit.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { proportionalSellerFeeCents, netSellerPayoutCents } from '../../common/utils/fee-calculator';
 
 @Injectable()
 export class MilestoneEscrowService {
@@ -127,27 +128,48 @@ export class MilestoneEscrowService {
       throw new BadRequestException('Milestone must be approved before release');
     }
 
-    // Release milestone amount to seller wallet
-    if (milestone.escrow.sellerWalletId) {
+    // Release milestone amount to seller wallet (net of proportional seller fee)
+    const sellerFeePortion = proportionalSellerFeeCents(
+      milestone.amountCents,
+      milestone.escrow.amountCents,
+      milestone.escrow.sellerFeeCents ?? 0,
+    );
+    const netMilestoneCents = netSellerPayoutCents(
+      milestone.amountCents,
+      milestone.escrow.amountCents,
+      milestone.escrow.sellerFeeCents ?? 0,
+    );
+
+    if (milestone.escrow.sellerWalletId && netMilestoneCents > 0) {
       try {
-        // releaseToSeller expects wallet ID, not user ID
         const sellerWallet = await this.prisma.wallet.findUnique({
           where: { id: milestone.escrow.sellerWalletId },
         });
-        
+
         if (sellerWallet) {
           await this.walletService.releaseToSeller(
             milestone.escrow.sellerWalletId,
-            milestone.amountCents,
+            netMilestoneCents,
             `${escrowId}_milestone_${milestoneId}`,
           );
         }
       } catch (error: any) {
-        // If wallet service fails, still update milestone status
-        // but log the error
         console.error('Error releasing funds to seller wallet:', error.message);
       }
     }
+
+    await this.auditService.log({
+      userId,
+      action: 'milestone_released',
+      resource: 'escrow_milestone',
+      resourceId: milestoneId,
+      details: {
+        escrowId,
+        grossCents: milestone.amountCents,
+        sellerFeeCents: sellerFeePortion,
+        netCents: netMilestoneCents,
+      },
+    });
 
     return this.prisma.escrowMilestone.update({
       where: { id: milestoneId },

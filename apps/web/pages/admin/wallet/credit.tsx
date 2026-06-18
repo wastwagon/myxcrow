@@ -185,7 +185,7 @@ export default function CreditWalletPage() {
                   }}
                   onFocus={() => setShowUserSearch(true)}
                   placeholder="Search by email or name..."
-                  className="w-full pl-10 pr-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
+                  className={`${admin.input} pl-10`}
                 />
                 {showUserSearch && searchTerm && (
                   <div className={admin.searchDropdown}>
@@ -217,7 +217,7 @@ export default function CreditWalletPage() {
             )}
             <input type="hidden" {...register('userId')} />
             {errors.userId && (
-              <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.userId.message}</p>
             )}
           </div>
 
@@ -235,16 +235,16 @@ export default function CreditWalletPage() {
                 step="0.01"
                 min="0.01"
                 placeholder="100.00"
-                className="w-full pl-16 pr-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none text-lg font-semibold"
+                className={`${admin.input} pl-16 text-lg font-semibold`}
               />
             </div>
             {amountGHS && (
               <p className="mt-2 text-sm text-white/55">
-                Will credit: <span className="font-medium">{Math.round(amountGHS * 100).toLocaleString()}</span> cents
+                Will credit: <span className="font-medium text-white">{Math.round(amountGHS * 100).toLocaleString()}</span> cents
               </p>
             )}
             {errors.amountCents && (
-              <p className="mt-1 text-sm text-red-600">{errors.amountCents.message}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.amountCents.message}</p>
             )}
           </div>
 
@@ -258,7 +258,7 @@ export default function CreditWalletPage() {
               id="description"
               rows={3}
               placeholder="e.g., Manual top-up - Bank transfer reference #12345"
-              className="w-full px-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none resize-none"
+              className={admin.input}
             />
           </div>
 

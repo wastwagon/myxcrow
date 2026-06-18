@@ -5,7 +5,8 @@ import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { DollarSign, Clock, ArrowUpCircle, ArrowDownCircle, Loader2, Plus, Users, Wallet as WalletIcon } from 'lucide-react';
+import { formatPayoutSummary, formatWithdrawalStatusLabel } from '@/lib/withdrawal-payout';
+import { DollarSign, Clock, ArrowUpCircle, ArrowDownCircle, Loader2, Plus, Users, Wallet as WalletIcon, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
@@ -136,6 +137,13 @@ export default function WalletPage() {
               Top Up Wallet
             </Link>
             <Link
+              href="/wallet/payout-methods"
+              className="min-h-[48px] px-4 py-3 rounded-ios-lg bg-white/10 text-white border border-white/15 hover:bg-white/15 flex items-center justify-center gap-2 touch-manipulation font-medium transition-colors"
+            >
+              <Building2 className="w-4 h-4" />
+              Payout methods
+            </Link>
+            <Link
               href="/wallet/withdraw"
               className="min-h-[48px] px-4 py-3 rounded-ios-lg bg-brand-gold text-brand-maroon-black hover:bg-brand-gold/90 flex items-center justify-center gap-2 touch-manipulation font-semibold transition-colors"
             >
@@ -205,21 +213,32 @@ export default function WalletPage() {
               <ListRowsSkeleton rows={3} rowClassName="h-16" />
             ) : withdrawalHistory && withdrawalHistory.length > 0 ? (
               <div className="space-y-4">
-                {withdrawalHistory.map((withdrawal) => (
-                  <div key={withdrawal.id} className="flex items-center justify-between p-4 border border-white/10 rounded-xl bg-white/5">
-                    <div className="flex items-center gap-4">
-                      <ArrowUpCircle className="w-5 h-5 text-red-400" />
-                      <div>
+                {withdrawalHistory.map((withdrawal: any) => (
+                  <div key={withdrawal.id} className="flex items-center justify-between p-4 border border-white/10 rounded-xl bg-white/5 gap-4">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <ArrowUpCircle className="w-5 h-5 text-red-400 shrink-0" />
+                      <div className="min-w-0">
                         <p className="font-medium text-white">
                           {formatCurrency(withdrawal.amountCents, 'GHS')}
                         </p>
-                        <p className="text-sm text-white/70">
-                          {withdrawal.methodType} • {formatDate(withdrawal.createdAt)}
+                        <p className="text-sm text-white/70 truncate">
+                          {withdrawal.methodLabel || withdrawal.methodType} •{' '}
+                          {formatPayoutSummary(
+                            withdrawal.methodType,
+                            withdrawal.methodDetails,
+                            withdrawal.payoutSummary,
+                          )}
                         </p>
+                        <p className="text-xs text-white/50 mt-0.5">
+                          {formatDate(withdrawal.createdAt)}
+                        </p>
+                        {withdrawal.status === 'FAILED' && withdrawal.failureReason && (
+                          <p className="text-xs text-red-400 mt-1">{withdrawal.failureReason}</p>
+                        )}
                       </div>
                     </div>
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded ${
+                      className={`px-2 py-1 text-xs font-medium rounded shrink-0 ${
                         withdrawal.status === 'SUCCEEDED'
                           ? 'bg-emerald-500/20 text-emerald-400'
                           : withdrawal.status === 'FAILED'
@@ -227,7 +246,7 @@ export default function WalletPage() {
                           : 'bg-amber-500/20 text-amber-400'
                       }`}
                     >
-                      {withdrawal.status}
+                      {formatWithdrawalStatusLabel(withdrawal.status)}
                     </span>
                   </div>
                 ))}

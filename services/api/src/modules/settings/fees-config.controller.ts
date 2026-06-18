@@ -7,12 +7,11 @@ import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { UserRole } from '@prisma/client';
 
 @Controller('settings/fees')
-@UseGuards(JwtAuthGuard)
 export class FeesConfigController {
   constructor(private readonly settingsService: SettingsService) {}
 
   @Put()
-  @UseGuards(RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   async updateFeeSettings(
     @Body() data: {

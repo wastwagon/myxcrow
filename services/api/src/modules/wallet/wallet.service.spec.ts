@@ -6,6 +6,8 @@ import { AuditService } from '../audit/audit.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { LedgerHelperService } from '../payments/ledger-helper.service';
 import { EmailService } from '../email/email.service';
+import { EncryptionService } from '../../common/crypto/encryption.service';
+import { PayoutMethodService } from './payout-method.service';
 
 describe('WalletService', () => {
   let service: WalletService;
@@ -57,8 +59,10 @@ describe('WalletService', () => {
   };
 
   const mockNotificationsService = {
-    sendWithdrawalRequestedNotification: jest.fn().mockResolvedValue(undefined),
-    sendWithdrawalApprovedNotification: jest.fn().mockResolvedValue(undefined),
+    sendWithdrawalRequestedAdminNotifications: jest.fn().mockResolvedValue(undefined),
+    sendWithdrawalRequestedUserNotifications: jest.fn().mockResolvedValue(undefined),
+    sendWithdrawalApprovedNotifications: jest.fn().mockResolvedValue(undefined),
+    sendWithdrawalDeniedNotifications: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockLedgerHelper = {
@@ -67,6 +71,17 @@ describe('WalletService', () => {
   };
 
   const mockEmailService = {};
+
+  const mockEncryptionService = {
+    encrypt: jest.fn((value: string) => `enc:${value}`),
+    decrypt: jest.fn((value: string) => (value.startsWith('enc:') ? value.slice(4) : value)),
+    isEncrypted: jest.fn((value: string) => value.startsWith('enc:')),
+  };
+
+  const mockPayoutMethodService = {
+    getDecryptedForUser: jest.fn(),
+    createFromValidatedDetails: jest.fn().mockResolvedValue(undefined),
+  };
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -82,6 +97,8 @@ describe('WalletService', () => {
         { provide: NotificationsService, useValue: mockNotificationsService },
         { provide: LedgerHelperService, useValue: mockLedgerHelper },
         { provide: EmailService, useValue: mockEmailService },
+        { provide: EncryptionService, useValue: mockEncryptionService },
+        { provide: PayoutMethodService, useValue: mockPayoutMethodService },
       ],
     }).compile();
 
@@ -207,25 +224,113 @@ describe('WalletService', () => {
         id: 'withdrawal-id-123',
         walletId: 'wallet-id-123',
         amountCents: 50000,
+        feeCents: 0,
         status: 'REQUESTED',
+        methodType: 'BANK_ACCOUNT',
+        methodDetails: {
+          accountName: 'Test User',
+          accountNumber: 'enc:1234567890',
+          bankName: 'GCB Bank',
+        },
+        createdAt: new Date(),
       };
       mockPrismaService.withdrawal.create.mockResolvedValue(mockWithdrawal);
       mockPrismaService.wallet.update.mockResolvedValue({ ...mockWallet, availableCents: 50000 });
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        email: 'test@example.com',
+        phone: '+233551234567',
+      });
 
       const result = await service.requestWithdrawal({
         userId: 'user-id-123',
         amountCents: 50000,
-        methodType: 'BANK_ACCOUNT',
+        methodType: 'BANK_ACCOUNT' as const,
         methodDetails: {
-          accountNumber: '1234567890',
           accountName: 'Test User',
-          bankName: 'Test Bank',
+          accountNumber: '1234567890',
+          bankName: 'GCB Bank',
         },
       });
 
       expect(result).toHaveProperty('id', 'withdrawal-id-123');
       expect(mockPrismaService.withdrawal.create).toHaveBeenCalled();
       expect(auditService.log).toHaveBeenCalled();
+      expect(mockNotificationsService.sendWithdrawalRequestedAdminNotifications).toHaveBeenCalled();
+      expect(mockNotificationsService.sendWithdrawalRequestedUserNotifications).toHaveBeenCalled();
+    });
+
+    it('should use saved payout method when payoutMethodId is provided', async () => {
+      mockPayoutMethodService.getDecryptedForUser.mockResolvedValue({
+        id: 'pm-1',
+        methodType: 'MOBILE_MONEY',
+        details: {
+          mobileNumber: '0551234567',
+          network: 'MTN',
+        },
+      });
+      mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
+      mockPrismaService.withdrawal.create.mockResolvedValue({
+        id: 'withdrawal-saved',
+        walletId: 'wallet-id-123',
+        amountCents: 25000,
+        feeCents: 0,
+        status: 'REQUESTED',
+        methodType: 'MOBILE_MONEY',
+        methodDetails: { mobileNumber: 'enc:0551234567', network: 'MTN' },
+        createdAt: new Date(),
+      });
+      mockPrismaService.wallet.update.mockResolvedValue({});
+      mockPrismaService.user.findUnique.mockResolvedValue({ email: 'test@example.com', phone: null });
+
+      const result = await service.requestWithdrawal({
+        userId: 'user-id-123',
+        amountCents: 25000,
+        payoutMethodId: 'pm-1',
+      });
+
+      expect(result).toHaveProperty('id', 'withdrawal-saved');
+      expect(mockPayoutMethodService.getDecryptedForUser).toHaveBeenCalledWith('user-id-123', 'pm-1');
+      expect(mockPayoutMethodService.createFromValidatedDetails).not.toHaveBeenCalled();
+    });
+
+    it('should save payout method when savePayoutMethod is true', async () => {
+      mockPrismaService.wallet.findUnique.mockResolvedValue(mockWallet);
+      mockPrismaService.withdrawal.create.mockResolvedValue({
+        id: 'withdrawal-save',
+        walletId: 'wallet-id-123',
+        amountCents: 10000,
+        feeCents: 0,
+        status: 'REQUESTED',
+        methodType: 'BANK_ACCOUNT',
+        methodDetails: {
+          accountName: 'Jane',
+          accountNumber: 'enc:1234567890',
+          bankName: 'GCB Bank',
+        },
+        createdAt: new Date(),
+      });
+      mockPrismaService.wallet.update.mockResolvedValue({});
+      mockPrismaService.user.findUnique.mockResolvedValue({ email: 'test@example.com', phone: null });
+
+      await service.requestWithdrawal({
+        userId: 'user-id-123',
+        amountCents: 10000,
+        methodType: 'BANK_ACCOUNT' as const,
+        methodDetails: {
+          accountName: 'Jane',
+          accountNumber: '1234567890',
+          bankName: 'GCB Bank',
+        },
+        savePayoutMethod: true,
+        payoutLabel: 'Salary',
+      });
+
+      expect(mockPayoutMethodService.createFromValidatedDetails).toHaveBeenCalledWith(
+        'user-id-123',
+        'BANK_ACCOUNT',
+        expect.objectContaining({ bankName: 'GCB Bank' }),
+        'Salary',
+      );
     });
 
     it('should throw BadRequestException for insufficient balance', async () => {
@@ -236,7 +341,11 @@ describe('WalletService', () => {
           userId: 'user-id-123',
           amountCents: 200000,
           methodType: 'BANK_ACCOUNT',
-          methodDetails: {},
+          methodDetails: {
+          accountName: 'Test User',
+          accountNumber: '1234567890',
+          bankName: 'GCB Bank',
+        },
         }),
       ).rejects.toThrow(BadRequestException);
     });
@@ -249,15 +358,30 @@ describe('WalletService', () => {
         amountCents: 50000,
         feeCents: 500,
         status: 'REQUESTED',
+        methodType: 'BANK_ACCOUNT',
+        methodDetails: {
+          accountName: 'Test User',
+          accountNumber: 'enc:1234567890',
+          bankName: 'GCB Bank',
+        },
+        createdAt: new Date(),
       });
       mockPrismaService.wallet.update.mockResolvedValue({});
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        email: 'test@example.com',
+        phone: '+233551234567',
+      });
 
       const result = await service.requestWithdrawal({
         userId: 'user-id-123',
         amountCents: 50000,
         feeCents: 500,
-        methodType: 'BANK_ACCOUNT',
-        methodDetails: {},
+        methodType: 'BANK_ACCOUNT' as const,
+        methodDetails: {
+          accountName: 'Test User',
+          accountNumber: '1234567890',
+          bankName: 'GCB Bank',
+        },
       });
 
       expect(result).toHaveProperty('id');

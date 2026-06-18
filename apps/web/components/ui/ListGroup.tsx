@@ -12,7 +12,7 @@ interface ListGroupProps {
 
 export function ListGroup({ title, footer, children, className }: ListGroupProps) {
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn('space-y-2.5', className)}>
       {title && (
         <p className="px-4 text-ios-footnote font-medium text-label-tertiary uppercase tracking-wide">
           {title}

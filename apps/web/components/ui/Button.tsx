@@ -5,11 +5,11 @@ import { cn } from '@/lib/utils';
 const variants = {
   filled: 'bg-brand-gold text-brand-maroon-black hover:bg-brand-gold/90 active:opacity-80',
   tinted:
-    'bg-brand-gold/20 text-brand-gold border border-brand-gold/35 hover:bg-brand-gold/30 active:opacity-80',
+    'bg-brand-gold/25 text-brand-gold border border-brand-gold/45 hover:bg-brand-gold/35 active:opacity-80 shadow-sm shadow-black/10',
   plain: 'bg-transparent text-brand-gold hover:bg-white/10 active:opacity-80',
-  destructive: 'bg-ios-destructive text-white hover:opacity-90 active:opacity-80',
+  destructive: 'bg-ios-destructive text-white hover:opacity-90 active:opacity-80 shadow-sm shadow-black/15',
   secondary:
-    'bg-white/10 text-white border border-white/15 hover:bg-white/15 active:opacity-80',
+    'bg-white/15 text-white border border-white/25 hover:bg-white/22 active:opacity-80 shadow-sm shadow-black/10',
 } as const;
 
 const sizes = {

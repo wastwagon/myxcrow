@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Param, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Put, Param, Body, Query, UseGuards, BadRequestException } from '@nestjs/common';
 import { SettingsService } from './settings.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -13,6 +13,15 @@ export class SettingsController {
   @Get('fees')
   async getFeeSettings() {
     return this.settingsService.getFeeSettings();
+  }
+
+  @Get('fees/calculate')
+  async calculateFeePreview(@Query('amountCents') amountCents?: string) {
+    const cents = parseInt(amountCents ?? '', 10);
+    if (!Number.isFinite(cents) || cents < 1) {
+      throw new BadRequestException('amountCents must be a positive integer');
+    }
+    return this.settingsService.calculateFee(cents);
   }
 
   @Get(':key')

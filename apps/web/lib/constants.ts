@@ -72,6 +72,25 @@ export const WITHDRAWAL_STATUS_COLORS: Record<string, string> = {
   CANCELED: darkStatus.neutral,
 };
 
+/** User-facing withdrawal method labels (from @myxcrow/shared) */
+export {
+  WITHDRAWAL_METHOD_LABELS,
+  WITHDRAWAL_STATUS_LABELS,
+} from '@myxcrow/shared';
+
+import {
+  WITHDRAWAL_METHOD_LABELS,
+  WITHDRAWAL_STATUS_LABELS,
+} from '@myxcrow/shared';
+
+export function formatWithdrawalMethodLabel(methodType: string): string {
+  return WITHDRAWAL_METHOD_LABELS[methodType] ?? formatStatus(methodType);
+}
+
+export function formatWithdrawalStatusLabel(status: string): string {
+  return WITHDRAWAL_STATUS_LABELS[status] ?? formatStatus(status);
+}
+
 /**
  * KYC Status Colors
  */

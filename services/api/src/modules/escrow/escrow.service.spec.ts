@@ -8,6 +8,7 @@ import { LedgerHelperService } from '../payments/ledger-helper.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
 import { RulesEngineService } from '../automation/rules-engine.service';
+import { EncryptionService } from '../../common/crypto/encryption.service';
 
 const mockSeller = { id: 'seller-uuid-123', email: 'seller@test.com', phone: null as string | null };
 const mockBuyer = { id: 'buyer-uuid-456', email: 'buyer@test.com', phone: null as string | null };
@@ -28,8 +29,21 @@ describe('EscrowService', () => {
   };
 
   const mockSettings = {
-    calculateFee: jest.fn().mockResolvedValue({ feeCents: 500, feePercentage: 5, netAmountCents: 9500 }),
+    calculateFee: jest.fn().mockResolvedValue({
+      feeCents: 500,
+      feePercentage: 5,
+      buyerFeeCents: 500,
+      sellerFeeCents: 0,
+      fundingAmountCents: 10500,
+      netAmountCents: 10000,
+      paidBy: 'buyer',
+    }),
     getFeeSettings: jest.fn().mockResolvedValue({ paidBy: 'buyer' }),
+  };
+
+  const mockEncryption = {
+    encrypt: jest.fn((v: string) => `enc:${v}`),
+    decrypt: jest.fn((v: string) => v.replace('enc:', '')),
   };
 
   const mockWallet = {
@@ -80,6 +94,7 @@ describe('EscrowService', () => {
         { provide: NotificationsService, useValue: mockNotifications },
         { provide: AuditService, useValue: mockAudit },
         { provide: RulesEngineService, useValue: mockRulesEngine },
+        { provide: EncryptionService, useValue: mockEncryption },
       ],
     }).compile();
 
@@ -163,6 +178,9 @@ describe('EscrowService', () => {
       status: 'AWAITING_FUNDING',
       amountCents: 10000,
       feeCents: 500,
+      buyerFeeCents: 0,
+      sellerFeeCents: 500,
+      fundingAmountCents: 10000,
       netAmountCents: 9500,
       currency: 'GHS',
       fundingMethod: 'direct' as const,
@@ -191,7 +209,7 @@ describe('EscrowService', () => {
       expect(mockLedgerHelper.createFundingLedgerEntry).toHaveBeenCalledWith(
         escrowId,
         expect.objectContaining({
-          amountCents: 10000,
+          fundingAmountCents: 10000,
           feeCents: 500,
           netAmountCents: 9500,
           currency: 'GHS',

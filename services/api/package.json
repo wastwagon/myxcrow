@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
-    "build": "nest build",
+    "build": "pnpm --filter @myxcrow/shared build && nest build",
     "build:render": "cd ../.. && pnpm install --no-frozen-lockfile && cd services/api && pnpm build",
     "start": "node dist/src/main.js",
     "prisma:migrate": "prisma generate && prisma migrate dev --name init || prisma migrate deploy && node ./scripts/seed.js",
@@ -23,6 +23,7 @@
     "test:e2e:full": "prisma migrate deploy && tsx scripts/seed-users-and-transactions.ts && jest --config ./jest-e2e.config.js --runInBand"
   },
   "dependencies": {
+    "@myxcrow/shared": "workspace:*",
     "@nestjs/bullmq": "^10.0.0",
     "@nestjs/cli": "^10.0.0",
     "@nestjs/common": "^10.0.0",

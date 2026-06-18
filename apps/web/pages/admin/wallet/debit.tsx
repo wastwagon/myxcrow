@@ -195,7 +195,7 @@ export default function DebitWalletPage() {
                   }}
                   onFocus={() => setShowUserSearch(true)}
                   placeholder="Search by email or name..."
-                  className="w-full pl-10 pr-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 outline-none"
+                  className={`${admin.input} pl-10`}
                 />
                 {showUserSearch && searchTerm && (
                   <div className={admin.searchDropdown}>
@@ -227,7 +227,7 @@ export default function DebitWalletPage() {
             )}
             <input type="hidden" {...register('userId')} />
             {errors.userId && (
-              <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.userId.message}</p>
             )}
           </div>
 
@@ -245,34 +245,34 @@ export default function DebitWalletPage() {
                 step="0.01"
                 min="0.01"
                 placeholder="50.00"
-                className="w-full pl-16 pr-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 outline-none text-lg font-semibold"
+                className={`${admin.input} pl-16 text-lg font-semibold`}
               />
             </div>
             {amountGHS && (
               <p className="mt-2 text-sm text-white/55">
-                Will debit: <span className="font-medium">{Math.round(amountGHS * 100).toLocaleString()}</span> cents
+                Will debit: <span className="font-medium text-white">{Math.round(amountGHS * 100).toLocaleString()}</span> cents
               </p>
             )}
             {errors.amountCents && (
-              <p className="mt-1 text-sm text-red-600">{errors.amountCents.message}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.amountCents.message}</p>
             )}
           </div>
 
           {/* Description */}
           <div>
             <label htmlFor="description" className="block text-sm font-semibold text-white/80 mb-2">
-              Description * <span className="text-red-600">(Required for audit)</span>
+              Description * <span className="text-red-400">(Required for audit)</span>
             </label>
             <textarea
               {...register('description')}
               id="description"
               rows={4}
               placeholder="e.g., Refund for cancelled order #12345 - Customer requested full refund"
-              className="w-full px-4 py-3 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 outline-none resize-none"
+              className={admin.input}
             />
             <p className="mt-1 text-xs text-white/55">Please provide a detailed reason for this debit operation</p>
             {errors.description && (
-              <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>
+              <p className="mt-1 text-sm text-red-400">{errors.description.message}</p>
             )}
           </div>
 

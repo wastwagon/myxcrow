@@ -4,8 +4,9 @@ RUN apk add --no-cache bash openssl python3 make g++ && npm i -g pnpm
 
 WORKDIR /usr/src/app
 
-# Copy package files
+# Copy package files and Prisma schema (required before postinstall prisma generate)
 COPY package.json pnpm-lock.yaml* ./
+COPY prisma ./prisma
 
 # Allow build scripts for native modules
 RUN echo "enable-pre-post-scripts=true" > .npmrc && \

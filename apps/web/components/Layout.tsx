@@ -14,7 +14,7 @@ export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen app-gradient-bg flex flex-col">
       <Navigation />
-      <main className="container mx-auto px-4 py-6 md:py-8 max-w-7xl flex-1">{children}</main>
+      <main className="container mx-auto px-4 py-6 md:py-8 max-w-7xl flex-1 text-label-primary">{children}</main>
     </div>
   );
 }

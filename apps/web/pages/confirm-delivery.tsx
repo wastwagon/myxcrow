@@ -77,9 +77,8 @@ export default function ConfirmDeliveryPage() {
               <h1 className="text-2xl font-bold text-brand-maroon-black mb-2">Confirm Delivery</h1>
               <p className={`text-sm ${publicForm.footerText} mb-6`}>
                 Enter the <strong>reference</strong> and either the <strong>delivery code</strong> or the{' '}
-                <strong>transaction PIN</strong>. The PIN is set by the person who created the transaction;
-                entering it here confirms the <strong>rightful owner</strong> of the escrow before funds are
-                released from escrow.
+                <strong>transaction PIN</strong> written on the parcel. The buyer and seller both have these
+                details on the escrow page; entering them here confirms delivery before funds are released.
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,9 +136,8 @@ export default function ConfirmDeliveryPage() {
               </form>
 
               <p className={`mt-6 ${publicForm.hint}`}>
-                Only the person who created the transaction (the buyer) knows the PIN. At delivery, entering
-                the reference + PIN confirms the rightful owner received the goods; escrow funds are then
-                released automatically.
+                The reference and code or PIN are on the parcel and in the buyer&apos;s and seller&apos;s escrow
+                details. Entering them here confirms delivery; escrow funds are then released automatically.
               </p>
 
               <div className="mt-8 pt-6 border-t border-gray-200">

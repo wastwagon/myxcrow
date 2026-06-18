@@ -16,7 +16,6 @@ import {
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { COMPLETED_ESCROW_STATUSES } from '@/lib/constants';
 import Link from 'next/link';
-import PageHeader from '@/components/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -35,9 +34,14 @@ interface Escrow {
   id: string;
   status: string;
   amountCents: number;
+  fundingAmountCents?: number;
+  netAmountCents?: number;
+  buyerFeeCents?: number;
   currency: string;
   description: string;
   createdAt: string;
+  buyerId: string;
+  sellerId: string;
 }
 
 export default function Dashboard() {
@@ -105,6 +109,7 @@ export default function Dashboard() {
 
   const activeEscrows = escrows?.filter((e) => !['RELEASED', 'CANCELLED'].includes(e.status)) || [];
   const recentEscrows = escrows?.slice(0, 5) || [];
+  const user = getUser();
 
   const refreshDashboard = async () => {
     await Promise.all([
@@ -115,31 +120,32 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshDashboard} disabled={!isMobile} className="space-y-6">
-        <PageHeader
-          title={`Welcome Back${userName ? `, ${userName}` : ''}!`}
-          subtitle="Here's your account overview"
-          icon={<FileText className="w-6 h-6" />}
-        />
+      <PullToRefresh onRefresh={refreshDashboard} disabled={!isMobile} className="space-y-5">
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
+            Welcome back{userName ? `, ${userName}` : ''}
+          </h1>
+          <p className="text-white/65 text-sm mt-0.5">Here&apos;s your account overview</p>
+        </div>
 
         {/* Hero balance + metrics */}
-        <div className="rounded-ios-xl border border-brand-gold/30 bg-white/[0.09] backdrop-blur-sm p-6 shadow-ios-card ring-1 ring-brand-gold/20">
-          <p className="text-ios-footnote font-medium text-label-secondary mb-1">Available balance</p>
+        <div className="rounded-ios-xl border border-brand-gold/30 bg-white/[0.09] backdrop-blur-sm p-5 shadow-ios-card ring-1 ring-brand-gold/20">
+          <p className="text-xs font-medium text-white/65 mb-1">Available balance</p>
           {walletLoading ? (
-            <div className="h-10 w-40 bg-white/10 animate-pulse rounded-ios mb-2" />
+            <div className="h-9 w-36 bg-white/10 animate-pulse rounded-ios mb-1" />
           ) : (
-            <p className="text-4xl font-bold text-label-primary tracking-tight mb-1">
+            <p className="text-3xl font-bold text-white tracking-tight mb-1">
               {wallet ? formatCurrency(wallet.availableCents, 'GHS') : '--'}
             </p>
           )}
-          <p className="text-ios-subhead text-label-tertiary">
+          <p className="text-sm text-white/55">
             {walletLoading
               ? 'Loading…'
               : wallet
                 ? `${formatCurrency(wallet.pendingCents, 'GHS')} pending in escrow`
                 : 'Top up your wallet to start'}
           </p>
-          <div className="flex flex-wrap gap-3 mt-5">
+          <div className="flex flex-wrap gap-2.5 mt-4">
             <Link href="/wallet/topup">
               <Button size="sm">Top up</Button>
             </Link>
@@ -151,7 +157,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid sm:grid-cols-3 gap-4">
           <MetricCard
             label="Pending balance"
             value={wallet ? formatCurrency(wallet.pendingCents, 'GHS') : '--'}
@@ -226,7 +232,14 @@ export default function Dashboard() {
             <ListRowsSkeleton rows={3} rowClassName="h-16" />
           ) : recentEscrows.length > 0 ? (
             <ListGroup>
-              {recentEscrows.map((escrow) => (
+              {recentEscrows.map((escrow) => {
+                const isBuyer = user?.id === escrow.buyerId;
+                const displayCents = isBuyer
+                  ? escrow.fundingAmountCents || escrow.amountCents + (escrow.buyerFeeCents ?? 0)
+                  : escrow.netAmountCents ?? escrow.amountCents;
+                const amountLabel = isBuyer ? 'Funded' : 'Receive';
+
+                return (
                 <ListRow
                   key={escrow.id}
                   href={`/escrows/${escrow.id}`}
@@ -234,15 +247,17 @@ export default function Dashboard() {
                   subtitle={
                     <span className="flex flex-wrap items-center gap-2">
                       <span className="text-label-primary font-medium">
-                        {formatCurrency(escrow.amountCents, 'GHS')}
+                        {formatCurrency(displayCents, 'GHS')}
                       </span>
+                      <span className="text-label-tertiary text-xs">({amountLabel})</span>
                       <span>·</span>
                       <span>{formatDate(escrow.createdAt)}</span>
                     </span>
                   }
                   trailing={<StatusBadge status={escrow.status} />}
                 />
-              ))}
+              );
+              })}
             </ListGroup>
           ) : (
             <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] p-10 text-center">

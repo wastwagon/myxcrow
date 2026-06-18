@@ -16,6 +16,7 @@ import {
   Upload,
   FileText,
   Star,
+  Copy,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ActivityTimeline from '@/components/ActivityTimeline';
@@ -32,6 +33,7 @@ import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { PageDetailSkeleton } from '@/components/LoadingSkeleton';
+import EscrowFeeSummary from '@/components/EscrowFeeSummary';
 
 interface Shipment {
   id: string;
@@ -55,7 +57,13 @@ interface Escrow {
   sellerWalletId?: string;
   fundingMethod?: string;
   feeCents: number;
+  feePercentage?: number;
+  feePaidBy?: string;
+  buyerFeeCents?: number;
+  sellerFeeCents?: number;
+  fundingAmountCents?: number;
   netAmountCents: number;
+  deliveryPin?: string;
   deliveryRegion?: string;
   deliveryCity?: string;
   deliveryAddressLine?: string;
@@ -262,6 +270,19 @@ export default function EscrowDetailPage() {
   const confirmDeliveryBaseUrl = typeof window !== 'undefined' ? `${window.location.origin}/confirm-delivery` : '/confirm-delivery';
   const firstShipmentWithCode = escrow?.shipments?.find((s) => s.deliveryCode && s.shortReference);
 
+  const feeSummary = escrow
+    ? {
+        amountCents: escrow.amountCents,
+        feeCents: escrow.feeCents,
+        feePercentage: escrow.feePercentage ?? 0,
+        buyerFeeCents: escrow.buyerFeeCents ?? 0,
+        sellerFeeCents: escrow.sellerFeeCents ?? escrow.feeCents,
+        fundingAmountCents: escrow.fundingAmountCents || escrow.amountCents,
+        netAmountCents: escrow.netAmountCents,
+        paidBy: escrow.feePaidBy || 'seller',
+      }
+    : null;
+
   const handleRelease = async () => {
     const msg =
       escrow?.status === 'AWAITING_RELEASE'
@@ -374,25 +395,24 @@ export default function EscrowDetailPage() {
                 </div>
               )}
               <div>
-                <p className="text-sm text-white/70">Amount</p>
+                <p className="text-sm text-white/70">Deal Amount</p>
                 <p className="font-medium text-white text-2xl">
                   {formatCurrency(escrow.amountCents, 'GHS')}
                 </p>
               </div>
-              {escrow.feeCents > 0 && (
+              {feeSummary && escrow.feeCents > 0 && (
+                <div className="md:col-span-2">
+                  <EscrowFeeSummary fees={feeSummary} className="!bg-amber-50/10 !border-amber-400/20" />
+                </div>
+              )}
+              {(!feeSummary || escrow.feeCents === 0) && (
                 <div>
-                  <p className="text-sm text-white/70">Fee</p>
+                  <p className="text-sm text-white/70">Net Amount</p>
                   <p className="font-medium text-white">
-                    {formatCurrency(escrow.feeCents, 'GHS')}
+                    {formatCurrency(escrow.netAmountCents, 'GHS')}
                   </p>
                 </div>
               )}
-              <div>
-                <p className="text-sm text-white/70">Net Amount</p>
-                <p className="font-medium text-white">
-                  {formatCurrency(escrow.netAmountCents, 'GHS')}
-                </p>
-              </div>
               <div>
                 <p className="text-sm text-white/70">Created</p>
                 <p className="font-medium text-white">{formatDate(escrow.createdAt)}</p>
@@ -406,25 +426,62 @@ export default function EscrowDetailPage() {
                   </p>
                 </div>
               )}
-              {isBuyer && firstShipmentWithCode && (
-                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                  {escrow.deliveryConfirmationMode === 'pin' ? (
+              {(isBuyer || isSeller) && (firstShipmentWithCode || escrow.deliveryPin) && (
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg md:col-span-2">
+                  {escrow.deliveryConfirmationMode === 'pin' && escrow.deliveryPin ? (
                     <>
-                      <p className="text-sm font-semibold text-amber-900 mb-1">Confirm delivery with your PIN (rightful owner)</p>
-                      <p className="text-xs text-amber-800 mb-2">You created this transaction and only you know the PIN. At delivery, enter the reference + your PIN on the confirm-delivery page to confirm you are the rightful owner; funds will then release from escrow automatically.</p>
-                      <p className="font-mono text-lg font-bold text-amber-900">Ref: {firstShipmentWithCode.shortReference}</p>
-                      <p className="text-xs text-amber-800 mt-1">Use this reference and the PIN you set when creating this escrow. Do not share your PIN except with someone you authorize to confirm delivery on your behalf.</p>
+                      <p className="text-sm font-semibold text-amber-900 mb-1">
+                        {isSeller ? 'Write this PIN on the parcel' : 'Your delivery confirmation PIN'}
+                      </p>
+                      <p className="text-xs text-amber-800 mb-2">
+                        {isSeller
+                          ? 'The buyer set this PIN for delivery confirmation. Write the reference and PIN on the parcel.'
+                          : 'Use this reference and PIN on the confirm-delivery page when your order arrives. The seller also has this for parcel labelling.'}
+                      </p>
+                      {firstShipmentWithCode && (
+                        <p className="font-mono text-lg font-bold text-amber-900">Ref: {firstShipmentWithCode.shortReference}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2">
+                        <code className="font-mono text-lg font-bold text-amber-950 bg-amber-100 px-3 py-1 rounded">
+                          PIN: {escrow.deliveryPin}
+                        </code>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await navigator.clipboard.writeText(escrow.deliveryPin!);
+                            toast.success('PIN copied');
+                          }}
+                          className="px-2 py-1 text-sm text-amber-800 hover:bg-amber-100 rounded"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      </div>
                     </>
-                  ) : (
+                  ) : firstShipmentWithCode ? (
                     <>
-                      <p className="text-sm font-semibold text-amber-900 mb-1">Your delivery verification code</p>
-                      <p className="text-xs text-amber-800 mb-2">Give the reference and code to the delivery person so they can confirm delivery. Only you and the system know this code.</p>
-                      <p className="font-mono text-lg font-bold text-amber-900">Ref: {firstShipmentWithCode.shortReference} · Code: {firstShipmentWithCode.deliveryCode}</p>
+                      <p className="text-sm font-semibold text-amber-900 mb-1">
+                        {isSeller ? 'Write this on the parcel' : 'Your delivery verification code'}
+                      </p>
+                      <p className="text-xs text-amber-800 mb-2">
+                        {isSeller
+                          ? 'Write the reference and code on the parcel so delivery can be confirmed.'
+                          : 'Share with the delivery person or confirm yourself when the order arrives.'}
+                      </p>
+                      <p className="font-mono text-lg font-bold text-amber-900">
+                        Ref: {firstShipmentWithCode.shortReference} · Code: {firstShipmentWithCode.deliveryCode}
+                      </p>
                     </>
+                  ) : null}
+                  {firstShipmentWithCode && (
+                    <a
+                      href={`${confirmDeliveryBaseUrl}?ref=${encodeURIComponent(firstShipmentWithCode.shortReference!)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-amber-700 hover:underline mt-2 inline-block"
+                    >
+                      Open confirm-delivery page →
+                    </a>
                   )}
-                  <a href={`${confirmDeliveryBaseUrl}?ref=${encodeURIComponent(firstShipmentWithCode.shortReference!)}`} target="_blank" rel="noopener noreferrer" className="text-sm text-amber-700 hover:underline mt-2 inline-block">
-                    Open confirm-delivery page {escrow.deliveryConfirmationMode === 'pin' ? '(enter ref + PIN)' : '(share with delivery person)'} →
-                  </a>
                 </div>
               )}
             </div>
@@ -442,7 +499,11 @@ export default function EscrowDetailPage() {
                   disabled={fundMutation.isPending}
                 >
                   <DollarSign className="w-4 h-4" />
-                  {fundMutation.isPending ? 'Funding...' : 'Fund from Wallet'}
+                  {fundMutation.isPending
+                    ? 'Funding...'
+                    : feeSummary && feeSummary.fundingAmountCents > escrow.amountCents
+                    ? `Fund ${formatCurrency(feeSummary.fundingAmountCents, 'GHS')} from Wallet`
+                    : 'Fund from Wallet'}
                 </Button>
               )}
               {canShip && (
@@ -504,8 +565,10 @@ export default function EscrowDetailPage() {
                       </Button>
                     </div>
                   )}
-                  {firstShipmentWithCode && escrow.deliveryConfirmationMode === 'pin' && (
-                    <p className="text-sm text-label-secondary mt-2">Use the reference above and your PIN on the confirm-delivery page to confirm. Funds will release automatically.</p>
+                  {firstShipmentWithCode && escrow.deliveryConfirmationMode === 'pin' && escrow.deliveryPin && (
+                    <p className="text-sm text-label-secondary mt-2">
+                      Your PIN is shown above. Enter reference + PIN on the confirm-delivery page when the order arrives.
+                    </p>
                   )}
                 </>
               )}

@@ -1,0 +1,126 @@
+# MYXCROW registration demo — alternate ports to avoid conflicts with other local projects
+# Web: http://localhost:3017  API: http://localhost:4010
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: myxcrow_reg_db
+    ports:
+      - "5444:5432"
+    environment:
+      POSTGRES_DB: escrow
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - myxcrow_reg_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: myxcrow_reg_redis
+    ports:
+      - "6388:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: myxcrow_reg_minio
+    ports:
+      - "9013:9000"
+      - "9014:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - myxcrow_reg_minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: myxcrow_reg_mailpit
+    ports:
+      - "1036:1025"
+      - "8036:8025"
+
+  api:
+    build:
+      context: ../../services/api
+      dockerfile: Dockerfile.dev
+    container_name: myxcrow_reg_api
+    ports:
+      - "4010:4000"
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/escrow
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+      S3_BUCKET: escrow-evidence
+      JWT_SECRET: dev-local-jwt-secret-not-for-production
+      PORT: 4000
+      WEB_APP_URL: http://localhost:3017
+      WEB_BASE_URL: http://localhost:3017
+      NODE_ENV: development
+      CI: "true"
+      CSRF_ENABLED: "false"
+    volumes:
+      - ../../:/usr/src/monorepo
+      - myxcrow_reg_api_node_modules:/usr/src/monorepo/node_modules
+      - myxcrow_reg_api_service_node_modules:/usr/src/monorepo/services/api/node_modules
+    working_dir: /usr/src/monorepo/services/api
+    command: sh -c "cd /usr/src/monorepo && pnpm install --no-frozen-lockfile && pnpm --filter @myxcrow/shared build && cd services/api && pnpm prisma generate && pnpm prisma migrate deploy && pnpm dev"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ../../apps/web
+      dockerfile: Dockerfile.dev
+    container_name: myxcrow_reg_web
+    ports:
+      - "3017:3000"
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:4010/api
+      NEXT_PUBLIC_MAILPIT_URL: http://localhost:8036
+      NEXT_PUBLIC_MINIO_CONSOLE: http://localhost:9014
+      NEXT_PUBLIC_ENV: local
+      PORT: 3000
+      NODE_ENV: development
+      CI: "true"
+    volumes:
+      - ../../:/usr/src/monorepo
+      - myxcrow_reg_web_node_modules:/usr/src/monorepo/node_modules
+      - myxcrow_reg_web_app_node_modules:/usr/src/monorepo/apps/web/node_modules
+      - myxcrow_reg_web_next:/usr/src/monorepo/apps/web/.next
+    working_dir: /usr/src/monorepo/apps/web
+    command: sh -c "cd /usr/src/monorepo && pnpm install --no-frozen-lockfile && pnpm --filter @myxcrow/shared build && cd apps/web && pnpm dev"
+    depends_on:
+      api:
+        condition: service_started
+
+volumes:
+  myxcrow_reg_db_data:
+  myxcrow_reg_minio_data:
+  myxcrow_reg_api_node_modules:
+  myxcrow_reg_api_service_node_modules:
+  myxcrow_reg_web_node_modules:
+  myxcrow_reg_web_app_node_modules:
+  myxcrow_reg_web_next:

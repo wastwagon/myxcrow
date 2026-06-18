@@ -30,24 +30,24 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        'rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm p-5 shadow-ios-card',
+        'rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm p-4 shadow-ios-card',
         'ring-1',
         accentRing[accent],
         className
       )}
     >
       {icon && (
-        <div className="w-10 h-10 rounded-ios-lg bg-brand-gold/15 flex items-center justify-center text-brand-gold shrink-0 mb-3">
+        <div className="w-9 h-9 rounded-ios-lg bg-brand-gold/15 flex items-center justify-center text-brand-gold shrink-0 mb-2">
           {icon}
         </div>
       )}
-      <p className="text-ios-footnote font-medium text-label-secondary mb-1">{label}</p>
+      <p className="text-xs font-medium text-white/65 mb-0.5">{label}</p>
       {loading ? (
-        <div className="h-9 w-28 bg-white/10 animate-pulse rounded-ios" />
+        <div className="h-8 w-24 bg-white/10 animate-pulse rounded-ios" />
       ) : (
-        <p className="text-ios-title-1 text-label-primary font-bold tracking-tight">{value}</p>
+        <p className="text-2xl text-white font-bold tracking-tight">{value}</p>
       )}
-      {hint && <p className="text-ios-caption text-label-tertiary mt-2">{hint}</p>}
+      {hint && <p className="text-xs text-white/50 mt-1">{hint}</p>}
     </div>
   );
 }

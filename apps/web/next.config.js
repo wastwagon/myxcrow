@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  transpilePackages: ['@myxcrow/shared'],
   // Production builds should not fail due to ESLint configuration/rules.
   // Keep linting in CI or locally via `pnpm lint`.
   eslint: {

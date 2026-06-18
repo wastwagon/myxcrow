@@ -17,6 +17,8 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
 import { RulesEngineService } from '../automation/rules-engine.service';
 import { normalizeGhanaPhone } from '../../common/utils/phone.util';
+import { resolveFundingAmountCents } from '../../common/utils/fee-calculator';
+import { EncryptionService } from '../../common/crypto/encryption.service';
 
 @Injectable()
 export class EscrowService {
@@ -30,6 +32,7 @@ export class EscrowService {
     private ledgerHelper: LedgerHelperService,
     private notificationsService: NotificationsService,
     private auditService: AuditService,
+    private encryptionService: EncryptionService,
     @Inject(forwardRef(() => RulesEngineService))
     private rulesEngine?: RulesEngineService,
   ) {}
@@ -103,12 +106,13 @@ export class EscrowService {
 
     const currency = data.currency || 'GHS';
     const feeCalculation = await this.settingsService.calculateFee(data.amountCents);
-    const feePaidBy = (await this.settingsService.getFeeSettings()).paidBy;
+    const feePaidBy = feeCalculation.paidBy;
 
     // Wallet is used for all escrow funding. Paystack is only for wallet top-up.
     const useWallet = data.useWallet !== false;
     const deliveryMode = data.deliveryConfirmationMode === 'pin' ? 'pin' : 'code';
     let deliveryPinHash: string | null = null;
+    let deliveryPinEncrypted: string | null = null;
     let generatedDeliveryPin: string | null = null;
     if (deliveryMode === 'pin') {
       const providedPin = data.deliveryPin?.trim();
@@ -117,6 +121,7 @@ export class EscrowService {
       }
       generatedDeliveryPin = providedPin || this.generateTransactionPin();
       deliveryPinHash = await bcrypt.hash(generatedDeliveryPin, 10);
+      deliveryPinEncrypted = this.encryptionService.encrypt(generatedDeliveryPin);
     }
 
     let buyerWalletId: string | null = null;
@@ -140,6 +145,9 @@ export class EscrowService {
         feeCents: feeCalculation.feeCents,
         feePercentage: feeCalculation.feePercentage,
         feePaidBy,
+        buyerFeeCents: feeCalculation.buyerFeeCents,
+        sellerFeeCents: feeCalculation.sellerFeeCents,
+        fundingAmountCents: feeCalculation.fundingAmountCents,
         netAmountCents: feeCalculation.netAmountCents,
         description: data.description,
         status: EscrowStatus.AWAITING_FUNDING,
@@ -153,6 +161,7 @@ export class EscrowService {
         deliveryPhone: data.deliveryPhone,
         deliveryConfirmationMode: deliveryMode,
         deliveryPinHash,
+        deliveryPinEncrypted,
       },
     });
 
@@ -171,7 +180,11 @@ export class EscrowService {
     }
 
     if (useWallet) {
-      await this.walletService.reserveForEscrow(buyerWalletId!, data.amountCents, escrow.id);
+      await this.walletService.reserveForEscrow(
+        buyerWalletId!,
+        feeCalculation.fundingAmountCents,
+        escrow.id,
+      );
     }
 
     await this.auditService.log({
@@ -232,7 +245,7 @@ export class EscrowService {
       const buyerWallet = await this.walletService.getOrCreateWallet(escrow.buyerId, escrow.currency);
       const sellerWallet = await this.walletService.getOrCreateWallet(escrow.sellerId, escrow.currency);
       buyerWalletId = buyerWallet.id;
-      await this.walletService.reserveForEscrow(buyerWalletId, escrow.amountCents, escrowId);
+      await this.walletService.reserveForEscrow(buyerWalletId, resolveFundingAmountCents(escrow), escrowId);
       await this.prisma.escrowAgreement.update({
         where: { id: escrowId },
         data: {
@@ -252,7 +265,7 @@ export class EscrowService {
     });
 
     await this.ledgerHelper.createFundingLedgerEntry(escrowId, {
-      amountCents: escrow.amountCents,
+      fundingAmountCents: resolveFundingAmountCents(escrow),
       feeCents: escrow.feeCents,
       netAmountCents: escrow.netAmountCents,
       currency: escrow.currency,
@@ -347,7 +360,12 @@ export class EscrowService {
         },
       });
 
-      await this.walletService.reserveForEscrow(buyerWallet.id, escrow.amountCents, escrowId, tx);
+      await this.walletService.reserveForEscrow(
+        buyerWallet.id,
+        resolveFundingAmountCents(escrow),
+        escrowId,
+        tx,
+      );
 
       await tx.escrowAgreement.update({
         where: { id: escrowId },
@@ -360,7 +378,7 @@ export class EscrowService {
       await this.ledgerHelper.createFundingLedgerEntry(
         escrowId,
         {
-          amountCents: escrow.amountCents,
+          fundingAmountCents: resolveFundingAmountCents(escrow),
           feeCents: escrow.feeCents,
           netAmountCents: escrow.netAmountCents,
           currency: escrow.currency || 'GHS',
@@ -482,6 +500,14 @@ export class EscrowService {
       deliveryCode,
       shortReference,
       confirmDeliveryUrl: (process.env.CONFIRM_DELIVERY_BASE_URL || process.env.WEB_APP_URL || 'https://myxcrow.com').replace(/\/$/, '') + '/confirm-delivery',
+    });
+
+    await this.notificationsService.sendDeliveryCodeToSeller({
+      sellerEmail: seller!.email,
+      sellerPhone: seller!.phone,
+      escrowId: escrow.id,
+      deliveryCode,
+      shortReference,
     });
 
     await this.auditService.log({
@@ -835,11 +861,12 @@ export class EscrowService {
 
     // Transaction: buyer release hold + seller credit + ledger + status (atomic)
     const buyerWalletId = escrow.buyerWalletId;
+    const fundingCents = resolveFundingAmountCents(escrow);
     await this.prisma.$transaction(async (tx) => {
       if (buyerWalletId) {
         await tx.wallet.update({
           where: { id: buyerWalletId },
-          data: { pendingCents: { decrement: escrow.amountCents } },
+          data: { pendingCents: { decrement: fundingCents } },
         });
       }
       await tx.wallet.update({
@@ -920,11 +947,12 @@ export class EscrowService {
     }
 
     const buyerWalletId = escrow.buyerWalletId;
+    const fundingCents = resolveFundingAmountCents(escrow);
     await this.prisma.$transaction(async (tx) => {
       if (buyerWalletId) {
         await tx.wallet.update({
           where: { id: buyerWalletId },
-          data: { pendingCents: { decrement: escrow.amountCents } },
+          data: { pendingCents: { decrement: fundingCents } },
         });
       }
       await tx.wallet.update({
@@ -1007,16 +1035,18 @@ export class EscrowService {
           data: { buyerWalletId },
         });
       }
+      const fundingCents = resolveFundingAmountCents(escrow);
       await this.prisma.$transaction(async (tx) => {
         await tx.wallet.update({
           where: { id: buyerWalletId! },
           data: {
-            pendingCents: { decrement: escrow.amountCents },
-            availableCents: { increment: escrow.amountCents },
+            pendingCents: { decrement: fundingCents },
+            availableCents: { increment: fundingCents },
           },
         });
         await this.ledgerHelper.createRefundLedgerEntry(escrowId, {
-          amountCents: escrow.amountCents,
+          fundingAmountCents: fundingCents,
+          netAmountCents: escrow.netAmountCents,
           feeCents: escrow.feeCents,
           currency: escrow.currency,
         }, tx);
@@ -1088,16 +1118,18 @@ export class EscrowService {
           data: { buyerWalletId },
         });
       }
+      const fundingCents = resolveFundingAmountCents(escrow);
       await this.prisma.$transaction(async (tx) => {
         await tx.wallet.update({
           where: { id: buyerWalletId! },
           data: {
-            pendingCents: { decrement: escrow.amountCents },
-            availableCents: { increment: escrow.amountCents },
+            pendingCents: { decrement: fundingCents },
+            availableCents: { increment: fundingCents },
           },
         });
         await this.ledgerHelper.createRefundLedgerEntry(escrowId, {
-          amountCents: escrow.amountCents,
+          fundingAmountCents: fundingCents,
+          netAmountCents: escrow.netAmountCents,
           feeCents: escrow.feeCents,
           currency: escrow.currency,
         }, tx);
@@ -1155,7 +1187,11 @@ export class EscrowService {
     });
 
     if (escrow.buyerWalletId && escrow.status === EscrowStatus.AWAITING_FUNDING) {
-      await this.walletService.refundToBuyer(escrow.buyerWalletId, escrow.amountCents, escrowId);
+      await this.walletService.refundToBuyer(
+        escrow.buyerWalletId,
+        resolveFundingAmountCents(escrow),
+        escrowId,
+      );
     }
 
     const buyer = escrow.buyer;
@@ -1232,8 +1268,10 @@ export class EscrowService {
       throw new NotFoundException('Escrow not found');
     }
 
-    // Only buyer and system see delivery code/shortReference (recipient gives code to delivery person)
-    if (currentUserId && currentUserId !== escrow.buyerId) {
+    // Hide delivery codes from non-participants; buyer and seller both need them for parcel labelling.
+    const isBuyer = currentUserId === escrow.buyerId;
+    const isSeller = currentUserId === escrow.sellerId;
+    if (currentUserId && !isBuyer && !isSeller) {
       escrow.shipments = escrow.shipments.map((s) => ({
         ...s,
         deliveryCode: null,
@@ -1241,11 +1279,22 @@ export class EscrowService {
       })) as typeof escrow.shipments;
     }
 
-    // Never expose PIN hash to client
-    if ((escrow as any).deliveryPinHash) {
-      delete (escrow as any).deliveryPinHash;
+    const result: any = { ...escrow };
+    if (
+      (isBuyer || isSeller) &&
+      escrow.deliveryConfirmationMode === 'pin' &&
+      escrow.deliveryPinEncrypted
+    ) {
+      try {
+        result.deliveryPin = this.encryptionService.decrypt(escrow.deliveryPinEncrypted);
+      } catch (err) {
+        this.logger.warn(`Failed to decrypt delivery PIN for escrow ${id}: ${(err as Error).message}`);
+      }
     }
-    return escrow;
+
+    delete result.deliveryPinHash;
+    delete result.deliveryPinEncrypted;
+    return result;
   }
 
   async listEscrows(filters?: {

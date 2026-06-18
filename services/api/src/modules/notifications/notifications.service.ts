@@ -1,6 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EmailService } from '../email/email.service';
 import { SMSService } from './sms.service';
+import {
+  withdrawalApprovedEmailHtml,
+  withdrawalApprovedSms,
+  withdrawalDeniedEmailHtml,
+  withdrawalDeniedSms,
+  withdrawalRequestedAdminSms,
+  withdrawalRequestedUserEmailHtml,
+  withdrawalRequestedUserSms,
+} from './notification-messages';
 
 @Injectable()
 export class NotificationsService {
@@ -9,7 +19,20 @@ export class NotificationsService {
   constructor(
     private emailService: EmailService,
     private smsService: SMSService,
+    private configService: ConfigService,
   ) {}
+
+  /** Comma-separated ADMIN_NOTIFICATION_PHONES or legacy ADMIN_PHONE env. */
+  private getAdminNotificationPhones(): string[] {
+    const raw =
+      this.configService.get<string>('ADMIN_NOTIFICATION_PHONES') ||
+      this.configService.get<string>('ADMIN_PHONE');
+    if (!raw?.trim()) return [];
+    return raw
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean);
+  }
 
   /**
    * Send both email and SMS notifications
@@ -142,6 +165,36 @@ export class NotificationsService {
         to: data.phones,
         message: `MYXCROW: Escrow ${data.escrowId} has been marked as shipped. Track delivery on your dashboard.`,
       },
+    });
+  }
+
+  /**
+   * Send delivery verification code to seller so they can write it on the parcel.
+   */
+  async sendDeliveryCodeToSeller(data: {
+    sellerEmail: string;
+    sellerPhone: string | null;
+    escrowId: string;
+    deliveryCode: string;
+    shortReference: string;
+  }) {
+    await this.sendNotifications({
+      emails: {
+        to: data.sellerEmail,
+        subject: 'Parcel delivery code - MYXCROW',
+        html: `
+          <h2>Write this on the parcel</h2>
+          <p>Escrow ${data.escrowId} has been marked as shipped. Write the reference and code on the parcel for delivery confirmation.</p>
+          <p><strong>Reference:</strong> ${data.shortReference}</p>
+          <p><strong>Code:</strong> ${data.deliveryCode}</p>
+        `,
+      },
+      sms: data.sellerPhone
+        ? {
+            to: [data.sellerPhone],
+            message: `MYXCROW: Write on parcel for escrow ${data.escrowId}: Ref ${data.shortReference}, Code ${data.deliveryCode}`,
+          }
+        : undefined,
     });
   }
 
@@ -343,6 +396,58 @@ export class NotificationsService {
   }
 
   /**
+   * Notify admins (SMS) when a user submits a withdrawal request.
+   */
+  async sendWithdrawalRequestedAdminNotifications(data: {
+    userEmail: string;
+    userPhone: string | null;
+    amount: string;
+    currency: string;
+    withdrawalId: string;
+    methodType: string;
+  }) {
+    const adminPhones = this.getAdminNotificationPhones();
+    if (adminPhones.length === 0) {
+      this.logger.warn(
+        'ADMIN_NOTIFICATION_PHONES not set; skipping admin withdrawal-request SMS',
+      );
+      return;
+    }
+
+    await this.sendNotifications({
+      sms: {
+        to: adminPhones,
+        message: withdrawalRequestedAdminSms(data),
+      },
+    });
+  }
+
+  /**
+   * Notify user that a withdrawal request was received (pending review).
+   */
+  async sendWithdrawalRequestedUserNotifications(data: {
+    email: string;
+    phone: string | null;
+    amount: string;
+    currency: string;
+    withdrawalId: string;
+  }) {
+    await this.sendNotifications({
+      emails: {
+        to: data.email,
+        subject: 'Withdrawal Request Received',
+        html: withdrawalRequestedUserEmailHtml(data),
+      },
+      sms: data.phone
+        ? {
+            to: data.phone,
+            message: withdrawalRequestedUserSms(data),
+          }
+        : undefined,
+    });
+  }
+
+  /**
    * Send withdrawal approved notifications
    */
   async sendWithdrawalApprovedNotifications(data: {
@@ -355,15 +460,11 @@ export class NotificationsService {
       emails: {
         to: data.email,
         subject: 'Withdrawal Approved',
-        html: `
-          <h2>Withdrawal Approved</h2>
-          <p>Your withdrawal request has been approved.</p>
-          <p>Amount: ${data.amount} ${data.currency}</p>
-        `,
+        html: withdrawalApprovedEmailHtml(data),
       },
       sms: data.phone ? {
         to: data.phone,
-        message: `MYXCROW: Your withdrawal of ${data.amount} ${data.currency} has been approved. Funds will be processed shortly.`,
+        message: withdrawalApprovedSms(data),
       } : undefined,
     });
   }
@@ -382,16 +483,11 @@ export class NotificationsService {
       emails: {
         to: data.email,
         subject: 'Withdrawal Denied',
-        html: `
-          <h2>Withdrawal Denied</h2>
-          <p>Your withdrawal request has been denied.</p>
-          <p>Amount: ${data.amount} ${data.currency}</p>
-          <p>Reason: ${data.reason}</p>
-        `,
+        html: withdrawalDeniedEmailHtml(data),
       },
       sms: data.phone ? {
         to: data.phone,
-        message: `MYXCROW: Your withdrawal of ${data.amount} ${data.currency} was denied. Reason: ${data.reason}. Contact support for assistance.`,
+        message: withdrawalDeniedSms(data),
       } : undefined,
     });
   }

@@ -9,7 +9,6 @@ const ADMIN_LINKS = [
   { href: '/admin/users', label: 'Users', icon: UsersIcon },
   { href: '/admin/withdrawals', label: 'Withdrawals', icon: DollarSign },
   { href: '/admin/reconciliation', label: 'Reconciliation', icon: BarChart3 },
-  { href: '/admin/fees', label: 'Fees', icon: DollarSign },
   { href: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 

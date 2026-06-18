@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
@@ -11,6 +11,8 @@ import { admin } from '@/components/admin/adminClasses';
 import { Button } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { calculateEscrowFees, formatPaidByLabel } from '@/lib/fee-calculator';
+import { formatCurrency } from '@/lib/utils';
 
 interface PlatformSettings {
   fees: {
@@ -45,13 +47,22 @@ export default function AdminSettingsPage() {
     }
   }, [router]);
 
+  const settingsTabs = ['fees', 'general', 'security', 'notifications'] as const;
   const [activeTab, setActiveTab] = useState<'fees' | 'general' | 'security' | 'notifications'>('fees');
+  const [feePreviewAmount, setFeePreviewAmount] = useState(100);
   const [settings, setSettings] = useState<PlatformSettings>({
-    fees: { percentage: 5, fixedCents: 0, paidBy: 'buyer' },
+    fees: { percentage: 5, fixedCents: 0, paidBy: 'split' },
     general: { platformName: 'MYXCROW', supportEmail: 'support@myxcrow.com', maintenanceMode: false },
     security: { requireKYC: true, minPasswordLength: 8, sessionTimeout: 7 },
     notifications: { emailEnabled: true, smsEnabled: false },
   });
+
+  useEffect(() => {
+    const tab = router.query.tab;
+    if (typeof tab === 'string' && settingsTabs.includes(tab as (typeof settingsTabs)[number])) {
+      setActiveTab(tab as (typeof settingsTabs)[number]);
+    }
+  }, [router.query.tab]);
 
   // Fetch fee settings
   const { data: feeSettings, isLoading: feesLoading } = useQuery({
@@ -88,6 +99,11 @@ export default function AdminSettingsPage() {
       }));
     }
   }, [feeSettings]);
+
+  const feePreview = useMemo(() => {
+    if (feePreviewAmount < 1) return null;
+    return calculateEscrowFees(Math.round(feePreviewAmount * 100), settings.fees);
+  }, [feePreviewAmount, settings.fees]);
 
   if (!isAuthenticated() || !isAdmin()) {
     return null;
@@ -244,6 +260,57 @@ export default function AdminSettingsPage() {
                       Save Fee Settings
                     </Button>
                   </div>
+                </div>
+
+                <div className="rounded-xl border border-white/10 bg-white/5 p-5">
+                  <h4 className="text-md font-semibold text-white mb-3">Live fee preview</h4>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-white/80 mb-2">
+                      Example deal amount (₵)
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      value={feePreviewAmount}
+                      onChange={(e) => setFeePreviewAmount(parseFloat(e.target.value) || 0)}
+                      className={admin.input}
+                    />
+                  </div>
+                  {feePreview && (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between text-white/80">
+                        <span>Deal amount</span>
+                        <span>{formatCurrency(feePreview.amountCents, 'GHS')}</span>
+                      </div>
+                      {feePreview.buyerFeeCents > 0 && (
+                        <div className="flex justify-between text-white/80">
+                          <span>Buyer pays (added)</span>
+                          <span className="text-amber-300">+ {formatCurrency(feePreview.buyerFeeCents, 'GHS')}</span>
+                        </div>
+                      )}
+                      {feePreview.buyerFeeCents > 0 && (
+                        <div className="flex justify-between font-medium text-white pt-1 border-t border-white/10">
+                          <span>Buyer funds from wallet</span>
+                          <span>{formatCurrency(feePreview.fundingAmountCents, 'GHS')}</span>
+                        </div>
+                      )}
+                      {feePreview.sellerFeeCents > 0 && (
+                        <div className="flex justify-between text-white/80">
+                          <span>Seller pays (deducted)</span>
+                          <span>− {formatCurrency(feePreview.sellerFeeCents, 'GHS')}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-white/80">
+                        <span>Seller receives</span>
+                        <span className="text-emerald-400">{formatCurrency(feePreview.netAmountCents, 'GHS')}</span>
+                      </div>
+                      <div className="flex justify-between text-xs text-white/55 pt-1">
+                        <span>Platform fee ({feePreview.feePercentage}% · {formatPaidByLabel(feePreview.paidBy)})</span>
+                        <span>{formatCurrency(feePreview.feeCents, 'GHS')}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

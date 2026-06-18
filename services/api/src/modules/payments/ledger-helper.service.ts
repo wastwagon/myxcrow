@@ -15,7 +15,7 @@ export class LedgerHelperService {
 
   async createFundingLedgerEntry(
     escrowId: string,
-    escrow: { amountCents: number; feeCents: number; netAmountCents: number; currency: string },
+    escrow: { fundingAmountCents: number; feeCents: number; netAmountCents: number; currency: string },
     tx?: TxClient,
   ) {
     const entries: any[] = [
@@ -27,7 +27,7 @@ export class LedgerHelperService {
       {
         account: 'buyer_wallet',
         currency: escrow.currency,
-        amountCents: -escrow.amountCents,
+        amountCents: -escrow.fundingAmountCents,
       },
     ];
 
@@ -43,7 +43,7 @@ export class LedgerHelperService {
       data: {
         escrowId,
         type: 'escrow_funding',
-        description: `Escrow funding for ${escrowId} (Fee: ${escrow.feeCents / 100} ${escrow.currency})`,
+        description: `Escrow funding for ${escrowId} (Fee: ${escrow.feeCents / 100} ${escrow.currency}, Funded: ${escrow.fundingAmountCents / 100})`,
         entries: {
           create: entries,
         },
@@ -85,27 +85,42 @@ export class LedgerHelperService {
 
   async createRefundLedgerEntry(
     escrowId: string,
-    escrow: { amountCents: number; feeCents: number; currency: string },
+    escrow: {
+      fundingAmountCents: number;
+      netAmountCents: number;
+      feeCents: number;
+      currency: string;
+    },
     tx?: TxClient,
   ) {
+    const entries: any[] = [
+      {
+        account: 'escrow_hold',
+        currency: escrow.currency,
+        amountCents: -escrow.netAmountCents,
+      },
+      {
+        account: 'buyer_wallet',
+        currency: escrow.currency,
+        amountCents: escrow.fundingAmountCents,
+      },
+    ];
+
+    if (escrow.feeCents > 0) {
+      entries.push({
+        account: 'fees_revenue',
+        currency: escrow.currency,
+        amountCents: -escrow.feeCents,
+      });
+    }
+
     const journal = await this.client(tx).ledgerJournal.create({
       data: {
         escrowId,
         type: 'escrow_refund',
         description: `Escrow refund for ${escrowId}`,
         entries: {
-          create: [
-            {
-              account: 'escrow_hold',
-              currency: escrow.currency,
-              amountCents: -escrow.amountCents,
-            },
-            {
-              account: 'buyer_wallet',
-              currency: escrow.currency,
-              amountCents: escrow.amountCents,
-            },
-          ],
+          create: entries,
         },
       },
     });

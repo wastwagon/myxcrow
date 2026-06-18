@@ -1,17 +1,24 @@
-import { Controller, Get, Post, Put, Body, Param, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { WalletService } from './wallet.service';
+import { PayoutMethodService } from './payout-method.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUser as ICurrentUser } from '../auth/interfaces/current-user.interface';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { UserRole, WithdrawalMethod } from '@prisma/client';
+import { UserRole } from '@prisma/client';
+import { RequestWithdrawalDto } from './dto/request-withdrawal.dto';
+import { ProcessWithdrawalDto } from './dto/process-withdrawal.dto';
+import { CreatePayoutMethodDto } from './dto/create-payout-method.dto';
 
 @Controller('wallet')
 @UseGuards(JwtAuthGuard, PhoneRequiredGuard)
 export class WalletController {
-  constructor(private readonly walletService: WalletService) {}
+  constructor(
+    private readonly walletService: WalletService,
+    private readonly payoutMethodService: PayoutMethodService,
+  ) {}
 
   @Get()
   async getWallet(@CurrentUser() user: ICurrentUser) {
@@ -51,18 +58,62 @@ export class WalletController {
     }));
   }
 
+  @Get('payout-methods')
+  async listPayoutMethods(@CurrentUser() user: ICurrentUser) {
+    return this.payoutMethodService.listForUser(user.id);
+  }
+
+  @Post('payout-methods')
+  async createPayoutMethod(
+    @CurrentUser() user: ICurrentUser,
+    @Body() data: CreatePayoutMethodDto,
+  ) {
+    return this.payoutMethodService.createForUser(user.id, {
+      methodType: data.methodType,
+      methodDetails: data.methodDetails as Record<string, unknown>,
+      label: data.label,
+      setDefault: data.setDefault,
+    });
+  }
+
+  @Put('payout-methods/:id/default')
+  async setDefaultPayoutMethod(
+    @CurrentUser() user: ICurrentUser,
+    @Param('id') id: string,
+  ) {
+    return this.payoutMethodService.setDefaultForUser(user.id, id);
+  }
+
+  @Delete('payout-methods/:id')
+  async deletePayoutMethod(
+    @CurrentUser() user: ICurrentUser,
+    @Param('id') id: string,
+  ) {
+    return this.payoutMethodService.deleteForUser(user.id, id);
+  }
+
   @Post('withdraw')
   async requestWithdrawal(
     @CurrentUser() user: ICurrentUser,
-    @Body() data: { amountCents: number; methodType: WithdrawalMethod; methodDetails: any; feeCents?: number },
+    @Body() data: RequestWithdrawalDto,
   ) {
     return this.walletService.requestWithdrawal({
       userId: user.id,
       amountCents: data.amountCents,
+      payoutMethodId: data.payoutMethodId,
       methodType: data.methodType,
-      methodDetails: data.methodDetails,
+      methodDetails: data.methodDetails as Record<string, unknown> | undefined,
+      savePayoutMethod: data.savePayoutMethod,
+      payoutLabel: data.payoutLabel,
       feeCents: data.feeCents,
     });
+  }
+
+  @Get('admin/withdrawals/:id')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPPORT)
+  async getWithdrawal(@Param('id') id: string) {
+    return this.walletService.getWithdrawalForAdmin(id);
   }
 
   @Get('admin/withdrawals')
@@ -85,7 +136,7 @@ export class WalletController {
   @Roles(UserRole.ADMIN, UserRole.SUPPORT)
   async processWithdrawal(
     @Param('id') id: string,
-    @Body() data: { succeeded: boolean; reason?: string },
+    @Body() data: ProcessWithdrawalDto,
     @CurrentUser() user: ICurrentUser,
   ) {
     return this.walletService.processWithdrawal(id, user.id, data.succeeded, data.reason);

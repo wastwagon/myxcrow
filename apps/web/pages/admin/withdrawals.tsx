@@ -7,50 +7,31 @@ import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import {
   ArrowUpCircle,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Search,
   Filter,
-  User,
-  DollarSign,
-  AlertCircle,
+  Eye,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { admin } from '@/components/admin/adminClasses';
 import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
-
-interface Withdrawal {
-  id: string;
-  amountCents: number;
-  feeCents: number;
-  currency: string;
-  status: string;
-  methodType: string;
-  methodDetails: any;
-  createdAt: string;
-  processedAt?: string;
-  failureReason?: string;
-  wallet: {
-    user: {
-      id: string;
-      email: string;
-      firstName?: string;
-      lastName?: string;
-    };
-  };
-}
+import {
+  WithdrawalPayoutDetailsView,
+  type WithdrawalRecord,
+} from '@/components/admin/WithdrawalPayoutDetails';
+import { formatWithdrawalMethodLabel } from '@/lib/withdrawal-payout';
+import { WithdrawalStatusBadge } from '@/components/StatusBadge';
 
 export default function AdminWithdrawalsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedWithdrawal, setSelectedWithdrawal] = useState<Withdrawal | null>(null);
+  const [selectedWithdrawal, setSelectedWithdrawal] = useState<WithdrawalRecord | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [showProcessModal, setShowProcessModal] = useState(false);
   const [processAction, setProcessAction] = useState<'approve' | 'deny' | null>(null);
   const [reason, setReason] = useState('');
@@ -62,7 +43,7 @@ export default function AdminWithdrawalsPage() {
   }, [router]);
 
   const { data: withdrawalsData, isLoading } = useQuery<{
-    withdrawals: Withdrawal[];
+    withdrawals: WithdrawalRecord[];
     total: number;
   }>({
     queryKey: ['admin-withdrawals', statusFilter],
@@ -84,15 +65,21 @@ export default function AdminWithdrawalsPage() {
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
       toast.success(processAction === 'approve' ? 'Withdrawal approved' : 'Withdrawal denied');
       setShowProcessModal(false);
+      setDetailOpen(false);
       setSelectedWithdrawal(null);
       setReason('');
     },
-    onError: (error: any) => {
+    onError: (error: { response?: { data?: { message?: string } } }) => {
       toast.error(error.response?.data?.message || 'Failed to process withdrawal');
     },
   });
 
-  const handleProcess = (withdrawal: Withdrawal, action: 'approve' | 'deny') => {
+  const openDetails = (withdrawal: WithdrawalRecord) => {
+    setSelectedWithdrawal(withdrawal);
+    setDetailOpen(true);
+  };
+
+  const handleProcess = (withdrawal: WithdrawalRecord, action: 'approve' | 'deny') => {
     setSelectedWithdrawal(withdrawal);
     setProcessAction(action);
     setShowProcessModal(true);
@@ -112,38 +99,6 @@ export default function AdminWithdrawalsPage() {
     return null;
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'REQUESTED':
-        return (
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-amber-500/20 text-amber-200 border border-amber-500/30 flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            Pending
-          </span>
-        );
-      case 'SUCCEEDED':
-        return (
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 flex items-center gap-1">
-            <CheckCircle className="w-3 h-3" />
-            Approved
-          </span>
-        );
-      case 'FAILED':
-        return (
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-red-500/20 text-red-200 border border-red-500/30 flex items-center gap-1">
-            <XCircle className="w-3 h-3" />
-            Denied
-          </span>
-        );
-      default:
-        return (
-          <span className="px-3 py-1 text-xs font-medium rounded-full bg-white/10 text-white/80 border border-white/20">
-            {status}
-          </span>
-        );
-    }
-  };
-
   const refreshWithdrawals = async () => {
     await queryClient.invalidateQueries({ queryKey: ['admin-withdrawals'] });
   };
@@ -152,123 +107,124 @@ export default function AdminWithdrawalsPage() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshWithdrawals} disabled={!isMobile} className="space-y-6">
+      <PullToRefresh onRefresh={refreshWithdrawals} disabled={!isMobile} className="space-y-5">
         <PageHeader
           title="Withdrawal Management"
-          subtitle="Approve or deny withdrawal requests"
+          subtitle="Review payout details and approve or deny requests"
           icon={<ArrowUpCircle className="w-6 h-6" />}
           action={
             pendingWithdrawals.length > 0 ? (
-              <div className="px-4 py-2 bg-amber-500/20 text-amber-200 rounded-ios-lg border border-amber-500/30">
+              <div className="px-3 py-1.5 bg-amber-500/20 text-amber-200 rounded-ios-lg border border-amber-500/30">
                 <p className="text-sm font-semibold">
-                  {pendingWithdrawals.length} pending withdrawal{pendingWithdrawals.length !== 1 ? 's' : ''}
+                  {pendingWithdrawals.length} pending
                 </p>
               </div>
             ) : undefined
           }
         />
 
-        {/* Filters */}
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
-          <div className="flex items-center gap-4">
-            <Filter className="w-5 h-5 text-white/50" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 border-2 border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
-            >
-              <option value="all">All Status</option>
-              <option value="REQUESTED">Pending</option>
-              <option value="SUCCEEDED">Approved</option>
-              <option value="FAILED">Denied</option>
-            </select>
+        <div className={admin.tableWrap}>
+          <div className={admin.tableToolbar}>
+            <div className="flex items-center gap-3">
+              <Filter className="w-4 h-4 text-white/50 shrink-0" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className={`${admin.select} max-w-xs`}
+              >
+                <option value="all">All Status</option>
+                <option value="REQUESTED">Pending</option>
+                <option value="SUCCEEDED">Approved</option>
+                <option value="FAILED">Denied</option>
+              </select>
+            </div>
           </div>
-        </div>
-
-        {/* Withdrawals Table */}
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-white/5 border-b border-white/10">
+              <thead className={admin.tableHead}>
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    Amount
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    Method
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    Requested
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-semibold text-white/80 uppercase tracking-wider">
-                    Actions
-                  </th>
+                  <th className={admin.th}>User</th>
+                  <th className={admin.th}>Amount</th>
+                  <th className={admin.th}>Payout</th>
+                  <th className={admin.th}>Status</th>
+                  <th className={admin.th}>Requested</th>
+                  <th className={admin.th}>Actions</th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className={admin.tbody}>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
+                    <td colSpan={6} className={`${admin.td} text-center py-12`}>
                       <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold" />
                       </div>
                     </td>
                   </tr>
-                ) : withdrawalsData?.withdrawals && withdrawalsData.withdrawals.length > 0 ? (
+                ) : withdrawalsData?.withdrawals?.length ? (
                   withdrawalsData.withdrawals.map((withdrawal) => (
-                    <tr key={withdrawal.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-3">
-                          <AdminAvatar label={withdrawal.wallet.user.email} variant="maroon" />
-                          <div>
-                            <p className="font-medium text-white">{withdrawal.wallet.user.email}</p>
-                            <p className="text-sm text-white/55">ID: {withdrawal.wallet.user.id.slice(0, 8)}...</p>
+                    <tr key={withdrawal.id} className={admin.trHover}>
+                      <td className={admin.td}>
+                        <div className="flex items-center gap-3 min-w-[180px]">
+                          <AdminAvatar label={withdrawal.wallet?.user?.email || '?'} variant="maroon" />
+                          <div className="min-w-0">
+                            <p className="font-medium text-white truncate">
+                              {withdrawal.wallet?.user?.email}
+                            </p>
+                            {withdrawal.wallet?.user?.phone && (
+                              <p className="text-xs text-white/55">{withdrawal.wallet.user.phone}</p>
+                            )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="font-semibold text-white">
-                          {formatCurrency(withdrawal.amountCents, 'GHS')}
+                      <td className={admin.td}>
+                        <p className="font-semibold text-white whitespace-nowrap">
+                          {formatCurrency(withdrawal.amountCents, withdrawal.currency || 'GHS')}
                         </p>
                         {withdrawal.feeCents > 0 && (
-                          <p className="text-xs text-white/55">Fee: {formatCurrency(withdrawal.feeCents, 'GHS')}</p>
+                          <p className="text-xs text-white/55">
+                            Fee: {formatCurrency(withdrawal.feeCents, withdrawal.currency || 'GHS')}
+                          </p>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <p className="text-sm text-white">{withdrawal.methodType}</p>
-                        {withdrawal.methodDetails?.accountNumber && (
-                          <p className="text-xs text-white/55">***{withdrawal.methodDetails.accountNumber.slice(-4)}</p>
-                        )}
+                      <td className={admin.td}>
+                        <p className="text-sm text-white">
+                          {withdrawal.methodLabel || formatWithdrawalMethodLabel(withdrawal.methodType)}
+                        </p>
+                        <p className="text-xs text-white/55 truncate max-w-[200px]">
+                          {withdrawal.payoutSummary || '—'}
+                        </p>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">{getStatusBadge(withdrawal.status)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
+                      <td className={admin.td}><WithdrawalStatusBadge status={withdrawal.status} /></td>
+                      <td className={`${admin.td} ${admin.tdMuted} whitespace-nowrap`}>
                         {formatDate(withdrawal.createdAt)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {withdrawal.status === 'REQUESTED' ? (
-                          <div className="flex items-center gap-2">
-                            <Button size="sm" variant="tinted" onClick={() => handleProcess(withdrawal, 'approve')}>
-                              Approve
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => handleProcess(withdrawal, 'deny')}>
-                              Deny
-                            </Button>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-white/50">Processed</span>
-                        )}
+                      <td className={admin.td}>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => openDetails(withdrawal)}
+                            className={`${admin.rowAction} text-brand-gold hover:bg-brand-gold/15`}
+                            title="View payout details"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          {withdrawal.status === 'REQUESTED' && (
+                            <>
+                              <Button size="sm" variant="tinted" onClick={() => handleProcess(withdrawal, 'approve')}>
+                                Approve
+                              </Button>
+                              <Button size="sm" variant="destructive" onClick={() => handleProcess(withdrawal, 'deny')}>
+                                Deny
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-white/55">
+                    <td colSpan={6} className={`${admin.td} text-center py-12 text-white/55`}>
                       <ArrowUpCircle className="w-12 h-12 mx-auto mb-3 text-white/50" />
                       <p>No withdrawals found</p>
                     </td>
@@ -278,20 +234,62 @@ export default function AdminWithdrawalsPage() {
             </table>
           </div>
           {withdrawalsData && (
-            <div className="px-6 py-4 bg-white/5 border-t border-white/10">
-              <p className="text-sm text-white/70">
-                Showing <span className="font-medium">{withdrawalsData.withdrawals.length}</span> of{' '}
-                <span className="font-medium">{withdrawalsData.total}</span> withdrawals
+            <div className={admin.footerBar}>
+              <p>
+                Showing <span className="font-medium text-white">{withdrawalsData.withdrawals.length}</span> of{' '}
+                <span className="font-medium text-white">{withdrawalsData.total}</span> withdrawals
               </p>
             </div>
           )}
         </div>
 
         <Sheet
+          open={detailOpen && !!selectedWithdrawal}
+          onClose={() => {
+            setDetailOpen(false);
+            setSelectedWithdrawal(null);
+          }}
+          title="Withdrawal details"
+          footer={
+            selectedWithdrawal?.status === 'REQUESTED' ? (
+              <div className="flex gap-3 pb-2">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  fullWidth
+                  onClick={() => {
+                    setDetailOpen(false);
+                    handleProcess(selectedWithdrawal, 'deny');
+                  }}
+                >
+                  Deny
+                </Button>
+                <Button
+                  type="button"
+                  variant="filled"
+                  fullWidth
+                  onClick={() => {
+                    setDetailOpen(false);
+                    handleProcess(selectedWithdrawal, 'approve');
+                  }}
+                >
+                  Approve
+                </Button>
+              </div>
+            ) : undefined
+          }
+        >
+          {selectedWithdrawal && (
+            <div className="pb-2">
+              <WithdrawalPayoutDetailsView withdrawal={selectedWithdrawal} showSensitive />
+            </div>
+          )}
+        </Sheet>
+
+        <Sheet
           open={showProcessModal && !!selectedWithdrawal}
           onClose={() => {
             setShowProcessModal(false);
-            setSelectedWithdrawal(null);
             setReason('');
           }}
           title={processAction === 'approve' ? 'Approve withdrawal' : 'Deny withdrawal'}
@@ -303,7 +301,6 @@ export default function AdminWithdrawalsPage() {
                 fullWidth
                 onClick={() => {
                   setShowProcessModal(false);
-                  setSelectedWithdrawal(null);
                   setReason('');
                 }}
               >
@@ -314,7 +311,7 @@ export default function AdminWithdrawalsPage() {
                 variant={processAction === 'approve' ? 'filled' : 'destructive'}
                 fullWidth
                 loading={processMutation.isPending}
-                disabled={processAction === 'deny' && !reason}
+                disabled={processAction === 'deny' && !reason.trim()}
                 onClick={confirmProcess}
               >
                 {processAction === 'approve' ? 'Approve' : 'Deny'}
@@ -324,22 +321,10 @@ export default function AdminWithdrawalsPage() {
         >
           {selectedWithdrawal && (
             <div className="space-y-4 pb-2">
-              <div className="p-4 rounded-ios-lg bg-white/5 border border-white/10">
-                <p className="text-ios-footnote text-label-secondary mb-1">User</p>
-                <p className="font-medium text-label-primary">{selectedWithdrawal.wallet.user.email}</p>
-                <p className="text-ios-caption text-label-tertiary mt-1">
-                  ID: {selectedWithdrawal.wallet.user.id.slice(0, 8)}…
-                </p>
-              </div>
-              <div className="p-4 rounded-ios-lg bg-white/5 border border-white/10">
-                <p className="text-ios-footnote text-label-secondary mb-1">Amount</p>
-                <p className="text-ios-title-2 font-bold text-label-primary">
-                  {formatCurrency(selectedWithdrawal.amountCents, 'GHS')}
-                </p>
-              </div>
+              <WithdrawalPayoutDetailsView withdrawal={selectedWithdrawal} showSensitive />
               {processAction === 'deny' && (
                 <div>
-                  <label className="block text-ios-footnote font-medium text-label-secondary mb-2">
+                  <label className="block text-sm font-medium text-white/70 mb-2">
                     Reason <span className="text-red-400">*</span>
                   </label>
                   <textarea
@@ -347,7 +332,7 @@ export default function AdminWithdrawalsPage() {
                     onChange={(e) => setReason(e.target.value)}
                     rows={3}
                     placeholder="Enter reason for denial…"
-                    className="w-full px-4 py-3 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-red-500/40 focus:border-red-500/40 outline-none resize-none"
+                    className={`${admin.input} resize-none`}
                   />
                 </div>
               )}
@@ -358,4 +343,3 @@ export default function AdminWithdrawalsPage() {
     </Layout>
   );
 }
-
