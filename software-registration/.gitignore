@@ -1,0 +1,15 @@
+# Generated pen drive contents — do not commit
+pen-drive-1/
+pen-drive-2/
+
+# Large generated artifacts
+database-schema/full-schema.sql
+
+# Company documents (sensitive)
+company-documents/ghana-cards/
+company-documents/certificate-of-incorporation/
+
+# WebView Gold binaries
+webview-gold-project/*.apk
+webview-gold-project/*.ipa
+webview-gold-project/*.zip
