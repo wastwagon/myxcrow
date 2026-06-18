@@ -47,7 +47,7 @@ describe('EscrowService', () => {
   };
 
   const mockWallet = {
-    getOrCreateWallet: jest.fn().mockResolvedValue({ id: 'wallet-id' }),
+    getOrCreateWallet: jest.fn().mockResolvedValue({ id: 'wallet-id', availableCents: 1_000_000 }),
     reserveForEscrow: jest.fn().mockResolvedValue(undefined),
   };
 
@@ -80,7 +80,52 @@ describe('EscrowService', () => {
         ...args.data,
         buyerId: mockBuyer.id,
         sellerId: args.data.sellerId,
+        buyerWalletId: 'wallet-id',
+        status: 'AWAITING_FUNDING',
+        amountCents: args.data.amountCents ?? 10000,
+        feeCents: 500,
+        currency: 'GHS',
+        fundingAmountCents: 10500,
+        netAmountCents: 10000,
       }),
+    );
+    (mockPrisma.escrowAgreement.findUnique as jest.Mock).mockImplementation(
+      ({ where }: { where: { id: string } }) => {
+        if (where.id === 'escrow-id') {
+          return Promise.resolve({
+            id: 'escrow-id',
+            buyerId: mockBuyer.id,
+            sellerId: mockSeller.id,
+            status: 'AWAITING_FUNDING',
+            buyerWalletId: 'wallet-id',
+            amountCents: 10000,
+            feeCents: 500,
+            currency: 'GHS',
+            fundingAmountCents: 10500,
+            netAmountCents: 10000,
+          });
+        }
+        if (where.id === mockBuyer.id || where.id === mockSeller.id) {
+          return prismaUserFindUnique({ where: { id: where.id } });
+        }
+        return Promise.resolve(null);
+      },
+    );
+    (mockPrisma.escrowAgreement.update as jest.Mock).mockImplementation(
+      ({ where, data }: { where: { id: string }; data: any }) =>
+        Promise.resolve({
+          id: where.id,
+          buyerId: mockBuyer.id,
+          sellerId: mockSeller.id,
+          status: data.status ?? 'FUNDED',
+          buyerWalletId: 'wallet-id',
+          amountCents: 10000,
+          feeCents: 500,
+          currency: 'GHS',
+          fundingAmountCents: 10500,
+          netAmountCents: 10000,
+          ...data,
+        }),
     );
     (mockPrisma.escrowMilestone.createMany as jest.Mock).mockResolvedValue({ count: 0 });
 
@@ -109,6 +154,8 @@ describe('EscrowService', () => {
         amountCents: 10000,
         description: 'Test',
         useWallet: true,
+        escrowCategory: 'PROFESSIONAL_SERVICE',
+        serviceType: 'Web Development & Design',
       });
 
       expect(prismaUserFindUnique).toHaveBeenCalledWith({
@@ -155,6 +202,8 @@ describe('EscrowService', () => {
         amountCents: 10000,
         description: 'Test',
         useWallet: true,
+        escrowCategory: 'PROFESSIONAL_SERVICE',
+        serviceType: 'Consulting & Business Advisory',
       });
 
       const emailCalls = prismaUserFindUnique.mock.calls.filter((c: any) => c[0]?.where?.email);

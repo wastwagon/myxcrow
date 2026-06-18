@@ -379,6 +379,8 @@ model EscrowAgreement {
   fundingAmountCents   Int          @default(0) // Total debited from buyer wallet (amount + buyer fee)
   netAmountCents       Int          @default(0) // amountCents - sellerFeeCents (what seller receives)
   description          String?
+  escrowCategory       String?      // PHYSICAL_GOODS | PROFESSIONAL_SERVICE
+  serviceType          String?      // e.g. Web Development & Design
   status               EscrowStatus @default(AWAITING_FUNDING)
   fundingMethod        String?      @default("direct") // "wallet" or "direct" (for backward compatibility)
   

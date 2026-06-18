@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { isAuthenticated } from '@/lib/auth';
 import { useForm, useFieldArray } from 'react-hook-form';
@@ -15,6 +16,13 @@ import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
 import EscrowFeeSummary from '@/components/EscrowFeeSummary';
 import { calculateEscrowFees } from '@/lib/fee-calculator';
+import {
+  ESCROW_CATEGORY,
+  ESCROW_CATEGORY_LABELS,
+  PROFESSIONAL_SERVICE_TYPES,
+  type EscrowCategory,
+} from '@/lib/escrow-services';
+import { formatCurrency } from '@/lib/utils';
 
 const milestoneSchema = z.object({
   name: z.string().min(1, 'Milestone name is required'),
@@ -29,6 +37,8 @@ const createEscrowSchema = z.object({
   amountCents: z.number().min(1, 'Amount must be at least ₵1.00'),
   currency: z.string().default('GHS'),
   description: z.string().min(1, 'Description is required'),
+  escrowCategory: z.enum([ESCROW_CATEGORY.PHYSICAL_GOODS, ESCROW_CATEGORY.PROFESSIONAL_SERVICE]),
+  serviceType: z.string().optional(),
   useMilestones: z.boolean().default(false),
   milestones: z.array(milestoneSchema).optional(),
   deliveryRegion: z.string().optional(),
@@ -37,6 +47,22 @@ const createEscrowSchema = z.object({
   deliveryPhone: z.string().optional(),
   useDeliveryPin: z.boolean().default(false),
   deliveryPin: z.string().regex(/^\d{6}$/, 'PIN must be exactly 6 digits').optional(),
+}).refine((data) => {
+  if (data.escrowCategory === ESCROW_CATEGORY.PROFESSIONAL_SERVICE) {
+    return !!data.serviceType?.trim();
+  }
+  return true;
+}, {
+  message: 'Select a professional service type',
+  path: ['serviceType'],
+}).refine((data) => {
+  if (data.escrowCategory === ESCROW_CATEGORY.PHYSICAL_GOODS) {
+    return !!data.deliveryRegion?.trim() && !!data.deliveryCity?.trim() && !!data.deliveryAddressLine?.trim();
+  }
+  return true;
+}, {
+  message: 'Delivery region, city, and street address are required for physical goods',
+  path: ['deliveryAddressLine'],
 }).refine((data) => {
   if (data.useMilestones && data.milestones && data.milestones.length > 0) {
     const totalMilestones = data.milestones.reduce((sum, m) => sum + m.amountCents, 0);
@@ -90,6 +116,11 @@ export default function CreateEscrowPage() {
     queryFn: async () => (await apiClient.get('/settings/fees')).data,
   });
 
+  const { data: wallet } = useQuery({
+    queryKey: ['wallet'],
+    queryFn: async () => (await apiClient.get('/wallet')).data,
+  });
+
   const {
     register,
     handleSubmit,
@@ -102,6 +133,7 @@ export default function CreateEscrowPage() {
     resolver: zodResolver(createEscrowSchema),
     defaultValues: {
       currency: 'GHS',
+      escrowCategory: ESCROW_CATEGORY.PHYSICAL_GOODS as EscrowCategory,
       useMilestones: false,
       milestones: [],
       useDeliveryPin: false,
@@ -116,9 +148,12 @@ export default function CreateEscrowPage() {
 
   const useMilestones = watch('useMilestones');
   const amountCents = watch('amountCents');
+  const escrowCategory = watch('escrowCategory');
+  const serviceType = watch('serviceType');
   const milestones = watch('milestones');
   const useDeliveryPin = watch('useDeliveryPin');
   const deliveryPin = watch('deliveryPin');
+  const isPhysicalGoods = escrowCategory === ESCROW_CATEGORY.PHYSICAL_GOODS;
 
   useEffect(() => {
     if (!useDeliveryPin) {
@@ -143,7 +178,23 @@ export default function CreateEscrowPage() {
         deliveryPhone: data.deliveryPhone || undefined,
         deliveryConfirmationMode: data.useDeliveryPin ? 'pin' : 'code',
         deliveryPin: data.useDeliveryPin ? data.deliveryPin : undefined,
+        escrowCategory: data.escrowCategory,
+        serviceType:
+          data.escrowCategory === ESCROW_CATEGORY.PROFESSIONAL_SERVICE
+            ? data.serviceType
+            : undefined,
       };
+      if (data.escrowCategory === ESCROW_CATEGORY.PHYSICAL_GOODS) {
+        payload.deliveryRegion = data.deliveryRegion || undefined;
+        payload.deliveryCity = data.deliveryCity || undefined;
+        payload.deliveryAddressLine = data.deliveryAddressLine || undefined;
+        payload.deliveryPhone = data.deliveryPhone || undefined;
+      } else {
+        delete payload.deliveryRegion;
+        delete payload.deliveryCity;
+        delete payload.deliveryAddressLine;
+        delete payload.deliveryPhone;
+      }
       if (data.useMilestones && data.milestones && data.milestones.length > 0) {
         payload.milestones = data.milestones.map(m => ({
           ...m,
@@ -162,7 +213,7 @@ export default function CreateEscrowPage() {
       const escrowId = response.data.id;
       queryClient.invalidateQueries({ queryKey: ['escrows'] });
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
-      toast.success('Escrow created successfully');
+      toast.success('Escrow created and funded from your wallet');
       if (response.data.generatedDeliveryPin && typeof window !== 'undefined') {
         sessionStorage.setItem(`newEscrowPin:${escrowId}`, response.data.generatedDeliveryPin);
       }
@@ -188,6 +239,10 @@ export default function CreateEscrowPage() {
     if (!feeSettings || !amountCents || amountCents < 1) return null;
     return calculateEscrowFees(Math.round(amountCents * 100), feeSettings);
   }, [amountCents, feeSettings]);
+
+  const fundingRequiredCents = feePreview?.fundingAmountCents ?? (amountCents ? Math.round(amountCents * 100) : 0);
+  const hasSufficientBalance =
+    wallet && fundingRequiredCents > 0 && wallet.availableCents >= fundingRequiredCents;
 
   if (!isAuthenticated()) {
     return null;
@@ -243,6 +298,66 @@ export default function CreateEscrowPage() {
             )}
           </div>
 
+          <div>
+            <p className="block text-sm font-medium text-label-secondary mb-2">Type of transaction *</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {(Object.entries(ESCROW_CATEGORY_LABELS) as [EscrowCategory, string][]).map(([value, label]) => {
+                const selected = escrowCategory === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setValue('escrowCategory', value, { shouldValidate: true });
+                      if (value === ESCROW_CATEGORY.PHYSICAL_GOODS) {
+                        setValue('serviceType', undefined);
+                      }
+                    }}
+                    className={`p-4 rounded-lg border text-left transition-colors ${
+                      selected
+                        ? 'border-brand-gold/50 bg-brand-gold/15 ring-1 ring-brand-gold/30'
+                        : 'border-white/15 bg-white/5 hover:bg-white/10'
+                    }`}
+                  >
+                    <span className="text-sm font-semibold text-white">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <input type="hidden" {...register('escrowCategory')} />
+          </div>
+
+          {escrowCategory === ESCROW_CATEGORY.PROFESSIONAL_SERVICE && (
+            <div>
+              <label htmlFor="serviceType" className="block text-sm font-medium text-label-secondary mb-1">
+                Professional service *
+              </label>
+              <select
+                {...register('serviceType')}
+                id="serviceType"
+                className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent bg-transparent"
+                defaultValue=""
+              >
+                <option value="" disabled>
+                  Select a service category
+                </option>
+                {PROFESSIONAL_SERVICE_TYPES.map((type) => (
+                  <option key={type} value={type} className="text-black">
+                    {type}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-label-tertiary">
+                No shipping address needed — the seller marks the service complete when finished. Your transaction PIN still applies as the deal identifier.
+              </p>
+              {errors.serviceType && (
+                <p className="mt-1 text-sm text-red-400">{errors.serviceType.message}</p>
+              )}
+            </div>
+          )}
+
+          {isPhysicalGoods && (
+          <>
           <div className="border-t border-white/10 pt-4">
             <h3 className="text-sm font-semibold text-label-primary mb-3">Delivery address (ship to)</h3>
             <p className="text-xs text-label-tertiary mb-3">Where the seller should send the item. Only you and the seller see this.</p>
@@ -274,6 +389,9 @@ export default function CreateEscrowPage() {
                 placeholder="Street, area, or landmark"
                 className="w-full px-4 py-2 border border-white/20 rounded-lg focus:ring-2 focus:ring-brand-gold focus:border-transparent"
               />
+              {errors.deliveryAddressLine && (
+                <p className="mt-1 text-sm text-red-400">{errors.deliveryAddressLine.message}</p>
+              )}
             </div>
             <div className="mt-4">
               <label htmlFor="deliveryPhone" className="block text-sm font-medium text-label-secondary mb-1">Contact phone for delivery (optional)</label>
@@ -286,13 +404,17 @@ export default function CreateEscrowPage() {
               />
             </div>
           </div>
+          </>
+          )}
 
           <div className="border-t border-white/10 pt-4">
-            <h3 className="text-sm font-semibold text-label-primary mb-2">Delivery confirmation</h3>
-            <p className="text-xs text-label-tertiary mb-3">Default: reference + delivery code. Or use a <strong>transaction PIN</strong>: you and the seller will see this PIN on the escrow details so it can be written on the parcel. At delivery, entering the PIN confirms the transaction before funds auto-release.</p>
+            <h3 className="text-sm font-semibold text-label-primary mb-2">Transaction confirmation</h3>
+            <p className="text-xs text-label-tertiary mb-3">
+              Default: reference + delivery code (physical goods when shipped). Or use a <strong>transaction PIN</strong>: you and the seller both see this PIN on the escrow details — it identifies the deal for handoff or delivery. Entering the reference + PIN confirms completion before funds auto-release.
+            </p>
             <label className="flex items-center gap-2 cursor-pointer mb-3">
               <input type="checkbox" {...register('useDeliveryPin')} className={form.checkbox} />
-              <span className={form.checkboxLabel}>Use PIN to confirm delivery (auto-generate secure PIN for this escrow)</span>
+              <span className={form.checkboxLabel}>Use PIN to confirm completion (auto-generate secure PIN for this escrow)</span>
             </label>
             {useDeliveryPin && (
               <div className="mt-2">
@@ -319,7 +441,9 @@ export default function CreateEscrowPage() {
                     <Copy className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="mt-1 text-xs text-label-tertiary">This PIN is saved on your escrow details and shared with the seller for parcel labelling. You can view it anytime before delivery.</p>
+                <p className="mt-1 text-xs text-label-tertiary">
+                  This PIN is saved on your escrow details and shared with the seller. You can view it anytime before completion.
+                </p>
                 {errors.deliveryPin && (
                   <p className="mt-1 text-sm text-red-400">{errors.deliveryPin.message}</p>
                 )}
@@ -356,14 +480,46 @@ export default function CreateEscrowPage() {
 
           {feePreview && <EscrowFeeSummary fees={feePreview} />}
 
-          <div className="p-4 border border-brand-gold/30 bg-brand-gold/10 rounded-lg">
+          {wallet && (
+            <div className="text-sm text-label-secondary">
+              Wallet available:{' '}
+              <span className="font-medium text-white">
+                {formatCurrency(wallet.availableCents, wallet.currency || 'GHS')}
+              </span>
+            </div>
+          )}
+
+          <div className={`p-4 border rounded-lg ${
+            hasSufficientBalance === false
+              ? 'border-red-400/40 bg-red-500/10'
+              : 'border-brand-gold/30 bg-brand-gold/10'
+          }`}>
             <p className="text-sm text-label-primary">
-                <strong>Note:</strong> The escrow will be funded from your wallet balance.
-                {feePreview && feePreview.buyerFeeCents > 0 && (
-                  <> You will be charged <strong>{CURRENCY_SYMBOL} {(feePreview.fundingAmountCents / 100).toFixed(2)}</strong> (deal amount + your fee share).</>
-                )}
-                {' '}Make sure you have sufficient funds.
-              </p>
+              {hasSufficientBalance === false ? (
+                <>
+                  <strong>Insufficient balance.</strong> Top up your wallet before creating this escrow.
+                  {fundingRequiredCents > 0 && (
+                    <> You need {formatCurrency(fundingRequiredCents, 'GHS')} available.</>
+                  )}
+                  <span className="block mt-3">
+                    <Link
+                      href="/wallet/topup"
+                      className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-brand-gold text-brand-maroon-black font-semibold text-sm hover:bg-brand-gold/90"
+                    >
+                      Top up wallet
+                    </Link>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <strong>One-step funding:</strong> When you submit, MYXCROW will create and fund this escrow from your wallet
+                  {fundingRequiredCents > 0 && (
+                    <> ({formatCurrency(fundingRequiredCents, 'GHS')} including fees)</>
+                  )}
+                  . No extra fund button needed.
+                </>
+              )}
+            </p>
           </div>
 
           <div className="border-t pt-6">
@@ -520,8 +676,14 @@ export default function CreateEscrowPage() {
             <Button type="button" variant="secondary" fullWidth onClick={() => router.back()}>
               Cancel
             </Button>
-            <Button type="submit" variant="filled" fullWidth loading={createMutation.isPending}>
-              {createMutation.isPending ? 'Creating...' : 'Create Escrow'}
+            <Button
+              type="submit"
+              variant="filled"
+              fullWidth
+              loading={createMutation.isPending}
+              disabled={hasSufficientBalance === false || createMutation.isPending}
+            >
+              {createMutation.isPending ? 'Creating & funding...' : 'Create & fund escrow'}
             </Button>
           </div>
         </form>

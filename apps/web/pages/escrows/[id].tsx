@@ -5,6 +5,7 @@ import Layout from '@/components/Layout';
 import { isAuthenticated, getUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
+import { ESCROW_CATEGORY, ESCROW_CATEGORY_LABELS } from '@/lib/escrow-services';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import {
   Package,
@@ -50,6 +51,8 @@ interface Escrow {
   amountCents: number;
   currency: string;
   description: string;
+  escrowCategory?: string;
+  serviceType?: string;
   createdAt: string;
   buyerId: string;
   sellerId: string;
@@ -119,11 +122,14 @@ export default function EscrowDetailPage() {
 
   const isBuyer = escrow?.buyerId === user?.id;
   const isSeller = escrow?.sellerId === user?.id;
+  const isPhysicalGoods =
+    !escrow?.escrowCategory || escrow.escrowCategory === 'PHYSICAL_GOODS';
+  const isProfessionalService = escrow?.escrowCategory === 'PROFESSIONAL_SERVICE';
   const canFund = isBuyer && escrow?.status === 'AWAITING_FUNDING';
-  const canShip = isSeller && escrow?.status === 'FUNDED';
-  const canDeliver = isBuyer && ['SHIPPED', 'IN_TRANSIT', 'FUNDED'].includes(escrow?.status || '');
+  const canShip = isSeller && escrow?.status === 'FUNDED' && isPhysicalGoods;
+  const canDeliver = isBuyer && isPhysicalGoods && ['SHIPPED', 'IN_TRANSIT', 'FUNDED'].includes(escrow?.status || '');
   const canRelease = isBuyer && (escrow?.status === 'DELIVERED' || escrow?.status === 'AWAITING_RELEASE');
-  const canMarkServiceCompleted = isSeller && escrow?.status === 'FUNDED';
+  const canMarkServiceCompleted = isSeller && escrow?.status === 'FUNDED' && isProfessionalService;
   const canRate = (isBuyer || isSeller) && escrow && ['RELEASED', 'REFUNDED'].includes(escrow.status);
 
   const statusConfig: Record<string, { label: string; icon: typeof Clock }> = {
@@ -268,6 +274,7 @@ export default function EscrowDetailPage() {
   };
 
   const confirmDeliveryBaseUrl = typeof window !== 'undefined' ? `${window.location.origin}/confirm-delivery` : '/confirm-delivery';
+  const transactionReference = escrow?.shipments?.find((s) => s.shortReference);
   const firstShipmentWithCode = escrow?.shipments?.find((s) => s.deliveryCode && s.shortReference);
 
   const feeSummary = escrow
@@ -370,6 +377,20 @@ export default function EscrowDetailPage() {
                 <p className="text-sm text-white/70">Description</p>
                 <p className="font-medium text-white">{escrow.description || 'N/A'}</p>
               </div>
+              {escrow.escrowCategory && (
+                <div>
+                  <p className="text-sm text-white/70">Category</p>
+                  <p className="font-medium text-white">
+                    {ESCROW_CATEGORY_LABELS[escrow.escrowCategory as keyof typeof ESCROW_CATEGORY_LABELS] ?? escrow.escrowCategory}
+                  </p>
+                </div>
+              )}
+              {escrow.serviceType && (
+                <div>
+                  <p className="text-sm text-white/70">Service type</p>
+                  <p className="font-medium text-white">{escrow.serviceType}</p>
+                </div>
+              )}
               {escrow.buyer && (
                 <div>
                   <p className="text-sm text-white/70">Buyer</p>
@@ -417,7 +438,7 @@ export default function EscrowDetailPage() {
                 <p className="text-sm text-white/70">Created</p>
                 <p className="font-medium text-white">{formatDate(escrow.createdAt)}</p>
               </div>
-              {(escrow.deliveryRegion || escrow.deliveryCity || escrow.deliveryAddressLine) && (
+              {(escrow.deliveryRegion || escrow.deliveryCity || escrow.deliveryAddressLine) && isPhysicalGoods && (
                 <div>
                   <p className="text-sm text-white/70">Ship to</p>
                   <p className="font-medium text-white">
@@ -426,20 +447,30 @@ export default function EscrowDetailPage() {
                   </p>
                 </div>
               )}
-              {(isBuyer || isSeller) && (firstShipmentWithCode || escrow.deliveryPin) && (
+              {(isBuyer || isSeller) && (transactionReference || escrow.deliveryPin || firstShipmentWithCode) && (
                 <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg md:col-span-2">
                   {escrow.deliveryConfirmationMode === 'pin' && escrow.deliveryPin ? (
                     <>
                       <p className="text-sm font-semibold text-amber-900 mb-1">
-                        {isSeller ? 'Write this PIN on the parcel' : 'Your delivery confirmation PIN'}
+                        {isSeller
+                          ? isPhysicalGoods
+                            ? 'Write this PIN on the parcel'
+                            : 'Transaction PIN (share with buyer at handoff)'
+                          : isPhysicalGoods
+                          ? 'Your delivery confirmation PIN'
+                          : 'Your transaction PIN'}
                       </p>
                       <p className="text-xs text-amber-800 mb-2">
                         {isSeller
-                          ? 'The buyer set this PIN for delivery confirmation. Write the reference and PIN on the parcel.'
-                          : 'Use this reference and PIN on the confirm-delivery page when your order arrives. The seller also has this for parcel labelling.'}
+                          ? isPhysicalGoods
+                            ? 'The buyer set this PIN for delivery confirmation. Write the reference and PIN on the parcel.'
+                            : 'The buyer set this PIN to identify and confirm the deal when the service is complete.'
+                          : isPhysicalGoods
+                          ? 'Use this reference and PIN on the confirm-delivery page when your order arrives. The seller also has this for parcel labelling.'
+                          : 'Use this reference and PIN on the confirm-delivery page when the service is complete. The seller also has this as the deal identifier.'}
                       </p>
-                      {firstShipmentWithCode && (
-                        <p className="font-mono text-lg font-bold text-amber-900">Ref: {firstShipmentWithCode.shortReference}</p>
+                      {transactionReference && (
+                        <p className="font-mono text-lg font-bold text-amber-900">Ref: {transactionReference.shortReference}</p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
                         <code className="font-mono text-lg font-bold text-amber-950 bg-amber-100 px-3 py-1 rounded">
@@ -472,9 +503,9 @@ export default function EscrowDetailPage() {
                       </p>
                     </>
                   ) : null}
-                  {firstShipmentWithCode && (
+                  {transactionReference && (
                     <a
-                      href={`${confirmDeliveryBaseUrl}?ref=${encodeURIComponent(firstShipmentWithCode.shortReference!)}`}
+                      href={`${confirmDeliveryBaseUrl}?ref=${encodeURIComponent(transactionReference.shortReference!)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-sm text-amber-700 hover:underline mt-2 inline-block"
@@ -565,9 +596,9 @@ export default function EscrowDetailPage() {
                       </Button>
                     </div>
                   )}
-                  {firstShipmentWithCode && escrow.deliveryConfirmationMode === 'pin' && escrow.deliveryPin && (
+                  {transactionReference && escrow.deliveryConfirmationMode === 'pin' && escrow.deliveryPin && (
                     <p className="text-sm text-label-secondary mt-2">
-                      Your PIN is shown above. Enter reference + PIN on the confirm-delivery page when the order arrives.
+                      Your PIN is shown above. Enter reference + PIN on the confirm-delivery page when the {isPhysicalGoods ? 'order arrives' : 'service is complete'}.
                     </p>
                   )}
                 </>

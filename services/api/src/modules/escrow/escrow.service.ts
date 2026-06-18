@@ -54,6 +54,33 @@ export class EscrowService {
     return pin;
   }
 
+  /** Unique 6-char reference for PIN-based transaction identification (all escrow types). */
+  private async generateUniqueShortReference(): Promise<string> {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const shortReference = this.generateDeliveryCode();
+      const existing = await this.prisma.shipment.findUnique({ where: { shortReference } });
+      if (!existing) return shortReference;
+    }
+    throw new BadRequestException('Could not generate transaction reference. Please try again.');
+  }
+
+  /** Reserve a transaction reference when PIN mode is enabled (buyer/seller see ref + PIN from day one). */
+  private async ensurePinTransactionReference(escrowId: string) {
+    const existing = await this.prisma.shipment.findFirst({
+      where: { escrowId, shortReference: { not: null } },
+    });
+    if (existing) return existing;
+
+    const shortReference = await this.generateUniqueShortReference();
+    return this.prisma.shipment.create({
+      data: {
+        escrowId,
+        status: 'pending',
+        shortReference,
+      },
+    });
+  }
+
   async createEscrow(data: {
     buyerId: string;
     sellerId: string;
@@ -73,6 +100,8 @@ export class EscrowService {
     deliveryPhone?: string;
     deliveryConfirmationMode?: 'code' | 'pin';
     deliveryPin?: string; // Plain PIN when mode is 'pin'; stored hashed
+    escrowCategory?: string;
+    serviceType?: string;
   }) {
     let sellerId = data.sellerId;
 
@@ -108,6 +137,20 @@ export class EscrowService {
     const feeCalculation = await this.settingsService.calculateFee(data.amountCents);
     const feePaidBy = feeCalculation.paidBy;
 
+    const escrowCategory = data.escrowCategory || 'PHYSICAL_GOODS';
+    const serviceType =
+      escrowCategory === 'PROFESSIONAL_SERVICE' ? data.serviceType?.trim() || null : null;
+
+    if (escrowCategory === 'PROFESSIONAL_SERVICE' && !serviceType) {
+      throw new BadRequestException('Select a professional service type');
+    }
+
+    if (escrowCategory === 'PHYSICAL_GOODS') {
+      if (!data.deliveryRegion?.trim() || !data.deliveryCity?.trim() || !data.deliveryAddressLine?.trim()) {
+        throw new BadRequestException('Delivery region, city, and street address are required for physical goods');
+      }
+    }
+
     // Wallet is used for all escrow funding. Paystack is only for wallet top-up.
     const useWallet = data.useWallet !== false;
     const deliveryMode = data.deliveryConfirmationMode === 'pin' ? 'pin' : 'code';
@@ -130,6 +173,11 @@ export class EscrowService {
     if (useWallet) {
       const buyerWallet = await this.walletService.getOrCreateWallet(data.buyerId, currency);
       const sellerWallet = await this.walletService.getOrCreateWallet(sellerId, currency);
+      if (buyerWallet.availableCents < feeCalculation.fundingAmountCents) {
+        throw new BadRequestException(
+          `Insufficient wallet balance. You need ${feeCalculation.fundingAmountCents / 100} ${currency} available (deal + fees). Top up your wallet first.`,
+        );
+      }
       buyerWalletId = buyerWallet.id;
       sellerWalletId = sellerWallet.id;
     }
@@ -150,15 +198,17 @@ export class EscrowService {
         fundingAmountCents: feeCalculation.fundingAmountCents,
         netAmountCents: feeCalculation.netAmountCents,
         description: data.description,
+        escrowCategory,
+        serviceType,
         status: EscrowStatus.AWAITING_FUNDING,
         fundingMethod: useWallet ? 'wallet' : 'direct',
         expectedDeliveryDate: data.expectedDeliveryDate,
         autoReleaseDays: data.autoReleaseDays ?? 0,
         disputeWindowDays: data.disputeWindowDays || 14,
-        deliveryRegion: data.deliveryRegion,
-        deliveryCity: data.deliveryCity,
-        deliveryAddressLine: data.deliveryAddressLine,
-        deliveryPhone: data.deliveryPhone,
+        deliveryRegion: escrowCategory === 'PHYSICAL_GOODS' ? data.deliveryRegion : null,
+        deliveryCity: escrowCategory === 'PHYSICAL_GOODS' ? data.deliveryCity : null,
+        deliveryAddressLine: escrowCategory === 'PHYSICAL_GOODS' ? data.deliveryAddressLine : null,
+        deliveryPhone: escrowCategory === 'PHYSICAL_GOODS' ? data.deliveryPhone : null,
         deliveryConfirmationMode: deliveryMode,
         deliveryPinHash,
         deliveryPinEncrypted,
@@ -177,6 +227,10 @@ export class EscrowService {
           status: 'pending',
         })),
       });
+    }
+
+    if (deliveryMode === 'pin') {
+      await this.ensurePinTransactionReference(escrow.id);
     }
 
     if (useWallet) {
@@ -210,6 +264,14 @@ export class EscrowService {
       amount: `${data.amountCents / 100}`,
       currency,
     });
+
+    if (useWallet) {
+      const funded = await this.fundEscrow(escrow.id, data.buyerId);
+      return {
+        ...funded,
+        generatedDeliveryPin: generatedDeliveryPin || undefined,
+      };
+    }
 
     return {
       ...escrow,
@@ -434,13 +496,9 @@ export class EscrowService {
       },
     });
 
-    const deliveryCode = this.generateDeliveryCode();
-    let shortReference = this.generateDeliveryCode();
-    for (let attempt = 0; attempt < 5; attempt++) {
-      const existing = await this.prisma.shipment.findUnique({ where: { shortReference } });
-      if (!existing) break;
-      shortReference = this.generateDeliveryCode();
-    }
+    const usePinMode = escrow.deliveryConfirmationMode === 'pin';
+    const deliveryCode = usePinMode ? null : this.generateDeliveryCode();
+    let shortReference: string;
 
     const deliveryAddressJson =
       escrow.deliveryRegion || escrow.deliveryCity || escrow.deliveryAddressLine
@@ -456,6 +514,12 @@ export class EscrowService {
       where: { escrowId },
     });
 
+    if (existingShipment?.shortReference) {
+      shortReference = existingShipment.shortReference;
+    } else {
+      shortReference = await this.generateUniqueShortReference();
+    }
+
     if (existingShipment) {
       await this.prisma.shipment.update({
         where: { id: existingShipment.id },
@@ -464,7 +528,7 @@ export class EscrowService {
           trackingNumber: trackingNumber ?? existingShipment.trackingNumber,
           status: 'shipped',
           shippedAt: new Date(),
-          deliveryCode,
+          deliveryCode: usePinMode ? existingShipment.deliveryCode : deliveryCode,
           shortReference,
           deliveryAddress: deliveryAddressJson ?? existingShipment.deliveryAddress,
         },
@@ -493,22 +557,24 @@ export class EscrowService {
       escrowId: escrow.id,
     });
 
-    await this.notificationsService.sendDeliveryCodeToBuyer({
-      buyerEmail: buyer!.email,
-      buyerPhone: buyer!.phone,
-      escrowId: escrow.id,
-      deliveryCode,
-      shortReference,
-      confirmDeliveryUrl: (process.env.CONFIRM_DELIVERY_BASE_URL || process.env.WEB_APP_URL || 'https://myxcrow.com').replace(/\/$/, '') + '/confirm-delivery',
-    });
+    if (!usePinMode && deliveryCode) {
+      await this.notificationsService.sendDeliveryCodeToBuyer({
+        buyerEmail: buyer!.email,
+        buyerPhone: buyer!.phone,
+        escrowId: escrow.id,
+        deliveryCode,
+        shortReference,
+        confirmDeliveryUrl: (process.env.CONFIRM_DELIVERY_BASE_URL || process.env.WEB_APP_URL || 'https://myxcrow.com').replace(/\/$/, '') + '/confirm-delivery',
+      });
 
-    await this.notificationsService.sendDeliveryCodeToSeller({
-      sellerEmail: seller!.email,
-      sellerPhone: seller!.phone,
-      escrowId: escrow.id,
-      deliveryCode,
-      shortReference,
-    });
+      await this.notificationsService.sendDeliveryCodeToSeller({
+        sellerEmail: seller!.email,
+        sellerPhone: seller!.phone,
+        escrowId: escrow.id,
+        deliveryCode,
+        shortReference,
+      });
+    }
 
     await this.auditService.log({
       userId,
@@ -664,8 +730,12 @@ export class EscrowService {
     if (!pinValid) {
       throw new BadRequestException('Invalid PIN. Please check and try again.');
     }
-    if (escrow.status !== EscrowStatus.SHIPPED && escrow.status !== EscrowStatus.IN_TRANSIT) {
-      throw new BadRequestException(`This delivery was already confirmed or escrow is in ${escrow.status} status.`);
+    const pinConfirmStatuses: EscrowStatus[] =
+      escrow.escrowCategory === 'PROFESSIONAL_SERVICE'
+        ? [EscrowStatus.FUNDED, EscrowStatus.AWAITING_RELEASE]
+        : [EscrowStatus.SHIPPED, EscrowStatus.IN_TRANSIT];
+    if (!pinConfirmStatuses.includes(escrow.status)) {
+      throw new BadRequestException(`This transaction was already confirmed or escrow is in ${escrow.status} status.`);
     }
     const escrowId = escrow.id;
     await this.prisma.escrowAgreement.update({
