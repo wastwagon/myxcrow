@@ -10,7 +10,8 @@ import { EmailService } from '../email/email.service';
 import { SMSService } from '../notifications/sms.service';
 import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
-import { normalizeGhanaPhone } from '../../common/utils/phone.util';
+import { normalizeGhanaPhone, isValidGhanaPhone } from '../../common/utils/phone.util';
+import { passwordResetSms, passwordChangedSms } from '../notifications/notification-messages';
 
 @Injectable()
 export class AuthService {
@@ -292,7 +293,7 @@ export class AuthService {
       where: { id: userId },
       select: {
         id: true,
-        email: true,
+        phone: true,
         passwordHash: true,
       },
     });
@@ -332,12 +333,13 @@ export class AuthService {
       details: { success: true },
     });
 
-    // Send email notification
-    try {
-      await this.emailService.sendPasswordChangedEmail(user.email);
-    } catch (error) {
-      // Don't fail the request if email fails
-      console.error('Failed to send password change email:', error);
+    // Send SMS notification
+    if (user.phone) {
+      try {
+        await this.smsService.sendSMS(user.phone, passwordChangedSms());
+      } catch {
+        // Don't fail the request if SMS fails
+      }
     }
 
     return { message: 'Password changed successfully' };
@@ -463,25 +465,24 @@ export class AuthService {
       return { success: true };
     }
 
-    const isPhone = /^0[0-9]{9}$/.test(normalizeGhanaPhone(trimmed));
-    const isEmail = trimmed.includes('@');
+    const userSelect = { id: true, email: true, phone: true, isActive: true } as const;
+    let user: { id: string; email: string | null; phone: string | null; isActive: boolean } | null = null;
 
-    let user = null;
-    if (isPhone) {
+    if (isValidGhanaPhone(trimmed)) {
       const normalizedPhone = normalizeGhanaPhone(trimmed);
       user = await this.prisma.user.findFirst({
         where: { phone: normalizedPhone },
-        select: { id: true, email: true, isActive: true },
+        select: userSelect,
       });
-    } else if (isEmail) {
+    } else if (trimmed.includes('@')) {
       user = await this.prisma.user.findUnique({
         where: { email: trimmed.toLowerCase() },
-        select: { id: true, email: true, isActive: true },
+        select: userSelect,
       });
     }
 
-    // Always return success to avoid account enumeration
-    if (!user || !user.isActive || !user.email) {
+    // Always return success to avoid account enumeration (SMS requires phone on file)
+    if (!user || !user.isActive || !user.phone) {
       return { success: true };
     }
 
@@ -504,14 +505,22 @@ export class AuthService {
 
     const resetLink = `${webBase.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(rawToken)}`;
 
-    await this.emailService.sendPasswordResetEmail(user.email, resetLink, '1 hour');
+    try {
+      await this.smsService.sendSMS(user.phone, passwordResetSms(resetLink));
+    } catch {
+      // Do not fail the request if SMS delivery fails
+    }
 
     await this.auditService.log({
       userId: user.id,
       action: 'password_reset_requested',
       resource: 'user',
       resourceId: user.id,
-      details: { email: user.email },
+      details: {
+        email: user.email,
+        phone: user.phone,
+        channel: 'sms',
+      },
     });
 
     return { success: true };
@@ -616,6 +625,19 @@ export class AuthService {
         data: { usedAt: new Date() },
       }),
     ]);
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: record.userId },
+      select: { phone: true },
+    });
+
+    if (user?.phone) {
+      try {
+        await this.smsService.sendSMS(user.phone, passwordChangedSms());
+      } catch {
+        // Do not fail the request if SMS delivery fails
+      }
+    }
 
     await this.auditService.log({
       userId: record.userId,

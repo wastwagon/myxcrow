@@ -94,7 +94,7 @@ export default function ResetPasswordPage() {
           {done ? (
             <div className="space-y-4">
               <div className={publicForm.calloutSuccess}>
-                Password reset successful. You can now sign in.
+                Password reset successful. A confirmation SMS has been sent to your phone. You can now sign in.
               </div>
               <button type="button" onClick={() => router.push('/login')} className={publicForm.submitMaroon}>
                 Go to login
@@ -102,19 +102,22 @@ export default function ResetPasswordPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <div>
-                <label htmlFor="token" className={publicForm.label}>
-                  Reset Token
-                </label>
-                <input
-                  {...register('token')}
-                  type="text"
-                  id="token"
-                  className={publicForm.input}
-                  placeholder="(auto-filled from link)"
-                />
-                {errors.token && <p className={publicForm.error}>{errors.token.message}</p>}
-              </div>
+              {!tokenFromQuery && (
+                <div>
+                  <label htmlFor="token" className={publicForm.label}>
+                    Reset Token
+                  </label>
+                  <input
+                    {...register('token')}
+                    type="text"
+                    id="token"
+                    className={publicForm.input}
+                    placeholder="Paste token from your email or SMS link"
+                  />
+                  {errors.token && <p className={publicForm.error}>{errors.token.message}</p>}
+                </div>
+              )}
+              {tokenFromQuery && <input type="hidden" {...register('token')} />}
 
               <div>
                 <label htmlFor="newPassword" className={publicForm.label}>

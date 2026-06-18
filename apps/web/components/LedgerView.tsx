@@ -3,6 +3,8 @@ import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { FileText, TrendingUp, TrendingDown } from 'lucide-react';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { buildLedgerReceipt } from '@/lib/receipt-builders';
+import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
 
 interface LedgerEntry {
   id: string;
@@ -64,7 +66,7 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
       {journals.map((journal) => (
         <div key={journal.id} className="border border-white/10 rounded-lg overflow-hidden">
           <div className="bg-white/5 px-4 py-3 border-b border-white/10">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <div>
                 <h4 className="font-medium text-label-primary">
                   {journal.type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Transaction'}
@@ -73,7 +75,16 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
                   <p className="text-sm text-label-secondary mt-1">{journal.description}</p>
                 )}
               </div>
-              <p className="text-sm text-label-tertiary">{formatDate(journal.createdAt)}</p>
+              <div className="flex items-center gap-2 shrink-0">
+                <PrintReceiptButton
+                  receipt={buildLedgerReceipt(journal, escrowId)}
+                  iconOnly
+                  variant="plain"
+                  size="sm"
+                  label="Print ledger receipt"
+                />
+                <p className="text-sm text-label-tertiary">{formatDate(journal.createdAt)}</p>
+              </div>
             </div>
           </div>
           <div className="divide-y divide-white/10">

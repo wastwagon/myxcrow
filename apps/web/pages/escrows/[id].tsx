@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Layout from '@/components/Layout';
-import { isAuthenticated, getUser } from '@/lib/auth';
+import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { ESCROW_CATEGORY, ESCROW_CATEGORY_LABELS } from '@/lib/escrow-services';
@@ -35,6 +35,8 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { PageDetailSkeleton } from '@/components/LoadingSkeleton';
 import EscrowFeeSummary from '@/components/EscrowFeeSummary';
+import { buildEscrowReceipt } from '@/lib/receipt-builders';
+import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
 
 interface Shipment {
   id: string;
@@ -348,6 +350,14 @@ export default function EscrowDetailPage() {
     { value: 'messages' as const, label: 'Messages' },
   ];
 
+  const viewerRole: 'buyer' | 'seller' | 'admin' | undefined = isBuyer
+    ? 'buyer'
+    : isSeller
+    ? 'seller'
+    : isAdmin()
+    ? 'admin'
+    : undefined;
+
   return (
     <Layout>
       <PullToRefresh onRefresh={refreshEscrow} disabled={!isMobile} className="space-y-6">
@@ -359,11 +369,21 @@ export default function EscrowDetailPage() {
           subtitle={`ID: ${escrow.id}`}
           icon={<FileText className="w-6 h-6" />}
           action={
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg border border-white/20">
-              <StatusIcon className="w-5 h-5 text-brand-gold" />
-              <span className="text-sm font-medium text-white">
-                {statusConfig[escrow.status]?.label || escrow.status}
-              </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <PrintReceiptButton
+                receipt={buildEscrowReceipt(escrow, {
+                  viewerRole,
+                  isAdminCopy: viewerRole === 'admin',
+                })}
+                size="sm"
+                variant="secondary"
+              />
+              <div className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg border border-white/20">
+                <StatusIcon className="w-5 h-5 text-brand-gold" />
+                <span className="text-sm font-medium text-white">
+                  {statusConfig[escrow.status]?.label || escrow.status}
+                </span>
+              </div>
             </div>
           }
         />

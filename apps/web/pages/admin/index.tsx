@@ -28,6 +28,8 @@ import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { AdminIconBadge } from '@/components/admin/AdminIconBadge';
 import { admin } from '@/components/admin/adminClasses';
+import { buildAdminTopUpReceipt } from '@/lib/receipt-builders';
+import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
 
 export default function AdminDashboard() {
   const router = useRouter();
@@ -381,20 +383,29 @@ export default function AdminDashboard() {
               <div className="p-4 max-h-64 overflow-y-auto">
                 <div className="space-y-3">
                   {statsData.recentTransactions.slice(0, 8).map((tx: any) => (
-                    <div key={tx.id} className="flex items-center justify-between py-2 border-b border-white/10 last:border-0">
-                      <div>
+                    <div key={tx.id} className="flex items-center justify-between py-2 border-b border-white/10 last:border-0 gap-2">
+                      <div className="min-w-0">
                         <p className="font-medium text-white">{formatCurrency(tx.amountCents, 'GHS')}</p>
-                        <p className="text-xs text-white/55">{tx.userEmail || '—'} • {new Date(tx.createdAt).toLocaleString()}</p>
+                        <p className="text-xs text-white/55 truncate">{tx.userEmail || '—'} • {new Date(tx.createdAt).toLocaleString()}</p>
                       </div>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full border ${
-                          tx.status === 'SUCCEEDED'
-                            ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30'
-                            : 'bg-white/10 text-white/70 border-white/15'
-                        }`}
-                      >
-                        {tx.status}
-                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <PrintReceiptButton
+                          receipt={buildAdminTopUpReceipt(tx)}
+                          iconOnly
+                          variant="plain"
+                          size="sm"
+                          label="Print receipt"
+                        />
+                        <span
+                          className={`px-2 py-1 text-xs font-medium rounded-full border ${
+                            tx.status === 'SUCCEEDED'
+                              ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30'
+                              : 'bg-white/10 text-white/70 border-white/15'
+                          }`}
+                        >
+                          {tx.status}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>

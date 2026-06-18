@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '@/lib/api-client';
-import { Loader2, AlertCircle, Mail } from 'lucide-react';
+import { Loader2, AlertCircle, Smartphone } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 import { publicForm } from '@/lib/form-classes';
 
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
             Reset Password
           </h1>
           <p className="text-sm text-white/70">
-            Enter your email and we’ll send you a reset link.
+            Enter your email or phone — we&apos;ll text a reset link to the phone on your account.
           </p>
         </div>
 
@@ -75,7 +75,7 @@ export default function ForgotPasswordPage() {
           {sent ? (
             <div className="space-y-4">
               <div className={publicForm.calloutSuccess}>
-                If an account exists for that email, a reset link has been sent.
+                If an account exists with a phone number on file, an SMS with your reset link has been sent. Open the link on your phone to set a new password.
               </div>
               <button
                 onClick={() => router.push('/login')}
@@ -88,7 +88,7 @@ export default function ForgotPasswordPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div>
                 <label htmlFor="identifier" className={publicForm.label}>
-                  <Mail className="w-4 h-4 inline mr-1" />
+                  <Smartphone className="w-4 h-4 inline mr-1" />
                   Email or Phone
                 </label>
                 <input
@@ -98,7 +98,9 @@ export default function ForgotPasswordPage() {
                   className={publicForm.input}
                   placeholder="you@example.com or 0551234567"
                 />
-                <p className={publicForm.hint}>Reset link will be sent to your email</p>
+                <p className={publicForm.hint}>
+                  Reset link is sent by SMS to the phone number registered on your account
+                </p>
                 {errors.identifier && (
                   <p className={publicForm.error}>{errors.identifier.message}</p>
                 )}
@@ -112,10 +114,10 @@ export default function ForgotPasswordPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    Sending...
+                    Sending SMS...
                   </>
                 ) : (
-                  'Send reset link'
+                  'Send reset link via SMS'
                 )}
               </button>
 
@@ -133,4 +135,3 @@ export default function ForgotPasswordPage() {
     </>
   );
 }
-

@@ -27,7 +27,7 @@ export default function ChangePasswordPage() {
     mutationFn: async (data: { currentPassword: string; newPassword: string }) =>
       apiClient.put('/auth/change-password', data),
     onSuccess: () => {
-      toast.success('Password changed successfully');
+      toast.success('Password changed — check your phone for a confirmation SMS');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -163,7 +163,7 @@ export default function ChangePasswordPage() {
         <div className={form.calloutInfo}>
           <p className="text-sm text-label-secondary">
             <strong className="text-label-primary">Security notice: </strong>
-            You will stay signed in on this device. Log out everywhere if you suspect unauthorized access.
+            A confirmation SMS will be sent to your registered phone. You will stay signed in on this device — log out everywhere if you suspect unauthorized access.
           </p>
         </div>
       </div>

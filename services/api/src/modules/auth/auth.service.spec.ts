@@ -49,6 +49,13 @@ describe('AuthService', () => {
       create: jest.fn(),
       update: jest.fn(),
     },
+    passwordResetToken: {
+      create: jest.fn().mockResolvedValue({ id: 'reset-token-id' }),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+    },
+    $transaction: jest.fn((ops: Promise<unknown>[]) => Promise.all(ops)),
   };
 
   const mockJwtService = {
@@ -63,6 +70,7 @@ describe('AuthService', () => {
   const mockEmailService = {
     sendEmail: jest.fn().mockResolvedValue(undefined),
     sendPasswordChangedEmail: jest.fn().mockResolvedValue(undefined),
+    sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockConfigService = {
@@ -75,6 +83,7 @@ describe('AuthService', () => {
 
   const mockSMSService = {
     sendVerificationOtpSms: jest.fn().mockResolvedValue({ success: true }),
+    sendSMS: jest.fn().mockResolvedValue({ success: true }),
     usesArkeselOtp: jest.fn().mockReturnValue(false),
     verifyArkeselOtp: jest.fn().mockResolvedValue({ success: true }),
   };
@@ -235,7 +244,10 @@ describe('AuthService', () => {
 
   describe('changePassword', () => {
     it('should successfully change password with correct current password', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        phone: '0551234567',
+      });
       mockedBcrypt.compare.mockResolvedValue(true as never);
       mockedBcrypt.hash.mockResolvedValue('new-hashed-password' as never);
       mockPrismaService.user.update.mockResolvedValue(mockUser);
@@ -248,7 +260,8 @@ describe('AuthService', () => {
         data: { passwordHash: 'new-hashed-password' },
       });
       expect(auditService.log).toHaveBeenCalled();
-      expect(mockEmailService.sendPasswordChangedEmail).toHaveBeenCalled();
+      expect(mockEmailService.sendPasswordChangedEmail).not.toHaveBeenCalled();
+      expect(mockSMSService.sendSMS).toHaveBeenCalledWith('0551234567', expect.any(String));
     });
 
     it('should throw BadRequestException if new password is too short', async () => {
@@ -324,6 +337,77 @@ describe('AuthService', () => {
         select: expect.any(Object),
       });
       expect(auditService.log).toHaveBeenCalled();
+    });
+  });
+
+  describe('requestPasswordReset', () => {
+    it('sends SMS when user is found by email and has phone on file', async () => {
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'WEB_BASE_URL') return 'https://app.myxcrow.com';
+        return 'test-secret';
+      });
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        id: 'user-id-123',
+        email: 'test@example.com',
+        phone: '0551234567',
+        isActive: true,
+      });
+
+      const result = await service.requestPasswordReset('test@example.com');
+
+      expect(result).toEqual({ success: true });
+      expect(mockPrismaService.passwordResetToken.create).toHaveBeenCalled();
+      expect(mockEmailService.sendPasswordResetEmail).not.toHaveBeenCalled();
+      expect(mockSMSService.sendSMS).toHaveBeenCalledWith(
+        '0551234567',
+        expect.stringContaining('https://app.myxcrow.com/reset-password?token='),
+      );
+    });
+
+    it('sends SMS when user is found by phone', async () => {
+      mockConfigService.get.mockImplementation((key: string) => {
+        if (key === 'WEB_BASE_URL') return 'https://app.myxcrow.com';
+        return 'test-secret';
+      });
+      mockPrismaService.user.findFirst.mockResolvedValue({
+        id: 'user-id-123',
+        email: 'test@example.com',
+        phone: '0551234567',
+        isActive: true,
+      });
+
+      const result = await service.requestPasswordReset('0551234567');
+
+      expect(result).toEqual({ success: true });
+      expect(mockEmailService.sendPasswordResetEmail).not.toHaveBeenCalled();
+      expect(mockSMSService.sendSMS).toHaveBeenCalled();
+    });
+
+    it('returns success without sending when user has no phone', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        id: 'user-id-123',
+        email: 'test@example.com',
+        phone: null,
+        isActive: true,
+      });
+
+      const result = await service.requestPasswordReset('test@example.com');
+
+      expect(result).toEqual({ success: true });
+      expect(mockPrismaService.passwordResetToken.create).not.toHaveBeenCalled();
+      expect(mockEmailService.sendPasswordResetEmail).not.toHaveBeenCalled();
+      expect(mockSMSService.sendSMS).not.toHaveBeenCalled();
+    });
+
+    it('returns success without sending when user is not found', async () => {
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      const result = await service.requestPasswordReset('missing@example.com');
+
+      expect(result).toEqual({ success: true });
+      expect(mockPrismaService.passwordResetToken.create).not.toHaveBeenCalled();
+      expect(mockEmailService.sendPasswordResetEmail).not.toHaveBeenCalled();
+      expect(mockSMSService.sendSMS).not.toHaveBeenCalled();
     });
   });
 });

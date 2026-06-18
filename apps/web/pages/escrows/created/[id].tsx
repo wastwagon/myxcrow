@@ -10,6 +10,8 @@ import { formatCurrency } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import EscrowFeeSummary from '@/components/EscrowFeeSummary';
 import { ESCROW_CATEGORY } from '@/lib/escrow-services';
+import { buildEscrowReceipt } from '@/lib/receipt-builders';
+import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
 
 export default function EscrowCreatedPage() {
   const router = useRouter();
@@ -141,6 +143,13 @@ export default function EscrowCreatedPage() {
           )}
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">
+            {escrow && (
+              <PrintReceiptButton
+                receipt={buildEscrowReceipt(escrow, { viewerRole: 'buyer' })}
+                className="sm:flex-none"
+                variant="secondary"
+              />
+            )}
             <Link
               href={`/escrows/${id}`}
               className="flex-1 min-h-[48px] px-6 py-3 rounded-xl bg-brand-gold text-brand-maroon-black font-semibold text-center hover:bg-brand-gold/90"

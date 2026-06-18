@@ -10,6 +10,8 @@ import {
   Filter,
   Eye,
 } from 'lucide-react';
+import { buildWithdrawalReceipt } from '@/lib/receipt-builders';
+import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
@@ -208,6 +210,16 @@ export default function AdminWithdrawalsPage() {
                           >
                             <Eye className="w-4 h-4" />
                           </button>
+                          <PrintReceiptButton
+                            receipt={buildWithdrawalReceipt(withdrawal, undefined, {
+                              isAdminCopy: true,
+                              showSensitive: true,
+                            })}
+                            iconOnly
+                            variant="plain"
+                            size="sm"
+                            label="Print receipt"
+                          />
                           {withdrawal.status === 'REQUESTED' && (
                             <>
                               <Button size="sm" variant="tinted" onClick={() => handleProcess(withdrawal, 'approve')}>
@@ -251,30 +263,42 @@ export default function AdminWithdrawalsPage() {
           }}
           title="Withdrawal details"
           footer={
-            selectedWithdrawal?.status === 'REQUESTED' ? (
-              <div className="flex gap-3 pb-2">
-                <Button
-                  type="button"
-                  variant="destructive"
+            selectedWithdrawal ? (
+              <div className="flex flex-col gap-3 pb-2">
+                <PrintReceiptButton
+                  receipt={buildWithdrawalReceipt(selectedWithdrawal, undefined, {
+                    isAdminCopy: true,
+                    showSensitive: true,
+                  })}
                   fullWidth
-                  onClick={() => {
-                    setDetailOpen(false);
-                    handleProcess(selectedWithdrawal, 'deny');
-                  }}
-                >
-                  Deny
-                </Button>
-                <Button
-                  type="button"
-                  variant="filled"
-                  fullWidth
-                  onClick={() => {
-                    setDetailOpen(false);
-                    handleProcess(selectedWithdrawal, 'approve');
-                  }}
-                >
-                  Approve
-                </Button>
+                  variant="secondary"
+                />
+                {selectedWithdrawal.status === 'REQUESTED' ? (
+                  <div className="flex gap-3">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      fullWidth
+                      onClick={() => {
+                        setDetailOpen(false);
+                        handleProcess(selectedWithdrawal, 'deny');
+                      }}
+                    >
+                      Deny
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="filled"
+                      fullWidth
+                      onClick={() => {
+                        setDetailOpen(false);
+                        handleProcess(selectedWithdrawal, 'approve');
+                      }}
+                    >
+                      Approve
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             ) : undefined
           }

@@ -6,6 +6,9 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { formatPayoutSummary, formatWithdrawalStatusLabel } from '@/lib/withdrawal-payout';
+import { getUser } from '@/lib/auth';
+import { buildWalletFundingReceipt, buildWithdrawalReceipt } from '@/lib/receipt-builders';
+import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
 import { DollarSign, Clock, ArrowUpCircle, ArrowDownCircle, Loader2, Plus, Users, Wallet as WalletIcon, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import PageHeader from '@/components/PageHeader';
@@ -82,6 +85,16 @@ export default function WalletPage() {
       queryClient.invalidateQueries({ queryKey: ['wallet-withdrawals'] }),
     ]);
   };
+
+  const currentUser = getUser();
+  const receiptAccountHolder = currentUser
+    ? {
+        name: [currentUser.firstName, currentUser.lastName].filter(Boolean).join(' ') || undefined,
+        email: currentUser.email,
+        phone: currentUser.phone,
+        userId: currentUser.id,
+      }
+    : undefined;
 
   return (
     <Layout>
@@ -185,15 +198,23 @@ export default function WalletPage() {
                         </p>
                       </div>
                     </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded ${
-                        funding.status === 'SUCCEEDED'
-                          ? 'bg-emerald-500/20 text-emerald-400'
-                          : 'bg-amber-500/20 text-amber-400'
-                      }`}
-                    >
-                      {funding.status}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <PrintReceiptButton
+                        receipt={buildWalletFundingReceipt(funding, receiptAccountHolder)}
+                        iconOnly
+                        variant="plain"
+                        size="sm"
+                      />
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded ${
+                          funding.status === 'SUCCEEDED'
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : 'bg-amber-500/20 text-amber-400'
+                        }`}
+                      >
+                        {funding.status}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -237,17 +258,25 @@ export default function WalletPage() {
                         )}
                       </div>
                     </div>
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded shrink-0 ${
-                        withdrawal.status === 'SUCCEEDED'
-                          ? 'bg-emerald-500/20 text-emerald-400'
-                          : withdrawal.status === 'FAILED'
-                          ? 'bg-red-500/20 text-red-400'
-                          : 'bg-amber-500/20 text-amber-400'
-                      }`}
-                    >
-                      {formatWithdrawalStatusLabel(withdrawal.status)}
-                    </span>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <PrintReceiptButton
+                        receipt={buildWithdrawalReceipt(withdrawal, receiptAccountHolder)}
+                        iconOnly
+                        variant="plain"
+                        size="sm"
+                      />
+                      <span
+                        className={`px-2 py-1 text-xs font-medium rounded ${
+                          withdrawal.status === 'SUCCEEDED'
+                            ? 'bg-emerald-500/20 text-emerald-400'
+                            : withdrawal.status === 'FAILED'
+                            ? 'bg-red-500/20 text-red-400'
+                            : 'bg-amber-500/20 text-amber-400'
+                        }`}
+                      >
+                        {formatWithdrawalStatusLabel(withdrawal.status)}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>

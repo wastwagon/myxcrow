@@ -71,3 +71,11 @@ export function withdrawalDeniedEmailHtml(data: {
     <p>Reason: ${data.reason}</p>
   `;
 }
+
+export function passwordResetSms(resetLink: string): string {
+  return `MYXCROW: Reset your password here (expires in 1 hour): ${resetLink}`;
+}
+
+export function passwordChangedSms(): string {
+  return 'MYXCROW: Your account password was changed successfully. If you did not do this, contact support immediately.';
+}
