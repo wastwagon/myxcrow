@@ -1284,7 +1284,7 @@ export class EscrowService {
     return this.getEscrow(escrowId);
   }
 
-  async getEscrow(id: string, currentUserId?: string) {
+  async getEscrow(id: string, currentUserId?: string, options?: { isStaffView?: boolean }) {
     const escrow = await this.prisma.escrowAgreement.findUnique({
       where: { id },
       include: {
@@ -1341,17 +1341,18 @@ export class EscrowService {
     // Hide delivery codes from non-participants; buyer and seller both need them for parcel labelling.
     const isBuyer = currentUserId === escrow.buyerId;
     const isSeller = currentUserId === escrow.sellerId;
-    if (currentUserId && !isBuyer && !isSeller) {
+    const isParticipant = isBuyer || isSeller;
+    if (currentUserId && !isParticipant) {
       escrow.shipments = escrow.shipments.map((s) => ({
         ...s,
         deliveryCode: null,
-        shortReference: null,
+        shortReference: options?.isStaffView ? s.shortReference : null,
       })) as typeof escrow.shipments;
     }
 
     const result: any = { ...escrow };
     if (
-      (isBuyer || isSeller) &&
+      isParticipant &&
       escrow.deliveryConfirmationMode === 'pin' &&
       escrow.deliveryPinEncrypted
     ) {

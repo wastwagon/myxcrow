@@ -4,7 +4,7 @@ import { printReceiptDocument } from '@/lib/print-receipt';
 import { Button, type ButtonProps } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
-interface PrintReceiptButtonProps extends Omit<ButtonProps, 'onClick'> {
+interface PrintReceiptButtonProps extends ButtonProps {
   receipt: ReceiptData;
   label?: string;
   iconOnly?: boolean;
@@ -17,6 +17,7 @@ export function PrintReceiptButton({
   className,
   variant = 'secondary',
   size = 'sm',
+  onClick,
   ...props
 }: PrintReceiptButtonProps) {
   return (
@@ -25,7 +26,12 @@ export function PrintReceiptButton({
       variant={variant}
       size={size}
       className={cn(iconOnly && 'px-2.5', className)}
-      onClick={() => printReceiptDocument(receipt)}
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        printReceiptDocument(receipt);
+        onClick?.(e);
+      }}
       title={iconOnly ? label : undefined}
       aria-label={iconOnly ? label : undefined}
       {...props}

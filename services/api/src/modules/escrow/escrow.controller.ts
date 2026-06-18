@@ -15,6 +15,7 @@ import { EscrowExportService } from './escrow-export.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
 import { EscrowParticipantGuard } from './guards/escrow-participant.guard';
+import { EscrowAccessGuard, isEscrowStaff } from './guards/escrow-access.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import type { CurrentUser as ICurrentUser } from '../auth/interfaces/current-user.interface';
 import { EscrowStatus } from '@prisma/client';
@@ -55,7 +56,7 @@ export class EscrowController {
     @CurrentUser() user?: any,
   ) {
     // Admins should see all escrows, not filtered by userId
-    const isAdmin = user?.roles?.includes('ADMIN') || user?.roles?.includes('AUDITOR') || user?.roles?.includes('SUPPORT');
+    const isAdmin = isEscrowStaff(user);
     
     return this.escrowService.listEscrows({
       userId: isAdmin ? undefined : user?.id,
@@ -79,9 +80,9 @@ export class EscrowController {
   }
 
   @Get(':id')
-  @UseGuards(EscrowParticipantGuard)
+  @UseGuards(EscrowAccessGuard)
   async getOne(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
-    return this.escrowService.getEscrow(id, user?.id);
+    return this.escrowService.getEscrow(id, user?.id, { isStaffView: isEscrowStaff(user) });
   }
 
   @Put(':id/fund')
@@ -145,7 +146,7 @@ export class EscrowController {
   }
 
   @Get(':id/milestones')
-  @UseGuards(EscrowParticipantGuard)
+  @UseGuards(EscrowAccessGuard)
   async getMilestones(@Param('id') id: string) {
     return this.milestoneService.getMilestones(id);
   }
@@ -190,9 +191,9 @@ export class EscrowController {
   }
 
   @Get(':id/messages')
-  @UseGuards(EscrowParticipantGuard)
+  @UseGuards(EscrowAccessGuard)
   async getMessages(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
-    return this.messageService.getMessages(id, user.id);
+    return this.messageService.getMessages(id, user.id, isEscrowStaff(user));
   }
 
   @Post(':id/messages')
@@ -219,8 +220,10 @@ export class EscrowController {
     @Query('endDate') endDate?: string,
     @CurrentUser() user?: any,
   ) {
+    const isAdmin = isEscrowStaff(user);
+
     const csv = await this.exportService.exportEscrowsToCsv({
-      userId: user?.id,
+      userId: isAdmin ? undefined : user?.id,
       role,
       status,
       search,

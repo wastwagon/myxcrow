@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
-import { isAuthenticated, getUser } from '@/lib/auth';
+import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
@@ -17,6 +17,8 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { buildEscrowReceipt } from '@/lib/receipt-builders';
+import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
 
 interface Escrow {
   id: string;
@@ -25,11 +27,16 @@ interface Escrow {
   fundingAmountCents?: number;
   netAmountCents?: number;
   buyerFeeCents?: number;
+  feeCents?: number;
   currency: string;
   description: string;
   createdAt: string;
   buyerId: string;
   sellerId: string;
+  buyer?: { email?: string; firstName?: string; lastName?: string };
+  seller?: { email?: string; firstName?: string; lastName?: string };
+  escrowCategory?: string;
+  serviceType?: string;
 }
 
 export default function EscrowsPage() {
@@ -37,6 +44,7 @@ export default function EscrowsPage() {
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
   const user = getUser();
+  const adminView = isAdmin();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
@@ -146,8 +154,8 @@ export default function EscrowsPage() {
     <Layout>
       <PullToRefresh onRefresh={refreshEscrows} disabled={!isMobile} className="space-y-6">
         <PageHeader
-          title="Escrows"
-          subtitle="Manage your escrow agreements"
+          title={adminView ? 'All Escrows' : 'Escrows'}
+          subtitle={adminView ? 'Review agreements, open details, and print receipts' : 'Manage your escrow agreements'}
           icon={<FileText className="w-6 h-6" />}
           action={
             <Link
@@ -332,7 +340,20 @@ export default function EscrowsPage() {
                     {escrow.id.slice(0, 8)}… · {formatDateShort(escrow.createdAt)}
                   </>
                 }
-                trailing={<StatusBadge status={escrow.status} />}
+                trailing={
+                  <div className="flex items-center gap-2">
+                    {adminView && (
+                      <PrintReceiptButton
+                        receipt={buildEscrowReceipt(escrow, { isAdminCopy: true })}
+                        iconOnly
+                        variant="plain"
+                        size="sm"
+                        label="Print receipt"
+                      />
+                    )}
+                    <StatusBadge status={escrow.status} />
+                  </div>
+                }
                 />
               </SwipeableListRow>
             );

@@ -1,36 +1,44 @@
 import type { ReceiptData } from '@/lib/receipt-types';
 
 function formatMoney(cents: number, currency: string): string {
-  return new Intl.NumberFormat('en-GH', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-  }).format(cents / 100);
+  const safeCents = Number.isFinite(cents) ? cents : 0;
+  const safeCurrency = currency || 'GHS';
+  try {
+    return new Intl.NumberFormat('en-GH', {
+      style: 'currency',
+      currency: safeCurrency,
+      minimumFractionDigits: 2,
+    }).format(safeCents / 100);
+  } catch {
+    return `${(safeCents / 100).toFixed(2)} ${safeCurrency}`;
+  }
 }
 
 function escapeHtml(value: string): string {
-  return value
+  return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
 
+function formatReceiptDate(value: string | undefined): string {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleString('en-GH', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
 export function renderReceiptHtml(receipt: ReceiptData): string {
-  const printedAt = new Date().toLocaleString('en-GH', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-  const issuedAt = new Date(receipt.issuedAt).toLocaleString('en-GH', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  const printedAt = formatReceiptDate(new Date().toISOString());
+  const issuedAt = formatReceiptDate(receipt.issuedAt);
+  const receiptNumber = receipt.receiptNumber || '—';
 
   const partyBlock = (title: string, party?: ReceiptData['accountHolder']) => {
     if (!party) return '';
@@ -45,7 +53,11 @@ export function renderReceiptHtml(receipt: ReceiptData): string {
     `;
   };
 
-  const amountRows = receipt.amountLines
+  const amountLines = receipt.amountLines?.length
+    ? receipt.amountLines
+    : [{ label: 'Amount', amountCents: 0, emphasize: true }];
+
+  const amountRows = amountLines
     .map(
       (line) => `
       <tr class="${line.emphasize ? 'total-row' : ''}">
@@ -56,7 +68,7 @@ export function renderReceiptHtml(receipt: ReceiptData): string {
     )
     .join('');
 
-  const sections = receipt.sections
+  const sections = (receipt.sections || [])
     .map(
       (section) => `
       <div class="section">
@@ -88,7 +100,7 @@ export function renderReceiptHtml(receipt: ReceiptData): string {
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>MYXCROW Receipt — ${escapeHtml(receipt.receiptNumber.slice(0, 8))}</title>
+  <title>MYXCROW Receipt — ${escapeHtml(receiptNumber.slice(0, 8))}</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -307,7 +319,7 @@ export function renderReceiptHtml(receipt: ReceiptData): string {
         <div class="brand-tagline">Secure escrow &amp; payments · Ghana</div>
       </div>
       <div class="receipt-title">
-        <strong>${escapeHtml(receipt.transactionTitle)}</strong>
+        <strong>${escapeHtml(receipt.transactionTitle || 'Transaction Receipt')}</strong>
         <span>Official transaction record</span>
         ${receipt.isAdminCopy ? '<div class="admin-badge">Admin copy</div>' : ''}
       </div>
@@ -315,7 +327,7 @@ export function renderReceiptHtml(receipt: ReceiptData): string {
     <div class="meta">
       <div class="meta-item">
         <label>Receipt no.</label>
-        <span>${escapeHtml(receipt.receiptNumber)}</span>
+        <span>${escapeHtml(receiptNumber)}</span>
       </div>
       <div class="meta-item">
         <label>Issued</label>
@@ -323,7 +335,7 @@ export function renderReceiptHtml(receipt: ReceiptData): string {
       </div>
       <div class="meta-item">
         <label>Status</label>
-        <span class="status">${escapeHtml(receipt.statusLabel)}</span>
+        <span class="status">${escapeHtml(receipt.statusLabel || receipt.status || '—')}</span>
       </div>
     </div>
     <div class="body">
@@ -353,23 +365,95 @@ export function renderReceiptHtml(receipt: ReceiptData): string {
       </div>
     </div>
   </div>
-  <script>window.onload = function() { window.print(); };</script>
 </body>
 </html>`;
+}
+
+function printHtmlViaIframe(html: string): boolean {
+  const iframe = document.createElement('iframe');
+  iframe.setAttribute(
+    'style',
+    'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden',
+  );
+  iframe.setAttribute('title', 'MYXCROW receipt print');
+  document.body.appendChild(iframe);
+
+  const frameWindow = iframe.contentWindow;
+  const doc = frameWindow?.document;
+  if (!frameWindow || !doc) {
+    document.body.removeChild(iframe);
+    return false;
+  }
+
+  const cleanup = () => {
+    window.setTimeout(() => {
+      if (iframe.parentNode) {
+        document.body.removeChild(iframe);
+      }
+    }, 1000);
+  };
+
+  const triggerPrint = () => {
+    try {
+      frameWindow.focus();
+      frameWindow.print();
+    } finally {
+      cleanup();
+    }
+  };
+
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  // Allow layout to settle before opening the print dialog.
+  window.setTimeout(triggerPrint, 250);
+  return true;
+}
+
+function printHtmlViaBlob(html: string): boolean {
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const printWindow = window.open(url, '_blank');
+
+  if (!printWindow) {
+    URL.revokeObjectURL(url);
+    return false;
+  }
+
+  const revoke = () => URL.revokeObjectURL(url);
+  printWindow.addEventListener('load', revoke, { once: true });
+  window.setTimeout(revoke, 60_000);
+
+  window.setTimeout(() => {
+    try {
+      printWindow.focus();
+      printWindow.print();
+    } catch {
+      // User can still print manually from the preview tab.
+    }
+  }, 500);
+
+  return true;
 }
 
 export function printReceiptDocument(receipt: ReceiptData): void {
   if (typeof window === 'undefined') return;
 
-  const html = renderReceiptHtml(receipt);
-  const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=800,height=900');
+  try {
+    const html = renderReceiptHtml(receipt);
 
-  if (!printWindow) {
-    window.alert('Please allow pop-ups to print receipts.');
-    return;
+    if (printHtmlViaIframe(html)) {
+      return;
+    }
+
+    if (printHtmlViaBlob(html)) {
+      return;
+    }
+
+    window.alert('Could not open the print dialog. Please allow pop-ups and try again.');
+  } catch (error) {
+    console.error('Failed to print receipt:', error);
+    window.alert('Could not generate the receipt. Please try again.');
   }
-
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
 }

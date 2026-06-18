@@ -358,12 +358,20 @@ export default function EscrowDetailPage() {
     ? 'admin'
     : undefined;
 
+  const isStaffView = isAdmin() && !isBuyer && !isSeller;
+
   return (
     <Layout>
       <PullToRefresh onRefresh={refreshEscrow} disabled={!isMobile} className="space-y-6">
         <div className="xl:hidden -mx-4 -mt-6 mb-2">
           <NavBar title="Escrow" showBack />
         </div>
+        {isStaffView && (
+          <div className="rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3 text-sm text-white/90">
+            <strong className="text-brand-gold">Admin view</strong> — read-only access for records and printing.
+            Participant actions are disabled.
+          </div>
+        )}
         <PageHeader
           title="Escrow Details"
           subtitle={`ID: ${escrow.id}`}

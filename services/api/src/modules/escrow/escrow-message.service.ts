@@ -7,8 +7,7 @@ export class EscrowMessageService {
 
   constructor(private prisma: PrismaService) {}
 
-  async getMessages(escrowId: string, userId: string) {
-    // Verify user is participant
+  async getMessages(escrowId: string, userId: string, allowStaff = false) {
     const escrow = await this.prisma.escrowAgreement.findUnique({
       where: { id: escrowId },
       select: { buyerId: true, sellerId: true },
@@ -18,7 +17,8 @@ export class EscrowMessageService {
       throw new ForbiddenException('Escrow not found');
     }
 
-    if (escrow.buyerId !== userId && escrow.sellerId !== userId) {
+    const isParticipant = escrow.buyerId === userId || escrow.sellerId === userId;
+    if (!isParticipant && !allowStaff) {
       throw new ForbiddenException('You are not a participant in this escrow');
     }
 

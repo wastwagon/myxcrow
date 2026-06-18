@@ -14,6 +14,8 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { AutomationModule } from '../automation/automation.module';
+import { EscrowAccessGuard } from './guards/escrow-access.guard';
+import { EscrowParticipantGuard } from './guards/escrow-participant.guard';
 
 @Module({
   imports: [
@@ -34,8 +36,10 @@ import { AutomationModule } from '../automation/automation.module';
     AutoReleaseService,
     EscrowSchedulerService,
     PrismaService,
+    EscrowAccessGuard,
+    EscrowParticipantGuard,
   ],
-  exports: [EscrowService, EscrowMessageService, EscrowExportService],
+  exports: [EscrowService, EscrowMessageService, EscrowExportService, EscrowAccessGuard],
 })
 export class EscrowModule {}
 
