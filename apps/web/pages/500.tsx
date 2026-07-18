@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { ButtonLink } from '@/components/ui/Button';
 import Image from 'next/image';
 import { Home } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
@@ -27,13 +27,10 @@ export default function ServerError() {
             <p className="mt-2 text-sm leading-relaxed text-white/65">
               Something went wrong on our end. Please try again in a moment.
             </p>
-            <Link
-              href="/"
-              className="mt-8 inline-flex min-h-[48px] items-center gap-2 rounded-full bg-brand-gold px-6 text-sm font-bold text-brand-maroon-black transition-colors hover:bg-brand-gold/90 touch-manipulation"
-            >
+            <ButtonLink href="/" className="mt-8 rounded-full px-6">
               <Home className="w-5 h-5" />
               Go to Home
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </div>

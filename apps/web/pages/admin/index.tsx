@@ -21,6 +21,7 @@ import {
   ArrowUpCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import { ButtonLink } from '@/components/ui/Button';
 import PageHeader from '@/components/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
@@ -180,13 +181,10 @@ export default function AdminDashboard() {
           subtitle="Platform overview and management"
           icon={<Settings className="w-6 h-6" />}
           action={
-            <Link
-              href="/admin/users"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-brand-gold text-brand-maroon-black rounded-lg hover:bg-brand-gold/90 font-semibold shadow-sm transition-all"
-            >
+            <ButtonLink href="/admin/users" size="sm">
               <Users className="w-4 h-4" />
               Manage Users
-            </Link>
+            </ButtonLink>
           }
         />
 

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import Link from 'next/link';
+import { ButtonLink } from '@/components/ui/Button';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated } from '@/lib/auth';
@@ -153,18 +153,12 @@ export default function EscrowCreatedPage() {
                 variant="secondary"
               />
             )}
-            <Link
-              href={`/escrows/${id}`}
-              className="flex-1 min-h-[48px] px-6 py-3 rounded-xl bg-brand-gold text-brand-maroon-black font-semibold text-center hover:bg-brand-gold/90"
-            >
+            <ButtonLink href={`/escrows/${id}`} className="flex-1">
               View escrow details
-            </Link>
-            <Link
-              href="/escrows"
-              className="flex-1 min-h-[48px] px-6 py-3 rounded-xl border border-white/20 text-white font-semibold text-center hover:bg-white/5"
-            >
+            </ButtonLink>
+            <ButtonLink href="/escrows" variant="secondary" className="flex-1">
               Go to escrows list
-            </Link>
+            </ButtonLink>
           </div>
         </div>
       </div>

@@ -152,8 +152,8 @@ export default function AdminSettingsPage() {
 
         {/* Tabs */}
         <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
-          <div className="border-b border-white/10">
-            <nav className="flex -mb-px">
+          <div className="border-b border-white/10 overflow-x-auto">
+            <nav className="flex min-w-max -mb-px">
               {[
                 { id: 'fees', label: 'Fees', icon: DollarSign },
                 { id: 'general', label: 'General', icon: Globe },
@@ -162,8 +162,9 @@ export default function AdminSettingsPage() {
               ].map((tab) => (
                 <button
                   key={tab.id}
+                  type="button"
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  className={`flex min-h-[48px] shrink-0 items-center gap-2 px-4 md:px-6 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
                     activeTab === tab.id
                       ? 'border-brand-gold text-brand-gold'
                       : 'border-transparent text-white/55 hover:text-white/80 hover:border-white/20'

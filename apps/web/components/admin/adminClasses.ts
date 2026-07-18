@@ -35,7 +35,8 @@ export const admin = {
   sectionTitle: 'text-lg font-semibold text-white mb-3',
   footerBar: 'px-4 py-3 bg-white/[0.04] border-t border-white/10 text-sm text-white/70',
   linkAccent: 'text-brand-gold hover:text-brand-gold/80 text-sm font-medium',
-  rowAction: 'p-2 rounded-ios-lg transition-colors',
+  rowAction:
+    'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-ios-lg transition-colors touch-manipulation',
   calloutInfo:
     'rounded-ios-lg border border-white/15 bg-white/[0.08] p-4 text-left text-sm text-label-secondary',
   modalPanel:

@@ -19,6 +19,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
+import { ButtonLink } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
@@ -110,7 +111,7 @@ export default function WalletPage() {
       <PullToRefresh
         onRefresh={refreshWallet}
         disabled={!isMobile}
-        className="mx-auto max-w-6xl space-y-8"
+        className="mx-auto max-w-6xl space-y-6"
       >
         <header className="flex items-end justify-between gap-3 px-1">
           <div>
@@ -152,12 +153,9 @@ export default function WalletPage() {
                 </p>
               )}
               <p className="relative mt-1 text-[11px] text-white/40">Ready to use</p>
-              <Link
-                href="/wallet/topup"
-                className="relative mt-5 inline-flex min-h-[34px] items-center rounded-full bg-brand-gold px-3 text-xs font-bold text-brand-maroon-black"
-              >
+              <ButtonLink href="/wallet/topup" size="sm" className="relative mt-5 rounded-full text-xs">
                 Top up
-              </Link>
+              </ButtonLink>
             </div>
             <div className="relative overflow-hidden rounded-ios-xl border border-white/10 bg-[#201a17] p-4 md:p-5">
               <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full border-[18px] border-white/[0.04]" />
@@ -259,13 +257,10 @@ export default function WalletPage() {
             ) : (
               <div className="py-10 text-center">
                 <p className="text-white/55 mb-4">No funding history yet</p>
-                <Link
-                  href="/wallet/topup"
-                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-ios-lg bg-brand-gold px-4 text-sm font-semibold text-brand-maroon-black"
-                >
+                <ButtonLink href="/wallet/topup" size="sm">
                   <Plus className="h-4 w-4" />
                   Top up wallet
-                </Link>
+                </ButtonLink>
               </div>
             )}
           </div>
@@ -338,13 +333,10 @@ export default function WalletPage() {
             ) : (
               <div className="py-10 text-center">
                 <p className="mb-4 text-white/55">No withdrawal history yet</p>
-                <Link
-                  href="/wallet/withdraw"
-                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-ios-lg bg-brand-gold px-4 text-sm font-semibold text-brand-maroon-black"
-                >
+                <ButtonLink href="/wallet/withdraw" size="sm">
                   <ArrowUpCircle className="h-4 w-4" />
                   Request withdrawal
-                </Link>
+                </ButtonLink>
               </div>
             )}
           </div>

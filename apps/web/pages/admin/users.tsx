@@ -4,7 +4,7 @@ import Layout from '@/components/Layout';
 import { isAuthenticated, isAdmin, setAuthTokens, setUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Search, User, Mail, Shield, CheckCircle, XCircle, DollarSign, Eye, Edit, Save, X, Users as UsersIcon, AlertCircle, LogIn, Minus } from 'lucide-react';
+import { Search, User, CheckCircle, XCircle, DollarSign, Eye, Edit, Save, X, Users as UsersIcon, AlertCircle, LogIn, Minus } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
@@ -13,6 +13,8 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
 import { admin } from '@/components/admin/adminClasses';
+import { StatusBadge } from '@/components/StatusBadge';
+import { Button } from '@/components/ui/Button';
 
 interface User {
   id: string;
@@ -228,15 +230,15 @@ export default function AdminUsersPage() {
               <tbody className={admin.tbody}>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
+                    <td colSpan={6} className={`${admin.td} text-center py-12`}>
                       <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold" />
                       </div>
                     </td>
                   </tr>
                 ) : usersError ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
+                    <td colSpan={6} className={`${admin.td} text-center py-12`}>
                       <div className="max-w-md mx-auto">
                         <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
                         <p className="font-semibold text-lg text-white mb-2">API Connection Error</p>
@@ -261,17 +263,17 @@ export default function AdminUsersPage() {
                   </tr>
                 ) : usersData?.users && usersData.users.length > 0 ? (
                   usersData.users.map((user) => (
-                    <tr key={user.id} className="hover:bg-white/5 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr key={user.id} className={admin.trHover}>
+                      <td className={`${admin.td} whitespace-nowrap`}>
                         <div className="flex items-center gap-3">
                           <AdminAvatar label={user.email} variant="maroon" />
                           <div>
                             <p className="font-medium text-white">{user.email}</p>
-                            <p className="text-sm text-white/55">ID: {user.id.slice(0, 8)}...</p>
+                            <p className={`text-sm ${admin.tdMuted}`}>ID: {user.id.slice(0, 8)}...</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className={`${admin.td} whitespace-nowrap`}>
                         {editingUserId === user.id ? (
                           <div className="space-y-2">
                             <div className="flex flex-wrap gap-2">
@@ -292,22 +294,19 @@ export default function AdminUsersPage() {
                                 </label>
                               ))}
                             </div>
-                            <div className="flex gap-2">
-                              <button
+                            <div className="flex flex-wrap gap-2">
+                              <Button
+                                size="sm"
                                 onClick={() => handleSaveRoles(user.id)}
-                                disabled={updateRoleMutation.isPending}
-                                className="px-3 py-1 text-xs bg-brand-maroon text-white rounded-ios-md hover:bg-brand-maroon-dark disabled:opacity-50 flex items-center gap-1"
+                                loading={updateRoleMutation.isPending}
                               >
-                                <Save className="w-3 h-3" />
+                                <Save className="w-3.5 h-3.5" />
                                 Save
-                              </button>
-                              <button
-                                onClick={handleCancelEdit}
-                                className="px-3 py-1 text-xs bg-white/15 text-white rounded-ios-md hover:bg-white/25 flex items-center gap-1"
-                              >
-                                <X className="w-3 h-3" />
+                              </Button>
+                              <Button size="sm" variant="secondary" onClick={handleCancelEdit}>
+                                <X className="w-3.5 h-3.5" />
                                 Cancel
-                              </button>
+                              </Button>
                             </div>
                           </div>
                         ) : (
@@ -323,6 +322,7 @@ export default function AdminUsersPage() {
                               ))}
                             </div>
                             <button
+                              type="button"
                               onClick={() => handleEditRoles(user)}
                               className={`${admin.rowAction} text-brand-gold hover:bg-brand-gold/15`}
                               title="Edit Roles"
@@ -332,42 +332,29 @@ export default function AdminUsersPage() {
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className={`${admin.td} whitespace-nowrap`}>
                         <div className="flex items-center gap-2">
-                          <span
-                            className={`px-2 py-1 text-xs font-medium rounded ${
-                              user.kycStatus === 'VERIFIED'
-                                ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30'
-                                : user.kycStatus === 'PENDING'
-                                ? 'bg-amber-500/20 text-amber-200 border border-amber-500/30'
-                                : 'bg-white/10 text-white/80 border border-white/20'
-                            }`}
-                          >
-                            {user.kycStatus}
-                          </span>
+                          <StatusBadge status={user.kycStatus} />
                           {user.kycStatus === 'PENDING' && (
-                            <button
+                            <Button
+                              size="sm"
+                              variant="tinted"
                               onClick={() => approveMutation.mutate(user.id)}
-                              disabled={approveMutation.isPending}
-                              className="px-2 py-1 text-xs font-medium bg-emerald-600/90 text-white rounded-ios-md hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                              title="Approve user"
+                              loading={approveMutation.isPending}
                             >
-                              {approveMutation.isPending ? '...' : 'Approve'}
-                            </button>
+                              Approve
+                            </Button>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
+                      <td className={`${admin.td} whitespace-nowrap`}>
+                        <Button
+                          size="sm"
+                          variant={user.isActive ? 'tinted' : 'destructive'}
                           onClick={() =>
                             updateStatusMutation.mutate({ userId: user.id, isActive: !user.isActive })
                           }
-                          disabled={updateStatusMutation.isPending}
-                          className={`flex items-center gap-1 px-2 py-1 rounded-ios-md transition-colors ${
-                            user.isActive
-                              ? 'text-emerald-400 hover:bg-emerald-500/15'
-                              : 'text-red-400 hover:bg-red-500/15'
-                          } disabled:opacity-50`}
+                          loading={updateStatusMutation.isPending}
                         >
                           {user.isActive ? (
                             <>
@@ -380,17 +367,18 @@ export default function AdminUsersPage() {
                               Inactive
                             </>
                           )}
-                        </button>
+                        </Button>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-white/70">
+                      <td className={`${admin.td} ${admin.tdMuted} whitespace-nowrap`}>
                         {formatDate(user.createdAt)}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
+                      <td className={`${admin.td} whitespace-nowrap`}>
+                        <div className="flex items-center gap-1">
                           <button
+                            type="button"
                             onClick={() => impersonateMutation.mutate(user.id)}
                             disabled={impersonateMutation.isPending || user.roles.includes('ADMIN')}
-                            className={`${admin.rowAction} text-indigo-400 hover:bg-indigo-500/15 disabled:opacity-50 disabled:cursor-not-allowed`}
+                            className={`${admin.rowAction} text-brand-gold hover:bg-brand-gold/15 disabled:opacity-50 disabled:cursor-not-allowed`}
                             title="Login as User"
                           >
                             <LogIn className="w-4 h-4" />
@@ -422,7 +410,7 @@ export default function AdminUsersPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-white/55">
+                    <td colSpan={6} className={`${admin.td} text-center py-12 text-white/55`}>
                       <User className="w-12 h-12 mx-auto mb-3 text-white/50" />
                       <p>No users found</p>
                     </td>

@@ -11,7 +11,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { DISPUTE_ELIGIBLE_ESCROW_STATUSES } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
-import { Button } from '@/components/ui/Button';
+import { ButtonLink } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
@@ -170,13 +170,10 @@ export default function EscrowsPage() {
                 : 'Manage your escrow agreements'}
             </p>
           </div>
-          <Link
-            href="/escrows/new"
-            className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-ios-lg bg-brand-gold px-5 py-3 font-semibold text-brand-maroon-black transition-colors hover:bg-brand-gold/90 touch-manipulation"
-          >
+          <ButtonLink href="/escrows/new" size="lg">
             <Plus className="w-5 h-5" />
             New escrow
-          </Link>
+          </ButtonLink>
         </header>
 
         {/* Filters */}
@@ -387,12 +384,10 @@ export default function EscrowsPage() {
                 : 'Create your first escrow to get started'}
             </p>
             {!searchTerm && statusFilter === 'all' && (
-              <Link href="/escrows/new">
-                <Button>
+              <ButtonLink href="/escrows/new">
                   <Plus className="w-5 h-5" />
                   New escrow
-                </Button>
-              </Link>
+              </ButtonLink>
             )}
           </div>
         )}

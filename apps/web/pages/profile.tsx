@@ -28,6 +28,7 @@ import { toast } from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { Button } from '@/components/ui/Button';
+import { form } from '@/lib/form-classes';
 import { Sheet } from '@/components/ui/Sheet';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
@@ -263,7 +264,7 @@ export default function ProfilePage() {
                         {...register('firstName')}
                         type="text"
                         id="firstName"
-                        className="w-full min-h-[48px] rounded-ios-lg border border-white/15 bg-black/20 px-4 py-2.5 text-white placeholder-white/45 focus:border-brand-gold/50 focus:ring-2 focus:ring-brand-gold"
+                        className={form.input}
                         placeholder="Enter your first name"
                       />
                       {errors.firstName && (
@@ -279,7 +280,7 @@ export default function ProfilePage() {
                         {...register('lastName')}
                         type="text"
                         id="lastName"
-                        className="w-full min-h-[48px] rounded-ios-lg border border-white/15 bg-black/20 px-4 py-2.5 text-white placeholder-white/45 focus:border-brand-gold/50 focus:ring-2 focus:ring-brand-gold"
+                        className={form.input}
                         placeholder="Enter your last name"
                       />
                       {errors.lastName && (
@@ -300,7 +301,7 @@ export default function ProfilePage() {
                         })}
                         type="tel"
                         id="phone"
-                        className="w-full min-h-[48px] rounded-ios-lg border border-white/15 bg-black/20 px-4 py-2.5 text-white placeholder-white/45 focus:border-brand-gold/50 focus:ring-2 focus:ring-brand-gold"
+                        className={form.input}
                         placeholder="0551234567"
                       />
                       <p className="mt-1 text-xs text-white/45">Format: 0XXXXXXXXX (no +233)</p>

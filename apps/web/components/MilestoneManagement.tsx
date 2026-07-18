@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { CheckCircle, Clock, DollarSign, Loader2 } from 'lucide-react';
+import { CheckCircle, Clock, DollarSign } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getUser } from '@/lib/auth';
 import { useConfirm } from '@/components/providers/UIProvider';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { Button } from '@/components/ui/Button';
 
 interface Milestone {
   id: string;
@@ -205,7 +206,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       )}
                       <div className="flex flex-wrap items-center gap-2 mt-2">
                         {milestone.targetDate && (
-                          <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-500/30">
+                          <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-brand-gold/20 text-brand-gold border border-brand-gold/30">
                             Target: {formatDate(milestone.targetDate)}
                           </span>
                         )}
@@ -279,63 +280,37 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
               </div>
 
               {(isBuyer || user?.id === sellerId) && (
-                <div className="mt-3 ml-11 flex gap-2">
+                <div className="mt-3 ml-11 flex flex-wrap gap-2">
                   {canSubmit && (
-                    <button
+                    <Button
+                      size="sm"
                       onClick={() => handleSubmitMilestone(milestone.id, milestone.name)}
-                      disabled={completeMutation.isPending}
-                      className="px-3 py-1.5 text-sm bg-brand-gold text-brand-maroon rounded-ios-lg hover:bg-brand-gold/90 disabled:opacity-50 flex items-center gap-2 font-semibold"
+                      loading={completeMutation.isPending}
                     >
-                      {completeMutation.isPending ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-3 h-3" />
-                          Submit for Review
-                        </>
-                      )}
-                    </button>
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      Submit for Review
+                    </Button>
                   )}
                   {canApprove && (
-                    <button
+                    <Button
+                      size="sm"
+                      variant="tinted"
                       onClick={() => handleApprove(milestone.id, milestone.name)}
-                      disabled={approveMutation.isPending}
-                      className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center gap-2"
+                      loading={approveMutation.isPending}
                     >
-                      {approveMutation.isPending ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          Approving...
-                        </>
-                      ) : (
-                        <>
-                          <CheckCircle className="w-3 h-3" />
-                          Approve
-                        </>
-                      )}
-                    </button>
+                      <CheckCircle className="w-3.5 h-3.5" />
+                      Approve
+                    </Button>
                   )}
                   {canRelease && (
-                    <button
+                    <Button
+                      size="sm"
                       onClick={() => handleRelease(milestone.id, milestone.name)}
-                      disabled={releaseMutation.isPending}
-                      className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 flex items-center gap-2"
+                      loading={releaseMutation.isPending}
                     >
-                      {releaseMutation.isPending ? (
-                        <>
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          Releasing...
-                        </>
-                      ) : (
-                        <>
-                          <DollarSign className="w-3 h-3" />
-                          Release Funds
-                        </>
-                      )}
-                    </button>
+                      <DollarSign className="w-3.5 h-3.5" />
+                      Release Funds
+                    </Button>
                   )}
                 </div>
               )}

@@ -1,4 +1,5 @@
-import { forwardRef, type ButtonHTMLAttributes } from 'react';
+import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import Link, { type LinkProps } from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -63,3 +64,36 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = 'Button';
+
+export type ButtonLinkProps = Omit<LinkProps, 'className'> & {
+  children: ReactNode;
+  className?: string;
+  variant?: keyof typeof variants;
+  size?: keyof typeof sizes;
+  fullWidth?: boolean;
+};
+
+/** Next.js Link styled like Button — use for primary navigation CTAs. */
+export function ButtonLink({
+  children,
+  className,
+  variant = 'filled',
+  size = 'md',
+  fullWidth,
+  ...props
+}: ButtonLinkProps) {
+  return (
+    <Link
+      className={cn(
+        'inline-flex items-center justify-center gap-2 font-semibold transition-colors touch-manipulation',
+        variants[variant],
+        sizes[size],
+        fullWidth && 'w-full',
+        className
+      )}
+      {...props}
+    >
+      {children}
+    </Link>
+  );
+}

@@ -26,7 +26,7 @@ import Link from 'next/link';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Button } from '@/components/ui/Button';
+import { Button, ButtonLink } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
@@ -234,7 +234,7 @@ export default function Dashboard() {
       <PullToRefresh
         onRefresh={refreshDashboard}
         disabled={!isMobile}
-        className="mx-auto max-w-6xl space-y-8"
+        className="mx-auto max-w-6xl space-y-6"
       >
         <header className="v2-fade-up flex items-center justify-between gap-4">
           <Link href="/profile" className="flex items-center gap-3 min-w-0 group">
@@ -282,12 +282,9 @@ export default function Dashboard() {
             <p className="mt-2 max-w-md text-sm md:text-base leading-relaxed text-white/70">
               Create an escrow, agree on the terms, and trade with confidence.
             </p>
-            <Link
-              href="/escrows/new"
-              className="mt-5 inline-flex min-h-[44px] w-fit items-center justify-center gap-2 rounded-ios-lg bg-brand-gold px-4 py-2.5 text-ios-body font-semibold text-brand-maroon-black transition-colors hover:bg-brand-gold/90"
-            >
+            <ButtonLink href="/escrows/new" className="mt-5 w-fit">
               Create escrow <ArrowRight className="w-4 h-4" />
-            </Link>
+            </ButtonLink>
           </div>
         </section>
 
@@ -311,12 +308,9 @@ export default function Dashboard() {
                   {wallet ? formatCurrency(wallet.availableCents, 'GHS') : '--'}
                 </p>
               )}
-              <Link
-                href="/wallet/topup"
-                className="relative mt-5 inline-flex min-h-[34px] items-center rounded-full bg-brand-gold px-3 text-xs font-bold text-brand-maroon-black"
-              >
+              <ButtonLink href="/wallet/topup" size="sm" className="relative mt-5 rounded-full text-xs">
                 Top up
-              </Link>
+              </ButtonLink>
             </div>
             <div className="relative overflow-hidden rounded-ios-xl border border-white/10 bg-[#201a17] p-4 md:p-5">
               <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full border-[18px] border-white/[0.04]" />

@@ -83,7 +83,7 @@ export default function ReconciliationPage() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshReconciliation} disabled={!isMobile} className="space-y-6">
+      <PullToRefresh onRefresh={refreshReconciliation} disabled={!isMobile} className="space-y-5">
         <PageHeader
           eyebrow="Admin"
           title="Reconciliation Dashboard"
@@ -189,8 +189,10 @@ export default function ReconciliationPage() {
             <div className="h-64 bg-white/10 animate-pulse rounded-ios-lg" />
           </div>
         ) : summary ? (
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Escrows by Status</h2>
+          <div className={admin.tableWrap}>
+            <div className="px-4 py-3 border-b border-white/10">
+              <h2 className="text-base font-semibold text-white">Escrows by Status</h2>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className={admin.tableHead}>
@@ -201,17 +203,25 @@ export default function ReconciliationPage() {
                   </tr>
                 </thead>
                 <tbody className={admin.tbody}>
-                  {summary.escrowsByStatus.map((item) => (
-                    <tr key={item.status} className={admin.trHover}>
-                      <td className={admin.td}>
-                        <StatusBadge status={item.status} />
-                      </td>
-                      <td className={`${admin.td} text-right font-medium`}>{item.count}</td>
-                      <td className={`${admin.td} text-right font-medium`}>
-                        {formatCurrency(item.totalAmountCents, 'GHS')}
+                  {summary.escrowsByStatus.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className={`${admin.td} text-center py-10 text-white/55`}>
+                        No escrow status data yet
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    summary.escrowsByStatus.map((item) => (
+                      <tr key={item.status} className={admin.trHover}>
+                        <td className={admin.td}>
+                          <StatusBadge status={item.status} />
+                        </td>
+                        <td className={`${admin.td} text-right font-medium`}>{item.count}</td>
+                        <td className={`${admin.td} text-right font-medium`}>
+                          {formatCurrency(item.totalAmountCents, 'GHS')}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -224,8 +234,10 @@ export default function ReconciliationPage() {
             <div className="h-64 bg-white/10 animate-pulse rounded-ios-lg" />
           </div>
         ) : summary ? (
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Escrows by Currency</h2>
+          <div className={admin.tableWrap}>
+            <div className="px-4 py-3 border-b border-white/10">
+              <h2 className="text-base font-semibold text-white">Escrows by Currency</h2>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className={admin.tableHead}>
@@ -238,21 +250,29 @@ export default function ReconciliationPage() {
                   </tr>
                 </thead>
                 <tbody className={admin.tbody}>
-                  {summary.escrowsByCurrency.map((item) => (
-                    <tr key={item.currency} className={admin.trHover}>
-                      <td className={`${admin.td} font-medium`}>₵</td>
-                      <td className={`${admin.td} text-right`}>{item.count}</td>
-                      <td className={`${admin.td} text-right font-medium`}>
-                        {formatCurrency(item.totalAmountCents, 'GHS')}
-                      </td>
-                      <td className={`${admin.td} text-right ${admin.tdMuted}`}>
-                        {formatCurrency(item.totalFeesCents, 'GHS')}
-                      </td>
-                      <td className={`${admin.td} text-right font-medium`}>
-                        {formatCurrency(item.totalNetAmountCents, 'GHS')}
+                  {summary.escrowsByCurrency.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className={`${admin.td} text-center py-10 text-white/55`}>
+                        No currency breakdown yet
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    summary.escrowsByCurrency.map((item) => (
+                      <tr key={item.currency} className={admin.trHover}>
+                        <td className={`${admin.td} font-medium`}>₵</td>
+                        <td className={`${admin.td} text-right`}>{item.count}</td>
+                        <td className={`${admin.td} text-right font-medium`}>
+                          {formatCurrency(item.totalAmountCents, 'GHS')}
+                        </td>
+                        <td className={`${admin.td} text-right ${admin.tdMuted}`}>
+                          {formatCurrency(item.totalFeesCents, 'GHS')}
+                        </td>
+                        <td className={`${admin.td} text-right font-medium`}>
+                          {formatCurrency(item.totalNetAmountCents, 'GHS')}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
