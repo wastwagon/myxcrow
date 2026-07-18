@@ -14,11 +14,11 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
-  // Image optimization
+  // Serve static /public images directly. The /_next/image optimizer often 502s on
+  // Render (self-fetch / sharp), which blanked V2 heroes and cards.
   images: {
+    unoptimized: true,
     domains: ['localhost', 'api.myxcrow.com', 'myxcrow.com'],
-    formats: ['image/avif', 'image/webp'],
-    minimumCacheTTL: 60,
     remotePatterns: [
       {
         protocol: 'https',
@@ -37,4 +37,3 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
-
