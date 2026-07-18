@@ -250,17 +250,19 @@ export default function CreateEscrowPage() {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto">
-        <div className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-white/80 hover:text-white mb-4 flex items-center gap-2 transition-colors"
-          >
-            ← Back
-          </button>
-          <h1 className="text-3xl font-bold text-white">Create New Escrow</h1>
-          <p className="text-white/90 mt-1">Set up a new escrow agreement</p>
-        </div>
+      <div className="mx-auto max-w-3xl space-y-6">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="text-sm font-medium text-white/60 hover:text-white transition-colors"
+        >
+          ← Back
+        </button>
+        <PageHeader
+          eyebrow="New agreement"
+          title="Create new escrow"
+          subtitle="Set up a protected payment between buyer and seller"
+        />
 
         <form onSubmit={handleSubmit(onSubmit)} className={`${form.panel} space-y-6`}>
           <div>

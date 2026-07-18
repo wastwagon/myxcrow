@@ -25,7 +25,7 @@ export default function PremiumFooter() {
           {/* Brand + nav: on mobile centered and stacked neatly */}
           <div className="flex flex-col items-center sm:flex-row sm:items-center gap-3 sm:gap-6 md:flex-1 md:justify-start md:flex-row">
             <Link href="/" className="flex items-center gap-2.5 group w-fit">
-              <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center overflow-hidden bg-brand-maroon-deep/80 group-hover:opacity-90 transition-opacity shrink-0">
+              <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center overflow-hidden bg-brand-maroon-deep ring-1 ring-white/10 group-hover:opacity-90 transition-opacity shrink-0">
                 <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={40} height={40} className="object-contain w-full h-full" />
               </div>
               <span className="text-base md:text-lg font-bold text-white group-hover:text-brand-gold transition-colors">

@@ -10,6 +10,7 @@ import { form } from '@/lib/form-classes';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { ProfilePageSkeleton } from '@/components/LoadingSkeleton';
+import PageHeader from '@/components/PageHeader';
 
 interface PublicProfile {
   userId: string;
@@ -107,16 +108,23 @@ export default function PublicProfilePage() {
   return (
     <Layout>
       <PullToRefresh onRefresh={refreshProfile} disabled={!isMobile} className="space-y-6">
+        <PageHeader
+          eyebrow="Reputation"
+          title={profile.name || 'User profile'}
+          subtitle="Public trading reputation on MyXcrow"
+          icon={<Shield className="w-6 h-6" />}
+        />
+
         {/* Profile Header */}
-        <div className={form.panel}>
+        <div className={`${form.panel} v2-fade-up`}>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-4">
               <UserAvatar label={profile.name || profile.email} size="lg" className="w-20 h-20 text-2xl" />
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-label-primary">
+                  <h2 className="text-2xl font-bold text-label-primary">
                     {profile.name || 'User'}
-                  </h1>
+                  </h2>
                   {profile.verifiedBadge && (
                     <div className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 rounded-full text-xs font-medium">
                       <CheckCircle className="w-3 h-3" />

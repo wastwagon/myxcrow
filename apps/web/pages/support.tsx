@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import Image from 'next/image';
 import PublicHeader from '@/components/PublicHeader';
 import { publicForm } from '@/lib/form-classes';
 import { MessageCircle, HelpCircle, ChevronDown, ChevronRight, Shield, Wallet, FileText, AlertCircle } from 'lucide-react';
@@ -71,14 +72,27 @@ export default function SupportPage() {
       <PublicHeader />
       <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10]">
         <div className="container mx-auto px-4 py-8 md:py-12 max-w-3xl">
+          <section className="relative mb-6 min-h-[170px] overflow-hidden rounded-[1.25rem] border border-white/10 bg-brand-maroon-black shadow-ios-card">
+            <Image
+              src="/images/v2/diaspora.jpg"
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 768px) 100vw, 768px"
+              className="object-cover object-[center_30%]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20" />
+            <div className="relative z-10 flex min-h-[170px] flex-col justify-end p-5 md:p-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/90">Help center</p>
+              <h1 className="mt-1 text-3xl md:text-4xl font-bold tracking-tight text-white">Support</h1>
+              <p className="mt-1.5 max-w-xl text-sm text-white/75">
+                We’re here to help with escrows, payments, account issues, and disputes.
+              </p>
+            </div>
+          </section>
+
           <div className="bg-white/95 rounded-2xl shadow-xl border border-brand-gold/20 overflow-hidden">
             <div className="p-6 md:p-10">
-              <h1 className={publicForm.pageTitle}>Support</h1>
-              <p className={publicForm.pageIntro}>
-                We’re here to help with escrows, payments, account issues, and disputes. Use the options
-                below or contact us directly.
-              </p>
-
               <section className="mb-10">
                 <h2 className={publicForm.sectionTitle}>
                   <MessageCircle className="w-5 h-5 text-brand-gold" />

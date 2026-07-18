@@ -1,32 +1,42 @@
 import Link from 'next/link';
-import { Home, AlertCircle } from 'lucide-react';
+import Image from 'next/image';
+import { Home } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10] flex flex-col">
-      <PublicHeader />
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center">
-          <AlertCircle className="w-16 h-16 mx-auto text-brand-gold/80 mb-4" />
-          <h1 className="text-4xl font-bold text-white mb-2">404</h1>
-          <p className="text-xl text-white/90 mb-6">Page not found</p>
-          <p className="text-white/70 mb-8">
-            The page you&apos;re looking for doesn&apos;t exist or has been moved.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] bg-brand-gold text-brand-maroon-black rounded-xl hover:bg-brand-gold/90 font-semibold transition-all touch-manipulation"
-          >
-            <Home className="w-5 h-5" />
-            Go to Home
-          </Link>
+    <div className="relative min-h-screen flex flex-col overflow-hidden bg-brand-maroon-black">
+      <Image
+        src="/images/v2/protected-payments-hero.jpg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center opacity-40"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/70 to-brand-maroon-black" />
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <PublicHeader />
+        <div className="flex flex-1 items-center justify-center px-4 py-16">
+          <div className="v2-fade-up max-w-md w-full text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-gold/80">
+              MyXcrow
+            </p>
+            <h1 className="mt-3 text-6xl font-bold tracking-tight text-white">404</h1>
+            <p className="mt-3 text-xl font-semibold text-white">Page not found</p>
+            <p className="mt-2 text-sm leading-relaxed text-white/65">
+              The page you&apos;re looking for doesn&apos;t exist or has been moved.
+            </p>
+            <Link
+              href="/"
+              className="mt-8 inline-flex min-h-[48px] items-center gap-2 rounded-full bg-brand-gold px-6 text-sm font-bold text-brand-maroon-black transition-colors hover:bg-brand-gold/90 touch-manipulation"
+            >
+              <Home className="w-5 h-5" />
+              Go to Home
+            </Link>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-
-
-

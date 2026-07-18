@@ -111,6 +111,7 @@ export default function PayoutMethodsPage() {
     <Layout>
       <PullToRefresh onRefresh={refresh} disabled={!isMobile} className="max-w-2xl mx-auto space-y-5">
         <PageHeader
+          eyebrow="Wallet"
           title="Payout methods"
           subtitle="Saved bank accounts and mobile money wallets for withdrawals"
           icon={<Building2 className="w-6 h-6" />}

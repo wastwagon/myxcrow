@@ -54,6 +54,7 @@ export default function WalletTopupPage() {
     <Layout>
       <div className="max-w-md mx-auto space-y-6">
         <PageHeader
+          eyebrow="Wallet"
           title="Top up wallet"
           subtitle="Add funds via Paystack (card, bank, mobile money)"
           icon={<Wallet className="w-6 h-6" />}

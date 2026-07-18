@@ -72,15 +72,15 @@ export default function ConfirmDeliveryPage() {
       <PublicHeader />
       <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10]">
         <div className="container mx-auto px-4 py-8 max-w-md">
+          <div className="mb-6 px-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">Delivery</p>
+            <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight text-white">Confirm delivery</h1>
+            <p className="mt-1 text-sm text-white/55">
+              Enter the reference and code or PIN from the parcel to confirm delivery before funds are released.
+            </p>
+          </div>
           <div className="bg-white/95 rounded-2xl shadow-xl border border-brand-gold/20 overflow-hidden">
             <div className="p-6 md:p-10">
-              <h1 className="text-2xl font-bold text-brand-maroon-black mb-2">Confirm Delivery</h1>
-              <p className={`text-sm ${publicForm.footerText} mb-6`}>
-                Enter the <strong>reference</strong> and either the <strong>delivery code</strong> or the{' '}
-                <strong>transaction PIN</strong> written on the parcel. The buyer and seller both have these
-                details on the escrow page; entering them here confirms delivery before funds are released.
-              </p>
-
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label htmlFor="ref" className={publicForm.labelCompact}>

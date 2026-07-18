@@ -9,9 +9,16 @@ import { formatPayoutSummary, formatWithdrawalStatusLabel } from '@/lib/withdraw
 import { getUser } from '@/lib/auth';
 import { buildWalletFundingReceipt, buildWithdrawalReceipt } from '@/lib/receipt-builders';
 import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
-import { DollarSign, Clock, ArrowUpCircle, ArrowDownCircle, Loader2, Plus, Users, Wallet as WalletIcon, Building2 } from 'lucide-react';
+import {
+  ArrowUpCircle,
+  ArrowDownCircle,
+  Plus,
+  Users,
+  Wallet as WalletIcon,
+  Building2,
+  ArrowRight,
+} from 'lucide-react';
 import Link from 'next/link';
-import PageHeader from '@/components/PageHeader';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
@@ -24,16 +31,6 @@ interface Wallet {
   pendingCents: number;
   createdAt: string;
   updatedAt: string;
-}
-
-interface Transaction {
-  id: string;
-  type: 'funding' | 'withdrawal';
-  amountCents: number;
-  status: string;
-  createdAt: string;
-  sourceType?: string;
-  methodType?: string;
 }
 
 export default function WalletPage() {
@@ -96,109 +93,150 @@ export default function WalletPage() {
       }
     : undefined;
 
+  const lastUpdated =
+    wallet?.updatedAt != null
+      ? `Last updated ${formatDate(wallet.updatedAt)}`
+      : 'Balances refresh automatically';
+
+  const quickActions = [
+    { href: '/wallet/topup', label: 'Top up', icon: Plus },
+    { href: '/wallet/withdraw', label: 'Withdraw', icon: ArrowUpCircle },
+    { href: '/wallet/payout-methods', label: 'Payout methods', icon: Building2 },
+    ...(admin ? [{ href: '/admin', label: 'Admin panel', icon: Users }] : []),
+  ];
+
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshWallet} disabled={!isMobile} className="space-y-6">
-        <PageHeader
-          title="Wallet"
-          subtitle="Manage your wallet balance and transactions"
-          icon={<WalletIcon className="w-6 h-6" />}
-        />
-
-        {/* Balance Cards */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 shadow-xl shadow-black/10">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-white/80">Available Balance</h3>
-              <DollarSign className="w-6 h-6 text-emerald-500" />
-            </div>
-            {walletLoading ? (
-              <div className="h-10 bg-white/10 animate-pulse rounded-lg" />
-            ) : (
-              <p className="text-3xl font-bold text-white">
-                {wallet ? formatCurrency(wallet.availableCents, 'GHS') : '--'}
-              </p>
-            )}
-            <p className="text-sm text-white/60 mt-2">Ready to use</p>
+      <PullToRefresh
+        onRefresh={refreshWallet}
+        disabled={!isMobile}
+        className="mx-auto max-w-6xl space-y-8"
+      >
+        <header className="flex items-end justify-between gap-3 px-1">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">
+              Funds
+            </p>
+            <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight text-white">Wallet</h1>
+            <p className="mt-1 text-sm text-white/55">Manage balances, top-ups, and withdrawals</p>
           </div>
-
-          <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 shadow-xl shadow-black/10">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-medium text-white/80">Pending Balance</h3>
-              <Clock className="w-6 h-6 text-amber-500" />
-            </div>
-            {walletLoading ? (
-              <div className="h-10 bg-white/10 animate-pulse rounded-lg" />
-            ) : (
-              <p className="text-3xl font-bold text-white">
-                {wallet ? formatCurrency(wallet.pendingCents, 'GHS') : '--'}
-              </p>
-            )}
-            <p className="text-sm text-white/60 mt-2">In escrow or pending</p>
+          <div className="hidden sm:flex h-11 w-11 items-center justify-center rounded-full border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
+            <WalletIcon className="h-5 w-5" />
           </div>
-        </div>
+        </header>
 
-        {/* Quick Actions */}
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-6 shadow-xl shadow-black/10">
-          <h2 className="text-xl font-semibold text-white mb-4">Quick Actions</h2>
-          <div className="flex flex-wrap gap-4">
+        <section>
+          <div className="mb-3 flex items-end justify-between gap-3 px-1">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-white/45">
+                Wallet overview
+              </p>
+              <h2 className="mt-1 text-xl font-bold tracking-tight text-white">Your balances</h2>
+            </div>
+            <Link
+              href="/escrows"
+              className="flex items-center gap-1 text-xs font-semibold text-brand-gold"
+            >
+              Track escrows <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="relative overflow-hidden rounded-ios-xl border border-brand-gold/25 bg-[#201a17] p-4 md:p-5">
+              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border-[18px] border-brand-gold/[0.06]" />
+              <p className="relative text-xs font-medium text-white/55">Available balance</p>
+              {walletLoading ? (
+                <div className="relative mt-2 h-8 w-28 animate-pulse rounded-ios bg-white/10" />
+              ) : (
+                <p className="relative mt-2 text-xl md:text-3xl font-bold tracking-tight text-white">
+                  {wallet ? formatCurrency(wallet.availableCents, 'GHS') : '--'}
+                </p>
+              )}
+              <p className="relative mt-1 text-[11px] text-white/40">Ready to use</p>
+              <Link
+                href="/wallet/topup"
+                className="relative mt-5 inline-flex min-h-[34px] items-center rounded-full bg-brand-gold px-3 text-xs font-bold text-brand-maroon-black"
+              >
+                Top up
+              </Link>
+            </div>
+            <div className="relative overflow-hidden rounded-ios-xl border border-white/10 bg-[#201a17] p-4 md:p-5">
+              <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full border-[18px] border-white/[0.04]" />
+              <p className="relative text-xs font-medium text-white/55">Pending in escrow</p>
+              {walletLoading ? (
+                <div className="relative mt-2 h-8 w-28 animate-pulse rounded-ios bg-white/10" />
+              ) : (
+                <p className="relative mt-2 text-xl md:text-3xl font-bold tracking-tight text-white">
+                  {wallet ? formatCurrency(wallet.pendingCents, 'GHS') : '--'}
+                </p>
+              )}
+              <p className="relative mt-1 text-[11px] text-white/40">Held until release</p>
+              <Link
+                href="/escrows"
+                className="relative mt-5 inline-flex min-h-[34px] items-center rounded-full border border-white/15 bg-white/10 px-3 text-xs font-bold text-white"
+              >
+                Track funds
+              </Link>
+            </div>
+          </div>
+          <p className="mt-2 px-1 text-[11px] text-white/40">{lastUpdated}</p>
+        </section>
+
+        <section>
+          <h2 className="px-1 text-xl font-bold tracking-tight text-white">What would you like to do?</h2>
+          <div
+            className={`mt-3 grid gap-3 ${
+              quickActions.length > 3 ? 'grid-cols-2 md:grid-cols-4' : 'grid-cols-3'
+            }`}
+          >
+            {quickActions.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className="group flex min-h-[104px] flex-col items-center justify-center gap-3 rounded-ios-xl border border-white/10 bg-black/25 px-2 py-4 text-center transition-colors hover:border-brand-gold/30 hover:bg-white/[0.08]"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.08] text-brand-gold transition-transform group-hover:scale-105">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="text-xs font-semibold leading-tight text-white/85">{label}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="overflow-hidden rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm">
+          <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 md:px-6">
+            <h2 className="text-lg font-semibold text-white">Funding history</h2>
             <Link
               href="/wallet/topup"
-              className="min-h-[48px] px-4 py-3 rounded-ios-lg bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30 flex items-center justify-center gap-2 touch-manipulation font-semibold transition-colors"
+              className="flex items-center gap-1 text-xs font-semibold text-brand-gold"
             >
-              <Plus className="w-4 h-4" />
-              Top Up Wallet
+              Top up <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-            <Link
-              href="/wallet/payout-methods"
-              className="min-h-[48px] px-4 py-3 rounded-ios-lg bg-white/10 text-white border border-white/15 hover:bg-white/15 flex items-center justify-center gap-2 touch-manipulation font-medium transition-colors"
-            >
-              <Building2 className="w-4 h-4" />
-              Payout methods
-            </Link>
-            <Link
-              href="/wallet/withdraw"
-              className="min-h-[48px] px-4 py-3 rounded-ios-lg bg-brand-gold text-brand-maroon-black hover:bg-brand-gold/90 flex items-center justify-center gap-2 touch-manipulation font-semibold transition-colors"
-            >
-              <ArrowUpCircle className="w-4 h-4" />
-              Request Withdrawal
-            </Link>
-            {admin && (
-              <Link
-                href="/admin"
-                className="min-h-[48px] px-4 py-3 bg-brand-maroon text-white rounded-xl hover:bg-brand-maroon-dark flex items-center justify-center gap-2 touch-manipulation font-medium transition-all"
-              >
-                <Users className="w-4 h-4" />
-                Admin Panel
-              </Link>
-            )}
           </div>
-        </div>
-
-        {/* Funding History */}
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 overflow-hidden">
-          <div className="p-6 border-b border-white/10">
-            <h2 className="text-xl font-semibold text-white">Funding History</h2>
-          </div>
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {fundingLoading ? (
               <ListRowsSkeleton rows={3} rowClassName="h-16" />
             ) : fundingHistory && fundingHistory.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {fundingHistory.map((funding) => (
-                  <div key={funding.id} className="flex items-center justify-between p-4 border border-white/10 rounded-xl bg-white/5">
-                    <div className="flex items-center gap-4">
-                      <ArrowDownCircle className="w-5 h-5 text-emerald-500" />
-                      <div>
+                  <div
+                    key={funding.id}
+                    className="flex items-center justify-between gap-3 rounded-ios-lg border border-white/10 bg-black/20 p-4"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
+                        <ArrowDownCircle className="h-4 w-4" />
+                      </span>
+                      <div className="min-w-0">
                         <p className="font-medium text-white">
                           {formatCurrency(Math.abs(funding.amountCents), 'GHS')}
                         </p>
-                        <p className="text-sm text-white/70">
-                          {funding.sourceType} • {formatDate(funding.createdAt)}
+                        <p className="truncate text-sm text-white/55">
+                          {funding.sourceType} · {formatDate(funding.createdAt)}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex shrink-0 items-center gap-2">
                       <PrintReceiptButton
                         receipt={buildWalletFundingReceipt(funding, receiptAccountHolder)}
                         iconOnly
@@ -206,7 +244,7 @@ export default function WalletPage() {
                         size="sm"
                       />
                       <span
-                        className={`px-2 py-1 text-xs font-medium rounded ${
+                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                           funding.status === 'SUCCEEDED'
                             ? 'bg-emerald-500/20 text-emerald-400'
                             : 'bg-amber-500/20 text-amber-400'
@@ -219,46 +257,63 @@ export default function WalletPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-white/60 py-8">No funding history</p>
+              <div className="py-10 text-center">
+                <p className="text-white/55 mb-4">No funding history yet</p>
+                <Link
+                  href="/wallet/topup"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-ios-lg bg-brand-gold px-4 text-sm font-semibold text-brand-maroon-black"
+                >
+                  <Plus className="h-4 w-4" />
+                  Top up wallet
+                </Link>
+              </div>
             )}
           </div>
-        </div>
+        </section>
 
-        {/* Withdrawal History */}
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 overflow-hidden">
-          <div className="p-6 border-b border-white/10">
-            <h2 className="text-xl font-semibold text-white">Withdrawal History</h2>
+        <section className="overflow-hidden rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm">
+          <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 md:px-6">
+            <h2 className="text-lg font-semibold text-white">Withdrawal history</h2>
+            <Link
+              href="/wallet/withdraw"
+              className="flex items-center gap-1 text-xs font-semibold text-brand-gold"
+            >
+              Withdraw <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
-          <div className="p-6">
+          <div className="p-4 md:p-6">
             {withdrawalLoading ? (
               <ListRowsSkeleton rows={3} rowClassName="h-16" />
             ) : withdrawalHistory && withdrawalHistory.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {withdrawalHistory.map((withdrawal: any) => (
-                  <div key={withdrawal.id} className="flex items-center justify-between p-4 border border-white/10 rounded-xl bg-white/5 gap-4">
-                    <div className="flex items-center gap-4 min-w-0">
-                      <ArrowUpCircle className="w-5 h-5 text-red-400 shrink-0" />
+                  <div
+                    key={withdrawal.id}
+                    className="flex items-center justify-between gap-3 rounded-ios-lg border border-white/10 bg-black/20 p-4"
+                  >
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-500/15 text-red-400">
+                        <ArrowUpCircle className="h-4 w-4" />
+                      </span>
                       <div className="min-w-0">
                         <p className="font-medium text-white">
                           {formatCurrency(withdrawal.amountCents, 'GHS')}
                         </p>
-                        <p className="text-sm text-white/70 truncate">
-                          {withdrawal.methodLabel || withdrawal.methodType} •{' '}
+                        <p className="truncate text-sm text-white/55">
+                          {withdrawal.methodLabel || withdrawal.methodType} ·{' '}
                           {formatPayoutSummary(
                             withdrawal.methodType,
                             withdrawal.methodDetails,
-                            withdrawal.payoutSummary,
+                            withdrawal.payoutSummary
                           )}
                         </p>
-                        <p className="text-xs text-white/50 mt-0.5">
-                          {formatDate(withdrawal.createdAt)}
-                        </p>
+                        <p className="mt-0.5 text-xs text-white/40">{formatDate(withdrawal.createdAt)}</p>
                         {withdrawal.status === 'FAILED' && withdrawal.failureReason && (
-                          <p className="text-xs text-red-400 mt-1">{withdrawal.failureReason}</p>
+                          <p className="mt-1 text-xs text-red-400">{withdrawal.failureReason}</p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
+                    <div className="flex shrink-0 items-center gap-2">
                       <PrintReceiptButton
                         receipt={buildWithdrawalReceipt(withdrawal, receiptAccountHolder)}
                         iconOnly
@@ -266,12 +321,12 @@ export default function WalletPage() {
                         size="sm"
                       />
                       <span
-                        className={`px-2 py-1 text-xs font-medium rounded ${
+                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                           withdrawal.status === 'SUCCEEDED'
                             ? 'bg-emerald-500/20 text-emerald-400'
                             : withdrawal.status === 'FAILED'
-                            ? 'bg-red-500/20 text-red-400'
-                            : 'bg-amber-500/20 text-amber-400'
+                              ? 'bg-red-500/20 text-red-400'
+                              : 'bg-amber-500/20 text-amber-400'
                         }`}
                       >
                         {formatWithdrawalStatusLabel(withdrawal.status)}
@@ -281,20 +336,20 @@ export default function WalletPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8">
-                <p className="text-white/60 mb-4">No withdrawal history</p>
+              <div className="py-10 text-center">
+                <p className="mb-4 text-white/55">No withdrawal history yet</p>
                 <Link
                   href="/wallet/withdraw"
-                  className="inline-flex px-4 py-2 min-h-[48px] rounded-ios-lg bg-brand-gold text-brand-maroon-black hover:bg-brand-gold/90 font-semibold items-center justify-center mx-auto gap-2 touch-manipulation transition-colors"
+                  className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-ios-lg bg-brand-gold px-4 text-sm font-semibold text-brand-maroon-black"
                 >
-                  Request Withdrawal
+                  <ArrowUpCircle className="h-4 w-4" />
+                  Request withdrawal
                 </Link>
               </div>
             )}
           </div>
-        </div>
+        </section>
       </PullToRefresh>
     </Layout>
   );
 }
-

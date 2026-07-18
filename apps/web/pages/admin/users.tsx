@@ -180,10 +180,10 @@ export default function AdminUsersPage() {
     <Layout>
       <PullToRefresh onRefresh={refreshUsers} disabled={!isMobile} className="space-y-5">
         <PageHeader
+          eyebrow="Admin"
           title="User Management"
           subtitle="View and manage all platform users"
           icon={<UsersIcon className="w-6 h-6 text-white" />}
-          gradient="purple"
         />
 
         <div className={admin.tableWrap}>

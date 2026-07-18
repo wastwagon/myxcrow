@@ -48,29 +48,39 @@ export default function WalletTopupCallbackPage() {
 
   return (
     <Layout>
-      <div className="max-w-md mx-auto text-center py-12">
-        {status === 'loading' && (
-          <>
-            <Loader2 className="w-12 h-12 text-brand-gold animate-spin mx-auto mb-4" />
-            <p className="text-label-secondary">Verifying payment…</p>
-          </>
-        )}
-        {status === 'success' && (
-          <>
-            <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-4" />
-            <p className="text-label-primary font-medium">{message}</p>
-            <p className="text-sm text-label-tertiary mt-2">Redirecting to wallet…</p>
-          </>
-        )}
-        {status === 'error' && (
-          <>
-            <XCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <p className="text-label-primary font-medium">{message}</p>
-            <Button variant="filled" className="mt-4" onClick={() => router.replace('/wallet')}>
-              Back to Wallet
-            </Button>
-          </>
-        )}
+      <div className="mx-auto max-w-md py-10">
+        <div className="v2-fade-up overflow-hidden rounded-[1.25rem] border border-white/10 bg-black/30 shadow-ios-card">
+          <div className="border-b border-white/10 bg-gradient-to-r from-brand-maroon-black to-[#2a1818] px-6 py-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">
+              Payment status
+            </p>
+            <h1 className="mt-1 text-xl font-bold text-white">Wallet top-up</h1>
+          </div>
+          <div className="px-6 py-10 text-center">
+            {status === 'loading' && (
+              <>
+                <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-gold" />
+                <p className="text-label-secondary">Verifying payment…</p>
+              </>
+            )}
+            {status === 'success' && (
+              <>
+                <CheckCircle className="mx-auto mb-4 h-12 w-12 text-emerald-400" />
+                <p className="font-medium text-label-primary">{message}</p>
+                <p className="mt-2 text-sm text-label-tertiary">Redirecting to wallet…</p>
+              </>
+            )}
+            {status === 'error' && (
+              <>
+                <XCircle className="mx-auto mb-4 h-12 w-12 text-red-400" />
+                <p className="font-medium text-label-primary">{message}</p>
+                <Button variant="filled" className="mt-5" onClick={() => router.replace('/wallet')}>
+                  Back to Wallet
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </Layout>
   );

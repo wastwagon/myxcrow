@@ -12,16 +12,16 @@ export default function PublicHeader() {
   const router = useRouter();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-brand-maroon-deep/20 bg-[#160f10] shadow-lg">
+    <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-[var(--nav-bar-bg)] backdrop-blur-ios shadow-lg shadow-black/20 pt-safe">
       <div className="container mx-auto px-4">
         <div className="flex h-14 md:h-16 items-center justify-between">
           {/* Logo & Brand */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-9 h-9 md:w-10 md:h-10 flex-shrink-0">
+            <div className="relative flex h-9 w-9 md:h-10 md:w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-maroon-deep ring-1 ring-white/10">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={40} height={40} className="object-contain" />
             </div>
-            <span className="text-lg md:text-xl font-bold text-white hidden sm:inline group-hover:text-brand-gold transition-colors">
+            <span className="hidden text-lg font-bold text-white transition-colors group-hover:text-brand-gold sm:inline md:text-xl">
               MYXCROW
             </span>
           </Link>
@@ -29,7 +29,9 @@ export default function PublicHeader() {
           {/* Desktop only - mobile uses bottom nav */}
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => {
-              const isActive = router.pathname === link.href || (link.href !== '/' && router.pathname.startsWith(link.href));
+              const isActive =
+                router.pathname === link.href ||
+                (link.href !== '/' && router.pathname.startsWith(link.href));
               return (
                 <Link
                   key={link.href}

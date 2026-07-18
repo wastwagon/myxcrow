@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
+import Image from 'next/image';
 import Layout from '@/components/Layout';
 import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -12,6 +13,12 @@ import {
   Plus,
   Wallet,
   Activity,
+  ArrowUpRight,
+  Building2,
+  Handshake,
+  ShieldCheck,
+  Scale,
+  Shield,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { COMPLETED_ESCROW_STATUSES } from '@/lib/constants';
@@ -23,6 +30,109 @@ import { Button } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { UserAvatar } from '@/components/ui/UserAvatar';
+import { ImageCard, ImageCardRow } from '@/components/ui/ImageCard';
+import { SectionHeader } from '@/components/ui/SectionHeader';
+import { PromoCarousel, type PromoSlide } from '@/components/ui/PromoCarousel';
+
+const QUICK_ACTIONS = [
+  { href: '/escrows/new', label: 'Create escrow', icon: Plus },
+  { href: '/wallet/topup', label: 'Top up', icon: ArrowUpRight },
+  { href: '/wallet', label: 'My wallet', icon: Wallet },
+  { href: '/escrows', label: 'All escrows', icon: FileText },
+  { href: '/disputes', label: 'Disputes', icon: Scale },
+];
+
+const ESCROW_SERVICES = [
+  {
+    href: '/escrows/new',
+    title: 'Goods & services',
+    description: 'Trade with confidence',
+    image: '/images/v2/goods-services.jpg',
+    icon: Handshake,
+  },
+  {
+    href: '/escrows/new',
+    title: 'Real estate',
+    description: 'Protect high-value deals',
+    image: '/images/v2/real-estate.jpg',
+    icon: Building2,
+  },
+  {
+    href: '/escrows/new',
+    title: 'Milestone projects',
+    description: 'Release funds by progress',
+    image: '/images/v2/milestone-projects.jpg',
+    icon: ShieldCheck,
+  },
+];
+
+const TRUST_SAFETY = [
+  {
+    href: '/profile',
+    title: 'Account security',
+    description: 'Keep your profile current',
+    image: '/images/v2/diaspora.jpg',
+    icon: Shield,
+  },
+  {
+    href: '/disputes',
+    title: 'Dispute resolution',
+    description: 'Fair mediation when needed',
+    image: '/images/v2/local-transactions.jpg',
+    icon: Scale,
+  },
+  {
+    href: '/support',
+    title: 'Buyer protection',
+    description: 'Funds held until you approve',
+    image: '/images/v2/protected-payments-hero.jpg',
+    icon: ShieldCheck,
+  },
+];
+
+function getPromoSlides(kycVerified: boolean): PromoSlide[] {
+  const slides: PromoSlide[] = [];
+  if (!kycVerified) {
+    slides.push({
+      id: 'security',
+      eyebrow: 'Account tip',
+      title: 'Complete your profile for smoother deals',
+      description: 'Add your phone and keep identity details current before you fund high-value escrows.',
+      href: '/profile',
+      cta: 'Open profile',
+      image: '/images/v2/diaspora.jpg',
+    });
+  }
+  slides.push(
+    {
+      id: 'how-it-works',
+      eyebrow: 'How MyXcrow works',
+      title: 'Agree, fund, deliver, release',
+      description: 'Funds stay protected until both sides fulfill the deal.',
+      href: '/escrows/new',
+      cta: 'Start an escrow',
+      image: '/images/v2/goods-services.jpg',
+    },
+    {
+      id: 'milestones',
+      eyebrow: 'Projects',
+      title: 'Release money by milestone',
+      description: 'Ideal for construction, diaspora builds, and phased professional work.',
+      href: '/escrows/new',
+      cta: 'Create milestones',
+      image: '/images/v2/milestone-projects.jpg',
+    }
+  );
+  return slides;
+}
+
+function maskPhone(phone?: string) {
+  if (!phone) return '';
+  const compact = phone.replace(/\s+/g, '');
+  if (compact.length < 7) return phone;
+  return `${compact.slice(0, 4)} ••• ${compact.slice(-3)}`;
+}
 
 interface WalletData {
   availableCents: number;
@@ -110,6 +220,7 @@ export default function Dashboard() {
   const activeEscrows = escrows?.filter((e) => !['RELEASED', 'CANCELLED'].includes(e.status)) || [];
   const recentEscrows = escrows?.slice(0, 5) || [];
   const user = getUser();
+  const promoSlides = getPromoSlides(user?.kycStatus === 'VERIFIED');
 
   const refreshDashboard = async () => {
     await Promise.all([
@@ -120,59 +231,181 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshDashboard} disabled={!isMobile} className="space-y-5">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">
-            Welcome back{userName ? `, ${userName}` : ''}
-          </h1>
-          <p className="text-white/65 text-sm mt-0.5">Here&apos;s your account overview</p>
-        </div>
+      <PullToRefresh
+        onRefresh={refreshDashboard}
+        disabled={!isMobile}
+        className="mx-auto max-w-6xl space-y-8"
+      >
+        <header className="v2-fade-up flex items-center justify-between gap-4">
+          <Link href="/profile" className="flex items-center gap-3 min-w-0 group">
+            <UserAvatar label={userName || user?.email || 'User'} size="md" />
+            <div className="min-w-0">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">
+                Akwaaba
+              </p>
+              <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
+                {userName || 'Welcome back'}
+              </h1>
+              <p className="text-white/55 text-xs mt-0.5 truncate">
+                {maskPhone(user?.phone) || user?.email || 'Your secure account'}
+              </p>
+            </div>
+          </Link>
+          <Link
+            href="/profile"
+            className="shrink-0 inline-flex items-center gap-2 min-h-[40px] rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 text-xs font-semibold text-emerald-300 hover:bg-emerald-400/15 transition-colors"
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span className="hidden sm:inline">
+              {user?.kycStatus === 'VERIFIED' ? 'Identity verified' : 'Account security'}
+            </span>
+          </Link>
+        </header>
 
-        {/* Hero balance + metrics */}
-        <div className="rounded-ios-xl border border-brand-gold/30 bg-white/[0.09] backdrop-blur-sm p-5 shadow-ios-card ring-1 ring-brand-gold/20">
-          <p className="text-xs font-medium text-white/65 mb-1">Available balance</p>
-          {walletLoading ? (
-            <div className="h-9 w-36 bg-white/10 animate-pulse rounded-ios mb-1" />
-          ) : (
-            <p className="text-3xl font-bold text-white tracking-tight mb-1">
-              {wallet ? formatCurrency(wallet.availableCents, 'GHS') : '--'}
+        <section className="v2-fade-up-delay-1 relative min-h-[245px] md:min-h-[310px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-brand-maroon-black shadow-ios-card">
+          <Image
+            src="/images/v2/protected-payments-hero.jpg"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 1200px"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/5" />
+          <div className="relative z-10 flex min-h-[245px] md:min-h-[310px] max-w-xl flex-col justify-end p-5 md:p-8">
+            <span className="mb-3 w-fit rounded-full border border-brand-gold/30 bg-black/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-gold backdrop-blur-sm">
+              Protected payments
+            </span>
+            <h2 className="max-w-md text-2xl md:text-4xl font-bold tracking-tight text-white">
+              Your money moves only when the deal does.
+            </h2>
+            <p className="mt-2 max-w-md text-sm md:text-base leading-relaxed text-white/70">
+              Create an escrow, agree on the terms, and trade with confidence.
             </p>
-          )}
-          <p className="text-sm text-white/55">
-            {walletLoading
-              ? 'Loading…'
-              : wallet
-                ? `${formatCurrency(wallet.pendingCents, 'GHS')} pending in escrow`
-                : 'Top up your wallet to start'}
-          </p>
-          <div className="flex flex-wrap gap-2.5 mt-4">
-            <Link href="/wallet/topup">
-              <Button size="sm">Top up</Button>
-            </Link>
-            <Link href="/wallet">
-              <Button size="sm" variant="tinted">
-                Wallet
-              </Button>
+            <Link
+              href="/escrows/new"
+              className="mt-5 inline-flex min-h-[44px] w-fit items-center justify-center gap-2 rounded-ios-lg bg-brand-gold px-4 py-2.5 text-ios-body font-semibold text-brand-maroon-black transition-colors hover:bg-brand-gold/90"
+            >
+              Create escrow <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
-        </div>
+        </section>
 
-        <div className="grid sm:grid-cols-3 gap-4">
-          <MetricCard
-            label="Pending balance"
-            value={wallet ? formatCurrency(wallet.pendingCents, 'GHS') : '--'}
-            hint="Held in escrow"
-            icon={<Clock className="w-5 h-5" />}
-            accent="amber"
-            loading={walletLoading}
+        <PromoCarousel slides={promoSlides} className="v2-fade-up-delay-2" />
+
+        <section>
+          <SectionHeader
+            eyebrow="Wallet overview"
+            title="Your balances"
+            href="/wallet"
+            linkLabel="View wallet"
           />
+          <div className="grid grid-cols-2 gap-3 md:gap-4">
+            <div className="relative overflow-hidden rounded-ios-xl border border-brand-gold/25 bg-[#201a17] p-4 md:p-5">
+              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border-[18px] border-brand-gold/[0.06]" />
+              <p className="relative text-xs font-medium text-white/55">Available balance</p>
+              {walletLoading ? (
+                <div className="relative mt-2 h-8 w-28 animate-pulse rounded-ios bg-white/10" />
+              ) : (
+                <p className="relative mt-2 text-xl md:text-3xl font-bold tracking-tight text-white">
+                  {wallet ? formatCurrency(wallet.availableCents, 'GHS') : '--'}
+                </p>
+              )}
+              <Link
+                href="/wallet/topup"
+                className="relative mt-5 inline-flex min-h-[34px] items-center rounded-full bg-brand-gold px-3 text-xs font-bold text-brand-maroon-black"
+              >
+                Top up
+              </Link>
+            </div>
+            <div className="relative overflow-hidden rounded-ios-xl border border-white/10 bg-[#201a17] p-4 md:p-5">
+              <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full border-[18px] border-white/[0.04]" />
+              <p className="relative text-xs font-medium text-white/55">Pending in escrow</p>
+              {walletLoading ? (
+                <div className="relative mt-2 h-8 w-28 animate-pulse rounded-ios bg-white/10" />
+              ) : (
+                <p className="relative mt-2 text-xl md:text-3xl font-bold tracking-tight text-white">
+                  {wallet ? formatCurrency(wallet.pendingCents, 'GHS') : '--'}
+                </p>
+              )}
+              <Link
+                href="/escrows"
+                className="relative mt-5 inline-flex min-h-[34px] items-center rounded-full border border-white/15 bg-white/10 px-3 text-xs font-bold text-white"
+              >
+                Track funds
+              </Link>
+            </div>
+          </div>
+          <p className="mt-2 px-1 text-[11px] text-white/40">Balances refresh automatically</p>
+        </section>
+
+        <section>
+          <SectionHeader title="What would you like to do?" />
+          <div className="grid grid-cols-3 gap-3 md:grid-cols-5">
+            {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className="v2-lift group flex min-h-[104px] flex-col items-center justify-center gap-3 rounded-ios-xl border border-white/10 bg-black/25 px-2 py-4 text-center hover:border-brand-gold/30 hover:bg-white/[0.08]"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.08] text-brand-gold transition-transform group-hover:scale-105">
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="text-xs font-semibold leading-tight text-white/85">{label}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <SectionHeader
+            eyebrow="Built for real life"
+            title="Escrow services"
+            href="/escrows/new"
+            linkLabel="Get started"
+          />
+          <ImageCardRow>
+            {ESCROW_SERVICES.map((service) => (
+              <ImageCard key={service.title} {...service} />
+            ))}
+          </ImageCardRow>
+        </section>
+
+        <section>
+          <SectionHeader
+            eyebrow="Peace of mind"
+            title="Trust & safety"
+            href="/support"
+            linkLabel="Learn more"
+          />
+          <ImageCardRow>
+            {TRUST_SAFETY.map((item) => (
+              <ImageCard key={item.title} {...item} />
+            ))}
+          </ImageCardRow>
+        </section>
+
+        <section className="grid grid-cols-3 gap-3">
           <MetricCard
-            label="Active escrows"
+            label="Active"
             value={activeEscrows.length}
             hint="In progress"
-            icon={<FileText className="w-5 h-5" />}
+            icon={<Activity className="w-5 h-5" />}
             accent="maroon"
             loading={escrowsLoading}
+            className="p-3 md:p-4"
+          />
+          <MetricCard
+            label="Awaiting"
+            value={
+              escrows?.filter((e) => ['AWAITING_FUNDING', 'AWAITING_SHIPMENT'].includes(e.status))
+                .length || 0
+            }
+            hint="Your action"
+            icon={<Clock className="w-5 h-5" />}
+            accent="amber"
+            loading={escrowsLoading}
+            className="p-3 md:p-4"
           />
           <MetricCard
             label="Completed"
@@ -181,52 +414,12 @@ export default function Dashboard() {
             icon={<CheckCircle className="w-5 h-5" />}
             accent="emerald"
             loading={escrowsLoading}
+            className="p-3 md:p-4"
           />
-        </div>
+        </section>
 
-        <ListGroup title="Quick actions">
-          <ListRow
-            href="/escrows/new"
-            leading={
-              <div className="w-9 h-9 rounded-ios-lg bg-brand-gold/20 flex items-center justify-center">
-                <Plus className="w-5 h-5 text-brand-gold" />
-              </div>
-            }
-            title="Create escrow"
-            subtitle="Start a new transaction"
-          />
-          <ListRow
-            href="/wallet"
-            leading={
-              <div className="w-9 h-9 rounded-ios-lg bg-emerald-500/20 flex items-center justify-center">
-                <Wallet className="w-5 h-5 text-emerald-400" />
-              </div>
-            }
-            title="Manage wallet"
-            subtitle="Transactions & withdrawals"
-          />
-          <ListRow
-            href="/escrows"
-            leading={
-              <div className="w-9 h-9 rounded-ios-lg bg-brand-maroon/40 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-white/90" />
-              </div>
-            }
-            title="All escrows"
-            subtitle="View and filter agreements"
-          />
-        </ListGroup>
-
-        <div>
-          <div className="flex items-center justify-between px-1 mb-3">
-            <h2 className="text-ios-title-3 text-label-primary font-semibold">Recent escrows</h2>
-            <Link
-              href="/escrows"
-              className="text-brand-gold text-ios-footnote font-medium flex items-center gap-1"
-            >
-              View all <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+        <section>
+          <SectionHeader title="Recent escrows" href="/escrows" linkLabel="View all" />
 
           {escrowsLoading ? (
             <ListRowsSkeleton rows={3} rowClassName="h-16" />
@@ -274,39 +467,7 @@ export default function Dashboard() {
               </Link>
             </div>
           )}
-        </div>
-
-        {activeEscrows.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <MetricCard
-              label="Awaiting action"
-              value={
-                escrows?.filter((e) => ['AWAITING_FUNDING', 'AWAITING_SHIPMENT'].includes(e.status))
-                  .length || 0
-              }
-              icon={<Clock className="w-5 h-5" />}
-              accent="amber"
-            />
-            <MetricCard
-              label="In progress"
-              value={
-                escrows?.filter((e) =>
-                  ['FUNDED', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED'].includes(e.status)
-                ).length || 0
-              }
-              icon={<Activity className="w-5 h-5" />}
-              accent="emerald"
-            />
-            <MetricCard
-              label="Completed"
-              value={
-                escrows?.filter((e) => COMPLETED_ESCROW_STATUSES.includes(e.status)).length || 0
-              }
-              icon={<CheckCircle className="w-5 h-5" />}
-              accent="gold"
-            />
-          </div>
-        )}
+        </section>
       </PullToRefresh>
     </Layout>
   );

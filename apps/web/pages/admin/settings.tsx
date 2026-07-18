@@ -144,10 +144,10 @@ export default function AdminSettingsPage() {
     <Layout>
       <PullToRefresh onRefresh={refreshSettings} disabled={!isMobile} className="space-y-6">
         <PageHeader
+          eyebrow="Admin"
           title="Platform Settings"
           subtitle="Configure system-wide settings and preferences"
           icon={<Settings className="w-6 h-6 text-white" />}
-          gradient="purple"
         />
 
         {/* Tabs */}

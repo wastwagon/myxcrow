@@ -161,6 +161,7 @@ export default function EvidencePage() {
         </button>
 
         <PageHeader
+          eyebrow="Agreement"
           title="Evidence"
           subtitle="Upload and manage evidence for this escrow"
           icon={<File className="w-6 h-6" />}

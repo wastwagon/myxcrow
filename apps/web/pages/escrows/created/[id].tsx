@@ -69,17 +69,18 @@ export default function EscrowCreatedPage() {
 
   return (
     <Layout>
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-2xl border border-white/10 p-8 shadow-xl">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center">
-              <CheckCircle2 className="w-7 h-7 text-emerald-400" />
+      <div className="mx-auto max-w-2xl space-y-6">
+        <header className="px-1">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">Success</p>
+          <div className="mt-3 flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/20">
+              <CheckCircle2 className="h-7 w-7 text-emerald-400" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-white">
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
                 {isFunded ? 'Escrow created & funded' : 'Escrow created'}
               </h1>
-              <p className="text-white/80 mt-1">
+              <p className="mt-1 text-sm text-white/60">
                 {isFunded
                   ? isProfessional
                     ? 'Funds are secured. The seller can start the service.'
@@ -88,8 +89,10 @@ export default function EscrowCreatedPage() {
               </p>
             </div>
           </div>
+        </header>
 
-          <div className="mt-6 grid sm:grid-cols-2 gap-4 text-sm">
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm p-6 md:p-8 shadow-ios-card">
+          <div className="grid sm:grid-cols-2 gap-4 text-sm">
             <div className="rounded-xl bg-white/5 border border-white/10 p-4 sm:col-span-2">
               <p className="text-white/60">Escrow ID</p>
               <p className="text-white font-medium break-all">{id}</p>

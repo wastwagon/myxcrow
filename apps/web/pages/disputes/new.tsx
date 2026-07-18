@@ -83,6 +83,7 @@ export default function CreateDisputePage() {
     <Layout>
       <div className="max-w-2xl mx-auto space-y-6">
         <PageHeader
+          eyebrow="Resolution"
           title="Open dispute"
           subtitle="Create a dispute for this escrow"
           icon={<AlertCircle className="w-6 h-6" />}

@@ -7,6 +7,8 @@ import { Shield, Lock, Zap, Users, ArrowRight, CheckCircle2, MapPin, X, ChevronR
 import { isAuthenticated } from '@/lib/auth';
 import PublicHeader from '@/components/PublicHeader';
 import { publicForm } from '@/lib/form-classes';
+import { ImageCard, ImageCardRow } from '@/components/ui/ImageCard';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 
 const HOW_IT_WORKS = [
   { step: 1, title: 'Agree on terms', desc: 'Buyer and seller agree on the amount, goods or services, and delivery terms before starting.' },
@@ -17,10 +19,10 @@ const HOW_IT_WORKS = [
 ];
 
 const USE_CASES = [
-  { title: 'Diaspora & remittances', desc: 'Build or invest from abroad. Milestone-based releases keep your projects on track.', icon: MapPin },
-  { title: 'Local transactions', desc: 'Buy property, vehicles, or high-value goods. Funds held until both parties are satisfied.', icon: Shield },
-  { title: 'Real estate & contracts', desc: 'Close deals with confidence. Funds released only when all obligations are fulfilled.', icon: Lock },
-  { title: 'Goods & services', desc: 'Protect buyers and sellers. No lost payments, no undelivered orders.', icon: Zap },
+  { title: 'Diaspora & remittances', desc: 'Build or invest from abroad. Milestone-based releases keep your projects on track.', icon: MapPin, image: '/images/v2/diaspora.jpg' },
+  { title: 'Local transactions', desc: 'Buy property, vehicles, or high-value goods. Funds held until both parties are satisfied.', icon: Shield, image: '/images/v2/local-transactions.jpg' },
+  { title: 'Real estate & contracts', desc: 'Close deals with confidence. Funds released only when all obligations are fulfilled.', icon: Lock, image: '/images/v2/real-estate.jpg' },
+  { title: 'Goods & services', desc: 'Protect buyers and sellers. No lost payments, no undelivered orders.', icon: Zap, image: '/images/v2/goods-services.jpg' },
 ];
 
 const FAQ_ITEMS = [
@@ -70,25 +72,51 @@ export default function Home() {
 
         <div className="container mx-auto px-4 py-10 md:py-12">
           <div className="max-w-6xl mx-auto">
-            {/* Hero – logo centered; Trusted escrow under MYXCROW; aligned */}
-            <div className="flex flex-col items-center text-center mb-10 md:mb-14">
-              <div className="flex justify-center w-14 h-14 md:w-20 md:h-20 rounded-xl md:rounded-2xl mb-4 md:mb-5 shadow-lg overflow-hidden bg-brand-maroon-deep ring-2 ring-brand-gold/30">
-                <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={80} height={80} className="object-contain w-full h-full" />
+            {/* Hero – photographic, premium */}
+            <section className="relative mb-10 md:mb-14 min-h-[420px] md:min-h-[520px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-brand-maroon-black shadow-ios-card">
+              <Image
+                src="/images/v2/protected-payments-hero.jpg"
+                alt=""
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 1200px"
+                className="object-cover object-center"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/10" />
+              <div className="relative z-10 flex min-h-[420px] md:min-h-[520px] max-w-2xl flex-col justify-end p-6 md:p-10">
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex h-11 w-11 md:h-12 md:w-12 items-center justify-center overflow-hidden rounded-xl bg-brand-maroon-deep ring-2 ring-brand-gold/30">
+                    <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={48} height={48} className="h-full w-full object-contain" />
+                  </div>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-brand-gold/30 bg-black/30 px-3 py-1.5 text-xs font-medium text-white/90 backdrop-blur-sm">
+                    <MapPin className="w-3.5 h-3.5 flex-shrink-0 text-brand-gold" />
+                    Trusted escrow for Ghana
+                  </span>
+                </div>
+                <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight">MYXCROW</h1>
+                <p className="mt-2 text-base md:text-2xl font-medium text-brand-gold">
+                  Secure Escrow Services
+                </p>
+                <p className="mt-2 max-w-xl text-sm md:text-lg leading-relaxed text-white/80">
+                  For the home you&apos;re building from afar, or the deal you&apos;re closing in Accra. Funds held safely until both sides are satisfied.
+                </p>
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                  <Link
+                    href="/register"
+                    className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-ios-lg bg-brand-gold px-6 py-3 font-semibold text-brand-maroon-black transition-colors hover:bg-brand-gold/90 touch-manipulation"
+                  >
+                    Start an Escrow
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="inline-flex min-h-[48px] items-center justify-center rounded-ios-lg border border-white/25 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20 touch-manipulation"
+                  >
+                    Sign In
+                  </Link>
+                </div>
               </div>
-              <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 tracking-tight">
-                MYXCROW
-              </h1>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-white/90 text-xs font-medium mb-3 md:mb-4">
-                <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-                Trusted escrow for Ghana
-              </div>
-              <p className="text-base md:text-2xl text-brand-gold font-medium mb-2 md:mb-3">
-                Secure Escrow Services
-              </p>
-              <p className="text-sm md:text-lg text-white/80 max-w-2xl">
-                For the home you&apos;re building from afar, or the deal you&apos;re closing in Accra. Funds held safely until both sides are satisfied.
-              </p>
-            </div>
+            </section>
 
             {/* Trust badges + social proof */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
@@ -131,25 +159,27 @@ export default function Home() {
               </div>
             </section>
 
-            {/* Use cases */}
+            {/* Use cases – photo cards */}
             <div className="mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 text-center">
-                Built for your transactions
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {USE_CASES.map((uc) => {
-                  const Icon = uc.icon;
-                  return (
-                    <div key={uc.title} className="bg-white/95 rounded-xl p-6 border border-brand-gold/20 hover:border-brand-gold/40 transition-colors">
-                      <div className="w-10 h-10 rounded-lg bg-brand-maroon/20 flex items-center justify-center mb-4">
-                        <Icon className="w-5 h-5 text-brand-maroon" />
-                      </div>
-                      <h3 className="font-semibold text-brand-maroon-black mb-2">{uc.title}</h3>
-                      <p className={publicForm.marketingBody}>{uc.desc}</p>
-                    </div>
-                  );
-                })}
-              </div>
+              <SectionHeader
+                className="mb-6 justify-center text-center [&_h2]:text-2xl md:[&_h2]:text-3xl [&_div]:w-full"
+                title="Built for your transactions"
+              />
+              <ImageCardRow columns={4} className="md:gap-6">
+                {USE_CASES.map((uc) => (
+                  <ImageCard
+                    key={uc.title}
+                    href="/register"
+                    title={uc.title}
+                    description={uc.desc}
+                    image={uc.image}
+                    icon={uc.icon}
+                    mobileWidthClassName="w-[70vw] max-w-[240px]"
+                    sizes="(max-width: 1024px) 50vw, 25vw"
+                    className="md:aspect-[3/4]"
+                  />
+                ))}
+              </ImageCardRow>
             </div>
 
             {/* Features Grid */}
@@ -264,26 +294,36 @@ export default function Home() {
               </div>
             )}
 
-            {/* CTA Section */}
-            <div className="bg-gradient-to-r from-brand-maroon via-brand-maroon-dark to-brand-maroon-darker rounded-2xl shadow-xl p-8 mb-8 text-white">
-              <div className="text-center mb-6">
-                <h2 className="text-2xl md:text-3xl font-bold mb-2">Ready to protect your transaction?</h2>
-                <p className="text-white/90 text-base md:text-lg">Start an escrow in Ghana Cedis. Secure, simple, transparent.</p>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href="/register"
-                  className="min-h-[48px] px-8 py-4 bg-brand-gold text-brand-maroon-black rounded-lg hover:bg-primary-200 font-semibold text-center transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 touch-manipulation"
-                >
-                  Start an Escrow
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-                <Link
-                  href="/login"
-                  className="min-h-[48px] px-8 py-4 bg-white/10 text-white rounded-lg hover:bg-white/20 font-semibold text-center transition-all border-2 border-brand-gold/50 flex items-center justify-center touch-manipulation"
-                >
-                  Sign In
-                </Link>
+            {/* CTA Section – photographic banner */}
+            <div className="relative mb-8 overflow-hidden rounded-2xl border border-white/10 bg-brand-maroon-black shadow-xl">
+              <Image
+                src="/images/v2/milestone-projects.jpg"
+                alt=""
+                fill
+                sizes="(max-width: 768px) 100vw, 1200px"
+                className="object-cover object-[center_28%]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20" />
+              <div className="relative z-10 p-8 md:p-10 text-white">
+                <div className="mb-6 max-w-2xl">
+                  <h2 className="text-2xl md:text-3xl font-bold mb-2">Ready to protect your transaction?</h2>
+                  <p className="text-white/85 text-base md:text-lg">Start an escrow in Ghana Cedis. Secure, simple, transparent.</p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Link
+                    href="/register"
+                    className="min-h-[48px] px-8 py-4 bg-brand-gold text-brand-maroon-black rounded-lg hover:bg-primary-200 font-semibold text-center transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 touch-manipulation"
+                  >
+                    Start an Escrow
+                    <ArrowRight className="w-5 h-5" />
+                  </Link>
+                  <Link
+                    href="/login"
+                    className="min-h-[48px] px-8 py-4 bg-white/10 text-white rounded-lg hover:bg-white/20 font-semibold text-center transition-all border-2 border-brand-gold/50 flex items-center justify-center backdrop-blur-sm touch-manipulation"
+                  >
+                    Sign In
+                  </Link>
+                </div>
               </div>
             </div>
 

@@ -1,26 +1,40 @@
 import Link from 'next/link';
-import { AlertTriangle, Home } from 'lucide-react';
+import Image from 'next/image';
+import { Home } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
 
 export default function ServerError() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10] flex flex-col">
-      <PublicHeader />
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center">
-          <AlertTriangle className="w-16 h-16 mx-auto text-red-400/90 mb-4" />
-          <h1 className="text-4xl font-bold text-white mb-2">500</h1>
-          <p className="text-xl text-white/90 mb-6">Server error</p>
-          <p className="text-white/70 mb-8">
-            Something went wrong on our end. Please try again later.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 min-h-[48px] bg-brand-gold text-brand-maroon-black rounded-xl hover:bg-brand-gold/90 font-semibold transition-all touch-manipulation"
-          >
-            <Home className="w-5 h-5" />
-            Go to Home
-          </Link>
+    <div className="relative min-h-screen flex flex-col overflow-hidden bg-brand-maroon-black">
+      <Image
+        src="/images/v2/local-transactions.jpg"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover object-center opacity-35"
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/75 to-brand-maroon-black" />
+      <div className="relative z-10 flex min-h-screen flex-col">
+        <PublicHeader />
+        <div className="flex flex-1 items-center justify-center px-4 py-16">
+          <div className="v2-fade-up max-w-md w-full text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-gold/80">
+              MyXcrow
+            </p>
+            <h1 className="mt-3 text-6xl font-bold tracking-tight text-white">500</h1>
+            <p className="mt-3 text-xl font-semibold text-white">Server error</p>
+            <p className="mt-2 text-sm leading-relaxed text-white/65">
+              Something went wrong on our end. Please try again in a moment.
+            </p>
+            <Link
+              href="/"
+              className="mt-8 inline-flex min-h-[48px] items-center gap-2 rounded-full bg-brand-gold px-6 text-sm font-bold text-brand-maroon-black transition-colors hover:bg-brand-gold/90 touch-manipulation"
+            >
+              <Home className="w-5 h-5" />
+              Go to Home
+            </Link>
+          </div>
         </div>
       </div>
     </div>

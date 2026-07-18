@@ -159,10 +159,42 @@
   animation: page-enter 0.28s ease-out both;
 }
 
+/* V2 intentional motion */
+.v2-lift {
+  transition: transform 0.25s ease, border-color 0.25s ease, background-color 0.25s ease;
+}
+
+.v2-lift:hover {
+  transform: translateY(-2px);
+}
+
+.v2-fade-up {
+  animation: v2-fade-up 0.45s ease-out both;
+}
+
+.v2-fade-up-delay-1 {
+  animation: v2-fade-up 0.45s ease-out 0.08s both;
+}
+
+.v2-fade-up-delay-2 {
+  animation: v2-fade-up 0.45s ease-out 0.16s both;
+}
+
 @keyframes page-enter {
   from {
     opacity: 0;
     transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes v2-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
   }
   to {
     opacity: 1;
@@ -180,7 +212,14 @@
     scroll-behavior: auto !important;
   }
 
-  .page-transition-in {
+  .page-transition-in,
+  .v2-fade-up,
+  .v2-fade-up-delay-1,
+  .v2-fade-up-delay-2 {
     animation: none !important;
+  }
+
+  .v2-lift:hover {
+    transform: none;
   }
 }

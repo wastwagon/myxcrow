@@ -132,6 +132,7 @@ export default function WithdrawPage() {
     <Layout>
       <PullToRefresh onRefresh={refreshWithdraw} disabled={!isMobile} className="max-w-2xl mx-auto space-y-5">
         <PageHeader
+          eyebrow="Wallet"
           title="Request withdrawal"
           subtitle="Choose how you want to receive your payout"
           icon={<ArrowUpCircle className="w-6 h-6" />}

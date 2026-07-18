@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 import DisputeSLATimer from '@/components/DisputeSLATimer';
 import { useConfirm } from '@/components/providers/UIProvider';
 import { Button } from '@/components/ui/Button';
+import PageHeader from '@/components/PageHeader';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
@@ -192,22 +193,21 @@ export default function DisputeDetailPage() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshDispute} disabled={!isMobile} className="space-y-6">
-        <div>
-          <button
-            onClick={() => router.back()}
-            className="text-label-secondary hover:text-label-primary mb-4"
-          >
-            ← Back
-          </button>
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold text-label-primary">Dispute Details</h1>
-              <p className="text-label-secondary mt-1">ID: {dispute.id}</p>
-            </div>
-            <StatusBadge status={dispute.status} />
-          </div>
-        </div>
+      <PullToRefresh onRefresh={refreshDispute} disabled={!isMobile} className="mx-auto max-w-6xl space-y-6">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="text-sm font-medium text-white/60 hover:text-white transition-colors"
+        >
+          ← Back
+        </button>
+        <PageHeader
+          eyebrow="Resolution"
+          title="Dispute details"
+          subtitle={`ID: ${dispute.id}`}
+          icon={<AlertCircle className="w-6 h-6" />}
+          action={<StatusBadge status={dispute.status} />}
+        />
 
         {/* SLA Timer */}
         {dispute && dispute.status === 'OPEN' && <DisputeSLATimer disputeId={dispute.id} />}

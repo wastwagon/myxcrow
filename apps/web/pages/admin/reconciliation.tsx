@@ -85,10 +85,10 @@ export default function ReconciliationPage() {
     <Layout>
       <PullToRefresh onRefresh={refreshReconciliation} disabled={!isMobile} className="space-y-6">
         <PageHeader
+          eyebrow="Admin"
           title="Reconciliation Dashboard"
           subtitle="Financial overview and balance reconciliation"
           icon={<BarChart3 className="w-6 h-6 text-white" />}
-          gradient="green"
         />
 
         {/* Summary Cards */}

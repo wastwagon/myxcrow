@@ -14,11 +14,13 @@ export default function PrivacyPage() {
       <PublicHeader />
       <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10]">
         <div className="container mx-auto px-4 py-8 max-w-3xl">
+          <div className="mb-6 px-1">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">Legal</p>
+            <h1 className="mt-1 text-3xl md:text-4xl font-bold tracking-tight text-white">Privacy Policy</h1>
+            <p className="mt-1 text-sm text-white/55">Last updated: February 2025. Ghana-based. Applies to web, Android and iOS.</p>
+          </div>
           <div className="bg-white/95 rounded-2xl shadow-xl border border-brand-gold/20 overflow-hidden">
             <div className="p-6 md:p-10">
-              <h1 className="text-3xl font-bold text-brand-maroon-black mb-2">Privacy Policy</h1>
-              <p className={publicForm.legalMeta}>Last updated: February 2025. Ghana-based. Applies to web, Android and iOS.</p>
-
               <section className={publicForm.legalProse}>
                 <div>
                   <h2 className={publicForm.legalSectionTitle}>1. Who we are</h2>

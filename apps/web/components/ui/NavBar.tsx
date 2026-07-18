@@ -33,7 +33,7 @@ export function NavBar({
     <header
       className={cn(
         'sticky top-0 z-40 pt-safe',
-        'bg-[var(--nav-bar-bg)] backdrop-blur-ios border-b border-white/10',
+        'bg-[var(--nav-bar-bg)] backdrop-blur-ios border-b border-brand-gold/10',
         className
       )}
     >
@@ -54,7 +54,7 @@ export function NavBar({
           {title && (
             <h1
               className={cn(
-                'font-semibold text-label-primary truncate',
+                'font-semibold text-label-primary truncate tracking-tight',
                 large ? 'text-ios-large-title text-left px-2 pt-1' : 'text-ios-headline'
               )}
             >

@@ -111,6 +111,7 @@ export default function AdminWithdrawalsPage() {
     <Layout>
       <PullToRefresh onRefresh={refreshWithdrawals} disabled={!isMobile} className="space-y-5">
         <PageHeader
+          eyebrow="Admin"
           title="Withdrawal Management"
           subtitle="Review payout details and approve or deny requests"
           icon={<ArrowUpCircle className="w-6 h-6" />}

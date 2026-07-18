@@ -73,10 +73,10 @@ export default function AdminViewWalletPage() {
           </button>
         </div>
         <PageHeader
+          eyebrow="Admin"
           title="View User Wallet"
           subtitle={user?.email}
           icon={<User className="w-6 h-6" />}
-          gradient="blue"
         />
 
         <div className={form.panel}>

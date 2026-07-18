@@ -9,3 +9,6 @@ export { MetricCard } from './MetricCard';
 export { PullToRefresh } from './PullToRefresh';
 export { SwipeableListRow } from './SwipeableListRow';
 export { UserAvatar } from './UserAvatar';
+export { ImageCard, ImageCardRow } from './ImageCard';
+export { SectionHeader } from './SectionHeader';
+export { PromoCarousel, type PromoSlide } from './PromoCarousel';

@@ -10,7 +10,6 @@ import { Plus, Search, Filter, Download, Calendar, DollarSign, Mail, FileText } 
 import { StatusBadge } from '@/components/StatusBadge';
 import { DISPUTE_ELIGIBLE_ESCROW_STATUSES } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
-import PageHeader from '@/components/PageHeader';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { Button } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
@@ -152,42 +151,54 @@ export default function EscrowsPage() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshEscrows} disabled={!isMobile} className="space-y-6">
-        <PageHeader
-          title={adminView ? 'All Escrows' : 'Escrows'}
-          subtitle={adminView ? 'Review agreements, open details, and print receipts' : 'Manage your escrow agreements'}
-          icon={<FileText className="w-6 h-6" />}
-          action={
-            <Link
-              href="/escrows/new"
-              className="min-h-[48px] px-4 py-3 bg-gradient-to-r from-brand-gold to-amber-600 text-brand-maroon-black rounded-xl hover:from-brand-gold/90 hover:to-amber-500 font-semibold shadow-lg transition-all flex items-center justify-center gap-2 touch-manipulation"
-            >
-              <Plus className="w-5 h-5" />
-              New Escrow
-            </Link>
-          }
-        />
+      <PullToRefresh
+        onRefresh={refreshEscrows}
+        disabled={!isMobile}
+        className="mx-auto max-w-6xl space-y-6"
+      >
+        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between px-1">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">
+              Agreements
+            </p>
+            <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight text-white">
+              {adminView ? 'All escrows' : 'Escrows'}
+            </h1>
+            <p className="mt-1 text-sm text-white/55">
+              {adminView
+                ? 'Review agreements, open details, and print receipts'
+                : 'Manage your escrow agreements'}
+            </p>
+          </div>
+          <Link
+            href="/escrows/new"
+            className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-ios-lg bg-brand-gold px-5 py-3 font-semibold text-brand-maroon-black transition-colors hover:bg-brand-gold/90 touch-manipulation"
+          >
+            <Plus className="w-5 h-5" />
+            New escrow
+          </Link>
+        </header>
 
         {/* Filters */}
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 p-4">
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm p-4 md:p-5">
           <div className="space-y-4">
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-3 md:gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45 w-5 h-5" />
                 <input
                   type="text"
                   placeholder="Search by ID or description..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white placeholder-white/50 focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50"
+                  className="w-full min-h-[48px] pl-10 pr-4 py-2.5 rounded-ios-lg border border-white/15 bg-black/20 text-white placeholder-white/45 focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50"
                 />
               </div>
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-white/50 w-5 h-5" />
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45 w-5 h-5" />
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 appearance-none"
+                  className="w-full min-h-[48px] pl-10 pr-4 py-2.5 rounded-ios-lg border border-white/15 bg-black/20 text-white focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 appearance-none"
                 >
                   {statusOptions.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -200,17 +211,17 @@ export default function EscrowsPage() {
                 <button
                   type="button"
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="flex-1 min-h-[48px] px-4 py-3 border border-white/20 rounded-lg bg-white/5 hover:bg-white/10 text-white text-sm touch-manipulation transition-colors"
+                  className="flex-1 min-h-[48px] px-4 py-3 rounded-ios-lg border border-white/15 bg-black/20 hover:bg-white/10 text-white text-sm touch-manipulation transition-colors"
                 >
-                  {showAdvancedFilters ? 'Hide' : 'Show'} Advanced Filters
+                  {showAdvancedFilters ? 'Hide' : 'Show'} filters
                 </button>
                 <button
                   type="button"
                   onClick={handleExportCSV}
-                  className="min-h-[48px] flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 text-sm touch-manipulation font-medium"
+                  className="min-h-[48px] flex items-center justify-center gap-2 px-4 py-3 rounded-ios-lg bg-emerald-600 text-white hover:bg-emerald-500 text-sm touch-manipulation font-medium"
                 >
                   <Download className="w-4 h-4" />
-                  Export CSV
+                  Export
                 </button>
               </div>
             </div>
@@ -218,9 +229,9 @@ export default function EscrowsPage() {
             {showAdvancedFilters && (
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-white/10">
                 <div>
-                  <label className="block text-sm font-medium text-white/80 mb-1">
+                  <label className="block text-sm font-medium text-white/70 mb-1.5">
                     <DollarSign className="w-4 h-4 inline mr-1" />
-                    Min Amount (₵)
+                    Min amount (₵)
                   </label>
                   <input
                     type="number"
@@ -228,13 +239,13 @@ export default function EscrowsPage() {
                     placeholder="0.00"
                     value={minAmount}
                     onChange={(e) => setMinAmount(e.target.value)}
-                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-brand-gold"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/20 text-white focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/80 mb-1">
+                  <label className="block text-sm font-medium text-white/70 mb-1.5">
                     <DollarSign className="w-4 h-4 inline mr-1" />
-                    Max Amount (₵)
+                    Max amount (₵)
                   </label>
                   <input
                     type="number"
@@ -242,56 +253,54 @@ export default function EscrowsPage() {
                     placeholder="0.00"
                     value={maxAmount}
                     onChange={(e) => setMaxAmount(e.target.value)}
-                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-brand-gold"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/20 text-white focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/80 mb-1">
-                    Currency
-                  </label>
+                  <label className="block text-sm font-medium text-white/70 mb-1.5">Currency</label>
                   <select
                     value="GHS"
                     disabled
-                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/10 text-white/70"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/30 text-white/70"
                   >
                     <option value="GHS">₵ Ghana Cedis</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/80 mb-1">
+                  <label className="block text-sm font-medium text-white/70 mb-1.5">
                     <Mail className="w-4 h-4 inline mr-1" />
-                    Counterparty Email
+                    Counterparty email
                   </label>
                   <input
                     type="email"
                     placeholder="email@example.com"
                     value={counterpartyEmail}
                     onChange={(e) => setCounterpartyEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white placeholder-white/50 focus:ring-2 focus:ring-brand-gold"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/20 text-white placeholder-white/45 focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/80 mb-1">
+                  <label className="block text-sm font-medium text-white/70 mb-1.5">
                     <Calendar className="w-4 h-4 inline mr-1" />
-                    Start Date
+                    Start date
                   </label>
                   <input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-brand-gold"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/20 text-white focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-white/80 mb-1">
+                  <label className="block text-sm font-medium text-white/70 mb-1.5">
                     <Calendar className="w-4 h-4 inline mr-1" />
-                    End Date
+                    End date
                   </label>
                   <input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-white/20 rounded-lg bg-white/5 text-white focus:ring-2 focus:ring-brand-gold"
+                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/20 text-white focus:ring-2 focus:ring-brand-gold"
                   />
                 </div>
               </div>
@@ -301,9 +310,9 @@ export default function EscrowsPage() {
 
         {/* Results Summary */}
         {!isLoading && (
-          <div className="text-sm text-white/70">
+          <p className="px-1 text-xs font-medium uppercase tracking-[0.12em] text-white/45">
             Showing {escrows.length} of {total} escrows
-          </div>
+          </p>
         )}
 
         {/* Escrows List */}
@@ -321,46 +330,49 @@ export default function EscrowsPage() {
               const amountLabel = isBuyer ? 'Funded' : 'Receive';
 
               return (
-              <SwipeableListRow
-                key={escrow.id}
-                disabled={!isMobile}
-                actions={getEscrowSwipeActions(escrow)}
-              >
-                <ListRow
-                href={`/escrows/${escrow.id}`}
-                showChevron={false}
-                title={escrow.description || 'Escrow Agreement'}
-                subtitle={
-                  <>
-                    <span className="text-label-primary font-medium">
-                      {formatCurrency(displayCents, 'GHS')}
-                    </span>
-                    <span className="text-label-tertiary text-xs ml-1">({amountLabel})</span>
-                    {' · '}
-                    {escrow.id.slice(0, 8)}… · {formatDateShort(escrow.createdAt)}
-                  </>
-                }
-                trailing={
-                  <div className="flex items-center gap-2">
-                    {adminView && (
-                      <PrintReceiptButton
-                        receipt={buildEscrowReceipt(escrow, { isAdminCopy: true })}
-                        iconOnly
-                        variant="plain"
-                        size="sm"
-                        label="Print receipt"
-                      />
-                    )}
-                    <StatusBadge status={escrow.status} />
-                  </div>
-                }
-                />
-              </SwipeableListRow>
-            );
+                <SwipeableListRow
+                  key={escrow.id}
+                  disabled={!isMobile}
+                  actions={getEscrowSwipeActions(escrow)}
+                >
+                  <ListRow
+                    href={`/escrows/${escrow.id}`}
+                    showChevron={false}
+                    title={escrow.description || 'Escrow Agreement'}
+                    subtitle={
+                      <>
+                        <span className="text-label-primary font-medium">
+                          {formatCurrency(displayCents, 'GHS')}
+                        </span>
+                        <span className="text-label-tertiary text-xs ml-1">({amountLabel})</span>
+                        {' · '}
+                        {escrow.id.slice(0, 8)}… · {formatDateShort(escrow.createdAt)}
+                      </>
+                    }
+                    trailing={
+                      <div className="flex items-center gap-2">
+                        {adminView && (
+                          <PrintReceiptButton
+                            receipt={buildEscrowReceipt(escrow, { isAdminCopy: true })}
+                            iconOnly
+                            variant="plain"
+                            size="sm"
+                            label="Print receipt"
+                          />
+                        )}
+                        <StatusBadge status={escrow.status} />
+                      </div>
+                    }
+                  />
+                </SwipeableListRow>
+              );
             })}
           </ListGroup>
         ) : (
           <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] p-12 text-center">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
+              <FileText className="h-6 w-6" />
+            </div>
             <p className="text-ios-headline text-label-primary font-semibold mb-2">No escrows found</p>
             <p className="text-ios-subhead text-label-secondary mb-6">
               {searchTerm ||

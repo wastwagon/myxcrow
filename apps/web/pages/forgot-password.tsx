@@ -52,17 +52,26 @@ export default function ForgotPasswordPage() {
       <PublicHeader />
       <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10] flex items-center justify-center px-4 py-8">
       <div className="max-w-md w-full">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg overflow-hidden bg-brand-maroon-deep">
-            <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={64} height={64} className="object-contain" />
+        <section className="relative mb-6 min-h-[140px] overflow-hidden rounded-[1.25rem] border border-white/10 bg-brand-maroon-black shadow-ios-card">
+          <Image
+            src="/images/v2/local-transactions.jpg"
+            alt=""
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 448px"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/20" />
+          <div className="relative z-10 flex min-h-[140px] flex-col justify-end p-5">
+            <div className="mb-3 flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-brand-maroon-deep ring-2 ring-brand-gold/30">
+              <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={44} height={44} className="object-contain" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Reset password</h1>
+            <p className="mt-1 text-xs leading-relaxed text-white/70">
+              Enter your email or phone — we&apos;ll text a reset link to the phone on your account.
+            </p>
           </div>
-          <h1 className="text-3xl font-bold mb-2 text-white">
-            Reset Password
-          </h1>
-          <p className="text-sm text-white/70">
-            Enter your email or phone — we&apos;ll text a reset link to the phone on your account.
-          </p>
-        </div>
+        </section>
 
         <div className="bg-white/95 rounded-2xl shadow-xl p-6 md:p-8 border border-brand-gold/20">
           {error && (

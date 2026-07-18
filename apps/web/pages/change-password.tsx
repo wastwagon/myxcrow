@@ -6,7 +6,6 @@ import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { toast } from 'react-hot-toast';
 import { Lock, Eye, EyeOff } from 'lucide-react';
-import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { form } from '@/lib/form-classes';
 
@@ -61,13 +60,22 @@ export default function ChangePasswordPage() {
 
   return (
     <Layout>
-      <PageHeader
-        title="Change password"
-        subtitle="Update your account password"
-        icon={<Lock className="w-6 h-6" />}
-      />
+      <div className="mx-auto max-w-2xl space-y-6">
+        <header className="flex items-end justify-between gap-3 px-1">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">
+              Security
+            </p>
+            <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight text-white">
+              Change password
+            </h1>
+            <p className="mt-1 text-sm text-white/55">Update your account password</p>
+          </div>
+          <div className="hidden sm:flex h-11 w-11 items-center justify-center rounded-full border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
+            <Lock className="h-5 w-5" />
+          </div>
+        </header>
 
-      <div className="max-w-2xl mx-auto space-y-6">
         <form onSubmit={handleSubmit} className={`${form.panel} space-y-6`}>
           <div>
             <label htmlFor="currentPassword" className={form.label}>

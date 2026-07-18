@@ -175,6 +175,7 @@ export default function AdminDashboard() {
       <PullToRefresh onRefresh={refreshAdmin} disabled={!isMobile} className="space-y-5">
         {/* Header */}
         <PageHeader
+          eyebrow="Admin"
           title="Admin Dashboard"
           subtitle="Platform overview and management"
           icon={<Settings className="w-6 h-6" />}

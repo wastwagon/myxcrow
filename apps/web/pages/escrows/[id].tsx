@@ -373,7 +373,8 @@ export default function EscrowDetailPage() {
           </div>
         )}
         <PageHeader
-          title="Escrow Details"
+          eyebrow="Agreement"
+          title="Escrow details"
           subtitle={`ID: ${escrow.id}`}
           icon={<FileText className="w-6 h-6" />}
           action={

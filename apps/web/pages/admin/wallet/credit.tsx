@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Loader2, Search, User, X } from 'lucide-react';
+import { Loader2, Search, User, Wallet, X } from 'lucide-react';
 import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { admin } from '@/components/admin/adminClasses';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import PageHeader from '@/components/PageHeader';
 
 const creditSchema = z.object({
   userId: z.string().min(1, 'User is required'),
@@ -133,17 +134,13 @@ export default function CreditWalletPage() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshCreditPage} disabled={!isMobile} className="max-w-3xl mx-auto">
-        <div className="mb-6">
-          <button
-            onClick={() => router.back()}
-            className="text-white/70 hover:text-white mb-4 flex items-center gap-2"
-          >
-            ← Back
-          </button>
-          <h1 className="text-3xl font-bold text-white">Credit Wallet</h1>
-          <p className="text-white/70 mt-1">Manually credit a user&apos;s wallet</p>
-        </div>
+      <PullToRefresh onRefresh={refreshCreditPage} disabled={!isMobile} className="max-w-3xl mx-auto space-y-6">
+        <PageHeader
+          eyebrow="Admin"
+          title="Credit Wallet"
+          subtitle="Manually credit a user's wallet"
+          icon={<Wallet className="w-6 h-6" />}
+        />
 
         <form onSubmit={handleSubmit(onSubmit)} className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-8 space-y-6">
           {/* User Selection */}

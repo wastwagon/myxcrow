@@ -3,36 +3,50 @@ import { ReactNode } from 'react';
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
+  /** Optional uppercase eyebrow label above the title */
+  eyebrow?: string;
   icon?: ReactNode;
   action?: ReactNode;
+  /** @deprecated Kept for call-site compatibility; visual style is unified in V2 */
   gradient?: 'brand' | 'gold' | 'maroon' | 'green' | 'red' | 'yellow' | 'blue' | 'purple';
 }
 
-export default function PageHeader({ title, subtitle, icon, action, gradient = 'brand' }: PageHeaderProps) {
+export default function PageHeader({
+  title,
+  subtitle,
+  eyebrow,
+  icon,
+  action,
+}: PageHeaderProps) {
   return (
-    <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 p-4 md:p-5 shadow-lg shadow-black/10">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          {icon && (
-            <div className="w-10 h-10 bg-brand-gold/20 rounded-lg flex items-center justify-center flex-shrink-0 [&>svg]:text-brand-gold [&>svg]:w-5 [&>svg]:h-5 ring-1 ring-brand-gold/30">
-              {icon}
-            </div>
-          )}
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">{title}</h1>
-            {subtitle && <p className="text-white/70 text-sm mt-0.5">{subtitle}</p>}
-          </div>
-        </div>
-        {action && (
-          <div className="flex-shrink-0 [&_a]:min-h-[48px] [&_a]:flex [&_a]:items-center [&_button]:min-h-[48px] [&_button]:flex [&_button]:items-center touch-manipulation">
-            {action}
+    <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between px-1">
+      <div className="flex items-start gap-3 min-w-0 flex-1">
+        {icon && (
+          <div className="mt-1 hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand-gold/25 bg-brand-gold/10 text-brand-gold [&>svg]:h-5 [&>svg]:w-5">
+            {icon}
           </div>
         )}
+        <div className="min-w-0 flex-1">
+          {eyebrow && (
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">
+              {eyebrow}
+            </p>
+          )}
+          <h1
+            className={`text-2xl md:text-3xl font-bold tracking-tight text-white ${
+              eyebrow ? 'mt-1' : ''
+            }`}
+          >
+            {title}
+          </h1>
+          {subtitle && <p className="mt-1 text-sm text-white/55">{subtitle}</p>}
+        </div>
       </div>
-    </div>
+      {action && (
+        <div className="flex-shrink-0 [&_a]:min-h-[48px] [&_a]:inline-flex [&_a]:items-center [&_button]:min-h-[48px] [&_button]:inline-flex [&_button]:items-center touch-manipulation">
+          {action}
+        </div>
+      )}
+    </header>
   );
 }
-
-
-
-
