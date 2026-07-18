@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Image from 'next/image';
 import Layout from '@/components/Layout';
 import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,7 +8,6 @@ import {
   FileText,
   Clock,
   CheckCircle,
-  ArrowRight,
   Plus,
   Wallet,
   Activity,
@@ -91,23 +89,20 @@ const TRUST_SAFETY = [
   },
 ];
 
-function getPromoSlides(kycVerified: boolean): PromoSlide[] {
-  const slides: PromoSlide[] = [];
-  if (!kycVerified) {
-    slides.push({
-      id: 'security',
-      eyebrow: 'Account tip',
-      title: 'Complete your profile for smoother deals',
-      description: 'Add your phone and keep identity details current before you fund high-value escrows.',
-      href: '/profile',
-      cta: 'Open profile',
-      image: '/images/v2/diaspora.jpg',
-    });
-  }
-  slides.push(
+function getHeroSlides(kycVerified: boolean): PromoSlide[] {
+  const slides: PromoSlide[] = [
+    {
+      id: 'protected',
+      eyebrow: 'Protected payments',
+      title: 'Your money moves only when the deal does.',
+      description: 'Create an escrow, agree on the terms, and trade with confidence.',
+      href: '/escrows/new',
+      cta: 'Create escrow',
+      image: '/images/v2/protected-payments-hero.jpg',
+    },
     {
       id: 'how-it-works',
-      eyebrow: 'How MyXcrow works',
+      eyebrow: 'How it works',
       title: 'Agree, fund, deliver, release',
       description: 'Funds stay protected until both sides fulfill the deal.',
       href: '/escrows/new',
@@ -122,8 +117,21 @@ function getPromoSlides(kycVerified: boolean): PromoSlide[] {
       href: '/escrows/new',
       cta: 'Create milestones',
       image: '/images/v2/milestone-projects.jpg',
-    }
-  );
+    },
+  ];
+
+  if (!kycVerified) {
+    slides.push({
+      id: 'security',
+      eyebrow: 'Account tip',
+      title: 'Complete your profile for smoother deals',
+      description: 'Add your phone and keep identity details current before you fund high-value escrows.',
+      href: '/profile',
+      cta: 'Open profile',
+      image: '/images/v2/diaspora.jpg',
+    });
+  }
+
   return slides;
 }
 
@@ -220,7 +228,7 @@ export default function Dashboard() {
   const activeEscrows = escrows?.filter((e) => !['RELEASED', 'CANCELLED'].includes(e.status)) || [];
   const recentEscrows = escrows?.slice(0, 5) || [];
   const user = getUser();
-  const promoSlides = getPromoSlides(user?.kycStatus === 'VERIFIED');
+  const heroSlides = getHeroSlides(user?.kycStatus === 'VERIFIED');
 
   const refreshDashboard = async () => {
     await Promise.all([
@@ -262,33 +270,11 @@ export default function Dashboard() {
           </Link>
         </header>
 
-        <section className="v2-fade-up-delay-1 relative min-h-[245px] md:min-h-[310px] overflow-hidden rounded-[1.5rem] border border-white/10 bg-brand-maroon-black shadow-ios-card">
-          <Image
-            src="/images/v2/protected-payments-hero.jpg"
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 1200px"
-            className="object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/5" />
-          <div className="relative z-10 flex min-h-[245px] md:min-h-[310px] max-w-xl flex-col justify-end p-5 md:p-8">
-            <span className="mb-3 w-fit rounded-full border border-brand-gold/30 bg-black/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-gold backdrop-blur-sm">
-              Protected payments
-            </span>
-            <h2 className="max-w-md text-2xl md:text-4xl font-bold tracking-tight text-white">
-              Your money moves only when the deal does.
-            </h2>
-            <p className="mt-2 max-w-md text-sm md:text-base leading-relaxed text-white/70">
-              Create an escrow, agree on the terms, and trade with confidence.
-            </p>
-            <ButtonLink href="/escrows/new" className="mt-5 w-fit">
-              Create escrow <ArrowRight className="w-4 h-4" />
-            </ButtonLink>
-          </div>
-        </section>
-
-        <PromoCarousel slides={promoSlides} className="v2-fade-up-delay-2" />
+        <PromoCarousel
+          slides={heroSlides}
+          size="hero"
+          className="v2-fade-up-delay-1"
+        />
 
         <section>
           <SectionHeader

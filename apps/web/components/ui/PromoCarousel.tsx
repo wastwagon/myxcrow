@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ButtonLink } from '@/components/ui/Button';
 
 export interface PromoSlide {
   id: string;
@@ -19,79 +19,154 @@ interface PromoCarouselProps {
   className?: string;
   /** Auto-advance interval in ms. Set 0 to disable. */
   intervalMs?: number;
+  /** Large dashboard hero. Default compact for secondary use. */
+  size?: 'hero' | 'compact';
 }
 
-export function PromoCarousel({ slides, className, intervalMs = 6000 }: PromoCarouselProps) {
+export function PromoCarousel({
+  slides,
+  className,
+  intervalMs = 7000,
+  size = 'compact',
+}: PromoCarouselProps) {
   const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
   const count = slides.length;
+  const isHero = size === 'hero';
 
   useEffect(() => {
-    if (count <= 1 || intervalMs <= 0) return;
+    if (count <= 1 || intervalMs <= 0 || paused) return;
     const id = window.setInterval(() => {
       setActive((i) => (i + 1) % count);
     }, intervalMs);
     return () => window.clearInterval(id);
-  }, [count, intervalMs]);
+  }, [count, intervalMs, paused, active]);
 
   if (!count) return null;
 
   const slide = slides[active];
 
-  return (
-    <section className={cn('space-y-3', className)}>
-      <div className="relative min-h-[200px] overflow-hidden rounded-[1.25rem] border border-white/10 bg-brand-maroon-black shadow-ios-card md:min-h-[220px]">
-        {slides.map((s, i) => (
-          <div
-            key={s.id}
-            className={cn(
-              'absolute inset-0 transition-opacity duration-500',
-              i === active ? 'opacity-100' : 'opacity-0 pointer-events-none'
-            )}
-            aria-hidden={i !== active}
-          >
-            <Image
-              src={s.image}
-              alt=""
-              fill
-              priority={i === 0}
-              sizes="(max-width: 768px) 100vw, 1200px"
-              className="object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/55 to-black/10" />
-          </div>
-        ))}
+  const selectSlide = (index: number) => {
+    setActive(index);
+    setPaused(true);
+  };
 
-        <div className="relative z-10 flex min-h-[200px] max-w-xl flex-col justify-end p-5 md:min-h-[220px] md:p-7">
-          <span className="mb-2 w-fit rounded-full border border-brand-gold/30 bg-black/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-gold backdrop-blur-sm">
+  return (
+    <section
+      className={cn(
+        'relative overflow-hidden rounded-[1.5rem] border border-white/10 bg-brand-maroon-black shadow-ios-card',
+        isHero ? 'min-h-[300px] md:min-h-[360px]' : 'min-h-[200px] md:min-h-[220px]',
+        className
+      )}
+      aria-roledescription="carousel"
+      aria-label="Highlights"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
+          setPaused(false);
+        }
+      }}
+    >
+      {slides.map((s, i) => (
+        <div
+          key={s.id}
+          className={cn(
+            'absolute inset-0 transition-opacity duration-500',
+            i === active ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          )}
+          aria-hidden={i !== active}
+        >
+          <Image
+            src={s.image}
+            alt=""
+            fill
+            priority={i === 0}
+            sizes="(max-width: 768px) 100vw, 1200px"
+            className="object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/92 via-black/62 to-black/20" />
+          <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/70 to-transparent" />
+        </div>
+      ))}
+
+      <div
+        className={cn(
+          'relative z-10 flex max-w-xl flex-col justify-end',
+          isHero
+            ? 'min-h-[300px] p-5 pb-[4.5rem] md:min-h-[360px] md:p-8 md:pb-16'
+            : 'min-h-[200px] p-5 pb-11 md:min-h-[220px] md:p-7 md:pb-12'
+        )}
+      >
+        <div key={slide.id} className="v2-fade-up">
+          <span className="mb-3 inline-flex w-fit rounded-full border border-brand-gold/30 bg-black/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-gold backdrop-blur-sm">
             {slide.eyebrow}
           </span>
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white">{slide.title}</h2>
-          <p className="mt-1.5 text-sm leading-relaxed text-white/70">{slide.description}</p>
-          <Link
-            href={slide.href}
-            className="mt-4 inline-flex min-h-[40px] w-fit items-center justify-center gap-2 rounded-full bg-brand-gold px-4 text-sm font-bold text-brand-maroon-black transition-colors hover:bg-brand-gold/90"
+          <h2
+            className={cn(
+              'max-w-md font-bold tracking-tight text-white',
+              isHero ? 'text-2xl md:text-4xl' : 'text-xl md:text-2xl'
+            )}
           >
+            {slide.title}
+          </h2>
+          <p
+            className={cn(
+              'mt-2 max-w-md leading-relaxed text-white/70',
+              isHero ? 'text-sm md:text-base' : 'text-sm'
+            )}
+          >
+            {slide.description}
+          </p>
+          <ButtonLink href={slide.href} className="mt-5 w-fit">
             {slide.cta} <ArrowRight className="h-4 w-4" />
-          </Link>
+          </ButtonLink>
         </div>
       </div>
 
       {count > 1 && (
-        <div className="flex items-center justify-center gap-2" role="tablist" aria-label="Promotions">
-          {slides.map((s, i) => (
-            <button
-              key={s.id}
-              type="button"
-              role="tab"
-              aria-selected={i === active}
-              aria-label={`Show ${s.eyebrow}`}
-              onClick={() => setActive(i)}
-              className={cn(
-                'h-2 rounded-full transition-all touch-manipulation',
-                i === active ? 'w-6 bg-brand-gold' : 'w-2 bg-white/25 hover:bg-white/40'
-              )}
-            />
-          ))}
+        <div
+          className={cn(
+            'absolute inset-x-0 bottom-3 z-20 flex items-center gap-2 px-4 md:bottom-4 md:px-6',
+            isHero ? 'justify-start overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden' : 'justify-center'
+          )}
+          role="tablist"
+          aria-label="Hero slides"
+        >
+          {isHero
+            ? slides.map((s, i) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === active}
+                  aria-label={s.eyebrow}
+                  onClick={() => selectSlide(i)}
+                  className={cn(
+                    'shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors touch-manipulation',
+                    i === active
+                      ? 'border-brand-gold/50 bg-brand-gold text-brand-maroon-black'
+                      : 'border-white/20 bg-black/35 text-white/75 backdrop-blur-sm hover:border-white/35 hover:text-white'
+                  )}
+                >
+                  {s.eyebrow}
+                </button>
+              ))
+            : slides.map((s, i) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={i === active}
+                  aria-label={s.eyebrow}
+                  onClick={() => selectSlide(i)}
+                  className={cn(
+                    'h-2 rounded-full transition-all touch-manipulation',
+                    i === active ? 'w-6 bg-brand-gold' : 'w-2 bg-white/35 hover:bg-white/55'
+                  )}
+                />
+              ))}
         </div>
       )}
     </section>
