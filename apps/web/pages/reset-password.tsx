@@ -1,16 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '@/lib/api-client';
-import { AlertCircle, Lock } from 'lucide-react';
-import PublicHeader from '@/components/PublicHeader';
+import { CheckCircle2, Eye, EyeOff, Lock } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { publicForm } from '@/lib/form-classes';
+import { Field } from '@/components/ui/Field';
+import { AuthAlert, AuthShell, AuthSuccessPanel } from '@/components/auth/AuthShell';
 
 const schema = z
   .object({
@@ -31,6 +30,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -61,124 +61,109 @@ export default function ResetPasswordPage() {
         newPassword: data.newPassword,
       });
       setDone(true);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password. Please try again.');
+    } catch (err: unknown) {
+      const message =
+        err &&
+        typeof err === 'object' &&
+        'response' in err &&
+        (err as { response?: { data?: { message?: string } } }).response?.data?.message;
+      setError(typeof message === 'string' ? message : 'Failed to reset password. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <>
-      <PublicHeader />
-      <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10] flex items-center justify-center px-4 py-8">
-      <div className="max-w-md w-full">
-        <section className="relative mb-6 min-h-[140px] overflow-hidden rounded-[1.25rem] border border-white/10 bg-brand-maroon-black shadow-ios-card">
-          <Image
-            src="/images/v2/local-transactions.jpg"
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 448px"
-            className="object-cover object-center"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/20" />
-          <div className="relative z-10 flex min-h-[140px] flex-col justify-end p-5">
-            <div className="mb-3 flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-brand-maroon-deep ring-2 ring-brand-gold/30">
-              <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={44} height={44} className="object-contain" />
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Set a new password</h1>
-            <p className="mt-1 text-xs leading-relaxed text-white/70">
-              Choose a strong password to secure your MYXCROW account.
-            </p>
-          </div>
-        </section>
+    <AuthShell
+      title={done ? 'Password reset' : 'Set a new password'}
+      subtitle={done ? undefined : 'Choose a strong password to secure your MYXCROW account.'}
+      footer={
+        !done ? (
+          <Link href="/login" className="font-semibold text-brand-maroon hover:text-brand-maroon-dark">
+            Back to login
+          </Link>
+        ) : undefined
+      }
+    >
+      {error && <AuthAlert>{error}</AuthAlert>}
 
-        <div className="bg-white/95 rounded-2xl shadow-xl p-6 md:p-8 border border-brand-gold/20">
-          {error && (
-            <div className={publicForm.calloutError}>
-              <AlertCircle className="w-5 h-5 shrink-0" />
-              <span className="text-sm">{error}</span>
-            </div>
+      {done ? (
+        <AuthSuccessPanel
+          icon={<CheckCircle2 className="w-7 h-7" />}
+          title="You're all set"
+          description="Password reset successful. A confirmation SMS has been sent to your phone. You can now sign in."
+        >
+          <ButtonLink href="/login" variant="maroon" fullWidth size="lg">
+            Continue to login
+          </ButtonLink>
+        </AuthSuccessPanel>
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {!tokenFromQuery && (
+            <Field tone="light" label="Reset token" htmlFor="token" error={errors.token?.message}>
+              <Input
+                {...register('token')}
+                tone="light"
+                type="text"
+                id="token"
+                placeholder="Paste token from your SMS link"
+                error={!!errors.token}
+              />
+            </Field>
           )}
+          {tokenFromQuery && <input type="hidden" {...register('token')} />}
 
-          {done ? (
-            <div className="space-y-4">
-              <div className={publicForm.calloutSuccess}>
-                Password reset successful. A confirmation SMS has been sent to your phone. You can now sign in.
-              </div>
-              <ButtonLink href="/login" variant="maroon" fullWidth size="lg">
-                Go to login
-              </ButtonLink>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              {!tokenFromQuery && (
-                <div>
-                  <label htmlFor="token" className={publicForm.label}>
-                    Reset Token
-                  </label>
-                  <Input
-                    {...register('token')}
-                    tone="light"
-                    type="text"
-                    id="token"
-                    placeholder="Paste token from your email or SMS link"
-                    error={!!errors.token}
-                  />
-                  {errors.token && <p className={publicForm.error}>{errors.token.message}</p>}
-                </div>
-              )}
-              {tokenFromQuery && <input type="hidden" {...register('token')} />}
+          <Field
+            tone="light"
+            label="New password"
+            htmlFor="newPassword"
+            error={errors.newPassword?.message}
+            hint="Minimum 8 characters"
+          >
+            <Input
+              {...register('newPassword')}
+              tone="light"
+              type={showPassword ? 'text' : 'password'}
+              id="newPassword"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              error={!!errors.newPassword}
+              leading={<Lock className="w-4 h-4" />}
+              trailing={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="px-2 text-gray-500 hover:text-brand-maroon"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              }
+            />
+          </Field>
 
-              <div>
-                <label htmlFor="newPassword" className={publicForm.label}>
-                  <Lock className="w-4 h-4 inline mr-1" />
-                  New Password
-                </label>
-                <Input
-                  {...register('newPassword')}
-                  tone="light"
-                  type="password"
-                  id="newPassword"
-                  placeholder="••••••••"
-                  error={!!errors.newPassword}
-                />
-                {errors.newPassword && <p className={publicForm.error}>{errors.newPassword.message}</p>}
-              </div>
+          <Field
+            tone="light"
+            label="Confirm password"
+            htmlFor="confirmPassword"
+            error={errors.confirmPassword?.message}
+          >
+            <Input
+              {...register('confirmPassword')}
+              tone="light"
+              type={showPassword ? 'text' : 'password'}
+              id="confirmPassword"
+              autoComplete="new-password"
+              placeholder="••••••••"
+              error={!!errors.confirmPassword}
+            />
+          </Field>
 
-              <div>
-                <label htmlFor="confirmPassword" className={publicForm.label}>
-                  Confirm Password
-                </label>
-                <Input
-                  {...register('confirmPassword')}
-                  tone="light"
-                  type="password"
-                  id="confirmPassword"
-                  placeholder="••••••••"
-                  error={!!errors.confirmPassword}
-                />
-                {errors.confirmPassword && (
-                  <p className={publicForm.error}>{errors.confirmPassword.message}</p>
-                )}
-              </div>
-
-              <Button type="submit" disabled={loading} loading={loading} variant="maroon" fullWidth size="lg">
-                Reset password
-              </Button>
-
-              <div className={`text-center ${publicForm.footerText}`}>
-                <Link href="/login" className="text-brand-maroon hover:text-brand-maroon-dark font-semibold">
-                  Back to login
-                </Link>
-              </div>
-            </form>
-          )}
-          </div>
-        </div>
-      </div>
-    </>
+          <Button type="submit" disabled={loading} loading={loading} variant="maroon" fullWidth size="lg">
+            Reset password
+          </Button>
+        </form>
+      )}
+    </AuthShell>
   );
 }
-

@@ -13,6 +13,8 @@ interface SegmentedControlProps<T extends string> {
   className?: string;
   /** Scroll horizontally on narrow screens */
   scrollable?: boolean;
+  /** Dark glass (default) or light dashboard surface */
+  tone?: 'dark' | 'light';
 }
 
 export function SegmentedControl<T extends string>({
@@ -21,12 +23,15 @@ export function SegmentedControl<T extends string>({
   onChange,
   className,
   scrollable,
+  tone = 'dark',
 }: SegmentedControlProps<T>) {
+  const light = tone === 'light';
   return (
     <div
       role="tablist"
       className={cn(
-        'flex w-full p-1 rounded-ios-lg bg-white/10 border border-white/10',
+        'flex w-full p-1 rounded-ios-lg border',
+        light ? 'bg-gray-100 border-gray-200' : 'bg-white/10 border-white/10',
         scrollable && 'max-w-full overflow-x-auto',
         className
       )}
@@ -44,8 +49,12 @@ export function SegmentedControl<T extends string>({
               'min-h-[36px] flex-1 inline-flex items-center justify-center gap-2 px-3 sm:px-4 py-1.5 rounded-ios text-ios-footnote sm:text-ios-subhead font-medium',
               'whitespace-nowrap touch-manipulation transition-colors',
               selected
-                ? 'bg-white/20 text-label-primary shadow-sm'
-                : 'text-label-secondary hover:text-label-primary'
+                ? light
+                  ? 'bg-white text-gray-900 shadow-sm border border-gray-200/80'
+                  : 'bg-white/20 text-label-primary shadow-sm'
+                : light
+                  ? 'text-gray-600 hover:text-gray-900'
+                  : 'text-label-secondary hover:text-label-primary'
             )}
           >
             {opt.label}

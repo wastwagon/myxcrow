@@ -8,11 +8,12 @@ export type BadgeColor =
   | 'warning'
   | 'error'
   | 'info'
-  | 'purple';
+  | 'purple'
+  | 'maroon';
 
 export type BadgeVariant = 'subtle' | 'solid' | 'outline';
 
-const colorMap: Record<BadgeColor, Record<BadgeVariant, string>> = {
+const colorMapDark: Record<BadgeColor, Record<BadgeVariant, string>> = {
   gray: {
     subtle: 'bg-white/10 text-white/75 border-white/15',
     solid: 'bg-white/25 text-white border-transparent',
@@ -48,6 +49,54 @@ const colorMap: Record<BadgeColor, Record<BadgeVariant, string>> = {
     solid: 'bg-purple-500 text-white border-transparent',
     outline: 'bg-transparent text-purple-200 border-purple-500/40',
   },
+  maroon: {
+    subtle: 'bg-brand-maroon/25 text-brand-gold border-brand-maroon/40',
+    solid: 'bg-brand-maroon text-white border-transparent',
+    outline: 'bg-transparent text-brand-gold border-brand-maroon/50',
+  },
+};
+
+const colorMapLight: Record<BadgeColor, Record<BadgeVariant, string>> = {
+  gray: {
+    subtle: 'bg-gray-100 text-gray-700 border-gray-200',
+    solid: 'bg-gray-700 text-white border-transparent',
+    outline: 'bg-transparent text-gray-700 border-gray-300',
+  },
+  gold: {
+    subtle: 'bg-amber-50 text-amber-800 border-amber-200',
+    solid: 'bg-brand-gold text-brand-maroon-black border-transparent',
+    outline: 'bg-transparent text-amber-800 border-amber-300',
+  },
+  success: {
+    subtle: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    solid: 'bg-emerald-600 text-white border-transparent',
+    outline: 'bg-transparent text-emerald-700 border-emerald-300',
+  },
+  warning: {
+    subtle: 'bg-amber-50 text-amber-800 border-amber-200',
+    solid: 'bg-amber-500 text-brand-maroon-black border-transparent',
+    outline: 'bg-transparent text-amber-800 border-amber-300',
+  },
+  error: {
+    subtle: 'bg-red-50 text-red-700 border-red-200',
+    solid: 'bg-red-600 text-white border-transparent',
+    outline: 'bg-transparent text-red-700 border-red-300',
+  },
+  info: {
+    subtle: 'bg-blue-50 text-blue-700 border-blue-200',
+    solid: 'bg-blue-600 text-white border-transparent',
+    outline: 'bg-transparent text-blue-700 border-blue-300',
+  },
+  purple: {
+    subtle: 'bg-brand-maroon/10 text-brand-maroon border-brand-maroon/20',
+    solid: 'bg-brand-maroon text-white border-transparent',
+    outline: 'bg-transparent text-brand-maroon border-brand-maroon/30',
+  },
+  maroon: {
+    subtle: 'bg-brand-maroon/10 text-brand-maroon border-brand-maroon/20',
+    solid: 'bg-brand-maroon text-white border-transparent',
+    outline: 'bg-transparent text-brand-maroon border-brand-maroon/30',
+  },
 };
 
 export interface BadgeProps {
@@ -57,6 +106,7 @@ export interface BadgeProps {
   dot?: boolean;
   icon?: ReactNode;
   className?: string;
+  tone?: 'dark' | 'light';
 }
 
 export function Badge({
@@ -66,12 +116,14 @@ export function Badge({
   dot,
   icon,
   className,
+  tone = 'dark',
 }: BadgeProps) {
+  const map = tone === 'light' ? colorMapLight : colorMapDark;
   return (
     <span
       className={cn(
         'inline-flex items-center gap-1.5 px-2.5 py-0.5 text-ios-caption font-medium rounded-full border',
-        colorMap[color][variant],
+        map[color][variant],
         className
       )}
     >
@@ -80,12 +132,12 @@ export function Badge({
           className={cn(
             'h-1.5 w-1.5 rounded-full',
             color === 'gold' && 'bg-brand-gold',
-            color === 'success' && 'bg-emerald-300',
-            color === 'warning' && 'bg-amber-300',
-            color === 'error' && 'bg-red-300',
-            color === 'info' && 'bg-blue-300',
-            color === 'purple' && 'bg-purple-300',
-            color === 'gray' && 'bg-white/60'
+            color === 'success' && (tone === 'light' ? 'bg-emerald-500' : 'bg-emerald-300'),
+            color === 'warning' && (tone === 'light' ? 'bg-amber-500' : 'bg-amber-300'),
+            color === 'error' && (tone === 'light' ? 'bg-red-500' : 'bg-red-300'),
+            color === 'info' && (tone === 'light' ? 'bg-blue-500' : 'bg-blue-300'),
+            (color === 'purple' || color === 'maroon') && 'bg-brand-maroon',
+            color === 'gray' && (tone === 'light' ? 'bg-gray-400' : 'bg-white/60')
           )}
           aria-hidden
         />

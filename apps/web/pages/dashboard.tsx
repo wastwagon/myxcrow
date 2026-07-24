@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
@@ -10,138 +10,28 @@ import {
   CheckCircle,
   Plus,
   Wallet,
-  Activity,
   ArrowUpRight,
-  Building2,
-  Handshake,
   ShieldCheck,
   Scale,
-  Shield,
+  Activity,
 } from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { COMPLETED_ESCROW_STATUSES } from '@/lib/constants';
 import Link from 'next/link';
 import { MetricCard } from '@/components/ui/MetricCard';
-import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ButtonLink } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
-import { UserAvatar } from '@/components/ui/UserAvatar';
-import { ImageCard, ImageCardRow } from '@/components/ui/ImageCard';
-import { SectionHeader } from '@/components/ui/SectionHeader';
-import { PromoCarousel, type PromoSlide } from '@/components/ui/PromoCarousel';
+import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
+import { DonutMetric } from '@/components/dashboard/DonutMetric';
+import { SimpleBarChart } from '@/components/dashboard/SimpleBarChart';
+import { dash } from '@/components/dashboard/lightClasses';
 
-const QUICK_ACTIONS = [
-  { href: '/escrows/new', label: 'Create escrow', icon: Plus },
-  { href: '/wallet/topup', label: 'Top up', icon: ArrowUpRight },
-  { href: '/wallet', label: 'My wallet', icon: Wallet },
-  { href: '/escrows', label: 'All escrows', icon: FileText },
-  { href: '/disputes', label: 'Disputes', icon: Scale },
-];
-
-const ESCROW_SERVICES = [
-  {
-    href: '/escrows/new',
-    title: 'Goods & services',
-    description: 'Trade with confidence',
-    image: '/images/v2/goods-services.jpg',
-    icon: Handshake,
-  },
-  {
-    href: '/escrows/new',
-    title: 'Real estate',
-    description: 'Protect high-value deals',
-    image: '/images/v2/real-estate.jpg',
-    icon: Building2,
-  },
-  {
-    href: '/escrows/new',
-    title: 'Milestone projects',
-    description: 'Release funds by progress',
-    image: '/images/v2/milestone-projects.jpg',
-    icon: ShieldCheck,
-  },
-];
-
-const TRUST_SAFETY = [
-  {
-    href: '/profile',
-    title: 'Account security',
-    description: 'Keep your profile current',
-    image: '/images/v2/diaspora.jpg',
-    icon: Shield,
-  },
-  {
-    href: '/disputes',
-    title: 'Dispute resolution',
-    description: 'Fair mediation when needed',
-    image: '/images/v2/local-transactions.jpg',
-    icon: Scale,
-  },
-  {
-    href: '/support',
-    title: 'Buyer protection',
-    description: 'Funds held until you approve',
-    image: '/images/v2/protected-payments-hero.jpg',
-    icon: ShieldCheck,
-  },
-];
-
-function getHeroSlides(kycVerified: boolean): PromoSlide[] {
-  const slides: PromoSlide[] = [
-    {
-      id: 'protected',
-      eyebrow: 'Protected payments',
-      title: 'Your money moves only when the deal does.',
-      description: 'Create an escrow, agree on the terms, and trade with confidence.',
-      href: '/escrows/new',
-      cta: 'Create escrow',
-      image: '/images/v2/protected-payments-hero.jpg',
-    },
-    {
-      id: 'how-it-works',
-      eyebrow: 'How it works',
-      title: 'Agree, fund, deliver, release',
-      description: 'Funds stay protected until both sides fulfill the deal.',
-      href: '/escrows/new',
-      cta: 'Start an escrow',
-      image: '/images/v2/goods-services.jpg',
-    },
-    {
-      id: 'milestones',
-      eyebrow: 'Projects',
-      title: 'Release money by milestone',
-      description: 'Ideal for construction, diaspora builds, and phased professional work.',
-      href: '/escrows/new',
-      cta: 'Create milestones',
-      image: '/images/v2/milestone-projects.jpg',
-    },
-  ];
-
-  if (!kycVerified) {
-    slides.push({
-      id: 'security',
-      eyebrow: 'Account tip',
-      title: 'Complete your profile for smoother deals',
-      description: 'Add your phone and keep identity details current before you fund high-value escrows.',
-      href: '/profile',
-      cta: 'Open profile',
-      image: '/images/v2/diaspora.jpg',
-    });
-  }
-
-  return slides;
-}
-
-function maskPhone(phone?: string) {
-  if (!phone) return '';
-  const compact = phone.replace(/\s+/g, '');
-  if (compact.length < 7) return phone;
-  return `${compact.slice(0, 4)} ••• ${compact.slice(-3)}`;
-}
+type Period = '12m' | '30d' | '7d' | '24h';
 
 interface WalletData {
   availableCents: number;
@@ -163,12 +53,48 @@ interface Escrow {
   sellerId: string;
 }
 
+function buildMonthlyBars(escrows: Escrow[], months = 12) {
+  const now = new Date();
+  const points = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${d.getMonth()}`;
+    const label = d.toLocaleString('en', { month: 'short' });
+    const inMonth = escrows.filter((e) => {
+      const created = new Date(e.createdAt);
+      return created.getFullYear() === d.getFullYear() && created.getMonth() === d.getMonth();
+    });
+    const active = inMonth
+      .filter((e) => !COMPLETED_ESCROW_STATUSES.includes(e.status) && e.status !== 'CANCELLED')
+      .reduce((s, e) => s + e.amountCents, 0);
+    const completed = inMonth
+      .filter((e) => COMPLETED_ESCROW_STATUSES.includes(e.status))
+      .reduce((s, e) => s + e.amountCents, 0);
+    points.push({ label, values: { active, completed }, _key: key });
+  }
+  return points.map(({ label, values }) => ({ label, values }));
+}
+
+function filterByPeriod(escrows: Escrow[], period: Period) {
+  const now = Date.now();
+  const ms =
+    period === '24h'
+      ? 24 * 60 * 60 * 1000
+      : period === '7d'
+        ? 7 * 24 * 60 * 60 * 1000
+        : period === '30d'
+          ? 30 * 24 * 60 * 60 * 1000
+          : 365 * 24 * 60 * 60 * 1000;
+  return escrows.filter((e) => now - new Date(e.createdAt).getTime() <= ms);
+}
+
 export default function Dashboard() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
-  const [userName, setUserName] = useState<string>('');
+  const [userName, setUserName] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [period, setPeriod] = useState<Period>('12m');
 
   useEffect(() => {
     setMounted(true);
@@ -183,21 +109,16 @@ export default function Dashboard() {
         router.push('/admin');
         return;
       }
-
       const user = getUser();
       if (user) {
-        const name = user.firstName || user.email?.split('@')[0] || 'User';
-        setUserName(name);
+        setUserName(user.firstName || user.email?.split('@')[0] || 'User');
       }
     }
   }, [router, mounted]);
 
   const { data: wallet, isLoading: walletLoading } = useQuery<WalletData>({
     queryKey: ['wallet'],
-    queryFn: async () => {
-      const response = await apiClient.get('/wallet');
-      return response.data;
-    },
+    queryFn: async () => (await apiClient.get('/wallet')).data,
     staleTime: 0,
     refetchInterval: 30000,
     enabled: mounted && isAuthenticated(),
@@ -207,16 +128,20 @@ export default function Dashboard() {
     { data?: Escrow[]; escrows?: Escrow[]; total?: number } | Escrow[]
   >({
     queryKey: ['escrows'],
-    queryFn: async () => {
-      const response = await apiClient.get('/escrows');
-      return response.data;
-    },
+    queryFn: async () => (await apiClient.get('/escrows')).data,
     enabled: mounted && isAuthenticated(),
   });
 
   const escrows: Escrow[] = Array.isArray(escrowsData)
     ? escrowsData
     : escrowsData?.data || escrowsData?.escrows || [];
+
+  const periodEscrows = useMemo(() => filterByPeriod(escrows, period), [escrows, period]);
+  const chartMonths = period === '12m' ? 12 : period === '30d' ? 4 : period === '7d' ? 7 : 1;
+  const barData = useMemo(
+    () => buildMonthlyBars(period === '12m' ? escrows : periodEscrows, period === '12m' ? 12 : Math.max(chartMonths, 3)),
+    [escrows, periodEscrows, period, chartMonths]
+  );
 
   if (!mounted || !isAuthenticated()) {
     return (
@@ -226,10 +151,18 @@ export default function Dashboard() {
     );
   }
 
-  const activeEscrows = escrows?.filter((e) => !['RELEASED', 'CANCELLED'].includes(e.status)) || [];
-  const recentEscrows = escrows?.slice(0, 5) || [];
   const user = getUser();
-  const heroSlides = getHeroSlides(user?.kycStatus === 'VERIFIED');
+  const available = wallet?.availableCents ?? 0;
+  const pending = wallet?.pendingCents ?? 0;
+  const walletTotal = available + pending || 1;
+  const activeEscrows = escrows.filter((e) => !['RELEASED', 'CANCELLED'].includes(e.status));
+  const awaiting = escrows.filter((e) =>
+    ['AWAITING_FUNDING', 'AWAITING_SHIPMENT', 'AWAITING_RELEASE'].includes(e.status)
+  );
+  const completed = escrows.filter((e) => COMPLETED_ESCROW_STATUSES.includes(e.status));
+  const recentEscrows = [...escrows]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 6);
 
   const refreshDashboard = async () => {
     await Promise.all([
@@ -240,208 +173,236 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <PullToRefresh
-        onRefresh={refreshDashboard}
-        disabled={!isMobile}
-        className="mx-auto max-w-6xl space-y-6"
-      >
-        <header className="v2-fade-up flex items-center justify-between gap-4">
-          <Link href="/profile" className="flex items-center gap-3 min-w-0 group">
-            <UserAvatar label={userName || user?.email || 'User'} size="md" />
-            <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">
-                Akwaaba
+      <PullToRefresh onRefresh={refreshDashboard} disabled={!isMobile}>
+        <LightShell>
+          {/* Header */}
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-maroon">
+                Wallet & escrow
               </p>
-              <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight truncate">
-                {userName || 'Welcome back'}
-              </h1>
-              <p className="text-white/55 text-xs mt-0.5 truncate">
-                {maskPhone(user?.phone) || user?.email || 'Your secure account'}
+              <h1 className={dash.title}>Welcome back, {userName || 'there'}</h1>
+              <p className={dash.subtitle}>
+                Track balances, fund deals, and release when delivery is confirmed.
               </p>
             </div>
-          </Link>
-          <Link
-            href="/profile"
-            className="shrink-0 inline-flex items-center gap-2 min-h-[40px] rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 text-xs font-semibold text-emerald-300 hover:bg-emerald-400/15 transition-colors"
-          >
-            <ShieldCheck className="w-4 h-4" />
-            <span className="hidden sm:inline">
-              {user?.kycStatus === 'VERIFIED' ? 'Identity verified' : 'Account security'}
-            </span>
-          </Link>
-        </header>
-
-        <PromoCarousel
-          slides={heroSlides}
-          size="hero"
-          className="v2-fade-up-delay-1"
-        />
-
-        <section>
-          <SectionHeader
-            eyebrow="Wallet overview"
-            title="Your balances"
-            href="/wallet"
-            linkLabel="View wallet"
-          />
-          <div className="grid grid-cols-2 gap-3 md:gap-4">
-            <div className="relative overflow-hidden rounded-ios-xl border border-brand-gold/25 bg-[#201a17] p-4 md:p-5">
-              <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full border-[18px] border-brand-gold/[0.06]" />
-              <p className="relative text-xs font-medium text-white/55">Available balance</p>
-              {walletLoading ? (
-                <div className="relative mt-2 h-8 w-28 animate-pulse rounded-ios bg-white/10" />
-              ) : (
-                <p className="relative mt-2 text-xl md:text-3xl font-bold tracking-tight text-white">
-                  {wallet ? formatCurrency(wallet.availableCents, 'GHS') : '--'}
-                </p>
-              )}
-              <ButtonLink href="/wallet/topup" size="sm" className="relative mt-5 rounded-full text-xs">
+            <div className="flex flex-wrap gap-2 shrink-0">
+              <ButtonLink href="/wallet/topup" variant="outline" size="sm">
+                <ArrowUpRight className="w-4 h-4" />
                 Top up
               </ButtonLink>
-            </div>
-            <div className="relative overflow-hidden rounded-ios-xl border border-white/10 bg-[#201a17] p-4 md:p-5">
-              <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full border-[18px] border-white/[0.04]" />
-              <p className="relative text-xs font-medium text-white/55">Pending in escrow</p>
-              {walletLoading ? (
-                <div className="relative mt-2 h-8 w-28 animate-pulse rounded-ios bg-white/10" />
-              ) : (
-                <p className="relative mt-2 text-xl md:text-3xl font-bold tracking-tight text-white">
-                  {wallet ? formatCurrency(wallet.pendingCents, 'GHS') : '--'}
-                </p>
-              )}
-              <Link
-                href="/escrows"
-                className="relative mt-5 inline-flex min-h-[34px] items-center rounded-full border border-white/15 bg-white/10 px-3 text-xs font-bold text-white"
-              >
-                Track funds
-              </Link>
+              <ButtonLink href="/escrows/new" variant="maroon" size="sm">
+                <Plus className="w-4 h-4" />
+                Create escrow
+              </ButtonLink>
             </div>
           </div>
-          <p className="mt-2 px-1 text-[11px] text-white/40">Balances refresh automatically</p>
-        </section>
 
-        <section>
-          <SectionHeader title="What would you like to do?" />
-          <div className="grid grid-cols-3 gap-3 md:grid-cols-5">
-            {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className="v2-lift group flex min-h-[104px] flex-col items-center justify-center gap-3 rounded-ios-xl border border-white/10 bg-black/25 px-2 py-4 text-center hover:border-brand-gold/30 hover:bg-white/[0.08]"
-              >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.08] text-brand-gold transition-transform group-hover:scale-105">
-                  <Icon className="h-5 w-5" />
-                </span>
-                <span className="text-xs font-semibold leading-tight text-white/85">{label}</span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <SectionHeader
-            eyebrow="Built for real life"
-            title="Escrow services"
-            href="/escrows/new"
-            linkLabel="Get started"
-          />
-          <ImageCardRow>
-            {ESCROW_SERVICES.map((service) => (
-              <ImageCard key={service.title} {...service} />
-            ))}
-          </ImageCardRow>
-        </section>
-
-        <section>
-          <SectionHeader
-            eyebrow="Peace of mind"
-            title="Trust & safety"
-            href="/support"
-            linkLabel="Learn more"
-          />
-          <ImageCardRow>
-            {TRUST_SAFETY.map((item) => (
-              <ImageCard key={item.title} {...item} />
-            ))}
-          </ImageCardRow>
-        </section>
-
-        <section className="grid grid-cols-3 gap-3">
-          <MetricCard
-            label="Active"
-            value={activeEscrows.length}
-            hint="In progress"
-            icon={<Activity className="w-5 h-5" />}
-            accent="maroon"
-            loading={escrowsLoading}
-            className="p-3 md:p-4"
-          />
-          <MetricCard
-            label="Awaiting"
-            value={
-              escrows?.filter((e) => ['AWAITING_FUNDING', 'AWAITING_SHIPMENT'].includes(e.status))
-                .length || 0
-            }
-            hint="Your action"
-            icon={<Clock className="w-5 h-5" />}
-            accent="amber"
-            loading={escrowsLoading}
-            className="p-3 md:p-4"
-          />
-          <MetricCard
-            label="Completed"
-            value={escrows?.filter((e) => COMPLETED_ESCROW_STATUSES.includes(e.status)).length ?? 0}
-            hint="All time"
-            icon={<CheckCircle className="w-5 h-5" />}
-            accent="emerald"
-            loading={escrowsLoading}
-            className="p-3 md:p-4"
-          />
-        </section>
-
-        <section>
-          <SectionHeader title="Recent escrows" href="/escrows" linkLabel="View all" />
-
-          {escrowsLoading ? (
-            <ListRowsSkeleton rows={3} rowClassName="h-16" />
-          ) : recentEscrows.length > 0 ? (
-            <ListGroup>
-              {recentEscrows.map((escrow) => {
-                const isBuyer = user?.id === escrow.buyerId;
-                const displayCents = isBuyer
-                  ? escrow.fundingAmountCents || escrow.amountCents + (escrow.buyerFeeCents ?? 0)
-                  : escrow.netAmountCents ?? escrow.amountCents;
-                const amountLabel = isBuyer ? 'Funded' : 'Receive';
-
-                return (
-                <ListRow
-                  key={escrow.id}
-                  href={`/escrows/${escrow.id}`}
-                  title={escrow.description || 'Escrow Agreement'}
-                  subtitle={
-                    <span className="flex flex-wrap items-center gap-2">
-                      <span className="text-label-primary font-medium">
-                        {formatCurrency(displayCents, 'GHS')}
-                      </span>
-                      <span className="text-label-tertiary text-xs">({amountLabel})</span>
-                      <span>·</span>
-                      <span>{formatDate(escrow.createdAt)}</span>
-                    </span>
-                  }
-                  trailing={<StatusBadge status={escrow.status} />}
-                />
-              );
-              })}
-            </ListGroup>
-          ) : (
-            <EmptyState
-              icon={<FileText className="w-6 h-6" />}
-              title="No escrows yet"
-              description="Create your first escrow to protect a transaction"
-              action={{ href: '/escrows/new', label: 'Create escrow' }}
+          {/* Period + KYC */}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <SegmentedControl
+              tone="light"
+              scrollable
+              value={period}
+              onChange={setPeriod}
+              className="sm:max-w-md"
+              options={[
+                { value: '12m', label: '12 months' },
+                { value: '30d', label: '30 days' },
+                { value: '7d', label: '7 days' },
+                { value: '24h', label: '24 hours' },
+              ]}
             />
-          )}
-        </section>
+            <Link
+              href="/profile"
+              className="inline-flex items-center gap-2 self-start rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              {user?.kycStatus === 'VERIFIED' ? 'Identity verified' : 'Complete profile'}
+            </Link>
+          </div>
+
+          {/* Mobile balance hero */}
+          <LightPanel className="sm:hidden">
+            <p className={dash.label}>Available balance</p>
+            {walletLoading ? (
+              <div className="mt-2 h-9 w-36 animate-pulse rounded-ios bg-gray-100" />
+            ) : (
+              <p className="mt-1 text-3xl font-bold tracking-tight text-gray-900">
+                {formatCurrency(available, 'GHS')}
+              </p>
+            )}
+            <p className="mt-1 text-sm text-gray-500">
+              Pending in escrow:{' '}
+              <span className="font-semibold text-gray-800">{formatCurrency(pending, 'GHS')}</span>
+            </p>
+          </LightPanel>
+
+          {/* Account cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <LightPanel className="flex items-center gap-4">
+              <DonutMetric ratio={available / walletTotal} color="#8f2126" />
+              <div className="min-w-0 flex-1">
+                <p className={dash.label}>Available balance</p>
+                {walletLoading ? (
+                  <div className="mt-1 h-8 w-28 animate-pulse rounded-ios bg-gray-100" />
+                ) : (
+                  <p className={dash.value}>{formatCurrency(available, 'GHS')}</p>
+                )}
+                <Link href="/wallet" className={`${dash.link} mt-1 inline-flex items-center gap-1`}>
+                  <Wallet className="w-3.5 h-3.5" />
+                  Open wallet
+                </Link>
+              </div>
+            </LightPanel>
+            <LightPanel className="flex items-center gap-4">
+              <DonutMetric ratio={pending / walletTotal} color="#d0ab63" />
+              <div className="min-w-0 flex-1">
+                <p className={dash.label}>Pending in escrow</p>
+                {walletLoading ? (
+                  <div className="mt-1 h-8 w-28 animate-pulse rounded-ios bg-gray-100" />
+                ) : (
+                  <p className={dash.value}>{formatCurrency(pending, 'GHS')}</p>
+                )}
+                <Link href="/escrows" className={`${dash.link} mt-1 inline-block`}>
+                  Track funds
+                </Link>
+              </div>
+            </LightPanel>
+          </div>
+
+          {/* Chart + recent */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+            <LightPanel className="lg:col-span-3">
+              <div className="flex items-center justify-between gap-2 mb-4">
+                <h2 className={dash.sectionTitle}>Escrow volume over time</h2>
+                <ButtonLink href="/escrows" variant="outline" size="sm" className="!min-h-[32px] text-xs">
+                  View report
+                </ButtonLink>
+              </div>
+              {escrowsLoading ? (
+                <div className="h-[200px] animate-pulse rounded-ios bg-gray-100" />
+              ) : (
+                <SimpleBarChart
+                  data={barData}
+                  series={[
+                    { key: 'active', label: 'Active / open', color: '#8f2126' },
+                    { key: 'completed', label: 'Completed', color: '#d0ab63' },
+                  ]}
+                />
+              )}
+            </LightPanel>
+
+            <LightPanel flush className="lg:col-span-2 flex flex-col">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
+                <h2 className={dash.sectionTitle}>Recent activity</h2>
+                <Link href="/escrows" className={dash.link}>
+                  View all
+                </Link>
+              </div>
+              <div className="flex-1 p-2">
+                {escrowsLoading ? (
+                  <ListRowsSkeleton rows={4} rowClassName="h-14" />
+                ) : recentEscrows.length > 0 ? (
+                  <ul className="divide-y divide-gray-100">
+                    {recentEscrows.map((escrow) => {
+                      const isBuyer = user?.id === escrow.buyerId;
+                      const displayCents = isBuyer
+                        ? escrow.fundingAmountCents ||
+                          escrow.amountCents + (escrow.buyerFeeCents ?? 0)
+                        : escrow.netAmountCents ?? escrow.amountCents;
+                      return (
+                        <li key={escrow.id}>
+                          <Link
+                            href={`/escrows/${escrow.id}`}
+                            className="flex items-center justify-between gap-3 px-3 py-3 rounded-ios-lg hover:bg-gray-50"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 truncate">
+                                {escrow.description || 'Escrow agreement'}
+                              </p>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                {formatDate(escrow.createdAt)} · {isBuyer ? 'Funded' : 'Receive'}
+                              </p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-sm font-semibold text-emerald-700">
+                                {formatCurrency(displayCents, 'GHS')}
+                              </p>
+                              <StatusBadge status={escrow.status} onDark={false} className="mt-1" />
+                            </div>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                ) : (
+                  <EmptyState
+                    tone="light"
+                    icon={<FileText className="w-6 h-6" />}
+                    title="No escrows yet"
+                    description="Create your first escrow to protect a transaction"
+                    action={{ href: '/escrows/new', label: 'Create escrow', variant: 'maroon' }}
+                    className="border-0 shadow-none"
+                  />
+                )}
+              </div>
+            </LightPanel>
+          </div>
+
+          {/* KPI row */}
+          <div className="grid grid-cols-3 gap-3">
+            <MetricCard
+              tone="light"
+              label="Active"
+              value={activeEscrows.length}
+              hint="In progress"
+              icon={<Activity className="w-5 h-5" />}
+              accent="maroon"
+              loading={escrowsLoading}
+            />
+            <MetricCard
+              tone="light"
+              label="Awaiting you"
+              value={awaiting.length}
+              hint="Needs action"
+              icon={<Clock className="w-5 h-5" />}
+              accent="amber"
+              loading={escrowsLoading}
+            />
+            <MetricCard
+              tone="light"
+              label="Completed"
+              value={completed.length}
+              hint="All time"
+              icon={<CheckCircle className="w-5 h-5" />}
+              accent="emerald"
+              loading={escrowsLoading}
+            />
+          </div>
+
+          {/* Quick links */}
+          <LightPanel>
+            <h2 className={`${dash.sectionTitle} mb-3`}>Quick actions</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {[
+                { href: '/wallet', label: 'My wallet', icon: Wallet },
+                { href: '/escrows', label: 'All escrows', icon: FileText },
+                { href: '/disputes', label: 'Disputes', icon: Scale },
+                { href: '/wallet/withdraw', label: 'Withdraw', icon: ArrowUpRight },
+              ].map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="flex items-center gap-2 rounded-ios-lg border border-gray-200 bg-gray-50 px-3 py-3 text-sm font-semibold text-gray-800 hover:border-brand-maroon/30 hover:bg-brand-maroon/[0.04]"
+                >
+                  <Icon className="w-4 h-4 text-brand-maroon shrink-0" />
+                  {label}
+                </Link>
+              ))}
+            </div>
+          </LightPanel>
+        </LightShell>
       </PullToRefresh>
     </Layout>
   );

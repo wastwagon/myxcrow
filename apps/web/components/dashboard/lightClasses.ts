@@ -1,0 +1,21 @@
+/** Light dashboard surface tokens — maroon/gold accents, no Untitled purple. */
+export const dash = {
+  shell: 'rounded-ios-xl border border-gray-200 bg-[#F9FAFB] text-gray-900 p-4 sm:p-6 space-y-6 shadow-sm',
+  panel: 'rounded-ios-xl border border-gray-200 bg-white p-4 sm:p-5',
+  panelFlush: 'rounded-ios-xl border border-gray-200 bg-white overflow-hidden',
+  title: 'text-2xl sm:text-3xl font-bold tracking-tight text-gray-900',
+  subtitle: 'text-sm text-gray-500 mt-1',
+  sectionTitle: 'text-base font-semibold text-gray-900',
+  muted: 'text-sm text-gray-500',
+  label: 'text-xs font-medium text-gray-500',
+  value: 'text-2xl sm:text-3xl font-bold tracking-tight text-gray-900',
+  trendUp: 'text-sm font-semibold text-emerald-600',
+  trendDown: 'text-sm font-semibold text-red-600',
+  link: 'text-sm font-semibold text-brand-maroon hover:text-brand-maroon-dark',
+  empty: 'rounded-ios-xl border border-gray-200 bg-white text-gray-900',
+  tableHead: 'bg-gray-50 border-b border-gray-200 text-left text-xs font-semibold uppercase tracking-wide text-gray-500',
+  th: 'px-4 py-3',
+  td: 'px-4 py-3.5 text-sm text-gray-900 border-b border-gray-100',
+  tdMuted: 'text-gray-500',
+  trHover: 'hover:bg-gray-50/80 transition-colors',
+} as const;

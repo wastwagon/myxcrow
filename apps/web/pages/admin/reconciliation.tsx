@@ -6,7 +6,6 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency } from '@/lib/utils';
 import { DollarSign, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
-import PageHeader from '@/components/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { StatusBadge } from '@/components/StatusBadge';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
@@ -22,6 +21,10 @@ import {
   TableEmpty,
 } from '@/components/ui/Table';
 import { Banner } from '@/components/ui/Banner';
+import { ButtonLink } from '@/components/ui/Button';
+import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
+import { dash } from '@/components/dashboard/lightClasses';
+
 interface ReconciliationSummary {
   escrowsByStatus: Array<{
     status: string;
@@ -65,18 +68,12 @@ export default function ReconciliationPage() {
 
   const { data: summary, isLoading: summaryLoading } = useQuery<ReconciliationSummary>({
     queryKey: ['reconciliation-summary'],
-    queryFn: async () => {
-      const response = await apiClient.get('/admin/reconciliation');
-      return response.data;
-    },
+    queryFn: async () => (await apiClient.get('/admin/reconciliation')).data,
   });
 
   const { data: balance, isLoading: balanceLoading } = useQuery<BalanceComparison>({
     queryKey: ['reconciliation-balance'],
-    queryFn: async () => {
-      const response = await apiClient.get('/admin/reconciliation/balance');
-      return response.data;
-    },
+    queryFn: async () => (await apiClient.get('/admin/reconciliation/balance')).data,
   });
 
   if (!isAuthenticated() || !isAdmin()) {
@@ -92,185 +89,194 @@ export default function ReconciliationPage() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshReconciliation} disabled={!isMobile} className="space-y-5">
-        <PageHeader
-          eyebrow="Admin"
-          title="Reconciliation Dashboard"
-          subtitle="Financial overview and balance reconciliation"
-          icon={<BarChart3 className="w-6 h-6 text-white" />}
-        />
-
-        {/* Summary Cards */}
-        {summaryLoading ? (
-          <div className="grid md:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-32 bg-white/10 animate-pulse rounded-ios-lg" />
-            ))}
-          </div>
-                ) : summary ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <MetricCard
-              label="Total escrow value"
-              value={formatCurrency(summary.totals.totalEscrowValue, 'GHS')}
-              icon={<DollarSign className="w-5 h-5" />}
-              accent="gold"
-            />
-            <MetricCard
-              label="Total fees"
-              value={formatCurrency(summary.totals.totalFees, 'GHS')}
-              icon={<BarChart3 className="w-5 h-5" />}
-              accent="maroon"
-            />
-            <MetricCard
-              label="Total released"
-              value={formatCurrency(summary.totals.totalReleased, 'GHS')}
-              icon={<CheckCircle className="w-5 h-5" />}
-              accent="emerald"
-            />
-            <MetricCard
-              label="Total pending"
-              value={formatCurrency(summary.totals.totalPending, 'GHS')}
-              icon={<AlertCircle className="w-5 h-5" />}
-              accent="amber"
-            />
-          </div>
-        ) : null}
-
-        {/* Balance Reconciliation */}
-        {balanceLoading ? (
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
-            <div className="h-32 bg-white/10 animate-pulse rounded-ios-lg" />
-          </div>
-        ) : balance ? (
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Balance Reconciliation</h2>
-            <div className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="p-4 bg-white/5 rounded-lg">
-                  <p className="text-sm text-white/70 mb-1">Escrow Hold Balance</p>
-                  <p className="text-xl font-bold text-white">
-                    {formatCurrency(balance.escrowHoldBalance, 'GHS')}
-                  </p>
-                </div>
-                <div className="p-4 bg-white/5 rounded-lg">
-                  <p className="text-sm text-white/70 mb-1">Pending Escrows</p>
-                  <p className="text-xl font-bold text-white">
-                    {formatCurrency(balance.pendingEscrows, 'GHS')}
-                  </p>
-                </div>
-              </div>
-              <div className="p-4 rounded-ios-lg border border-white/10 bg-white/[0.06]">
-                <p className="text-sm text-white/70 mb-1">Difference</p>
-                <p className={`text-xl font-bold ${balance.difference === 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                  {formatCurrency(Math.abs(balance.difference), 'GHS')}
-                  {balance.difference !== 0 && (
-                    <span className="text-sm ml-2">
-                      ({balance.difference > 0 ? 'Over' : 'Under'})
-                    </span>
-                  )}
-                </p>
-              </div>
-              <Banner
-                tone={balance.reconciled ? 'success' : 'error'}
-                title={balance.reconciled ? 'Reconciled' : 'Not Reconciled'}
-              >
-                {balance.reconciled
-                  ? 'Escrow hold balances match pending escrow totals.'
-                  : 'Balances do not match — investigate pending holds and ledger entries.'}
-              </Banner>
+      <PullToRefresh onRefresh={refreshReconciliation} disabled={!isMobile}>
+        <LightShell>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-maroon">
+                Finance
+              </p>
+              <h1 className={dash.title}>Reconciliation</h1>
+              <p className={dash.subtitle}>
+                Escrow holds, fees, and balance integrity checks
+              </p>
             </div>
+            <ButtonLink href="/admin" variant="outline" size="sm">
+              Back to admin
+            </ButtonLink>
           </div>
-        ) : null}
 
-        {/* Escrows by Status */}
-        {summaryLoading ? (
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
-            <div className="h-64 bg-white/10 animate-pulse rounded-ios-lg" />
-          </div>
-        ) : summary ? (
-          <TableShell
-            toolbar={<h2 className="text-base font-semibold text-white">Escrows by Status</h2>}
-          >
-            <Table>
-              <TableHead>
-                <tr>
-                  <TableTh className="text-left">Status</TableTh>
-                  <TableTh className="text-right">Count</TableTh>
-                  <TableTh className="text-right">Total Amount</TableTh>
-                </tr>
-              </TableHead>
-              <TableBody>
-                {summary.escrowsByStatus.length === 0 ? (
-                  <TableEmpty colSpan={3}>No escrow status data yet</TableEmpty>
-                ) : (
-                  summary.escrowsByStatus.map((item) => (
-                    <TableRow key={item.status}>
-                      <TableTd>
-                        <StatusBadge status={item.status} />
-                      </TableTd>
-                      <TableTd className="text-right font-medium">{item.count}</TableTd>
-                      <TableTd className="text-right font-medium">
-                        {formatCurrency(item.totalAmountCents, 'GHS')}
-                      </TableTd>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableShell>
-        ) : null}
+          {summaryLoading ? (
+            <div className="grid md:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-28 bg-gray-100 animate-pulse rounded-ios-lg" />
+              ))}
+            </div>
+          ) : summary ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-3">
+              <MetricCard
+                tone="light"
+                label="Total escrow value"
+                value={formatCurrency(summary.totals.totalEscrowValue, 'GHS')}
+                icon={<DollarSign className="w-5 h-5" />}
+                accent="gold"
+              />
+              <MetricCard
+                tone="light"
+                label="Total fees"
+                value={formatCurrency(summary.totals.totalFees, 'GHS')}
+                icon={<BarChart3 className="w-5 h-5" />}
+                accent="maroon"
+              />
+              <MetricCard
+                tone="light"
+                label="Total released"
+                value={formatCurrency(summary.totals.totalReleased, 'GHS')}
+                icon={<CheckCircle className="w-5 h-5" />}
+                accent="emerald"
+              />
+              <MetricCard
+                tone="light"
+                label="Total pending"
+                value={formatCurrency(summary.totals.totalPending, 'GHS')}
+                icon={<AlertCircle className="w-5 h-5" />}
+                accent="amber"
+              />
+            </div>
+          ) : null}
 
-        {/* Escrows by Currency */}
-        {summaryLoading ? (
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
-            <div className="h-64 bg-white/10 animate-pulse rounded-ios-lg" />
-          </div>
-        ) : summary ? (
-          <TableShell
-            toolbar={<h2 className="text-base font-semibold text-white">Escrows by Currency</h2>}
-          >
-            <Table>
-              <TableHead>
-                <tr>
-                  <TableTh className="text-left">Currency</TableTh>
-                  <TableTh className="text-right">Count</TableTh>
-                  <TableTh className="text-right">Total Amount</TableTh>
-                  <TableTh className="text-right">Total Fees</TableTh>
-                  <TableTh className="text-right">Net Amount</TableTh>
-                </tr>
-              </TableHead>
-              <TableBody>
-                {summary.escrowsByCurrency.length === 0 ? (
-                  <TableEmpty colSpan={5}>No currency breakdown yet</TableEmpty>
-                ) : (
-                  summary.escrowsByCurrency.map((item) => (
-                    <TableRow key={item.currency}>
-                      <TableTd className="font-medium">₵</TableTd>
-                      <TableTd className="text-right">{item.count}</TableTd>
-                      <TableTd className="text-right font-medium">
-                        {formatCurrency(item.totalAmountCents, 'GHS')}
-                      </TableTd>
-                      <TableTd muted className="text-right">
-                        {formatCurrency(item.totalFeesCents, 'GHS')}
-                      </TableTd>
-                      <TableTd className="text-right font-medium">
-                        {formatCurrency(item.totalNetAmountCents, 'GHS')}
-                      </TableTd>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableShell>
-        ) : null}
+          {balanceLoading ? (
+            <div className="h-40 bg-gray-100 animate-pulse rounded-ios-xl" />
+          ) : balance ? (
+            <LightPanel>
+              <h2 className={`${dash.sectionTitle} mb-4`}>Balance reconciliation</h2>
+              <div className="space-y-4">
+                <div className="grid md:grid-cols-2 gap-3">
+                  <div className="p-4 rounded-ios-lg bg-gray-50 border border-gray-100">
+                    <p className={dash.label}>Escrow hold balance</p>
+                    <p className="mt-1 text-xl font-bold text-gray-900">
+                      {formatCurrency(balance.escrowHoldBalance, 'GHS')}
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-ios-lg bg-gray-50 border border-gray-100">
+                    <p className={dash.label}>Pending escrows</p>
+                    <p className="mt-1 text-xl font-bold text-gray-900">
+                      {formatCurrency(balance.pendingEscrows, 'GHS')}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-4 rounded-ios-lg border border-gray-200 bg-white">
+                  <p className={dash.label}>Difference</p>
+                  <p
+                    className={`mt-1 text-xl font-bold ${
+                      balance.difference === 0 ? 'text-emerald-600' : 'text-red-600'
+                    }`}
+                  >
+                    {formatCurrency(Math.abs(balance.difference), 'GHS')}
+                    {balance.difference !== 0 && (
+                      <span className="text-sm ml-2 font-semibold">
+                        ({balance.difference > 0 ? 'Over' : 'Under'})
+                      </span>
+                    )}
+                  </p>
+                </div>
+                <Banner
+                  tone={balance.reconciled ? 'success' : 'error'}
+                  title={balance.reconciled ? 'Reconciled' : 'Not reconciled'}
+                >
+                  {balance.reconciled
+                    ? 'Escrow hold balances match pending escrow totals.'
+                    : 'Balances do not match — investigate pending holds and ledger entries.'}
+                </Banner>
+              </div>
+            </LightPanel>
+          ) : null}
 
-        {summary && (
-          <div className="text-sm text-white/55 text-center">
-            Generated at: {new Date(summary.generatedAt).toLocaleString()}
-          </div>
-        )}
+          {summaryLoading ? (
+            <div className="h-64 bg-gray-100 animate-pulse rounded-ios-xl" />
+          ) : summary ? (
+            <TableShell
+              tone="light"
+              toolbar={<h2 className={dash.sectionTitle}>Escrows by status</h2>}
+            >
+              <Table>
+                <TableHead>
+                  <tr>
+                    <TableTh className="text-left">Status</TableTh>
+                    <TableTh className="text-right">Count</TableTh>
+                    <TableTh className="text-right">Total amount</TableTh>
+                  </tr>
+                </TableHead>
+                <TableBody>
+                  {summary.escrowsByStatus.length === 0 ? (
+                    <TableEmpty colSpan={3}>No escrow status data yet</TableEmpty>
+                  ) : (
+                    summary.escrowsByStatus.map((item) => (
+                      <TableRow key={item.status}>
+                        <TableTd>
+                          <StatusBadge status={item.status} onDark={false} />
+                        </TableTd>
+                        <TableTd className="text-right font-medium">{item.count}</TableTd>
+                        <TableTd className="text-right font-medium">
+                          {formatCurrency(item.totalAmountCents, 'GHS')}
+                        </TableTd>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableShell>
+          ) : null}
+
+          {summaryLoading ? (
+            <div className="h-64 bg-gray-100 animate-pulse rounded-ios-xl" />
+          ) : summary ? (
+            <TableShell
+              tone="light"
+              toolbar={<h2 className={dash.sectionTitle}>Escrows by currency</h2>}
+            >
+              <Table>
+                <TableHead>
+                  <tr>
+                    <TableTh className="text-left">Currency</TableTh>
+                    <TableTh className="text-right">Count</TableTh>
+                    <TableTh className="text-right">Total amount</TableTh>
+                    <TableTh className="text-right">Total fees</TableTh>
+                    <TableTh className="text-right">Net amount</TableTh>
+                  </tr>
+                </TableHead>
+                <TableBody>
+                  {summary.escrowsByCurrency.length === 0 ? (
+                    <TableEmpty colSpan={5}>No currency breakdown yet</TableEmpty>
+                  ) : (
+                    summary.escrowsByCurrency.map((item) => (
+                      <TableRow key={item.currency}>
+                        <TableTd className="font-medium">₵</TableTd>
+                        <TableTd className="text-right">{item.count}</TableTd>
+                        <TableTd className="text-right font-medium">
+                          {formatCurrency(item.totalAmountCents, 'GHS')}
+                        </TableTd>
+                        <TableTd muted className="text-right">
+                          {formatCurrency(item.totalFeesCents, 'GHS')}
+                        </TableTd>
+                        <TableTd className="text-right font-medium">
+                          {formatCurrency(item.totalNetAmountCents, 'GHS')}
+                        </TableTd>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableShell>
+          ) : null}
+
+          {summary && (
+            <p className="text-sm text-gray-500 text-center">
+              Generated at: {new Date(summary.generatedAt).toLocaleString()}
+            </p>
+          )}
+        </LightShell>
       </PullToRefresh>
     </Layout>
   );
 }
-
