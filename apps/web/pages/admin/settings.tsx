@@ -4,11 +4,15 @@ import Layout from '@/components/Layout';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Settings, Save, Shield, DollarSign, Bell, Lock, Globe } from 'lucide-react';
+import { Settings, Save, DollarSign, Bell, Lock, Globe } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
-import { admin } from '@/components/admin/adminClasses';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Field } from '@/components/ui/Field';
+import { Toggle } from '@/components/ui/Toggle';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { calculateEscrowFees, formatPaidByLabel } from '@/lib/fee-calculator';
@@ -152,29 +156,50 @@ export default function AdminSettingsPage() {
 
         {/* Tabs */}
         <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
-          <div className="border-b border-white/10 overflow-x-auto">
-            <nav className="flex min-w-max -mb-px">
-              {[
-                { id: 'fees', label: 'Fees', icon: DollarSign },
-                { id: 'general', label: 'General', icon: Globe },
-                { id: 'security', label: 'Security', icon: Lock },
-                { id: 'notifications', label: 'Notifications', icon: Bell },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex min-h-[48px] shrink-0 items-center gap-2 px-4 md:px-6 text-sm font-medium border-b-2 transition-colors touch-manipulation ${
-                    activeTab === tab.id
-                      ? 'border-brand-gold text-brand-gold'
-                      : 'border-transparent text-white/55 hover:text-white/80 hover:border-white/20'
-                  }`}
-                >
-                  <tab.icon className="w-4 h-4" />
-                  {tab.label}
-                </button>
-              ))}
-            </nav>
+          <div className="p-3 border-b border-white/10">
+            <SegmentedControl
+              scrollable
+              value={activeTab}
+              onChange={setActiveTab}
+              options={[
+                {
+                  value: 'fees',
+                  label: (
+                    <>
+                      <DollarSign className="w-4 h-4" />
+                      Fees
+                    </>
+                  ),
+                },
+                {
+                  value: 'general',
+                  label: (
+                    <>
+                      <Globe className="w-4 h-4" />
+                      General
+                    </>
+                  ),
+                },
+                {
+                  value: 'security',
+                  label: (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      Security
+                    </>
+                  ),
+                },
+                {
+                  value: 'notifications',
+                  label: (
+                    <>
+                      <Bell className="w-4 h-4" />
+                      Notifications
+                    </>
+                  ),
+                },
+              ]}
+            />
           </div>
 
           <div className="p-6">
@@ -188,7 +213,7 @@ export default function AdminSettingsPage() {
                       <label className="block text-sm font-medium text-white/80 mb-2">
                         Percentage Fee (%)
                       </label>
-                      <input
+                      <Input
                         type="number"
                         min="0"
                         max="100"
@@ -200,7 +225,6 @@ export default function AdminSettingsPage() {
                             fees: { ...settings.fees, percentage: parseFloat(e.target.value) || 0 },
                           })
                         }
-                        className={admin.input}
                       />
                       <p className="mt-1 text-sm text-white/55">
                         Percentage of escrow amount charged as fee (e.g., 5 for 5%)
@@ -211,7 +235,7 @@ export default function AdminSettingsPage() {
                       <label className="block text-sm font-medium text-white/80 mb-2">
                         Fixed Fee (₵)
                       </label>
-                      <input
+                      <Input
                         type="number"
                         min="0"
                         step="0.01"
@@ -225,7 +249,6 @@ export default function AdminSettingsPage() {
                             },
                           })
                         }
-                        className={admin.input}
                       />
                       <p className="mt-1 text-sm text-white/55">Fixed amount charged per transaction</p>
                     </div>
@@ -234,7 +257,7 @@ export default function AdminSettingsPage() {
                       <label className="block text-sm font-medium text-white/80 mb-2">
                         Fee Paid By
                       </label>
-                      <select
+                      <Select
                         value={settings.fees.paidBy}
                         onChange={(e) =>
                           setSettings({
@@ -242,12 +265,11 @@ export default function AdminSettingsPage() {
                             fees: { ...settings.fees, paidBy: e.target.value },
                           })
                         }
-                        className={admin.input}
                       >
                         <option value="buyer">Buyer</option>
                         <option value="seller">Seller</option>
                         <option value="split">Split (50/50)</option>
-                      </select>
+                      </Select>
                     </div>
 
                     <Button
@@ -265,19 +287,16 @@ export default function AdminSettingsPage() {
 
                 <div className="rounded-xl border border-white/10 bg-white/5 p-5">
                   <h4 className="text-md font-semibold text-white mb-3">Live fee preview</h4>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-white/80 mb-2">
-                      Example deal amount (₵)
-                    </label>
-                    <input
+                  <Field label="Example deal amount (₵)" htmlFor="feePreviewAmount" className="mb-4">
+                    <Input
+                      id="feePreviewAmount"
                       type="number"
                       min="1"
                       step="1"
                       value={feePreviewAmount}
                       onChange={(e) => setFeePreviewAmount(parseFloat(e.target.value) || 0)}
-                      className={admin.input}
                     />
-                  </div>
+                  </Field>
                   {feePreview && (
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between text-white/80">
@@ -322,11 +341,9 @@ export default function AdminSettingsPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">General Settings</h3>
                   <div className="space-y-4">
-                    <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
-                        Platform Name
-                      </label>
-                      <input
+                    <Field label="Platform Name" htmlFor="platformName">
+                      <Input
+                        id="platformName"
                         type="text"
                         value={settings.general.platformName}
                         onChange={(e) =>
@@ -335,15 +352,12 @@ export default function AdminSettingsPage() {
                             general: { ...settings.general, platformName: e.target.value },
                           })
                         }
-                        className={admin.input}
                       />
-                    </div>
+                    </Field>
 
-                    <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
-                        Support Email
-                      </label>
-                      <input
+                    <Field label="Support Email" htmlFor="supportEmail">
+                      <Input
+                        id="supportEmail"
                         type="email"
                         value={settings.general.supportEmail}
                         onChange={(e) =>
@@ -352,26 +366,24 @@ export default function AdminSettingsPage() {
                             general: { ...settings.general, supportEmail: e.target.value },
                           })
                         }
-                        className={admin.input}
                       />
-                    </div>
+                    </Field>
 
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        id="maintenanceMode"
-                        checked={settings.general.maintenanceMode}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            general: { ...settings.general, maintenanceMode: e.target.checked },
-                          })
-                        }
-                        className="w-5 h-5 text-brand-gold border-white/20 rounded focus:ring-brand-gold"
-                      />
+                    <div className="flex items-center justify-between gap-4 rounded-ios-lg border border-white/10 bg-white/[0.04] px-4 py-3">
                       <label htmlFor="maintenanceMode" className="text-sm font-medium text-white/80">
                         Maintenance Mode
                       </label>
+                      <Toggle
+                        id="maintenanceMode"
+                        checked={settings.general.maintenanceMode}
+                        onCheckedChange={(checked) =>
+                          setSettings({
+                            ...settings,
+                            general: { ...settings.general, maintenanceMode: checked },
+                          })
+                        }
+                        label="Maintenance Mode"
+                      />
                     </div>
 
                     <Button
@@ -395,29 +407,26 @@ export default function AdminSettingsPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Security Settings</h3>
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        id="requireKYC"
-                        checked={settings.security.requireKYC}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            security: { ...settings.security, requireKYC: e.target.checked },
-                          })
-                        }
-                        className="w-5 h-5 text-brand-gold border-white/20 rounded focus:ring-brand-gold"
-                      />
+                    <div className="flex items-center justify-between gap-4 rounded-ios-lg border border-white/10 bg-white/[0.04] px-4 py-3">
                       <label htmlFor="requireKYC" className="text-sm font-medium text-white/80">
                         Require KYC Verification
                       </label>
+                      <Toggle
+                        id="requireKYC"
+                        checked={settings.security.requireKYC}
+                        onCheckedChange={(checked) =>
+                          setSettings({
+                            ...settings,
+                            security: { ...settings.security, requireKYC: checked },
+                          })
+                        }
+                        label="Require KYC Verification"
+                      />
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
-                        Minimum Password Length
-                      </label>
-                      <input
+                    <Field label="Minimum Password Length" htmlFor="minPasswordLength">
+                      <Input
+                        id="minPasswordLength"
                         type="number"
                         min="6"
                         max="32"
@@ -431,15 +440,12 @@ export default function AdminSettingsPage() {
                             },
                           })
                         }
-                        className={admin.input}
                       />
-                    </div>
+                    </Field>
 
-                    <div>
-                      <label className="block text-sm font-medium text-white/80 mb-2">
-                        Session Timeout (days)
-                      </label>
-                      <input
+                    <Field label="Session Timeout (days)" htmlFor="sessionTimeout">
+                      <Input
+                        id="sessionTimeout"
                         type="number"
                         min="1"
                         max="30"
@@ -453,9 +459,8 @@ export default function AdminSettingsPage() {
                             },
                           })
                         }
-                        className={admin.input}
                       />
-                    </div>
+                    </Field>
 
                     <Button
                       type="button"
@@ -478,40 +483,38 @@ export default function AdminSettingsPage() {
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-4">Notification Settings</h3>
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        id="emailEnabled"
-                        checked={settings.notifications.emailEnabled}
-                        onChange={(e) =>
-                          setSettings({
-                            ...settings,
-                            notifications: { ...settings.notifications, emailEnabled: e.target.checked },
-                          })
-                        }
-                        className="w-5 h-5 text-brand-gold border-white/20 rounded focus:ring-brand-gold"
-                      />
+                    <div className="flex items-center justify-between gap-4 rounded-ios-lg border border-white/10 bg-white/[0.04] px-4 py-3">
                       <label htmlFor="emailEnabled" className="text-sm font-medium text-white/80">
                         Enable Email Notifications
                       </label>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        id="smsEnabled"
-                        checked={settings.notifications.smsEnabled}
-                        onChange={(e) =>
+                      <Toggle
+                        id="emailEnabled"
+                        checked={settings.notifications.emailEnabled}
+                        onCheckedChange={(checked) =>
                           setSettings({
                             ...settings,
-                            notifications: { ...settings.notifications, smsEnabled: e.target.checked },
+                            notifications: { ...settings.notifications, emailEnabled: checked },
                           })
                         }
-                        className="w-5 h-5 text-brand-gold border-white/20 rounded focus:ring-brand-gold"
+                        label="Enable Email Notifications"
                       />
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4 rounded-ios-lg border border-white/10 bg-white/[0.04] px-4 py-3">
                       <label htmlFor="smsEnabled" className="text-sm font-medium text-white/80">
                         Enable SMS Notifications
                       </label>
+                      <Toggle
+                        id="smsEnabled"
+                        checked={settings.notifications.smsEnabled}
+                        onCheckedChange={(checked) =>
+                          setSettings({
+                            ...settings,
+                            notifications: { ...settings.notifications, smsEnabled: checked },
+                          })
+                        }
+                        label="Enable SMS Notifications"
+                      />
                     </div>
 
                     <Button

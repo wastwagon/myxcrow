@@ -8,8 +8,10 @@ import { z } from 'zod';
 import apiClient from '@/lib/api-client';
 import { getErrorMessage } from '@/lib/error-messages';
 import { setAuthTokens, setUser } from '@/lib/auth';
-import { Loader2, AlertCircle, X, Check, User, Mail, Lock, Phone, MessageCircle, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, X, Check, User, Mail, Lock, Phone, MessageCircle, Eye, EyeOff } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { publicForm } from '@/lib/form-classes';
 
 const registerSchema = z.object({
@@ -183,12 +185,13 @@ export default function Register() {
                       <User className="w-4 h-4 inline mr-1" />
                       First Name
                     </label>
-                    <input
+                    <Input
                       {...register('firstName')}
+                      tone="light"
                       type="text"
                       id="firstName"
-                      className={publicForm.inputTouch}
                       placeholder="John"
+                      error={!!errors.firstName}
                     />
                     {errors.firstName && (
                       <p className={publicForm.error}>{errors.firstName.message}</p>
@@ -198,12 +201,13 @@ export default function Register() {
                     <label htmlFor="lastName" className={publicForm.label}>
                       Last Name
                     </label>
-                    <input
+                    <Input
                       {...register('lastName')}
+                      tone="light"
                       type="text"
                       id="lastName"
-                      className={publicForm.inputTouch}
                       placeholder="Doe"
+                      error={!!errors.lastName}
                     />
                     {errors.lastName && (
                       <p className={publicForm.error}>{errors.lastName.message}</p>
@@ -217,12 +221,13 @@ export default function Register() {
                     <Mail className="w-4 h-4 inline mr-1" />
                     Email Address
                   </label>
-                  <input
+                  <Input
                     {...register('email')}
+                    tone="light"
                     type="email"
                     id="email"
-                    className={publicForm.inputTouch}
                     placeholder="you@example.com"
+                    error={!!errors.email}
                   />
                   {errors.email && (
                     <p className={publicForm.error}>{errors.email.message}</p>
@@ -235,12 +240,13 @@ export default function Register() {
                     <Phone className="w-4 h-4 inline mr-1" />
                     Phone Number
                   </label>
-                  <input
+                  <Input
                     {...register('phone')}
+                    tone="light"
                     type="tel"
                     id="phone"
-                    className={publicForm.inputTouch}
                     placeholder="0551234567"
+                    error={!!errors.phone}
                   />
                   {errors.phone && (
                     <p className={publicForm.error}>{errors.phone.message}</p>
@@ -261,15 +267,18 @@ export default function Register() {
                       )}
                     </div>
                   ) : (
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
+                      fullWidth
+                      className="mt-3"
                       onClick={onSendCode}
                       disabled={loading || countdown > 0 || !phone || !/^0[0-9]{9}$/.test(phone)}
-                      className={publicForm.outlineBtn}
+                      loading={loading}
                     >
                       <MessageCircle className="w-4 h-4" />
-                      {loading ? 'Sending...' : countdown > 0 ? `Resend in ${countdown}s` : 'Send verification code'}
-                    </button>
+                      {countdown > 0 ? `Resend in ${countdown}s` : 'Send verification code'}
+                    </Button>
                   )}
                 </div>
 
@@ -279,14 +288,16 @@ export default function Register() {
                     <label htmlFor="code" className={publicForm.label}>
                       Verification Code
                     </label>
-                    <input
+                    <Input
                       {...register('code')}
+                      tone="light"
                       type="text"
                       inputMode="numeric"
                       maxLength={6}
                       id="code"
-                      className={publicForm.inputCode}
+                      className="text-center text-lg tracking-widest"
                       placeholder="123456"
+                      error={!!errors.code}
                     />
                     {errors.code && (
                       <p className={publicForm.error}>{errors.code.message}</p>
@@ -309,47 +320,41 @@ export default function Register() {
                     <Lock className="w-4 h-4 inline mr-1" />
                     Password
                   </label>
-                  <div className="relative">
-                    <input
-                      {...register('password')}
-                      type={showPassword ? 'text' : 'password'}
-                      id="password"
-                      className={publicForm.passwordInput}
-                      placeholder="••••••••"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className={publicForm.passwordToggle}
-                      aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
+                  <Input
+                    {...register('password')}
+                    tone="light"
+                    type={showPassword ? 'text' : 'password'}
+                    id="password"
+                    placeholder="••••••••"
+                    error={!!errors.password}
+                    trailing={
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="px-2 text-gray-500 hover:text-brand-maroon"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    }
+                  />
                   {errors.password && (
                     <p className={publicForm.error}>{errors.password.message}</p>
                   )}
                   <p className={publicForm.hint}>Minimum 8 characters</p>
                 </div>
 
-                {/* Submit Button */}
-                <button
+                <Button
                   type="submit"
                   disabled={loading || !codeSent}
-                  className={publicForm.submitTouch}
+                  loading={loading}
+                  variant="maroon"
+                  fullWidth
+                  size="lg"
                 >
-                  {loading ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      Creating Account...
-                    </>
-                  ) : (
-                    <>
-                      Create Account
-                      <Check className="w-5 h-5" />
-                    </>
-                  )}
-                </button>
+                  Create Account
+                  {!loading && <Check className="w-5 h-5" />}
+                </Button>
               </form>
             </div>
 

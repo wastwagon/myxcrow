@@ -5,11 +5,11 @@ import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import Link from 'next/link';
 import { User } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { form } from '@/lib/form-classes';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
+import { ButtonLink } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { PageDetailSkeleton } from '@/components/LoadingSkeleton';
@@ -105,21 +105,21 @@ export default function AdminViewWalletPage() {
         </div>
 
         <div className="flex gap-3 flex-wrap">
-          <Link
+          <ButtonLink
             href={`/admin/wallet/credit?userId=${userId}`}
-            className="inline-flex px-4 py-2 rounded-ios-lg bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30 font-semibold transition-colors"
+            className="bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30"
           >
             Credit (Top-up)
-          </Link>
-          <Link
+          </ButtonLink>
+          <ButtonLink
             href={`/admin/wallet/debit?userId=${userId}`}
-            className="inline-flex px-4 py-2 rounded-ios-lg bg-amber-500/20 text-amber-200 border border-amber-500/30 hover:bg-amber-500/30 font-semibold transition-colors"
+            className="bg-amber-500/20 text-amber-200 border border-amber-500/30 hover:bg-amber-500/30"
           >
             Debit (Deduct)
-          </Link>
-          <Link href="/admin/users" className="inline-flex px-4 py-2 rounded-ios-lg bg-white/10 text-label-primary border border-white/15 hover:bg-white/15 font-medium transition-colors">
+          </ButtonLink>
+          <ButtonLink href="/admin/users" variant="secondary">
             Back to Users
-          </Link>
+          </ButtonLink>
         </div>
       </PullToRefresh>
     </Layout>

@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency } from '@/lib/utils';
 import { extractArrayData } from '@/lib/api-helpers';
-import { ESCROW_STATUS_COLORS, ACTIVE_ESCROW_STATUSES, COMPLETED_ESCROW_STATUSES } from '@/lib/constants';
+import { ACTIVE_ESCROW_STATUSES, COMPLETED_ESCROW_STATUSES } from '@/lib/constants';
 import {
   Users,
   FileText,
@@ -22,10 +22,12 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { ButtonLink } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import PageHeader from '@/components/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { StatusBadge } from '@/components/StatusBadge';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { AdminIconBadge } from '@/components/admin/AdminIconBadge';
 import { admin } from '@/components/admin/adminClasses';
@@ -442,22 +444,17 @@ export default function AdminDashboard() {
                             {formatCurrency(escrow.amountCents, 'GHS')}
                           </p>
                         </div>
-                        <span
-                          className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                            ESCROW_STATUS_COLORS[escrow.status] || 'bg-white/10 text-white/80 border-white/15'
-                          }`}
-                        >
-                          {escrow.status.replace(/_/g, ' ')}
-                        </span>
+                        <StatusBadge status={escrow.status} />
                       </div>
                     </Link>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-white/55">
-                  <FileText className="w-12 h-12 mx-auto mb-3 text-white/50" />
-                  <p>No escrows yet</p>
-                </div>
+                <EmptyState
+                  icon={<FileText className="w-6 h-6" />}
+                  title="No escrows yet"
+                  className="border-0 bg-transparent py-8"
+                />
               )}
             </div>
           </div>

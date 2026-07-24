@@ -7,6 +7,7 @@ import { Shield, Lock, Zap, Users, ArrowRight, CheckCircle2, MapPin, X, ChevronR
 import { isAuthenticated } from '@/lib/auth';
 import PublicHeader from '@/components/PublicHeader';
 import { publicForm } from '@/lib/form-classes';
+import { ButtonLink } from '@/components/ui/Button';
 import { ImageCard, ImageCardRow } from '@/components/ui/ImageCard';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 
@@ -101,19 +102,13 @@ export default function Home() {
                   For the home you&apos;re building from afar, or the deal you&apos;re closing in Accra. Funds held safely until both sides are satisfied.
                 </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                  <Link
-                    href="/register"
-                    className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-ios-lg bg-brand-gold px-6 py-3 font-semibold text-brand-maroon-black transition-colors hover:bg-brand-gold/90 touch-manipulation"
-                  >
+                  <ButtonLink href="/register" size="lg" className="sm:min-w-[180px]">
                     Start an Escrow
                     <ArrowRight className="w-5 h-5" />
-                  </Link>
-                  <Link
-                    href="/login"
-                    className="inline-flex min-h-[48px] items-center justify-center rounded-ios-lg border border-white/25 bg-white/10 px-6 py-3 font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20 touch-manipulation"
-                  >
+                  </ButtonLink>
+                  <ButtonLink href="/login" variant="secondary" size="lg" className="sm:min-w-[140px]">
                     Sign In
-                  </Link>
+                  </ButtonLink>
                 </div>
               </div>
             </section>
@@ -310,19 +305,13 @@ export default function Home() {
                   <p className="text-white/85 text-base md:text-lg">Start an escrow in Ghana Cedis. Secure, simple, transparent.</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Link
-                    href="/register"
-                    className="min-h-[48px] px-8 py-4 bg-brand-gold text-brand-maroon-black rounded-lg hover:bg-primary-200 font-semibold text-center transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2 touch-manipulation"
-                  >
+                  <ButtonLink href="/register" size="lg">
                     Start an Escrow
                     <ArrowRight className="w-5 h-5" />
-                  </Link>
-                  <Link
-                    href="/login"
-                    className="min-h-[48px] px-8 py-4 bg-white/10 text-white rounded-lg hover:bg-white/20 font-semibold text-center transition-all border-2 border-brand-gold/50 flex items-center justify-center backdrop-blur-sm touch-manipulation"
-                  >
+                  </ButtonLink>
+                  <ButtonLink href="/login" variant="secondary" size="lg">
                     Sign In
-                  </Link>
+                  </ButtonLink>
                 </div>
               </div>
             </div>
@@ -339,17 +328,17 @@ export default function Home() {
                     href={process.env.NEXT_PUBLIC_MAILPIT_URL || 'http://localhost:8025'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-3 bg-brand-maroon text-white rounded-lg hover:bg-brand-maroon-dark transition-colors text-center flex items-center justify-center gap-2"
+                    className="inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-3 rounded-ios-lg bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white font-semibold hover:from-brand-maroon-dark hover:to-brand-maroon-darker transition-colors"
                   >
-                    📧 Open Mailpit (Email Testing)
+                    Open Mailpit (Email Testing)
                   </a>
                   <a
                     href={process.env.NEXT_PUBLIC_MINIO_CONSOLE || 'http://localhost:9001'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-3 bg-brand-maroon-dark text-white rounded-lg hover:bg-brand-maroon-darker transition-colors text-center flex items-center justify-center gap-2"
+                    className="inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-3 rounded-ios-lg border-2 border-brand-maroon text-brand-maroon font-semibold hover:bg-brand-maroon/5 transition-colors"
                   >
-                    📦 Open MinIO Console
+                    Open MinIO Console
                   </a>
                 </div>
               </div>

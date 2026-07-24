@@ -8,11 +8,20 @@ import { formatCurrency } from '@/lib/utils';
 import { DollarSign, CheckCircle, AlertCircle, BarChart3 } from 'lucide-react';
 import PageHeader from '@/components/PageHeader';
 import { MetricCard } from '@/components/ui/MetricCard';
-import { admin } from '@/components/admin/adminClasses';
 import { StatusBadge } from '@/components/StatusBadge';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-
+import {
+  TableShell,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableTh,
+  TableTd,
+  TableEmpty,
+} from '@/components/ui/Table';
+import { Banner } from '@/components/ui/Banner';
 interface ReconciliationSummary {
   escrowsByStatus: Array<{
     status: string;
@@ -161,24 +170,14 @@ export default function ReconciliationPage() {
                   )}
                 </p>
               </div>
-              <div
-                className={`p-4 rounded-ios-lg border ${
-                  balance.reconciled
-                    ? 'border-emerald-500/30 bg-emerald-500/15'
-                    : 'border-red-500/30 bg-red-500/15'
-                }`}
+              <Banner
+                tone={balance.reconciled ? 'success' : 'error'}
+                title={balance.reconciled ? 'Reconciled' : 'Not Reconciled'}
               >
-                <div className="flex items-center gap-2">
-                  {balance.reconciled ? (
-                    <CheckCircle className="w-5 h-5 text-emerald-400" />
-                  ) : (
-                    <AlertCircle className="w-5 h-5 text-red-400" />
-                  )}
-                  <p className={`font-semibold ${balance.reconciled ? 'text-emerald-200' : 'text-red-200'}`}>
-                    {balance.reconciled ? 'Reconciled' : 'Not Reconciled'}
-                  </p>
-                </div>
-              </div>
+                {balance.reconciled
+                  ? 'Escrow hold balances match pending escrow totals.'
+                  : 'Balances do not match — investigate pending holds and ledger entries.'}
+              </Banner>
             </div>
           </div>
         ) : null}
@@ -189,43 +188,36 @@ export default function ReconciliationPage() {
             <div className="h-64 bg-white/10 animate-pulse rounded-ios-lg" />
           </div>
         ) : summary ? (
-          <div className={admin.tableWrap}>
-            <div className="px-4 py-3 border-b border-white/10">
-              <h2 className="text-base font-semibold text-white">Escrows by Status</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className={admin.tableHead}>
-                  <tr>
-                    <th className={`${admin.th} text-left`}>Status</th>
-                    <th className={`${admin.th} text-right`}>Count</th>
-                    <th className={`${admin.th} text-right`}>Total Amount</th>
-                  </tr>
-                </thead>
-                <tbody className={admin.tbody}>
-                  {summary.escrowsByStatus.length === 0 ? (
-                    <tr>
-                      <td colSpan={3} className={`${admin.td} text-center py-10 text-white/55`}>
-                        No escrow status data yet
-                      </td>
-                    </tr>
-                  ) : (
-                    summary.escrowsByStatus.map((item) => (
-                      <tr key={item.status} className={admin.trHover}>
-                        <td className={admin.td}>
-                          <StatusBadge status={item.status} />
-                        </td>
-                        <td className={`${admin.td} text-right font-medium`}>{item.count}</td>
-                        <td className={`${admin.td} text-right font-medium`}>
-                          {formatCurrency(item.totalAmountCents, 'GHS')}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <TableShell
+            toolbar={<h2 className="text-base font-semibold text-white">Escrows by Status</h2>}
+          >
+            <Table>
+              <TableHead>
+                <tr>
+                  <TableTh className="text-left">Status</TableTh>
+                  <TableTh className="text-right">Count</TableTh>
+                  <TableTh className="text-right">Total Amount</TableTh>
+                </tr>
+              </TableHead>
+              <TableBody>
+                {summary.escrowsByStatus.length === 0 ? (
+                  <TableEmpty colSpan={3}>No escrow status data yet</TableEmpty>
+                ) : (
+                  summary.escrowsByStatus.map((item) => (
+                    <TableRow key={item.status}>
+                      <TableTd>
+                        <StatusBadge status={item.status} />
+                      </TableTd>
+                      <TableTd className="text-right font-medium">{item.count}</TableTd>
+                      <TableTd className="text-right font-medium">
+                        {formatCurrency(item.totalAmountCents, 'GHS')}
+                      </TableTd>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableShell>
         ) : null}
 
         {/* Escrows by Currency */}
@@ -234,49 +226,42 @@ export default function ReconciliationPage() {
             <div className="h-64 bg-white/10 animate-pulse rounded-ios-lg" />
           </div>
         ) : summary ? (
-          <div className={admin.tableWrap}>
-            <div className="px-4 py-3 border-b border-white/10">
-              <h2 className="text-base font-semibold text-white">Escrows by Currency</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className={admin.tableHead}>
-                  <tr>
-                    <th className={`${admin.th} text-left`}>Currency</th>
-                    <th className={`${admin.th} text-right`}>Count</th>
-                    <th className={`${admin.th} text-right`}>Total Amount</th>
-                    <th className={`${admin.th} text-right`}>Total Fees</th>
-                    <th className={`${admin.th} text-right`}>Net Amount</th>
-                  </tr>
-                </thead>
-                <tbody className={admin.tbody}>
-                  {summary.escrowsByCurrency.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} className={`${admin.td} text-center py-10 text-white/55`}>
-                        No currency breakdown yet
-                      </td>
-                    </tr>
-                  ) : (
-                    summary.escrowsByCurrency.map((item) => (
-                      <tr key={item.currency} className={admin.trHover}>
-                        <td className={`${admin.td} font-medium`}>₵</td>
-                        <td className={`${admin.td} text-right`}>{item.count}</td>
-                        <td className={`${admin.td} text-right font-medium`}>
-                          {formatCurrency(item.totalAmountCents, 'GHS')}
-                        </td>
-                        <td className={`${admin.td} text-right ${admin.tdMuted}`}>
-                          {formatCurrency(item.totalFeesCents, 'GHS')}
-                        </td>
-                        <td className={`${admin.td} text-right font-medium`}>
-                          {formatCurrency(item.totalNetAmountCents, 'GHS')}
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <TableShell
+            toolbar={<h2 className="text-base font-semibold text-white">Escrows by Currency</h2>}
+          >
+            <Table>
+              <TableHead>
+                <tr>
+                  <TableTh className="text-left">Currency</TableTh>
+                  <TableTh className="text-right">Count</TableTh>
+                  <TableTh className="text-right">Total Amount</TableTh>
+                  <TableTh className="text-right">Total Fees</TableTh>
+                  <TableTh className="text-right">Net Amount</TableTh>
+                </tr>
+              </TableHead>
+              <TableBody>
+                {summary.escrowsByCurrency.length === 0 ? (
+                  <TableEmpty colSpan={5}>No currency breakdown yet</TableEmpty>
+                ) : (
+                  summary.escrowsByCurrency.map((item) => (
+                    <TableRow key={item.currency}>
+                      <TableTd className="font-medium">₵</TableTd>
+                      <TableTd className="text-right">{item.count}</TableTd>
+                      <TableTd className="text-right font-medium">
+                        {formatCurrency(item.totalAmountCents, 'GHS')}
+                      </TableTd>
+                      <TableTd muted className="text-right">
+                        {formatCurrency(item.totalFeesCents, 'GHS')}
+                      </TableTd>
+                      <TableTd className="text-right font-medium">
+                        {formatCurrency(item.totalNetAmountCents, 'GHS')}
+                      </TableTd>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableShell>
         ) : null}
 
         {summary && (

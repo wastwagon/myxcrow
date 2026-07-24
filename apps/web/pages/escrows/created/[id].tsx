@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ButtonLink } from '@/components/ui/Button';
+import { Button, ButtonLink } from '@/components/ui/Button';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { isAuthenticated } from '@/lib/auth';
@@ -9,6 +9,7 @@ import { CheckCircle2, Copy, Shield } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 import { toast } from 'react-hot-toast';
 import EscrowFeeSummary from '@/components/EscrowFeeSummary';
+import { Banner } from '@/components/ui/Banner';
 import { ESCROW_CATEGORY } from '@/lib/escrow-services';
 import { buildEscrowReceipt } from '@/lib/receipt-builders';
 import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
@@ -98,16 +99,16 @@ export default function EscrowCreatedPage() {
               <p className="text-white font-medium break-all">{id}</p>
             </div>
             {escrow?.serviceType && (
-              <div className="rounded-xl bg-white/5 border border-white/10 p-4 sm:col-span-2">
+              <div className="rounded-ios-lg bg-white/5 border border-white/10 p-4 sm:col-span-2">
                 <p className="text-white/60">Service</p>
                 <p className="text-white font-medium">{escrow.serviceType}</p>
               </div>
             )}
-            <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+            <div className="rounded-ios-lg bg-white/5 border border-white/10 p-4">
               <p className="text-white/60">Deal amount</p>
               <p className="text-white font-medium">{amountText || '—'}</p>
             </div>
-            <div className="rounded-xl bg-white/5 border border-white/10 p-4">
+            <div className="rounded-ios-lg bg-white/5 border border-white/10 p-4">
               <p className="text-white/60">{isFunded ? 'Funded from wallet' : 'Amount to fund'}</p>
               <p className="text-white font-medium">{fundAmountText || '—'}</p>
             </div>
@@ -120,29 +121,33 @@ export default function EscrowCreatedPage() {
           )}
 
           {generatedPin && (
-            <div className="mt-6 rounded-xl bg-amber-50 border border-amber-200 p-4">
-              <div className="flex items-center gap-2 text-amber-900 font-semibold mb-1">
-                <Shield className="w-4 h-4" />
-                Delivery PIN (auto-generated)
-              </div>
-              <p className="text-sm text-amber-800 mb-2">
+            <Banner
+              tone="warning"
+              title="Delivery PIN (auto-generated)"
+              icon={<Shield className="w-5 h-5" />}
+              className="mt-6"
+            >
+              <p className="mb-3">
                 This PIN confirms delivery before auto-release. It is also saved on your escrow details page.
               </p>
-              <div className="flex items-center gap-2">
-                <code className="font-mono text-lg font-bold text-amber-950 bg-amber-100 px-3 py-1 rounded">{generatedPin}</code>
-                <button
+              <div className="flex flex-wrap items-center gap-2">
+                <code className="font-mono text-lg font-bold text-label-primary bg-black/20 px-3 py-1 rounded-ios">
+                  {generatedPin}
+                </code>
+                <Button
                   type="button"
+                  size="sm"
+                  variant="secondary"
                   onClick={async () => {
                     await navigator.clipboard.writeText(generatedPin);
                     toast.success('PIN copied');
                   }}
-                  className="px-3 py-1.5 text-sm bg-amber-700 text-white rounded-lg hover:bg-amber-800"
                 >
-                  <Copy className="w-4 h-4 inline mr-1" />
+                  <Copy className="w-4 h-4" />
                   Copy
-                </button>
+                </Button>
               </div>
-            </div>
+            </Banner>
           )}
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3">

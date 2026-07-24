@@ -6,12 +6,16 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDateShort } from '@/lib/utils';
 import Link from 'next/link';
-import { Plus, Search, Filter, Download, Calendar, DollarSign, Mail, FileText } from 'lucide-react';
+import { Plus, Search, Filter, Download, FileText } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { DISPUTE_ELIGIBLE_ESCROW_STATUSES } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
-import { ButtonLink } from '@/components/ui/Button';
+import { Button, ButtonLink } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Field } from '@/components/ui/Field';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
@@ -180,126 +184,100 @@ export default function EscrowsPage() {
         <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm p-4 md:p-5">
           <div className="space-y-4">
             <div className="grid md:grid-cols-3 gap-3 md:gap-4">
+              <Input
+                type="text"
+                placeholder="Search by ID or description..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="min-h-[48px] bg-black/20"
+                leading={<Search className="w-5 h-5" />}
+              />
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search by ID or description..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full min-h-[48px] pl-10 pr-4 py-2.5 rounded-ios-lg border border-white/15 bg-black/20 text-white placeholder-white/45 focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50"
-                />
-              </div>
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-white/45 w-5 h-5" />
-                <select
+                <Filter className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-white/45 w-5 h-5 z-10" />
+                <Select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full min-h-[48px] pl-10 pr-4 py-2.5 rounded-ios-lg border border-white/15 bg-black/20 text-white focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 appearance-none"
+                  className="min-h-[48px] pl-10 bg-black/20"
                 >
                   {statusOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
-                </select>
+                </Select>
               </div>
               <div className="flex gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="secondary"
+                  fullWidth
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="flex-1 min-h-[48px] px-4 py-3 rounded-ios-lg border border-white/15 bg-black/20 hover:bg-white/10 text-white text-sm touch-manipulation transition-colors"
                 >
                   {showAdvancedFilters ? 'Hide' : 'Show'} filters
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={handleExportCSV}
-                  className="min-h-[48px] flex items-center justify-center gap-2 px-4 py-3 rounded-ios-lg bg-emerald-600 text-white hover:bg-emerald-500 text-sm touch-manipulation font-medium"
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white shrink-0"
                 >
                   <Download className="w-4 h-4" />
                   Export
-                </button>
+                </Button>
               </div>
             </div>
 
             {showAdvancedFilters && (
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-white/10">
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-1.5">
-                    <DollarSign className="w-4 h-4 inline mr-1" />
-                    Min amount (₵)
-                  </label>
-                  <input
+                <Field label="Min amount (₵)">
+                  <Input
                     type="number"
                     step="0.01"
                     placeholder="0.00"
                     value={minAmount}
                     onChange={(e) => setMinAmount(e.target.value)}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/20 text-white focus:ring-2 focus:ring-brand-gold"
+                    className="bg-black/20"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-1.5">
-                    <DollarSign className="w-4 h-4 inline mr-1" />
-                    Max amount (₵)
-                  </label>
-                  <input
+                </Field>
+                <Field label="Max amount (₵)">
+                  <Input
                     type="number"
                     step="0.01"
                     placeholder="0.00"
                     value={maxAmount}
                     onChange={(e) => setMaxAmount(e.target.value)}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/20 text-white focus:ring-2 focus:ring-brand-gold"
+                    className="bg-black/20"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-1.5">Currency</label>
-                  <select
-                    value="GHS"
-                    disabled
-                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/30 text-white/70"
-                  >
+                </Field>
+                <Field label="Currency">
+                  <Select value="GHS" disabled className="bg-black/30 text-white/70">
                     <option value="GHS">₵ Ghana Cedis</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-1.5">
-                    <Mail className="w-4 h-4 inline mr-1" />
-                    Counterparty email
-                  </label>
-                  <input
+                  </Select>
+                </Field>
+                <Field label="Counterparty email">
+                  <Input
                     type="email"
                     placeholder="email@example.com"
                     value={counterpartyEmail}
                     onChange={(e) => setCounterpartyEmail(e.target.value)}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/20 text-white placeholder-white/45 focus:ring-2 focus:ring-brand-gold"
+                    className="bg-black/20"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-1.5">
-                    <Calendar className="w-4 h-4 inline mr-1" />
-                    Start date
-                  </label>
-                  <input
+                </Field>
+                <Field label="Start date">
+                  <Input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/20 text-white focus:ring-2 focus:ring-brand-gold"
+                    className="bg-black/20"
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-1.5">
-                    <Calendar className="w-4 h-4 inline mr-1" />
-                    End date
-                  </label>
-                  <input
+                </Field>
+                <Field label="End date">
+                  <Input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="w-full min-h-[44px] px-3 py-2 rounded-ios-lg border border-white/15 bg-black/20 text-white focus:ring-2 focus:ring-brand-gold"
+                    className="bg-black/20"
                   />
-                </div>
+                </Field>
               </div>
             )}
           </div>
@@ -366,13 +344,11 @@ export default function EscrowsPage() {
             })}
           </ListGroup>
         ) : (
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] p-12 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
-              <FileText className="h-6 w-6" />
-            </div>
-            <p className="text-ios-headline text-label-primary font-semibold mb-2">No escrows found</p>
-            <p className="text-ios-subhead text-label-secondary mb-6">
-              {searchTerm ||
+          <EmptyState
+            icon={<FileText className="h-6 w-6" />}
+            title="No escrows found"
+            description={
+              searchTerm ||
               statusFilter !== 'all' ||
               minAmount ||
               maxAmount ||
@@ -381,15 +357,14 @@ export default function EscrowsPage() {
               startDate ||
               endDate
                 ? 'Try adjusting your filters'
-                : 'Create your first escrow to get started'}
-            </p>
-            {!searchTerm && statusFilter === 'all' && (
-              <ButtonLink href="/escrows/new">
-                  <Plus className="w-5 h-5" />
-                  New escrow
-              </ButtonLink>
-            )}
-          </div>
+                : 'Create your first escrow to get started'
+            }
+            action={
+              !searchTerm && statusFilter === 'all'
+                ? { href: '/escrows/new', label: 'New escrow' }
+                : undefined
+            }
+          />
         )}
       </PullToRefresh>
     </Layout>

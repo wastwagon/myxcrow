@@ -1,12 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate, cn } from '@/lib/utils';
 import { CheckCircle, Clock, DollarSign } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { getUser } from '@/lib/auth';
 import { useConfirm } from '@/components/providers/UIProvider';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { Button } from '@/components/ui/Button';
+import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface Milestone {
   id: string;
@@ -131,11 +133,12 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
 
   if (!milestones || milestones.length === 0) {
     return (
-      <div className="text-center py-8 text-label-tertiary">
-        <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
-        <p>No milestones found</p>
-        <p className="text-sm mt-1">This escrow does not use milestone payments</p>
-      </div>
+      <EmptyState
+        icon={<Clock className="w-6 h-6" />}
+        title="No milestones"
+        description="This escrow does not use milestone payments"
+        className="py-8"
+      />
     );
   }
 
@@ -145,8 +148,8 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
 
   return (
     <div className="space-y-4">
-      <div className="border border-brand-gold/30 bg-brand-gold/10 rounded-lg p-4">
-        <div className="flex items-center justify-between text-sm">
+      <div className="rounded-ios-lg border border-brand-gold/30 bg-brand-gold/10 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <div>
             <span className="text-label-secondary">Total Milestones:</span>
             <span className="font-medium text-label-primary ml-2">{milestones.length}</span>
@@ -177,25 +180,29 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
           return (
             <div
               key={milestone.id}
-              className={`border rounded-lg p-4 ${
+              className={cn(
+                'rounded-ios-lg border p-4',
                 milestone.status === 'released'
-                  ? 'border border-emerald-500/30 bg-emerald-500/15'
-                  : milestone.status === 'completed'
-                  ? 'border border-brand-gold/30 bg-brand-gold/10'
-                  : 'bg-white border-gray-200'
-              }`}
+                  ? 'border-emerald-500/30 bg-emerald-500/15'
+                  : milestone.status === 'completed' || milestone.status === 'approved'
+                  ? 'border-brand-gold/30 bg-brand-gold/10'
+                  : milestone.status === 'submitted'
+                  ? 'border-amber-500/30 bg-amber-500/10'
+                  : 'border-white/10 bg-white/[0.06]'
+              )}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                      className={cn(
+                        'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium',
                         milestone.status === 'released'
                           ? 'bg-emerald-600 text-white'
-                          : milestone.status === 'completed'
+                          : milestone.status === 'completed' || milestone.status === 'approved'
                           ? 'bg-brand-maroon text-white'
                           : 'bg-white/15 text-label-secondary'
-                      }`}
+                      )}
                     >
                       {index + 1}
                     </div>
@@ -206,23 +213,17 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       )}
                       <div className="flex flex-wrap items-center gap-2 mt-2">
                         {milestone.targetDate && (
-                          <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-brand-gold/20 text-brand-gold border border-brand-gold/30">
+                          <Badge color="gold" variant="subtle">
                             Target: {formatDate(milestone.targetDate)}
-                          </span>
+                          </Badge>
                         )}
-                        <span className="inline-block px-2 py-0.5 text-xs rounded-full bg-amber-500/20 text-amber-200 border border-amber-500/30">
+                        <Badge color="warning" variant="subtle">
                           Approval window: {milestone.approvalWindowDays ?? 5} day{(milestone.approvalWindowDays ?? 5) > 1 ? 's' : ''}
-                        </span>
+                        </Badge>
                         {milestone.status === 'submitted' && approvalMeta && (
-                          <span
-                            className={`inline-block px-2 py-0.5 text-xs rounded-full border ${
-                              approvalMeta.daysLeft <= 1
-                                ? 'bg-red-500/20 text-red-200 border-red-500/30'
-                                : 'bg-orange-500/20 text-orange-200 border-orange-500/30'
-                            }`}
-                          >
+                          <Badge color={approvalMeta.daysLeft <= 1 ? 'error' : 'warning'} variant="subtle">
                             Auto-approve due: {formatDate(approvalMeta.due)} ({approvalMeta.daysLeft <= 0 ? 'today/overdue' : `${approvalMeta.daysLeft} day(s) left`})
-                          </span>
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -230,18 +231,18 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       <p className="font-semibold text-label-primary">
                         {formatCurrency(milestone.amountCents, 'GHS')}
                       </p>
-                      <span
-                        className={`inline-block px-2 py-1 text-xs font-medium rounded-full border mt-1 ${
-                          milestone.status === 'released'
-                            ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30'
-                            : milestone.status === 'approved'
-                            ? 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30'
+                      <Badge
+                        className="mt-1"
+                        color={
+                          milestone.status === 'released' || milestone.status === 'approved'
+                            ? 'success'
                             : milestone.status === 'submitted'
-                            ? 'bg-amber-500/20 text-amber-200 border-amber-500/30'
+                            ? 'warning'
                             : milestone.status === 'completed'
-                            ? 'bg-blue-500/20 text-blue-200 border-blue-500/30'
-                            : 'bg-white/10 text-label-secondary border-white/15'
-                        }`}
+                            ? 'info'
+                            : 'gray'
+                        }
+                        variant="subtle"
                       >
                         {milestone.status === 'released'
                           ? 'Released'
@@ -252,7 +253,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                           : milestone.status === 'completed'
                           ? 'Completed (Legacy)'
                           : 'Pending'}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
 

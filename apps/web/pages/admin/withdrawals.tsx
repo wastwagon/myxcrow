@@ -17,9 +17,23 @@ import PageHeader from '@/components/PageHeader';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-import { admin } from '@/components/admin/adminClasses';
 import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
+import { Field } from '@/components/ui/Field';
+import { Modal } from '@/components/ui/Modal';
+import { Badge } from '@/components/ui/Badge';
+import {
+  TableShell,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableTh,
+  TableTd,
+  TableEmpty,
+} from '@/components/ui/Table';
 import {
   WithdrawalPayoutDetailsView,
   type WithdrawalRecord,
@@ -117,144 +131,139 @@ export default function AdminWithdrawalsPage() {
           icon={<ArrowUpCircle className="w-6 h-6" />}
           action={
             pendingWithdrawals.length > 0 ? (
-              <div className="px-3 py-1.5 bg-amber-500/20 text-amber-200 rounded-ios-lg border border-amber-500/30">
-                <p className="text-sm font-semibold">
-                  {pendingWithdrawals.length} pending
-                </p>
-              </div>
+              <Badge color="warning" variant="subtle">
+                {pendingWithdrawals.length} pending
+              </Badge>
             ) : undefined
           }
         />
 
-        <div className={admin.tableWrap}>
-          <div className={admin.tableToolbar}>
+        <TableShell
+          toolbar={
             <div className="flex items-center gap-3">
               <Filter className="w-4 h-4 text-white/50 shrink-0" />
-              <select
+              <Select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className={`${admin.select} max-w-xs`}
+                className="max-w-xs"
               >
                 <option value="all">All Status</option>
                 <option value="REQUESTED">Pending</option>
                 <option value="SUCCEEDED">Approved</option>
                 <option value="FAILED">Denied</option>
-              </select>
+              </Select>
             </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className={admin.tableHead}>
-                <tr>
-                  <th className={admin.th}>User</th>
-                  <th className={admin.th}>Amount</th>
-                  <th className={admin.th}>Payout</th>
-                  <th className={admin.th}>Status</th>
-                  <th className={admin.th}>Requested</th>
-                  <th className={admin.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody className={admin.tbody}>
-                {isLoading ? (
-                  <tr>
-                    <td colSpan={6} className={`${admin.td} text-center py-12`}>
-                      <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold" />
-                      </div>
-                    </td>
-                  </tr>
-                ) : withdrawalsData?.withdrawals?.length ? (
-                  withdrawalsData.withdrawals.map((withdrawal) => (
-                    <tr key={withdrawal.id} className={admin.trHover}>
-                      <td className={admin.td}>
-                        <div className="flex items-center gap-3 min-w-[180px]">
-                          <AdminAvatar label={withdrawal.wallet?.user?.email || '?'} variant="maroon" />
-                          <div className="min-w-0">
-                            <p className="font-medium text-white truncate">
-                              {withdrawal.wallet?.user?.email}
-                            </p>
-                            {withdrawal.wallet?.user?.phone && (
-                              <p className="text-xs text-white/55">{withdrawal.wallet.user.phone}</p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className={admin.td}>
-                        <p className="font-semibold text-white whitespace-nowrap">
-                          {formatCurrency(withdrawal.amountCents, withdrawal.currency || 'GHS')}
-                        </p>
-                        {withdrawal.feeCents > 0 && (
-                          <p className="text-xs text-white/55">
-                            Fee: {formatCurrency(withdrawal.feeCents, withdrawal.currency || 'GHS')}
-                          </p>
-                        )}
-                      </td>
-                      <td className={admin.td}>
-                        <p className="text-sm text-white">
-                          {withdrawal.methodLabel || formatWithdrawalMethodLabel(withdrawal.methodType)}
-                        </p>
-                        <p className="text-xs text-white/55 truncate max-w-[200px]">
-                          {withdrawal.payoutSummary || '—'}
-                        </p>
-                      </td>
-                      <td className={admin.td}><WithdrawalStatusBadge status={withdrawal.status} /></td>
-                      <td className={`${admin.td} ${admin.tdMuted} whitespace-nowrap`}>
-                        {formatDate(withdrawal.createdAt)}
-                      </td>
-                      <td className={admin.td}>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <button
-                            type="button"
-                            onClick={() => openDetails(withdrawal)}
-                            className={`${admin.rowAction} text-brand-gold hover:bg-brand-gold/15`}
-                            title="View payout details"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <PrintReceiptButton
-                            receipt={buildWithdrawalReceipt(withdrawal, undefined, {
-                              isAdminCopy: true,
-                              showSensitive: true,
-                            })}
-                            iconOnly
-                            variant="plain"
-                            size="sm"
-                            label="Print receipt"
-                          />
-                          {withdrawal.status === 'REQUESTED' && (
-                            <>
-                              <Button size="sm" variant="tinted" onClick={() => handleProcess(withdrawal, 'approve')}>
-                                Approve
-                              </Button>
-                              <Button size="sm" variant="destructive" onClick={() => handleProcess(withdrawal, 'deny')}>
-                                Deny
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className={`${admin.td} text-center py-12 text-white/55`}>
-                      <ArrowUpCircle className="w-12 h-12 mx-auto mb-3 text-white/50" />
-                      <p>No withdrawals found</p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          {withdrawalsData && (
-            <div className={admin.footerBar}>
+          }
+          footer={
+            withdrawalsData ? (
               <p>
                 Showing <span className="font-medium text-white">{withdrawalsData.withdrawals.length}</span> of{' '}
                 <span className="font-medium text-white">{withdrawalsData.total}</span> withdrawals
               </p>
-            </div>
-          )}
-        </div>
+            ) : undefined
+          }
+        >
+          <Table>
+            <TableHead>
+              <tr>
+                <TableTh>User</TableTh>
+                <TableTh>Amount</TableTh>
+                <TableTh>Payout</TableTh>
+                <TableTh>Status</TableTh>
+                <TableTh>Requested</TableTh>
+                <TableTh>Actions</TableTh>
+              </tr>
+            </TableHead>
+            <TableBody>
+              {isLoading ? (
+                <TableEmpty colSpan={6}>
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold" />
+                  </div>
+                </TableEmpty>
+              ) : withdrawalsData?.withdrawals?.length ? (
+                withdrawalsData.withdrawals.map((withdrawal) => (
+                  <TableRow key={withdrawal.id}>
+                    <TableTd>
+                      <div className="flex items-center gap-3 min-w-[180px]">
+                        <AdminAvatar label={withdrawal.wallet?.user?.email || '?'} variant="maroon" />
+                        <div className="min-w-0">
+                          <p className="font-medium text-white truncate">
+                            {withdrawal.wallet?.user?.email}
+                          </p>
+                          {withdrawal.wallet?.user?.phone && (
+                            <p className="text-xs text-white/55">{withdrawal.wallet.user.phone}</p>
+                          )}
+                        </div>
+                      </div>
+                    </TableTd>
+                    <TableTd>
+                      <p className="font-semibold text-white whitespace-nowrap">
+                        {formatCurrency(withdrawal.amountCents, withdrawal.currency || 'GHS')}
+                      </p>
+                      {withdrawal.feeCents > 0 && (
+                        <p className="text-xs text-white/55">
+                          Fee: {formatCurrency(withdrawal.feeCents, withdrawal.currency || 'GHS')}
+                        </p>
+                      )}
+                    </TableTd>
+                    <TableTd>
+                      <p className="text-sm text-white">
+                        {withdrawal.methodLabel || formatWithdrawalMethodLabel(withdrawal.methodType)}
+                      </p>
+                      <p className="text-xs text-white/55 truncate max-w-[200px]">
+                        {withdrawal.payoutSummary || '—'}
+                      </p>
+                    </TableTd>
+                    <TableTd>
+                      <WithdrawalStatusBadge status={withdrawal.status} />
+                    </TableTd>
+                    <TableTd muted className="whitespace-nowrap">
+                      {formatDate(withdrawal.createdAt)}
+                    </TableTd>
+                    <TableTd>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => openDetails(withdrawal)}
+                          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-ios-lg text-brand-gold hover:bg-brand-gold/15"
+                          title="View payout details"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                        <PrintReceiptButton
+                          receipt={buildWithdrawalReceipt(withdrawal, undefined, {
+                            isAdminCopy: true,
+                            showSensitive: true,
+                          })}
+                          iconOnly
+                          variant="plain"
+                          size="sm"
+                          label="Print receipt"
+                        />
+                        {withdrawal.status === 'REQUESTED' && (
+                          <>
+                            <Button size="sm" variant="tinted" onClick={() => handleProcess(withdrawal, 'approve')}>
+                              Approve
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => handleProcess(withdrawal, 'deny')}>
+                              Deny
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </TableTd>
+                  </TableRow>
+                ))
+              ) : (
+                <TableEmpty colSpan={6}>
+                  <ArrowUpCircle className="w-12 h-12 mx-auto mb-3 text-white/50" />
+                  <p>No withdrawals found</p>
+                </TableEmpty>
+              )}
+            </TableBody>
+          </Table>
+        </TableShell>
 
         <Sheet
           open={detailOpen && !!selectedWithdrawal}
@@ -311,7 +320,7 @@ export default function AdminWithdrawalsPage() {
           )}
         </Sheet>
 
-        <Sheet
+        <Modal
           open={showProcessModal && !!selectedWithdrawal}
           onClose={() => {
             setShowProcessModal(false);
@@ -319,11 +328,10 @@ export default function AdminWithdrawalsPage() {
           }}
           title={processAction === 'approve' ? 'Approve withdrawal' : 'Deny withdrawal'}
           footer={
-            <div className="flex gap-3 pb-2">
+            <>
               <Button
                 type="button"
                 variant="secondary"
-                fullWidth
                 onClick={() => {
                   setShowProcessModal(false);
                   setReason('');
@@ -334,36 +342,31 @@ export default function AdminWithdrawalsPage() {
               <Button
                 type="button"
                 variant={processAction === 'approve' ? 'filled' : 'destructive'}
-                fullWidth
                 loading={processMutation.isPending}
                 disabled={processAction === 'deny' && !reason.trim()}
                 onClick={confirmProcess}
               >
                 {processAction === 'approve' ? 'Approve' : 'Deny'}
               </Button>
-            </div>
+            </>
           }
         >
           {selectedWithdrawal && (
-            <div className="space-y-4 pb-2">
+            <div className="space-y-4">
               <WithdrawalPayoutDetailsView withdrawal={selectedWithdrawal} showSensitive />
               {processAction === 'deny' && (
-                <div>
-                  <label className="block text-sm font-medium text-white/70 mb-2">
-                    Reason <span className="text-red-400">*</span>
-                  </label>
-                  <textarea
+                <Field label="Reason" required>
+                  <Textarea
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     rows={3}
                     placeholder="Enter reason for denial…"
-                    className={`${admin.input} resize-none`}
                   />
-                </div>
+                </Field>
               )}
             </div>
           )}
-        </Sheet>
+        </Modal>
       </PullToRefresh>
     </Layout>
   );

@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { useRouter } from 'next/router';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '@/lib/api-client';
-import { Loader2, AlertCircle, Smartphone } from 'lucide-react';
+import { AlertCircle, Smartphone } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
+import { Button, ButtonLink } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { publicForm } from '@/lib/form-classes';
 
 const schema = z.object({
@@ -20,7 +21,6 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function ForgotPasswordPage() {
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -86,12 +86,9 @@ export default function ForgotPasswordPage() {
               <div className={publicForm.calloutSuccess}>
                 If an account exists with a phone number on file, an SMS with your reset link has been sent. Open the link on your phone to set a new password.
               </div>
-              <button
-                onClick={() => router.push('/login')}
-                className="w-full py-3 px-6 bg-brand-maroon text-white rounded-xl hover:bg-brand-maroon-dark font-semibold"
-              >
+              <ButtonLink href="/login" variant="maroon" fullWidth size="lg">
                 Back to login
-              </button>
+              </ButtonLink>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -100,12 +97,13 @@ export default function ForgotPasswordPage() {
                   <Smartphone className="w-4 h-4 inline mr-1" />
                   Email or Phone
                 </label>
-                <input
+                <Input
                   {...register('identifier')}
+                  tone="light"
                   type="text"
                   id="identifier"
-                  className={publicForm.input}
                   placeholder="you@example.com or 0551234567"
+                  error={!!errors.identifier}
                 />
                 <p className={publicForm.hint}>
                   Reset link is sent by SMS to the phone number registered on your account
@@ -115,20 +113,9 @@ export default function ForgotPasswordPage() {
                 )}
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 px-6 bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white rounded-xl hover:from-brand-maroon-dark hover:to-brand-maroon-darker disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Sending SMS...
-                  </>
-                ) : (
-                  'Send reset link via SMS'
-                )}
-              </button>
+              <Button type="submit" disabled={loading} loading={loading} variant="maroon" fullWidth size="lg">
+                Send reset link via SMS
+              </Button>
 
               <div className={`text-center ${publicForm.footerText}`}>
                 Remembered your password?{' '}

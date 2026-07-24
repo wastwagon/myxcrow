@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import PublicHeader from '@/components/PublicHeader';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { publicForm } from '@/lib/form-classes';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
@@ -86,13 +88,14 @@ export default function ConfirmDeliveryPage() {
                   <label htmlFor="ref" className={publicForm.labelCompact}>
                     Reference
                   </label>
-                  <input
+                  <Input
                     id="ref"
+                    tone="light"
                     type="text"
                     value={shortReference}
                     onChange={(e) => setShortReference(e.target.value.toUpperCase())}
                     placeholder="e.g. MV7K2A"
-                    className={publicForm.inputMono}
+                    className="font-mono uppercase"
                     maxLength={6}
                   />
                 </div>
@@ -109,14 +112,15 @@ export default function ConfirmDeliveryPage() {
                       Use {usePin ? 'code' : 'PIN'} instead
                     </button>
                   </div>
-                  <input
+                  <Input
                     id="codeOrPin"
+                    tone="light"
                     type={usePin ? 'password' : 'text'}
                     inputMode={usePin ? 'numeric' : 'text'}
                     value={codeOrPin}
                     onChange={(e) => setCodeOrPin(e.target.value)}
                     placeholder={usePin ? '4–8 digit PIN' : 'e.g. ABC123'}
-                    className={`${publicForm.input} font-mono`}
+                    className="font-mono"
                     maxLength={usePin ? 8 : 6}
                     autoComplete={usePin ? 'one-time-code' : 'off'}
                   />
@@ -126,13 +130,16 @@ export default function ConfirmDeliveryPage() {
                     {result.message}
                   </div>
                 )}
-                <button
+                <Button
                   type="submit"
                   disabled={loading || !shortReference.trim() || !codeOrPin.trim()}
-                  className={publicForm.submitDelivery}
+                  loading={loading}
+                  variant="maroon"
+                  fullWidth
+                  size="lg"
                 >
-                  {loading ? 'Confirming...' : 'Confirm Delivery'}
-                </button>
+                  Confirm Delivery
+                </Button>
               </form>
 
               <p className={`mt-6 ${publicForm.hint}`}>

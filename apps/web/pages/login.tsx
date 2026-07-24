@@ -8,8 +8,10 @@ import { z } from 'zod';
 import apiClient from '@/lib/api-client';
 import { getErrorMessage } from '@/lib/error-messages';
 import { setAuthTokens, setUser } from '@/lib/auth';
-import { Loader2, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { AlertCircle, Eye, EyeOff } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { publicForm } from '@/lib/form-classes';
 
 const loginSchema = z.object({
@@ -102,12 +104,13 @@ export default function Login() {
                 <label htmlFor="identifier" className={publicForm.label}>
                   Email or Phone
                 </label>
-                <input
+                <Input
                   {...register('identifier')}
+                  tone="light"
                   type="text"
                   id="identifier"
-                  className={publicForm.inputTouch}
                   placeholder="you@example.com or 0551234567"
+                  error={!!errors.identifier}
                 />
                 <p className={publicForm.hint}>Enter your email or Ghana phone number</p>
                 {errors.identifier && <p className={publicForm.error}>{errors.identifier.message}</p>}
@@ -117,23 +120,24 @@ export default function Login() {
                 <label htmlFor="password" className={publicForm.label}>
                   Password
                 </label>
-                <div className="relative">
-                  <input
-                    {...register('password')}
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    className={publicForm.passwordInput}
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword((v) => !v)}
-                    className={publicForm.passwordToggle}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
+                <Input
+                  {...register('password')}
+                  tone="light"
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  placeholder="••••••••"
+                  error={!!errors.password}
+                  trailing={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="px-2 text-gray-500 hover:text-brand-maroon"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  }
+                />
                 {errors.password && <p className={publicForm.error}>{errors.password.message}</p>}
                 <div className="mt-2 text-right">
                   <Link
@@ -145,16 +149,9 @@ export default function Login() {
                 </div>
               </div>
 
-              <button type="submit" disabled={loading} className={publicForm.submitTouch}>
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Signing in...
-                  </>
-                ) : (
-                  'Sign In'
-                )}
-              </button>
+              <Button type="submit" disabled={loading} loading={loading} variant="maroon" fullWidth size="lg">
+                Sign In
+              </Button>
             </form>
 
             <div className={publicForm.footer}>

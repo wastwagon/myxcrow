@@ -6,8 +6,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import apiClient from '@/lib/api-client';
-import { Loader2, AlertCircle, Lock } from 'lucide-react';
+import { AlertCircle, Lock } from 'lucide-react';
 import PublicHeader from '@/components/PublicHeader';
+import { Button, ButtonLink } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
 import { publicForm } from '@/lib/form-classes';
 
 const schema = z
@@ -105,9 +107,9 @@ export default function ResetPasswordPage() {
               <div className={publicForm.calloutSuccess}>
                 Password reset successful. A confirmation SMS has been sent to your phone. You can now sign in.
               </div>
-              <button type="button" onClick={() => router.push('/login')} className={publicForm.submitMaroon}>
+              <ButtonLink href="/login" variant="maroon" fullWidth size="lg">
                 Go to login
-              </button>
+              </ButtonLink>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -116,12 +118,13 @@ export default function ResetPasswordPage() {
                   <label htmlFor="token" className={publicForm.label}>
                     Reset Token
                   </label>
-                  <input
+                  <Input
                     {...register('token')}
+                    tone="light"
                     type="text"
                     id="token"
-                    className={publicForm.input}
                     placeholder="Paste token from your email or SMS link"
+                    error={!!errors.token}
                   />
                   {errors.token && <p className={publicForm.error}>{errors.token.message}</p>}
                 </div>
@@ -133,12 +136,13 @@ export default function ResetPasswordPage() {
                   <Lock className="w-4 h-4 inline mr-1" />
                   New Password
                 </label>
-                <input
+                <Input
                   {...register('newPassword')}
+                  tone="light"
                   type="password"
                   id="newPassword"
-                  className={publicForm.input}
                   placeholder="••••••••"
+                  error={!!errors.newPassword}
                 />
                 {errors.newPassword && <p className={publicForm.error}>{errors.newPassword.message}</p>}
               </div>
@@ -147,28 +151,22 @@ export default function ResetPasswordPage() {
                 <label htmlFor="confirmPassword" className={publicForm.label}>
                   Confirm Password
                 </label>
-                <input
+                <Input
                   {...register('confirmPassword')}
+                  tone="light"
                   type="password"
                   id="confirmPassword"
-                  className={publicForm.input}
                   placeholder="••••••••"
+                  error={!!errors.confirmPassword}
                 />
                 {errors.confirmPassword && (
                   <p className={publicForm.error}>{errors.confirmPassword.message}</p>
                 )}
               </div>
 
-              <button type="submit" disabled={loading} className={publicForm.submit}>
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Resetting...
-                  </>
-                ) : (
-                  'Reset password'
-                )}
-              </button>
+              <Button type="submit" disabled={loading} loading={loading} variant="maroon" fullWidth size="lg">
+                Reset password
+              </Button>
 
               <div className={`text-center ${publicForm.footerText}`}>
                 <Link href="/login" className="text-brand-maroon hover:text-brand-maroon-dark font-semibold">

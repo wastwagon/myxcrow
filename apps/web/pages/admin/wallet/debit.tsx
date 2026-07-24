@@ -12,6 +12,9 @@ import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Textarea } from '@/components/ui/Textarea';
+import { Field } from '@/components/ui/Field';
 import { admin } from '@/components/admin/adminClasses';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
@@ -180,10 +183,7 @@ export default function DebitWalletPage() {
               </div>
             ) : (
               <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-white/50" />
-                </div>
-                <input
+                <Input
                   type="text"
                   value={searchTerm}
                   onChange={(e) => {
@@ -192,7 +192,7 @@ export default function DebitWalletPage() {
                   }}
                   onFocus={() => setShowUserSearch(true)}
                   placeholder="Search by email or name..."
-                  className={`${admin.input} pl-10`}
+                  leading={<Search className="h-5 w-5" />}
                 />
                 {showUserSearch && searchTerm && (
                   <div className={admin.searchDropdown}>
@@ -228,50 +228,41 @@ export default function DebitWalletPage() {
             )}
           </div>
 
-          {/* Amount */}
-          <div>
-            <label htmlFor="amountCents" className="block text-sm font-semibold text-white/80 mb-2">
-              Amount ({CURRENCY_SYMBOL}) *
-            </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/55 font-medium">{CURRENCY_SYMBOL}</span>
-              <input
-                {...register('amountCents', { valueAsNumber: true })}
-                type="number"
-                id="amountCents"
-                step="0.01"
-                min="0.01"
-                placeholder="50.00"
-                className={`${admin.input} pl-16 text-lg font-semibold`}
-              />
-            </div>
-            {amountGHS && (
+          <Field label={`Amount (${CURRENCY_SYMBOL})`} htmlFor="amountCents" required error={errors.amountCents?.message}>
+            <Input
+              {...register('amountCents', { valueAsNumber: true })}
+              type="number"
+              id="amountCents"
+              step="0.01"
+              min="0.01"
+              placeholder="50.00"
+              className="text-lg font-semibold"
+              leading={<span className="font-medium text-white/55">{CURRENCY_SYMBOL}</span>}
+              error={!!errors.amountCents}
+            />
+            {amountGHS ? (
               <p className="mt-2 text-sm text-white/55">
-                Will debit: <span className="font-medium text-white">{Math.round(amountGHS * 100).toLocaleString()}</span> cents
+                Will debit:{' '}
+                <span className="font-medium text-white">{Math.round(amountGHS * 100).toLocaleString()}</span> cents
               </p>
-            )}
-            {errors.amountCents && (
-              <p className="mt-1 text-sm text-red-400">{errors.amountCents.message}</p>
-            )}
-          </div>
+            ) : null}
+          </Field>
 
-          {/* Description */}
-          <div>
-            <label htmlFor="description" className="block text-sm font-semibold text-white/80 mb-2">
-              Description * <span className="text-red-400">(Required for audit)</span>
-            </label>
-            <textarea
+          <Field
+            label="Description"
+            htmlFor="description"
+            required
+            error={errors.description?.message}
+            hint="Required for audit — provide a detailed reason for this debit"
+          >
+            <Textarea
               {...register('description')}
               id="description"
               rows={4}
               placeholder="e.g., Refund for cancelled order #12345 - Customer requested full refund"
-              className={admin.input}
+              error={!!errors.description}
             />
-            <p className="mt-1 text-xs text-white/55">Please provide a detailed reason for this debit operation</p>
-            {errors.description && (
-              <p className="mt-1 text-sm text-red-400">{errors.description.message}</p>
-            )}
-          </div>
+          </Field>
 
           {/* Actions */}
           <div className="flex gap-4 pt-4">

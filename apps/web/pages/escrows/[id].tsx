@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import Layout from '@/components/Layout';
 import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -12,7 +11,6 @@ import {
   Truck,
   CheckCircle,
   DollarSign,
-  Clock,
   AlertCircle,
   Upload,
   FileText,
@@ -28,13 +26,16 @@ import RatingModal from '@/components/RatingModal';
 import UserProfileLink from '@/components/UserProfileLink';
 import PageHeader from '@/components/PageHeader';
 import { useConfirm, usePrompt } from '@/components/providers/UIProvider';
-import { Button } from '@/components/ui/Button';
+import { Button, ButtonLink } from '@/components/ui/Button';
 import { NavBar } from '@/components/ui/NavBar';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { Input } from '@/components/ui/Input';
+import { Banner } from '@/components/ui/Banner';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { PageDetailSkeleton } from '@/components/LoadingSkeleton';
 import EscrowFeeSummary from '@/components/EscrowFeeSummary';
+import { StatusBadge } from '@/components/StatusBadge';
 import { buildEscrowReceipt } from '@/lib/receipt-builders';
 import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
 
@@ -133,17 +134,6 @@ export default function EscrowDetailPage() {
   const canRelease = isBuyer && (escrow?.status === 'DELIVERED' || escrow?.status === 'AWAITING_RELEASE');
   const canMarkServiceCompleted = isSeller && escrow?.status === 'FUNDED' && isProfessionalService;
   const canRate = (isBuyer || isSeller) && escrow && ['RELEASED', 'REFUNDED'].includes(escrow.status);
-
-  const statusConfig: Record<string, { label: string; icon: typeof Clock }> = {
-    AWAITING_FUNDING: { label: 'Awaiting Funding', icon: Clock },
-    FUNDED: { label: 'Funded', icon: DollarSign },
-    SHIPPED: { label: 'Shipped', icon: Truck },
-    DELIVERED: { label: 'Delivered', icon: Package },
-    AWAITING_RELEASE: { label: 'Awaiting Release', icon: Clock },
-    RELEASED: { label: 'Released', icon: CheckCircle },
-    DISPUTED: { label: 'Disputed', icon: AlertCircle },
-    CANCELLED: { label: 'Cancelled', icon: AlertCircle },
-  };
 
   const fundMutation = useMutation({
     mutationFn: async () => {
@@ -339,8 +329,6 @@ export default function EscrowDetailPage() {
     );
   }
 
-  const StatusIcon = statusConfig[escrow.status]?.icon || AlertCircle;
-
   const tabOptions = [
     { value: 'timeline' as const, label: 'Timeline' },
     { value: 'ledger' as const, label: 'Ledger' },
@@ -367,10 +355,9 @@ export default function EscrowDetailPage() {
           <NavBar title="Escrow" showBack />
         </div>
         {isStaffView && (
-          <div className="rounded-xl border border-brand-gold/35 bg-brand-gold/10 px-4 py-3 text-sm text-white/90">
-            <strong className="text-brand-gold">Admin view</strong> — read-only access for records and printing.
-            Participant actions are disabled.
-          </div>
+          <Banner tone="brand" title="Admin view">
+            Read-only access for records and printing. Participant actions are disabled.
+          </Banner>
         )}
         <PageHeader
           eyebrow="Agreement"
@@ -387,19 +374,14 @@ export default function EscrowDetailPage() {
                 size="sm"
                 variant="secondary"
               />
-              <div className="flex items-center gap-2 px-4 py-2 bg-white/10 rounded-lg border border-white/20">
-                <StatusIcon className="w-5 h-5 text-brand-gold" />
-                <span className="text-sm font-medium text-white">
-                  {statusConfig[escrow.status]?.label || escrow.status}
-                </span>
-              </div>
+              <StatusBadge status={escrow.status} />
             </div>
           }
         />
 
         {/* Main Info */}
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 p-6">
+          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Details</h2>
             <div className="space-y-3">
               <div>
@@ -548,7 +530,7 @@ export default function EscrowDetailPage() {
           </div>
 
           {/* Actions */}
-          <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10 p-6">
+          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
             <h2 className="text-xl font-semibold text-white mb-4">Actions</h2>
             <div className="space-y-3">
               {canFund && (
@@ -607,12 +589,12 @@ export default function EscrowDetailPage() {
                   </Button>
                   {firstShipmentWithCode && escrow.deliveryConfirmationMode !== 'pin' && (
                     <div className="flex gap-2">
-                      <input
+                      <Input
                         type="text"
                         placeholder="Enter delivery code"
                         value={deliveryCodeInput}
                         onChange={(e) => setDeliveryCodeInput(e.target.value.toUpperCase())}
-                        className="flex-1 min-h-[44px] px-3 py-2 border border-white/20 rounded-ios-lg bg-white/5 text-white text-sm font-mono uppercase placeholder:text-white/40"
+                        className="flex-1 font-mono uppercase"
                         maxLength={6}
                       />
                       <Button
@@ -652,26 +634,23 @@ export default function EscrowDetailPage() {
                   No actions available for this status
                 </p>
               )}
-              <div className="pt-4 border-t">
-                <Link
-                  href={`/escrows/${id}/evidence`}
-                  className="block w-full px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 text-center"
-                >
-                  <Upload className="w-4 h-4 inline mr-2" />
+              <div className="pt-4 border-t border-white/10 space-y-2">
+                <ButtonLink href={`/escrows/${id}/evidence`} variant="secondary" fullWidth>
+                  <Upload className="w-4 h-4" />
                   Manage Evidence
-                </Link>
+                </ButtonLink>
               </div>
               {(['FUNDED', 'SHIPPED', 'IN_TRANSIT', 'DELIVERED', 'AWAITING_RELEASE', 'RELEASED'] as string[]).includes(escrow.status) && (
-                <Link
-                  href={`/disputes/new?escrowId=${id}`}
-                  className="block w-full px-4 py-2 bg-red-500/20 text-red-200 rounded-lg hover:bg-red-500/30 text-center border border-red-400/30"
-                >
-                  <AlertCircle className="w-4 h-4 inline mr-2" />
+                <ButtonLink href={`/disputes/new?escrowId=${id}`} variant="destructive" fullWidth>
+                  <AlertCircle className="w-4 h-4" />
                   Open Dispute
-                </Link>
+                </ButtonLink>
               )}
               {canRate && (
-                <button
+                <Button
+                  type="button"
+                  variant="tinted"
+                  fullWidth
                   onClick={() => {
                     if (!escrow || !user) return;
                     const otherParty = isBuyer ? escrow.seller : escrow.buyer;
@@ -685,18 +664,17 @@ export default function EscrowDetailPage() {
                       role: isBuyer ? 'seller' : 'buyer',
                     });
                   }}
-                  className="block w-full min-h-[44px] px-4 py-2 bg-brand-gold/20 text-brand-gold rounded-ios-lg hover:bg-brand-gold/30 text-center border border-brand-gold/30 touch-manipulation"
                 >
-                  <Star className="w-4 h-4 inline mr-2" />
+                  <Star className="w-4 h-4" />
                   Rate {isBuyer ? 'Seller' : 'Buyer'}
-                </button>
+                </Button>
               )}
             </div>
           </div>
         </div>
 
         {/* Tabs: Timeline, Ledger, Milestones */}
-        <div className="bg-white/[0.07] backdrop-blur-sm rounded-xl border border-white/10 shadow-xl shadow-black/10">
+        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
           <div className="p-4 border-b border-white/10 overflow-x-auto">
             <SegmentedControl
               options={tabOptions}

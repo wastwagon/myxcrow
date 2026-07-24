@@ -24,7 +24,8 @@ import Link from 'next/link';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { StatusBadge } from '@/components/StatusBadge';
-import { Button, ButtonLink } from '@/components/ui/Button';
+import { ButtonLink } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
@@ -433,19 +434,12 @@ export default function Dashboard() {
               })}
             </ListGroup>
           ) : (
-            <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] p-10 text-center">
-              <FileText className="w-14 h-14 mx-auto mb-4 text-white/30" />
-              <p className="text-ios-headline text-label-primary font-semibold mb-1">No escrows yet</p>
-              <p className="text-ios-subhead text-label-secondary mb-6">
-                Create your first escrow to protect a transaction
-              </p>
-              <Link href="/escrows/new">
-                <Button>
-                  <Plus className="w-5 h-5" />
-                  Create escrow
-                </Button>
-              </Link>
-            </div>
+            <EmptyState
+              icon={<FileText className="w-6 h-6" />}
+              title="No escrows yet"
+              description="Create your first escrow to protect a transaction"
+              action={{ href: '/escrows/new', label: 'Create escrow' }}
+            />
           )}
         </section>
       </PullToRefresh>

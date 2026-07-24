@@ -11,6 +11,12 @@ const variants = {
   destructive: 'bg-ios-destructive text-white hover:opacity-90 active:opacity-80 shadow-sm shadow-black/15',
   secondary:
     'bg-white/15 text-white border border-white/25 hover:bg-white/22 active:opacity-80 shadow-sm shadow-black/10',
+  /** Maroon primary for light auth/marketing cards */
+  maroon:
+    'bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white hover:from-brand-maroon-dark hover:to-brand-maroon-darker shadow-lg hover:shadow-xl active:opacity-90',
+  /** Outline on light surfaces */
+  outline:
+    'bg-transparent border-2 border-brand-maroon text-brand-maroon hover:bg-brand-maroon/5 active:opacity-90',
 } as const;
 
 const sizes = {

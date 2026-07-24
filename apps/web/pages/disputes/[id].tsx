@@ -5,11 +5,15 @@ import { isAuthenticated, isAdmin, getUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDate } from '@/lib/utils';
-import { MessageSquare, Send, CheckCircle, XCircle, Loader2, AlertCircle } from 'lucide-react';
+import { Send, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import DisputeSLATimer from '@/components/DisputeSLATimer';
 import { useConfirm } from '@/components/providers/UIProvider';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
+import { Field } from '@/components/ui/Field';
 import PageHeader from '@/components/PageHeader';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -273,7 +277,7 @@ export default function DisputeDetailPage() {
 
         {/* Messages */}
         <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card overflow-hidden">
-          <div className="p-6 border-b">
+          <div className="p-6 border-b border-white/10">
             <h2 className="text-xl font-semibold text-label-primary">Messages</h2>
           </div>
           <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
@@ -307,28 +311,20 @@ export default function DisputeDetailPage() {
 
           {/* Message Input */}
           {canSendMessage && (
-            <div className="p-6 border-t">
+            <div className="p-6 border-t border-white/10">
               <form onSubmit={handleSendMessage} className="flex gap-2">
-                <input
+                <Input
                   type="text"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Type your message..."
-                  className="flex-1 px-4 py-2 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
+                  className="flex-1"
                   disabled={sending}
                 />
-                <button
-                  type="submit"
-                  disabled={sending || !message.trim()}
-                  className="px-4 py-2 bg-brand-gold text-brand-maroon-black rounded-ios-lg hover:bg-brand-gold/90 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {sending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
+                <Button type="submit" disabled={sending || !message.trim()} loading={sending}>
+                  <Send className="w-4 h-4" />
                   Send
-                </button>
+                </Button>
               </form>
             </div>
           )}
@@ -339,36 +335,26 @@ export default function DisputeDetailPage() {
           <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
             <h2 className="text-xl font-semibold text-label-primary mb-4">Admin Actions</h2>
             <form onSubmit={handleResolve} className="space-y-4">
-              <div>
-                <label htmlFor="outcome" className="block text-sm font-medium text-label-secondary mb-1">
-                  Resolution outcome *
-                </label>
-                <select
-                  id="outcome"
-                  name="outcome"
-                  required
-                  className="w-full max-w-md px-3 py-2 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
-                >
+              <Field
+                label="Resolution outcome"
+                htmlFor="outcome"
+                required
+                hint="Release pays the seller; Refund returns funds to the buyer."
+              >
+                <Select id="outcome" name="outcome" required className="max-w-md">
                   <option value="">Select outcome</option>
                   <option value="RELEASE_TO_SELLER">Release to seller</option>
                   <option value="REFUND_TO_BUYER">Refund to buyer</option>
-                </select>
-                <p className="mt-1 text-xs text-label-tertiary">
-                  Release pays the seller; Refund returns funds to the buyer.
-                </p>
-              </div>
-              <div>
-                <label htmlFor="resolution" className="block text-sm font-medium text-label-secondary mb-1">
-                  Resolution notes
-                </label>
-                <textarea
+                </Select>
+              </Field>
+              <Field label="Resolution notes" htmlFor="resolution">
+                <Textarea
                   id="resolution"
                   name="resolution"
                   rows={3}
                   placeholder="Brief notes on the resolution decision..."
-                  className="w-full px-3 py-2 border border-white/20 rounded-ios-lg bg-white/5 text-label-primary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
                 />
-              </div>
+              </Field>
               <div className="flex flex-wrap gap-3">
                 <Button
                   type="submit"
@@ -377,7 +363,7 @@ export default function DisputeDetailPage() {
                   className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
                   <CheckCircle className="w-4 h-4" />
-                  {resolveMutation.isPending ? 'Resolving...' : 'Resolve & apply funds'}
+                  Resolve & apply funds
                 </Button>
                 <Button
                   type="button"
@@ -386,7 +372,7 @@ export default function DisputeDetailPage() {
                   loading={closeMutation.isPending}
                 >
                   <XCircle className="w-4 h-4" />
-                  {closeMutation.isPending ? 'Closing...' : 'Close only (no funds)'}
+                  Close only (no funds)
                 </Button>
               </div>
             </form>

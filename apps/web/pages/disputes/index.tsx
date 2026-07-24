@@ -9,6 +9,7 @@ import { formatDateShort } from '@/lib/utils';
 import { AlertCircle, ArrowRight, Scale } from 'lucide-react';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { StatusBadge } from '@/components/StatusBadge';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
@@ -116,21 +117,12 @@ export default function DisputesPage() {
             ))}
           </ListGroup>
         ) : (
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] p-12 text-center">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-white/10 bg-white/[0.06] text-white/45">
-              <Scale className="h-6 w-6" />
-            </div>
-            <p className="text-ios-headline text-label-primary font-semibold mb-1">No disputes</p>
-            <p className="text-ios-subhead text-label-secondary mb-6 max-w-sm mx-auto">
-              Disputes you open on escrows will appear here. Most transactions resolve without one.
-            </p>
-            <Link
-              href="/escrows"
-              className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-ios-lg border border-white/15 bg-white/10 px-4 text-sm font-semibold text-white"
-            >
-              Go to escrows
-            </Link>
-          </div>
+          <EmptyState
+            icon={<Scale className="h-6 w-6" />}
+            title="No disputes"
+            description="Disputes you open on escrows will appear here. Most transactions resolve without one."
+            action={{ href: '/escrows', label: 'Go to escrows', variant: 'secondary' }}
+          />
         )}
       </PullToRefresh>
     </Layout>

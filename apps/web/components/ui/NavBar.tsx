@@ -33,7 +33,7 @@ export function NavBar({
     <header
       className={cn(
         'sticky top-0 z-40 pt-safe',
-        'bg-white/95 backdrop-blur-ios border-b border-gray-200 shadow-sm',
+        'bg-[var(--nav-bar-bg)] backdrop-blur-ios border-b border-white/10 shadow-tab-bar',
         className
       )}
     >
@@ -42,7 +42,7 @@ export function NavBar({
           <button
             type="button"
             onClick={handleBack}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-ios text-brand-maroon touch-manipulation hover:bg-gray-100"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-ios text-brand-gold touch-manipulation hover:bg-white/10"
             aria-label="Go back"
           >
             <ChevronLeft className="w-6 h-6" strokeWidth={2.25} />
@@ -54,7 +54,7 @@ export function NavBar({
           {title && (
             <h1
               className={cn(
-                'font-semibold text-brand-maroon-black truncate tracking-tight',
+                'font-semibold text-label-primary truncate tracking-tight',
                 large ? 'text-ios-large-title text-left px-2 pt-1' : 'text-ios-headline'
               )}
             >
@@ -62,7 +62,7 @@ export function NavBar({
             </h1>
           )}
           {subtitle && !large && (
-            <p className="text-ios-caption text-gray-500 truncate">{subtitle}</p>
+            <p className="text-ios-caption text-label-tertiary truncate">{subtitle}</p>
           )}
         </div>
         <div className="min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0">
@@ -70,7 +70,7 @@ export function NavBar({
         </div>
       </div>
       {large && subtitle && (
-        <p className="text-ios-subhead text-gray-500 px-4 pb-3">{subtitle}</p>
+        <p className="text-ios-subhead text-label-secondary px-4 pb-3">{subtitle}</p>
       )}
     </header>
   );

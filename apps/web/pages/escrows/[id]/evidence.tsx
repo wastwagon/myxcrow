@@ -5,11 +5,14 @@ import { isAuthenticated } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDate } from '@/lib/utils';
-import { Upload, File, Download, Trash2, AlertCircle } from 'lucide-react';
+import { Upload, File, Download, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useConfirm } from '@/components/providers/UIProvider';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Banner } from '@/components/ui/Banner';
 import { form } from '@/lib/form-classes';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
@@ -154,8 +157,9 @@ export default function EvidencePage() {
     <Layout>
       <PullToRefresh onRefresh={refreshEvidence} disabled={!isMobile} className="space-y-6">
         <button
+          type="button"
           onClick={() => router.push(`/escrows/${escrowId}`)}
-          className="text-brand-gold hover:text-brand-gold/80 font-medium transition-colors"
+          className="text-sm font-medium text-brand-gold hover:text-brand-gold/80 transition-colors"
         >
           ← Back to escrow
         </button>
@@ -179,7 +183,7 @@ export default function EvidencePage() {
               accept="image/*,application/pdf,.doc,.docx"
             />
             <label htmlFor="file-upload" className="cursor-pointer inline-block">
-              <span className="inline-flex items-center px-4 py-2 rounded-ios-lg bg-brand-gold text-brand-maroon-black font-semibold hover:bg-brand-gold/90">
+              <span className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-ios-lg bg-brand-gold text-brand-maroon-black font-semibold hover:bg-brand-gold/90 touch-manipulation">
                 Select file
               </span>
             </label>
@@ -188,16 +192,18 @@ export default function EvidencePage() {
                 <p className="text-ios-subhead text-label-secondary">
                   Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
                 </p>
-                <label className="flex items-center justify-center gap-2 text-ios-subhead text-label-secondary">
-                  <input
-                    type="checkbox"
+                <div className="flex justify-center">
+                  <Checkbox
                     checked={includeLocation}
                     onChange={(e) => setIncludeLocation(e.target.checked)}
-                    className="rounded border-white/20 text-brand-gold focus:ring-brand-gold"
+                    label="Include my location (proof of delivery)"
                   />
-                  Include my location (proof of delivery)
-                </label>
-                {locationError && <p className="text-ios-caption text-red-400">{locationError}</p>}
+                </div>
+                {locationError && (
+                  <Banner tone="error" className="text-left">
+                    {locationError}
+                  </Banner>
+                )}
                 <Button type="button" variant="filled" loading={uploading} onClick={handleUpload}>
                   <Upload className="w-4 h-4" />
                   Upload file
@@ -242,16 +248,22 @@ export default function EvidencePage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <button
+                      <Button
                         type="button"
+                        variant="plain"
+                        size="sm"
                         onClick={() => handleDownload(evidence.id)}
-                        className="p-2 min-w-[44px] min-h-[44px] text-brand-gold hover:bg-brand-gold/15 rounded-ios-lg touch-manipulation"
-                        title="Download"
+                        aria-label="Download"
+                        className="min-w-[44px] px-2"
                       >
                         <Download className="w-5 h-5" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="plain"
+                        size="sm"
+                        className="min-w-[44px] px-2 text-red-400 hover:bg-red-500/10"
+                        aria-label="Delete"
                         onClick={async () => {
                           const ok = await confirm({
                             title: 'Delete evidence',
@@ -261,21 +273,20 @@ export default function EvidencePage() {
                           });
                           if (ok) deleteMutation.mutate(evidence.id);
                         }}
-                        className="p-2 min-w-[44px] min-h-[44px] text-red-400 hover:bg-red-500/10 rounded-ios-lg touch-manipulation"
-                        title="Delete"
                       >
                         <Trash2 className="w-5 h-5" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 text-label-tertiary">
-                <File className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p>No evidence uploaded yet</p>
-                <p className="text-ios-caption mt-1">Upload files as proof of shipment or delivery</p>
-              </div>
+              <EmptyState
+                icon={<File className="w-6 h-6" />}
+                title="No evidence uploaded yet"
+                description="Upload files as proof of shipment or delivery"
+                className="border-0 bg-transparent"
+              />
             )}
           </div>
         </div>

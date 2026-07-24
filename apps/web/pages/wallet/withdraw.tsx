@@ -11,6 +11,7 @@ import { ArrowUpCircle, Building2, Smartphone, Star } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
+import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { form } from '@/lib/form-classes';
@@ -21,7 +22,6 @@ import {
   type PayoutDetailsFormData,
 } from '@/lib/payout-form-schema';
 import { PayoutDetailsFields } from '@/components/wallet/PayoutDetailsFields';
-import { cn } from '@/lib/utils';
 import Link from 'next/link';
 
 export default function WithdrawPage() {
@@ -173,28 +173,15 @@ export default function WithdrawPage() {
           </div>
 
           {savedMethods.length > 0 && (
-            <div className="flex gap-2 p-1 rounded-ios-lg bg-white/5 border border-white/10">
-              <button
-                type="button"
-                onClick={() => setPayoutMode('saved')}
-                className={cn(
-                  'flex-1 py-2 text-sm font-medium rounded-ios-md transition-colors',
-                  payoutMode === 'saved' ? 'bg-brand-gold/20 text-brand-gold' : 'text-white/70 hover:text-white'
-                )}
-              >
-                Saved method
-              </button>
-              <button
-                type="button"
-                onClick={() => setPayoutMode('new')}
-                className={cn(
-                  'flex-1 py-2 text-sm font-medium rounded-ios-md transition-colors',
-                  payoutMode === 'new' ? 'bg-brand-gold/20 text-brand-gold' : 'text-white/70 hover:text-white'
-                )}
-              >
-                New details
-              </button>
-            </div>
+            <SegmentedControl
+              className="w-full"
+              value={payoutMode}
+              onChange={setPayoutMode}
+              options={[
+                { value: 'saved', label: 'Saved method' },
+                { value: 'new', label: 'New details' },
+              ]}
+            />
           )}
 
           {payoutMode === 'saved' && savedMethods.length > 0 ? (

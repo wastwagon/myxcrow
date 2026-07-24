@@ -35,6 +35,7 @@ module.exports = {
       },
       borderRadius: {
         ios: '0.625rem',
+        'ios-md': '0.75rem',
         'ios-lg': '0.875rem',
         'ios-xl': '1.25rem',
         lg: 'var(--radius)',

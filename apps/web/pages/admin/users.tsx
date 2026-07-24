@@ -6,15 +6,28 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { Search, User, CheckCircle, XCircle, DollarSign, Eye, Edit, Save, X, Users as UsersIcon, AlertCircle, LogIn, Minus } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
-import Link from 'next/link';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
-import { admin } from '@/components/admin/adminClasses';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Select } from '@/components/ui/Select';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { DropdownMenu } from '@/components/ui/DropdownMenu';
+import {
+  TableShell,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableTh,
+  TableTd,
+  TableEmpty,
+} from '@/components/ui/Table';
+import { Badge } from '@/components/ui/Badge';
 
 interface User {
   id: string;
@@ -166,14 +179,6 @@ export default function AdminUsersPage() {
     return null;
   }
 
-  const getRoleBadgeColor = (roles: string[]) => {
-    if (roles.includes('ADMIN')) return 'bg-purple-500/20 text-purple-200 border border-purple-500/30';
-    if (roles.includes('AUDITOR')) return 'bg-blue-500/20 text-blue-200 border border-blue-500/30';
-    if (roles.includes('SUPPORT')) return 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/30';
-    if (roles.includes('SELLER')) return 'bg-amber-500/20 text-amber-200 border border-amber-500/30';
-    return 'bg-white/10 text-white/80 border border-white/20';
-  };
-
   const refreshUsers = async () => {
     await queryClient.invalidateQueries({ queryKey: ['users', searchTerm, roleFilter] });
   };
@@ -188,246 +193,222 @@ export default function AdminUsersPage() {
           icon={<UsersIcon className="w-6 h-6 text-white" />}
         />
 
-        <div className={admin.tableWrap}>
-          <div className={admin.tableToolbar}>
+        <TableShell
+          toolbar={
             <div className="grid md:grid-cols-2 gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/50 pointer-events-none" />
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search by email, name..."
-                  className={`${admin.input} pl-9`}
-                />
-              </div>
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className={admin.select}
-              >
+              <Input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by email, name..."
+                leading={<Search className="w-4 h-4" />}
+              />
+              <Select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
                 <option value="all">All Roles</option>
                 <option value="ADMIN">Admin</option>
                 <option value="BUYER">Buyer</option>
                 <option value="SELLER">Seller</option>
                 <option value="AUDITOR">Auditor</option>
                 <option value="SUPPORT">Support</option>
-              </select>
+              </Select>
             </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className={admin.tableHead}>
-                <tr>
-                  <th className={admin.th}>User</th>
-                  <th className={admin.th}>Role</th>
-                  <th className={admin.th}>KYC Status</th>
-                  <th className={admin.th}>Status</th>
-                  <th className={admin.th}>Joined</th>
-                  <th className={admin.th}>Actions</th>
-                </tr>
-              </thead>
-              <tbody className={admin.tbody}>
-                {isLoading ? (
-                  <tr>
-                    <td colSpan={6} className={`${admin.td} text-center py-12`}>
-                      <div className="flex justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold" />
-                      </div>
-                    </td>
-                  </tr>
-                ) : usersError ? (
-                  <tr>
-                    <td colSpan={6} className={`${admin.td} text-center py-12`}>
-                      <div className="max-w-md mx-auto">
-                        <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-                        <p className="font-semibold text-lg text-white mb-2">API Connection Error</p>
-                        <p className="text-sm text-white/70 mb-4">
-                          {usersError instanceof Error && usersError.message?.includes('Network Error')
-                            ? 'Cannot connect to API server. The API may not be running.'
-                            : usersError instanceof Error
-                            ? usersError.message
-                            : 'Failed to connect to API'}
-                        </p>
-                        <div className={admin.calloutInfo}>
-                          <p className="font-semibold mb-2 text-label-primary">To fix this:</p>
-                          <ol className="list-decimal list-inside space-y-1">
-                            <li>Start the API server: <code className="bg-white/10 px-1 rounded">docker-compose up -d</code></li>
-                            <li>Or start manually: <code className="bg-white/10 px-1 rounded">cd services/api && npm run start:dev</code></li>
-                            <li>Verify API is running: <code className="bg-white/10 px-1 rounded">curl YOUR_API_URL/api/health</code> (use your API base URL)</li>
-                            <li>Refresh this page after starting the API</li>
-                          </ol>
-                        </div>
-                      </div>
-                    </td>
-                  </tr>
-                ) : usersData?.users && usersData.users.length > 0 ? (
-                  usersData.users.map((user) => (
-                    <tr key={user.id} className={admin.trHover}>
-                      <td className={`${admin.td} whitespace-nowrap`}>
-                        <div className="flex items-center gap-3">
-                          <AdminAvatar label={user.email} variant="maroon" />
-                          <div>
-                            <p className="font-medium text-white">{user.email}</p>
-                            <p className={`text-sm ${admin.tdMuted}`}>ID: {user.id.slice(0, 8)}...</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className={`${admin.td} whitespace-nowrap`}>
-                        {editingUserId === user.id ? (
-                          <div className="space-y-2">
-                            <div className="flex flex-wrap gap-2">
-                              {['ADMIN', 'BUYER', 'SELLER', 'AUDITOR', 'SUPPORT'].map((role) => (
-                                <label
-                                  key={role}
-                                  className="flex items-center gap-1 cursor-pointer"
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={editingRoles.includes(role)}
-                                    onChange={() => toggleRole(role)}
-                                    className="w-4 h-4 text-brand-gold border-white/20 rounded focus:ring-brand-gold"
-                                  />
-                                  <span className={`px-2 py-1 text-xs font-medium rounded ${getRoleBadgeColor([role])}`}>
-                                    {role}
-                                  </span>
-                                </label>
-                              ))}
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleSaveRoles(user.id)}
-                                loading={updateRoleMutation.isPending}
-                              >
-                                <Save className="w-3.5 h-3.5" />
-                                Save
-                              </Button>
-                              <Button size="sm" variant="secondary" onClick={handleCancelEdit}>
-                                <X className="w-3.5 h-3.5" />
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-2">
-                            <div className="flex flex-wrap gap-1">
-                              {user.roles.map((role) => (
-                                <span
-                                  key={role}
-                                  className={`px-2 py-1 text-xs font-medium rounded ${getRoleBadgeColor([role])}`}
-                                >
-                                  {role}
-                                </span>
-                              ))}
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleEditRoles(user)}
-                              className={`${admin.rowAction} text-brand-gold hover:bg-brand-gold/15`}
-                              title="Edit Roles"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                      <td className={`${admin.td} whitespace-nowrap`}>
-                        <div className="flex items-center gap-2">
-                          <StatusBadge status={user.kycStatus} />
-                          {user.kycStatus === 'PENDING' && (
-                            <Button
-                              size="sm"
-                              variant="tinted"
-                              onClick={() => approveMutation.mutate(user.id)}
-                              loading={approveMutation.isPending}
-                            >
-                              Approve
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                      <td className={`${admin.td} whitespace-nowrap`}>
-                        <Button
-                          size="sm"
-                          variant={user.isActive ? 'tinted' : 'destructive'}
-                          onClick={() =>
-                            updateStatusMutation.mutate({ userId: user.id, isActive: !user.isActive })
-                          }
-                          loading={updateStatusMutation.isPending}
-                        >
-                          {user.isActive ? (
-                            <>
-                              <CheckCircle className="w-4 h-4" />
-                              Active
-                            </>
-                          ) : (
-                            <>
-                              <XCircle className="w-4 h-4" />
-                              Inactive
-                            </>
-                          )}
-                        </Button>
-                      </td>
-                      <td className={`${admin.td} ${admin.tdMuted} whitespace-nowrap`}>
-                        {formatDate(user.createdAt)}
-                      </td>
-                      <td className={`${admin.td} whitespace-nowrap`}>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => impersonateMutation.mutate(user.id)}
-                            disabled={impersonateMutation.isPending || user.roles.includes('ADMIN')}
-                            className={`${admin.rowAction} text-brand-gold hover:bg-brand-gold/15 disabled:opacity-50 disabled:cursor-not-allowed`}
-                            title="Login as User"
-                          >
-                            <LogIn className="w-4 h-4" />
-                          </button>
-                          <Link
-                            href={`/admin/wallet/credit?userId=${user.id}`}
-                            className={`${admin.rowAction} text-emerald-400 hover:bg-emerald-500/15`}
-                            title="Credit (Top-up) Wallet"
-                          >
-                            <DollarSign className="w-4 h-4" />
-                          </Link>
-                          <Link
-                            href={`/admin/wallet/debit?userId=${user.id}`}
-                            className={`${admin.rowAction} text-amber-400 hover:bg-amber-500/15`}
-                            title="Debit (Deduct) Wallet"
-                          >
-                            <Minus className="w-4 h-4" />
-                          </Link>
-                          <Link
-                            href={`/wallet/admin/${user.id}`}
-                            className={`${admin.rowAction} text-brand-gold hover:bg-brand-gold/15`}
-                            title="View Wallet"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={6} className={`${admin.td} text-center py-12 text-white/55`}>
-                      <User className="w-12 h-12 mx-auto mb-3 text-white/50" />
-                      <p>No users found</p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          {usersData && (
-            <div className={admin.footerBar}>
+          }
+          footer={
+            usersData ? (
               <p className="text-sm text-white/70">
                 Showing <span className="font-medium">{usersData.users.length}</span> of{' '}
                 <span className="font-medium">{usersData.total}</span> users
               </p>
-            </div>
-          )}
-        </div>
+            ) : undefined
+          }
+        >
+          <Table>
+            <TableHead>
+              <tr>
+                <TableTh>User</TableTh>
+                <TableTh>Role</TableTh>
+                <TableTh>KYC Status</TableTh>
+                <TableTh>Status</TableTh>
+                <TableTh>Joined</TableTh>
+                <TableTh>Actions</TableTh>
+              </tr>
+            </TableHead>
+            <TableBody>
+              {isLoading ? (
+                <TableEmpty colSpan={6}>
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-gold" />
+                  </div>
+                </TableEmpty>
+              ) : usersError ? (
+                <TableEmpty colSpan={6}>
+                  <div className="max-w-md mx-auto text-left">
+                    <AlertCircle className="w-12 h-12 mx-auto mb-4 text-red-400" />
+                    <p className="font-semibold text-lg text-white mb-2 text-center">API Connection Error</p>
+                    <p className="text-sm text-white/70 mb-4 text-center">
+                      {usersError instanceof Error
+                        ? usersError.message
+                        : 'Failed to connect to API'}
+                    </p>
+                  </div>
+                </TableEmpty>
+              ) : usersData?.users && usersData.users.length > 0 ? (
+                usersData.users.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableTd className="whitespace-nowrap">
+                      <div className="flex items-center gap-3">
+                        <AdminAvatar label={user.email} variant="maroon" />
+                        <div>
+                          <p className="font-medium text-white">{user.email}</p>
+                          <p className="text-sm text-white/65">ID: {user.id.slice(0, 8)}...</p>
+                        </div>
+                      </div>
+                    </TableTd>
+                    <TableTd className="whitespace-nowrap">
+                      {editingUserId === user.id ? (
+                        <div className="space-y-2">
+                          <div className="flex flex-wrap gap-3">
+                            {['ADMIN', 'BUYER', 'SELLER', 'AUDITOR', 'SUPPORT'].map((role) => (
+                              <Checkbox
+                                key={role}
+                                checked={editingRoles.includes(role)}
+                                onChange={() => toggleRole(role)}
+                                label={role}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => handleSaveRoles(user.id)}
+                              loading={updateRoleMutation.isPending}
+                            >
+                              <Save className="w-3.5 h-3.5" />
+                              Save
+                            </Button>
+                            <Button size="sm" variant="secondary" onClick={handleCancelEdit}>
+                              <X className="w-3.5 h-3.5" />
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap gap-1">
+                            {user.roles.map((role) => (
+                              <Badge
+                                key={role}
+                                color={
+                                  role === 'ADMIN'
+                                    ? 'purple'
+                                    : role === 'AUDITOR'
+                                    ? 'info'
+                                    : role === 'SUPPORT'
+                                    ? 'success'
+                                    : role === 'SELLER'
+                                    ? 'warning'
+                                    : 'gray'
+                                }
+                                variant="subtle"
+                              >
+                                {role}
+                              </Badge>
+                            ))}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleEditRoles(user)}
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-ios-lg text-brand-gold hover:bg-brand-gold/15"
+                            title="Edit Roles"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
+                    </TableTd>
+                    <TableTd className="whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <StatusBadge status={user.kycStatus} />
+                        {user.kycStatus === 'PENDING' && (
+                          <Button
+                            size="sm"
+                            variant="tinted"
+                            onClick={() => approveMutation.mutate(user.id)}
+                            loading={approveMutation.isPending}
+                          >
+                            Approve
+                          </Button>
+                        )}
+                      </div>
+                    </TableTd>
+                    <TableTd className="whitespace-nowrap">
+                      <Button
+                        size="sm"
+                        variant={user.isActive ? 'tinted' : 'destructive'}
+                        onClick={() =>
+                          updateStatusMutation.mutate({ userId: user.id, isActive: !user.isActive })
+                        }
+                        loading={updateStatusMutation.isPending}
+                      >
+                        {user.isActive ? (
+                          <>
+                            <CheckCircle className="w-4 h-4" />
+                            Active
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="w-4 h-4" />
+                            Inactive
+                          </>
+                        )}
+                      </Button>
+                    </TableTd>
+                    <TableTd muted className="whitespace-nowrap">
+                      {formatDate(user.createdAt)}
+                    </TableTd>
+                    <TableTd className="whitespace-nowrap">
+                      <DropdownMenu
+                        label={`Actions for ${user.email}`}
+                        items={[
+                          {
+                            id: 'impersonate',
+                            label: 'Login as user',
+                            icon: <LogIn className="w-4 h-4" />,
+                            disabled: impersonateMutation.isPending || user.roles.includes('ADMIN'),
+                            onClick: () => impersonateMutation.mutate(user.id),
+                          },
+                          {
+                            id: 'credit',
+                            label: 'Credit wallet',
+                            icon: <DollarSign className="w-4 h-4" />,
+                            href: `/admin/wallet/credit?userId=${user.id}`,
+                          },
+                          {
+                            id: 'debit',
+                            label: 'Debit wallet',
+                            icon: <Minus className="w-4 h-4" />,
+                            href: `/admin/wallet/debit?userId=${user.id}`,
+                          },
+                          {
+                            id: 'view',
+                            label: 'View wallet',
+                            icon: <Eye className="w-4 h-4" />,
+                            href: `/wallet/admin/${user.id}`,
+                          },
+                        ]}
+                      />
+                    </TableTd>
+                  </TableRow>
+                ))
+              ) : (
+                <TableEmpty colSpan={6}>
+                  <User className="w-12 h-12 mx-auto mb-3 text-white/50" />
+                  <p>No users found</p>
+                </TableEmpty>
+              )}
+            </TableBody>
+          </Table>
+        </TableShell>
       </PullToRefresh>
     </Layout>
   );
