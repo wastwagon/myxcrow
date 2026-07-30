@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 
 interface PageHeaderProps {
   title: string;
@@ -7,6 +8,8 @@ interface PageHeaderProps {
   eyebrow?: string;
   icon?: ReactNode;
   action?: ReactNode;
+  /** Dark glass (default) or light dashboard surface */
+  tone?: 'dark' | 'light';
   /** @deprecated Kept for call-site compatibility; visual style is unified in V2 */
   gradient?: 'brand' | 'gold' | 'maroon' | 'green' | 'red' | 'yellow' | 'blue' | 'purple';
 }
@@ -17,29 +20,49 @@ export default function PageHeader({
   eyebrow,
   icon,
   action,
+  tone = 'dark',
 }: PageHeaderProps) {
+  const light = tone === 'light';
   return (
     <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between px-1">
       <div className="flex items-start gap-3 min-w-0 flex-1">
         {icon && (
-          <div className="mt-1 hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-brand-gold/25 bg-brand-gold/10 text-brand-gold [&>svg]:h-5 [&>svg]:w-5">
+          <div
+            className={cn(
+              'mt-1 hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-full border [&>svg]:h-5 [&>svg]:w-5',
+              light
+                ? 'border-brand-maroon/20 bg-brand-maroon/10 text-brand-maroon'
+                : 'border-brand-gold/25 bg-brand-gold/10 text-brand-gold'
+            )}
+          >
             {icon}
           </div>
         )}
         <div className="min-w-0 flex-1">
           {eyebrow && (
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">
+            <p
+              className={cn(
+                'text-xs font-semibold uppercase tracking-[0.14em]',
+                light ? 'text-brand-maroon' : 'text-brand-gold/80'
+              )}
+            >
               {eyebrow}
             </p>
           )}
           <h1
-            className={`text-2xl md:text-3xl font-bold tracking-tight text-white ${
-              eyebrow ? 'mt-1' : ''
-            }`}
+            className={cn(
+              'text-2xl md:text-3xl font-bold tracking-tight',
+              light ? 'text-gray-900' : 'text-white',
+              eyebrow && 'mt-1'
+            )}
           >
             {title}
           </h1>
-          {subtitle && <p className="mt-1 text-sm text-white/55">{subtitle}</p>}
+          {subtitle && (
+            <p className={cn('mt-1 text-sm', light ? 'text-gray-500' : 'text-white/55')}>
+              {subtitle}
+            </p>
+          )}
         </div>
       </div>
       {action && (

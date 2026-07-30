@@ -15,10 +15,10 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Field } from '@/components/ui/Field';
-import { admin } from '@/components/admin/adminClasses';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import PageHeader from '@/components/PageHeader';
+import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 
 const creditSchema = z.object({
   userId: z.string().min(1, 'User is required'),
@@ -137,134 +137,149 @@ export default function CreditWalletPage() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshCreditPage} disabled={!isMobile} className="max-w-3xl mx-auto space-y-6">
-        <PageHeader
-          eyebrow="Admin"
-          title="Credit Wallet"
-          subtitle="Manually credit a user's wallet"
-          icon={<Wallet className="w-6 h-6" />}
-        />
+      <PullToRefresh onRefresh={refreshCreditPage} disabled={!isMobile} className="max-w-3xl mx-auto">
+        <LightShell>
+          <PageHeader
+            tone="light"
+            eyebrow="Admin"
+            title="Credit Wallet"
+            subtitle="Manually credit a user's wallet"
+            icon={<Wallet className="w-6 h-6" />}
+          />
 
-        <form onSubmit={handleSubmit(onSubmit)} className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-8 space-y-6">
-          {/* User Selection */}
-          <div className="relative">
-            <label htmlFor="user" className="block text-sm font-semibold text-white/80 mb-2">
-              Select User *
-            </label>
-            {selectedUser ? (
-              <div className={admin.selectedUserCard}>
-                <div className="flex items-center gap-3">
-                  <AdminAvatar label={selectedUser.email} variant="gold" />
-                  <div>
-                    <p className="font-medium text-white">{selectedUser.email}</p>
-                    <p className="text-sm text-white/55">User ID: {selectedUser.id.slice(0, 8)}...</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedUser(null);
-                    setValue('userId', '');
-                  }}
-                  className="text-white/50 hover:text-white/70"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            ) : (
+          <LightPanel className="p-6 sm:p-8 space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="relative">
-                <Input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setShowUserSearch(true);
-                  }}
-                  onFocus={() => setShowUserSearch(true)}
-                  placeholder="Search by email or name..."
-                  leading={<Search className="h-5 w-5" />}
-                />
-                {showUserSearch && searchTerm && (
-                  <div className={admin.searchDropdown}>
-                    {usersLoading ? (
-                      <div className="p-4 text-center">
-                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-white/50" />
+                <label htmlFor="user" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Select User *
+                </label>
+                {selectedUser ? (
+                  <div className="flex items-center justify-between p-4 rounded-ios-lg border border-brand-gold/40 bg-brand-gold/10">
+                    <div className="flex items-center gap-3">
+                      <AdminAvatar label={selectedUser.email} variant="gold" />
+                      <div>
+                        <p className="font-medium text-gray-900">{selectedUser.email}</p>
+                        <p className="text-sm text-gray-500">User ID: {selectedUser.id.slice(0, 8)}...</p>
                       </div>
-                    ) : usersData?.users?.length > 0 ? (
-                      usersData.users.map((user: UserOption) => (
-                        <button
-                          key={user.id}
-                          type="button"
-                          onClick={() => handleUserSelect(user)}
-                          className={admin.searchDropdownItem}
-                        >
-                          <AdminAvatar label={user.email} variant="gold" className="w-8 h-8 text-xs" />
-                          <div className="flex-1">
-                            <p className="font-medium text-white">{user.email}</p>
-                            <p className="text-sm text-white/55">ID: {user.id.slice(0, 8)}...</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedUser(null);
+                        setValue('userId', '');
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Input
+                      tone="light"
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setShowUserSearch(true);
+                      }}
+                      onFocus={() => setShowUserSearch(true)}
+                      placeholder="Search by email or name..."
+                      leading={<Search className="h-5 w-5" />}
+                    />
+                    {showUserSearch && searchTerm && (
+                      <div className="absolute z-10 w-full mt-2 rounded-ios-lg border border-gray-200 bg-white shadow-lg max-h-64 overflow-y-auto">
+                        {usersLoading ? (
+                          <div className="p-4 text-center">
+                            <Loader2 className="w-5 h-5 animate-spin mx-auto text-gray-400" />
                           </div>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center text-white/55">No users found</div>
+                        ) : usersData?.users?.length > 0 ? (
+                          usersData.users.map((user: UserOption) => (
+                            <button
+                              key={user.id}
+                              type="button"
+                              onClick={() => handleUserSelect(user)}
+                              className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 last:border-0"
+                            >
+                              <AdminAvatar label={user.email} variant="gold" className="w-8 h-8 text-xs" />
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">{user.email}</p>
+                                <p className="text-sm text-gray-500">ID: {user.id.slice(0, 8)}...</p>
+                              </div>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="p-4 text-center text-gray-500">No users found</div>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
+                <input type="hidden" {...register('userId')} />
+                {errors.userId && (
+                  <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
+                )}
               </div>
-            )}
-            <input type="hidden" {...register('userId')} />
-            {errors.userId && (
-              <p className="mt-1 text-sm text-red-400">{errors.userId.message}</p>
-            )}
-          </div>
 
-          <Field label={`Amount (${CURRENCY_SYMBOL})`} htmlFor="amountCents" required error={errors.amountCents?.message}>
-            <Input
-              {...register('amountCents', { valueAsNumber: true })}
-              type="number"
-              id="amountCents"
-              step="0.01"
-              min="0.01"
-              placeholder="100.00"
-              className="text-lg font-semibold"
-              leading={<span className="font-medium text-white/55">{CURRENCY_SYMBOL}</span>}
-              error={!!errors.amountCents}
-            />
-            {amountGHS ? (
-              <p className="mt-2 text-sm text-white/55">
-                Will credit:{' '}
-                <span className="font-medium text-white">{Math.round(amountGHS * 100).toLocaleString()}</span> cents
-              </p>
-            ) : null}
-          </Field>
+              <Field
+                tone="light"
+                label={`Amount (${CURRENCY_SYMBOL})`}
+                htmlFor="amountCents"
+                required
+                error={errors.amountCents?.message}
+              >
+                <Input
+                  {...register('amountCents', { valueAsNumber: true })}
+                  tone="light"
+                  type="number"
+                  id="amountCents"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="100.00"
+                  className="text-lg font-semibold"
+                  leading={<span className="font-medium text-gray-500">{CURRENCY_SYMBOL}</span>}
+                  error={!!errors.amountCents}
+                />
+                {amountGHS ? (
+                  <p className="mt-2 text-sm text-gray-500">
+                    Will credit:{' '}
+                    <span className="font-medium text-gray-900">
+                      {Math.round(amountGHS * 100).toLocaleString()}
+                    </span>{' '}
+                    cents
+                  </p>
+                ) : null}
+              </Field>
 
-          <Field label="Description (Optional)" htmlFor="description">
-            <Textarea
-              {...register('description')}
-              id="description"
-              rows={3}
-              placeholder="e.g., Manual top-up - Bank transfer reference #12345"
-            />
-          </Field>
+              <Field tone="light" label="Description (Optional)" htmlFor="description">
+                <Textarea
+                  {...register('description')}
+                  tone="light"
+                  id="description"
+                  rows={3}
+                  placeholder="e.g., Manual top-up - Bank transfer reference #12345"
+                />
+              </Field>
 
-          {/* Actions */}
-          <div className="flex gap-4 pt-4">
-            <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="filled"
-              size="lg"
-              fullWidth
-              disabled={!selectedUser}
-              loading={creditMutation.isPending}
-            >
-              <User className="w-5 h-5" />
-              Credit Wallet
-            </Button>
-          </div>
-        </form>
+              <div className="flex gap-4 pt-4">
+                <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="filled"
+                  size="lg"
+                  fullWidth
+                  disabled={!selectedUser}
+                  loading={creditMutation.isPending}
+                >
+                  <User className="w-5 h-5" />
+                  Credit Wallet
+                </Button>
+              </div>
+            </form>
+          </LightPanel>
+        </LightShell>
       </PullToRefresh>
     </Layout>
   );

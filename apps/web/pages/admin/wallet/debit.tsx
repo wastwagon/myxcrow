@@ -15,10 +15,10 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Field } from '@/components/ui/Field';
-import { admin } from '@/components/admin/adminClasses';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import PageHeader from '@/components/PageHeader';
+import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 
 const debitSchema = z.object({
   userId: z.string().min(1, 'User is required'),
@@ -137,151 +137,172 @@ export default function DebitWalletPage() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshDebitPage} disabled={!isMobile} className="max-w-3xl mx-auto space-y-6">
-        <PageHeader
-          eyebrow="Admin"
-          title="Debit Wallet"
-          subtitle="Manually debit a user's wallet"
-          icon={<Wallet className="w-6 h-6" />}
-        />
+      <PullToRefresh onRefresh={refreshDebitPage} disabled={!isMobile} className="max-w-3xl mx-auto">
+        <LightShell>
+          <PageHeader
+            tone="light"
+            eyebrow="Admin"
+            title="Debit Wallet"
+            subtitle="Manually debit a user's wallet"
+            icon={<Wallet className="w-6 h-6" />}
+          />
 
-        <div className={`${admin.calloutWarning}`}>
-          <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-semibold text-amber-200">Warning</p>
-            <p className="text-sm text-amber-100/90">
-              This will deduct funds from the user&apos;s wallet. Make sure you have a valid reason and provide a detailed description for audit purposes.
-            </p>
+          <div className="rounded-ios-xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-amber-900">Warning</p>
+              <p className="text-sm text-amber-800">
+                This will deduct funds from the user&apos;s wallet. Make sure you have a valid reason and
+                provide a detailed description for audit purposes.
+              </p>
+            </div>
           </div>
-        </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-8 space-y-6">
-          {/* User Selection */}
-          <div className="relative">
-            <label htmlFor="user" className="block text-sm font-semibold text-white/80 mb-2">
-              Select User *
-            </label>
-            {selectedUser ? (
-              <div className={admin.selectedUserCardDanger}>
-                <div className="flex items-center gap-3">
-                  <AdminAvatar label={selectedUser.email} variant="destructive" />
-                  <div>
-                    <p className="font-medium text-white">{selectedUser.email}</p>
-                    <p className="text-sm text-white/55">User ID: {selectedUser.id.slice(0, 8)}...</p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedUser(null);
-                    setValue('userId', '');
-                  }}
-                  className="text-white/50 hover:text-white/70"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            ) : (
+          <LightPanel className="p-6 sm:p-8 space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               <div className="relative">
-                <Input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setShowUserSearch(true);
-                  }}
-                  onFocus={() => setShowUserSearch(true)}
-                  placeholder="Search by email or name..."
-                  leading={<Search className="h-5 w-5" />}
-                />
-                {showUserSearch && searchTerm && (
-                  <div className={admin.searchDropdown}>
-                    {usersLoading ? (
-                      <div className="p-4 text-center">
-                        <Loader2 className="w-5 h-5 animate-spin mx-auto text-white/50" />
+                <label htmlFor="user" className="block text-sm font-semibold text-gray-700 mb-2">
+                  Select User *
+                </label>
+                {selectedUser ? (
+                  <div className="flex items-center justify-between p-4 rounded-ios-lg border border-red-200 bg-red-50">
+                    <div className="flex items-center gap-3">
+                      <AdminAvatar label={selectedUser.email} variant="destructive" />
+                      <div>
+                        <p className="font-medium text-gray-900">{selectedUser.email}</p>
+                        <p className="text-sm text-gray-500">User ID: {selectedUser.id.slice(0, 8)}...</p>
                       </div>
-                    ) : usersData?.users?.length > 0 ? (
-                      usersData.users.map((user: UserOption) => (
-                        <button
-                          key={user.id}
-                          type="button"
-                          onClick={() => handleUserSelect(user)}
-                          className={admin.searchDropdownItem}
-                        >
-                          <AdminAvatar label={user.email} variant="destructive" className="w-8 h-8 text-xs" />
-                          <div className="flex-1">
-                            <p className="font-medium text-white">{user.email}</p>
-                            <p className="text-sm text-white/55">ID: {user.id.slice(0, 8)}...</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedUser(null);
+                        setValue('userId', '');
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Input
+                      tone="light"
+                      type="text"
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value);
+                        setShowUserSearch(true);
+                      }}
+                      onFocus={() => setShowUserSearch(true)}
+                      placeholder="Search by email or name..."
+                      leading={<Search className="h-5 w-5" />}
+                    />
+                    {showUserSearch && searchTerm && (
+                      <div className="absolute z-10 w-full mt-2 rounded-ios-lg border border-gray-200 bg-white shadow-lg max-h-64 overflow-y-auto">
+                        {usersLoading ? (
+                          <div className="p-4 text-center">
+                            <Loader2 className="w-5 h-5 animate-spin mx-auto text-gray-400" />
                           </div>
-                        </button>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center text-white/55">No users found</div>
+                        ) : usersData?.users?.length > 0 ? (
+                          usersData.users.map((user: UserOption) => (
+                            <button
+                              key={user.id}
+                              type="button"
+                              onClick={() => handleUserSelect(user)}
+                              className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 last:border-0"
+                            >
+                              <AdminAvatar
+                                label={user.email}
+                                variant="destructive"
+                                className="w-8 h-8 text-xs"
+                              />
+                              <div className="flex-1">
+                                <p className="font-medium text-gray-900">{user.email}</p>
+                                <p className="text-sm text-gray-500">ID: {user.id.slice(0, 8)}...</p>
+                              </div>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="p-4 text-center text-gray-500">No users found</div>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
+                <input type="hidden" {...register('userId')} />
+                {errors.userId && (
+                  <p className="mt-1 text-sm text-red-600">{errors.userId.message}</p>
+                )}
               </div>
-            )}
-            <input type="hidden" {...register('userId')} />
-            {errors.userId && (
-              <p className="mt-1 text-sm text-red-400">{errors.userId.message}</p>
-            )}
-          </div>
 
-          <Field label={`Amount (${CURRENCY_SYMBOL})`} htmlFor="amountCents" required error={errors.amountCents?.message}>
-            <Input
-              {...register('amountCents', { valueAsNumber: true })}
-              type="number"
-              id="amountCents"
-              step="0.01"
-              min="0.01"
-              placeholder="50.00"
-              className="text-lg font-semibold"
-              leading={<span className="font-medium text-white/55">{CURRENCY_SYMBOL}</span>}
-              error={!!errors.amountCents}
-            />
-            {amountGHS ? (
-              <p className="mt-2 text-sm text-white/55">
-                Will debit:{' '}
-                <span className="font-medium text-white">{Math.round(amountGHS * 100).toLocaleString()}</span> cents
-              </p>
-            ) : null}
-          </Field>
+              <Field
+                tone="light"
+                label={`Amount (${CURRENCY_SYMBOL})`}
+                htmlFor="amountCents"
+                required
+                error={errors.amountCents?.message}
+              >
+                <Input
+                  {...register('amountCents', { valueAsNumber: true })}
+                  tone="light"
+                  type="number"
+                  id="amountCents"
+                  step="0.01"
+                  min="0.01"
+                  placeholder="50.00"
+                  className="text-lg font-semibold"
+                  leading={<span className="font-medium text-gray-500">{CURRENCY_SYMBOL}</span>}
+                  error={!!errors.amountCents}
+                />
+                {amountGHS ? (
+                  <p className="mt-2 text-sm text-gray-500">
+                    Will debit:{' '}
+                    <span className="font-medium text-gray-900">
+                      {Math.round(amountGHS * 100).toLocaleString()}
+                    </span>{' '}
+                    cents
+                  </p>
+                ) : null}
+              </Field>
 
-          <Field
-            label="Description"
-            htmlFor="description"
-            required
-            error={errors.description?.message}
-            hint="Required for audit — provide a detailed reason for this debit"
-          >
-            <Textarea
-              {...register('description')}
-              id="description"
-              rows={4}
-              placeholder="e.g., Refund for cancelled order #12345 - Customer requested full refund"
-              error={!!errors.description}
-            />
-          </Field>
+              <Field
+                tone="light"
+                label="Description"
+                htmlFor="description"
+                required
+                error={errors.description?.message}
+                hint="Required for audit — provide a detailed reason for this debit"
+              >
+                <Textarea
+                  {...register('description')}
+                  tone="light"
+                  id="description"
+                  rows={4}
+                  placeholder="e.g., Refund for cancelled order #12345 - Customer requested full refund"
+                  error={!!errors.description}
+                />
+              </Field>
 
-          {/* Actions */}
-          <div className="flex gap-4 pt-4">
-            <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="destructive"
-              size="lg"
-              fullWidth
-              disabled={!selectedUser}
-              loading={debitMutation.isPending}
-            >
-              <User className="w-5 h-5" />
-              Debit Wallet
-            </Button>
-          </div>
-        </form>
+              <div className="flex gap-4 pt-4">
+                <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  variant="destructive"
+                  size="lg"
+                  fullWidth
+                  disabled={!selectedUser}
+                  loading={debitMutation.isPending}
+                >
+                  <User className="w-5 h-5" />
+                  Debit Wallet
+                </Button>
+              </div>
+            </form>
+          </LightPanel>
+        </LightShell>
       </PullToRefresh>
     </Layout>
   );

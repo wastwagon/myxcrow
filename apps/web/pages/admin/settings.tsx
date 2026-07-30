@@ -17,6 +17,7 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { calculateEscrowFees, formatPaidByLabel } from '@/lib/fee-calculator';
 import { formatCurrency } from '@/lib/utils';
+import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 
 interface PlatformSettings {
   fees: {
@@ -146,18 +147,21 @@ export default function AdminSettingsPage() {
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshSettings} disabled={!isMobile} className="space-y-6">
+      <PullToRefresh onRefresh={refreshSettings} disabled={!isMobile}>
+        <LightShell>
         <PageHeader
+          tone="light"
           eyebrow="Admin"
           title="Platform Settings"
           subtitle="Configure system-wide settings and preferences"
-          icon={<Settings className="w-6 h-6 text-white" />}
+          icon={<Settings className="w-6 h-6" />}
         />
 
         {/* Tabs */}
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
-          <div className="p-3 border-b border-white/10">
+        <LightPanel flush>
+          <div className="p-3 border-b border-gray-200">
             <SegmentedControl
+              tone="light"
               scrollable
               value={activeTab}
               onChange={setActiveTab}
