@@ -443,6 +443,7 @@ export default function AdminDashboard() {
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { href: '/admin/withdrawals', label: 'Withdrawals', icon: ArrowUpCircle },
+                  { href: '/admin/platforms', label: 'Partner APIs', icon: FileText },
                   { href: '/disputes', label: 'Disputes', icon: AlertCircle },
                   { href: '/escrows', label: 'Escrows', icon: FileText },
                   { href: '/admin/reconciliation', label: 'Reconciliation', icon: DollarSign },

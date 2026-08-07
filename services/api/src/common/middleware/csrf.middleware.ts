@@ -57,6 +57,11 @@ export class CsrfMiddleware implements NestMiddleware {
       return next();
     }
 
+    // Skip CSRF for partner hosted-checkout + partner API (API key / public pay)
+    if (req.path.includes('/partner/') || req.path.includes('/v1/partner')) {
+      return next();
+    }
+
     // Skip CSRF for health checks
     if (req.path === '/health' || req.path === '/api/health') {
       return next();

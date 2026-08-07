@@ -10,9 +10,17 @@ import { WalletModule } from '../wallet/wallet.module';
 import { EscrowModule } from '../escrow/escrow.module';
 import { AuthModule } from '../auth/auth.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { PartnerWebhooksModule } from '../partner-webhooks/partner-webhooks.module';
 
 @Module({
-  imports: [AuditModule, forwardRef(() => WalletModule), forwardRef(() => EscrowModule), AuthModule, NotificationsModule],
+  imports: [
+    AuditModule,
+    forwardRef(() => WalletModule),
+    forwardRef(() => EscrowModule),
+    AuthModule,
+    NotificationsModule,
+    PartnerWebhooksModule,
+  ],
   controllers: [PaymentsController],
   providers: [PaymentsService, PaystackService, WalletTopupService, LedgerHelperService, PrismaService],
   exports: [PaymentsService, PaystackService, WalletTopupService, LedgerHelperService],

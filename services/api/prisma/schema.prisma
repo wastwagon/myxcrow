@@ -144,6 +144,7 @@ model User {
   ratingsGiven      EscrowRating[]    @relation("RatingsGiven")
   ratingsReceived   EscrowRating[]    @relation("RatingsReceived")
   payoutMethods     PayoutMethod[]
+  platformMerchantLinks PlatformMerchantLink[]
 
   @@index([email])
   @@index([phone])
@@ -383,6 +384,13 @@ model EscrowAgreement {
   serviceType          String?      // e.g. Web Development & Design
   status               EscrowStatus @default(AWAITING_FUNDING)
   fundingMethod        String?      @default("direct") // "wallet" or "direct" (for backward compatibility)
+
+  // Partner / PSP integration (DwumaPOS and other platforms)
+  platformId           String?
+  environment          PlatformEnvironment?
+  externalOrderId      String?
+  releasePolicy        PartnerReleasePolicy?
+  partnerMetadata      Json?
   
   // Terms
   expectedDeliveryDate DateTime?
@@ -416,6 +424,7 @@ model EscrowAgreement {
   seller               User         @relation("SellerEscrows", fields: [sellerId], references: [id])
   buyerWallet          Wallet?      @relation("BuyerWallet", fields: [buyerWalletId], references: [id])
   sellerWallet         Wallet?      @relation("SellerWallet", fields: [sellerWalletId], references: [id])
+  platform             PlatformAccount? @relation(fields: [platformId], references: [id], onDelete: SetNull)
   payments             Payment[]
   shipments            Shipment[]
   disputes             Dispute[]
@@ -424,7 +433,9 @@ model EscrowAgreement {
   evidence             Evidence[]
   ratings              EscrowRating[]
   milestones           EscrowMilestone[]
+  checkoutSessions     PartnerCheckoutSession[]
 
+  @@unique([platformId, environment, externalOrderId])
   @@index([buyerId])
   @@index([sellerId])
   @@index([buyerId, status])
@@ -433,6 +444,8 @@ model EscrowAgreement {
   @@index([sellerWalletId])
   @@index([status])
   @@index([createdAt])
+  @@index([platformId])
+  @@index([externalOrderId])
 }
 
 model EscrowMilestone {
@@ -745,5 +758,185 @@ model RiskEvent {
 
   @@index([userId])
   @@index([type])
+  @@index([createdAt])
+}
+
+// ============================================
+// PARTNER / PSP PLATFORM (DwumaPOS & others)
+// ============================================
+
+enum PlatformEnvironment {
+  SANDBOX
+  LIVE
+}
+
+enum PartnerReleasePolicy {
+  PLATFORM_RELEASE
+  BUYER_CONFIRM
+  DUAL_CONTROL
+  AUTO_ON_DELIVERY
+  MILESTONE_APPROVAL
+}
+
+enum CheckoutSessionStatus {
+  OPEN
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+model PlatformAccount {
+  id                    String               @id @default(uuid())
+  name                  String
+  slug                  String               @unique
+  isActive              Boolean              @default(true)
+  defaultEnvironment    PlatformEnvironment  @default(LIVE)
+  releasePolicy         PartnerReleasePolicy @default(PLATFORM_RELEASE)
+  feePercentageOverride Float?
+  successUrlAllowlist   String[]             @default([])
+  cancelUrlAllowlist    String[]             @default([])
+  metadata              Json?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  apiKeys          PlatformApiKey[]
+  merchantLinks    PlatformMerchantLink[]
+  webhookEndpoints PlatformWebhookEndpoint[]
+  checkoutSessions PartnerCheckoutSession[]
+  idempotencyKeys  PartnerIdempotencyRecord[]
+  escrows          EscrowAgreement[]
+
+  @@index([slug])
+  @@index([isActive])
+}
+
+model PlatformApiKey {
+  id           String              @id @default(uuid())
+  platformId   String
+  environment  PlatformEnvironment
+  name         String?
+  keyId        String              @unique
+  secretHash   String
+  lastFour     String
+  keyType      String              @default("secret")
+  scopes       String[]            @default([])
+  revokedAt    DateTime?
+  lastUsedAt   DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  platform PlatformAccount @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@index([platformId])
+  @@index([environment])
+  @@index([revokedAt])
+}
+
+model PlatformMerchantLink {
+  id                 String   @id @default(uuid())
+  platformId         String
+  externalMerchantId String
+  userId             String
+  businessName       String?
+  metadata           Json?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  platform PlatformAccount @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([platformId, externalMerchantId])
+  @@index([userId])
+  @@index([platformId])
+}
+
+model PartnerCheckoutSession {
+  id              String                @id @default(uuid())
+  platformId      String
+  environment     PlatformEnvironment
+  escrowId        String?
+  externalOrderId String
+  status          CheckoutSessionStatus @default(OPEN)
+  amountCents     Int
+  currency        String                @default("GHS")
+  successUrl      String
+  cancelUrl       String
+  buyerEmail      String?
+  buyerPhone      String?
+  expiresAt       DateTime
+  completedAt     DateTime?
+  metadata        Json?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  platform PlatformAccount  @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  escrow   EscrowAgreement? @relation(fields: [escrowId], references: [id], onDelete: SetNull)
+
+  @@unique([platformId, environment, externalOrderId])
+  @@index([escrowId])
+  @@index([status])
+  @@index([expiresAt])
+}
+
+model PlatformWebhookEndpoint {
+  id          String              @id @default(uuid())
+  platformId  String
+  environment PlatformEnvironment
+  url         String
+  secret      String
+  events      String[]            @default([])
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  platform   PlatformAccount            @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  deliveries PlatformWebhookDelivery[]
+
+  @@index([platformId, environment])
+  @@index([isActive])
+}
+
+model PlatformWebhookDelivery {
+  id             String                @id @default(uuid())
+  endpointId     String
+  eventId        String                @unique
+  eventType      String
+  payload        Json
+  status         WebhookDeliveryStatus @default(PENDING)
+  attempts       Int                   @default(0)
+  lastStatusCode Int?
+  lastError      String?
+  nextRetryAt    DateTime?
+  deliveredAt    DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+
+  endpoint PlatformWebhookEndpoint @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+
+  @@index([endpointId])
+  @@index([status])
+  @@index([nextRetryAt])
+  @@index([eventType])
+}
+
+model PartnerIdempotencyRecord {
+  id             String   @id @default(uuid())
+  platformId     String
+  key            String
+  requestHash    String?
+  responseStatus Int
+  responseBody   Json
+  createdAt      DateTime @default(now())
+
+  platform PlatformAccount @relation(fields: [platformId], references: [id], onDelete: Cascade)
+
+  @@unique([platformId, key])
   @@index([createdAt])
 }

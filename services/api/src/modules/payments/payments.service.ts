@@ -1,11 +1,12 @@
 import { Injectable, BadRequestException, NotFoundException, Logger, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PaystackService } from './paystack.service';
-import { PaymentStatus } from '@prisma/client';
+import { CheckoutSessionStatus, EscrowStatus, PaymentStatus } from '@prisma/client';
 import { LedgerHelperService } from './ledger-helper.service';
 import { AuditService } from '../audit/audit.service';
 import { WalletTopupService } from './wallet-topup.service';
 import { EscrowService } from '../escrow/escrow.service';
+import { PartnerWebhooksService } from '../partner-webhooks/partner-webhooks.service';
 
 @Injectable()
 export class PaymentsService {
@@ -19,6 +20,7 @@ export class PaymentsService {
     private walletTopupService: WalletTopupService,
     @Inject(forwardRef(() => EscrowService))
     private escrowService: EscrowService,
+    private partnerWebhooks: PartnerWebhooksService,
   ) {}
 
   async initializeWalletTopup(data: {
@@ -218,6 +220,8 @@ export class PaymentsService {
         } as any,
       });
 
+      await this.completePartnerCheckoutIfNeeded(payment.escrowId!, payment.metadata);
+
       return this.prisma.payment.findUniqueOrThrow({
         where: { id: payment.id },
         include: { escrow: true },
@@ -269,6 +273,62 @@ export class PaymentsService {
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  /** After partner escrow fund, complete checkout session + notify platform (DwumaPOS). */
+  private async completePartnerCheckoutIfNeeded(
+    escrowId: string,
+    metadata: unknown,
+  ) {
+    const meta = (metadata || {}) as Record<string, unknown>;
+    let session = meta.partnerSessionId
+      ? await this.prisma.partnerCheckoutSession.findUnique({
+          where: { id: String(meta.partnerSessionId) },
+        })
+      : null;
+    if (!session) {
+      session = await this.prisma.partnerCheckoutSession.findFirst({
+        where: { escrowId },
+      });
+    }
+    if (!session || !session.platformId || !session.environment) return;
+
+    const wasOpen = session.status !== CheckoutSessionStatus.COMPLETED;
+    if (wasOpen) {
+      await this.prisma.partnerCheckoutSession.update({
+        where: { id: session.id },
+        data: {
+          status: CheckoutSessionStatus.COMPLETED,
+          completedAt: new Date(),
+        },
+      });
+
+      await this.partnerWebhooks.emit({
+        platformId: session.platformId,
+        environment: session.environment,
+        eventType: 'checkout.session.completed',
+        data: {
+          sessionId: session.id,
+          escrowId,
+          externalOrderId: session.externalOrderId,
+          amountCents: session.amountCents,
+          currency: session.currency,
+          status: 'funded',
+        },
+      });
+      await this.partnerWebhooks.emit({
+        platformId: session.platformId,
+        environment: session.environment,
+        eventType: 'escrow.funded',
+        data: {
+          escrowId,
+          externalOrderId: session.externalOrderId,
+          amountCents: session.amountCents,
+          currency: session.currency,
+          status: EscrowStatus.FUNDED,
+        },
+      });
+    }
   }
 }
 

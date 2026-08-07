@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { LogOut, User, Settings, Users as UsersIcon, DollarSign, BarChart3, ChevronDown, LayoutDashboard } from 'lucide-react';
+import { LogOut, User, Settings, Users as UsersIcon, DollarSign, BarChart3, ChevronDown, LayoutDashboard, KeyRound } from 'lucide-react';
 import { isAuthenticated, getUser, clearAuth, isAdmin } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 
 const ADMIN_LINKS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/admin/platforms', label: 'Partner APIs', icon: KeyRound },
   { href: '/admin/users', label: 'Users', icon: UsersIcon },
   { href: '/admin/withdrawals', label: 'Withdrawals', icon: DollarSign },
   { href: '/admin/reconciliation', label: 'Reconciliation', icon: BarChart3 },

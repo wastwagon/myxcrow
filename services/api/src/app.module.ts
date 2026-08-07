@@ -21,6 +21,11 @@ import { ComplianceModule } from './modules/compliance/compliance.module';
 import { ReputationModule } from './modules/reputation/reputation.module';
 import { KYCModule } from './modules/kyc/kyc.module';
 import { DeliveryModule } from './modules/delivery/delivery.module';
+import { ApiKeysModule } from './modules/api-keys/api-keys.module';
+import { PlatformsModule } from './modules/platforms/platforms.module';
+import { PartnerWebhooksModule } from './modules/partner-webhooks/partner-webhooks.module';
+import { PartnerCheckoutModule } from './modules/partner-checkout/partner-checkout.module';
+import { PartnerApiModule } from './modules/partner-api/partner-api.module';
 import { CryptoModule } from './common/crypto/crypto.module';
 import { SecretsModule } from './common/secrets/secrets.module';
 import { QueueModule } from './common/queue/queue.module';
@@ -61,6 +66,11 @@ import paystackConfig from './config/paystack.config';
     ReputationModule,
     KYCModule,
     DeliveryModule,
+    ApiKeysModule,
+    PlatformsModule,
+    PartnerWebhooksModule,
+    PartnerCheckoutModule,
+    PartnerApiModule,
   ],
   controllers: [HealthController],
   providers: [PrismaService],

@@ -883,6 +883,52 @@ export class EscrowService {
     return this.getEscrow(escrowId);
   }
 
+  /**
+   * Partner/PSP path: commerce platform attests delivery (e.g. DwumaPOS rider POD).
+   */
+  async deliverEscrowAsPlatform(escrowId: string, platformId: string) {
+    const escrow = await this.prisma.escrowAgreement.findUnique({
+      where: { id: escrowId },
+    });
+    if (!escrow) throw new NotFoundException('Escrow not found');
+    if (escrow.platformId !== platformId) {
+      throw new BadRequestException('Escrow does not belong to this platform');
+    }
+    if (escrow.status === EscrowStatus.DELIVERED || escrow.status === EscrowStatus.AWAITING_RELEASE) {
+      return this.getEscrow(escrowId);
+    }
+    if (escrow.status === EscrowStatus.RELEASED) {
+      return this.getEscrow(escrowId);
+    }
+    // Act as buyer for delivery state transition
+    return this.deliverEscrow(escrowId, escrow.buyerId);
+  }
+
+  /**
+   * Partner/PSP path: platform-authorized release after fulfillment.
+   */
+  async releaseFundsAsPlatform(escrowId: string, platformId: string) {
+    const escrow = await this.prisma.escrowAgreement.findUnique({
+      where: { id: escrowId },
+    });
+    if (!escrow) throw new NotFoundException('Escrow not found');
+    if (escrow.platformId !== platformId) {
+      throw new BadRequestException('Escrow does not belong to this platform');
+    }
+    return this.releaseFunds(escrowId, 'system');
+  }
+
+  async refundEscrowAsPlatform(escrowId: string, platformId: string, reason?: string) {
+    const escrow = await this.prisma.escrowAgreement.findUnique({
+      where: { id: escrowId },
+    });
+    if (!escrow) throw new NotFoundException('Escrow not found');
+    if (escrow.platformId !== platformId) {
+      throw new BadRequestException('Escrow does not belong to this platform');
+    }
+    return this.refundEscrow(escrowId, escrow.buyerId, reason);
+  }
+
   async releaseFunds(escrowId: string, userId: string) {
     const escrow = await this.prisma.escrowAgreement.findUnique({
       where: { id: escrowId },
@@ -897,7 +943,7 @@ export class EscrowService {
       return this.getEscrow(escrowId);
     }
 
-    // Safety: only buyer (or system jobs) can release funds.
+    // Safety: only buyer (or system jobs / platform-authorized) can release funds.
     if (userId !== 'system' && escrow.buyerId !== userId) {
       throw new BadRequestException('Only the buyer can release funds');
     }
