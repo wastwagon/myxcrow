@@ -8,6 +8,7 @@ import { KeyRound, Plus, Trash2, Building2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
+import { Field } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 
@@ -132,8 +133,22 @@ export default function AdminPlatformsPage() {
           <LightPanel>
             <h2 className="mb-3 text-sm font-semibold">Create platform</h2>
             <div className="space-y-3">
-              <Input label="Name" value={name} onChange={(e) => setName(e.target.value)} />
-              <Input label="Slug" value={slug} onChange={(e) => setSlug(e.target.value)} />
+              <Field tone="light" label="Name" htmlFor="platform-name">
+                <Input
+                  id="platform-name"
+                  tone="light"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </Field>
+              <Field tone="light" label="Slug" htmlFor="platform-slug">
+                <Input
+                  id="platform-slug"
+                  tone="light"
+                  value={slug}
+                  onChange={(e) => setSlug(e.target.value)}
+                />
+              </Field>
               <Button
                 type="button"
                 onClick={() => createPlatform.mutate()}
