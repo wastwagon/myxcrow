@@ -12,6 +12,10 @@ export default function Document() {
         <link rel="apple-touch-icon" href="/logo/MYXCROWLOGO.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#8f2126" />
+        <meta
+          name="facebook-domain-verification"
+          content="v00t2xzk48f70lsl0me78o73tumca3"
+        />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
