@@ -69,7 +69,7 @@ export default function ConfirmDeliveryPage() {
           name="description"
           content="Enter the delivery reference and code or PIN to confirm delivery. Funds may auto-release when confirmed."
         />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
       <PublicHeader />
       <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10]">

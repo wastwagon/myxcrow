@@ -67,7 +67,7 @@ export default function Navigation() {
   };
 
   return (
-    <nav className="hidden xl:block sticky top-0 z-50 bg-[var(--nav-bar-bg)] backdrop-blur-ios border-b border-white/10 shadow-tab-bar pt-safe">
+    <nav className="hidden xl:block sticky top-0 z-50 bg-[var(--app-chrome-bg)] border-b border-white/10 shadow-tab-bar pt-safe">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 gap-3">
           <Link href={admin ? '/admin' : '/dashboard'} className="flex items-center gap-3 group shrink-0">

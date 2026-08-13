@@ -351,7 +351,7 @@ export default function EscrowDetailPage() {
   return (
     <Layout>
       <PullToRefresh onRefresh={refreshEscrow} disabled={!isMobile} className="space-y-6">
-        <div className="xl:hidden -mx-4 -mt-6 mb-2">
+        <div className="xl:hidden -mx-4 mb-2 -mt-[calc(1.5rem+var(--app-sat,env(safe-area-inset-top,0px)))]">
           <NavBar title="Escrow" showBack />
         </div>
         {isStaffView && (

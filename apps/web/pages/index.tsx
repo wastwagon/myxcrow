@@ -57,7 +57,7 @@ export default function Home() {
       <Head>
         <title>MYXCROW - Secure Escrow for Ghana | Safe Transactions in Ghana Cedis</title>
         <meta name="description" content="Trusted escrow services in Ghana. Protect payments for diaspora, real estate, goods &amp; services. Secure, transparent, Ghana Cedis." />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta property="og:title" content="MYXCROW - Secure Escrow for Ghana" />
         <meta property="og:description" content="Trusted escrow services in Ghana. Protect payments for diaspora, real estate, goods &amp; services. Ghana Cedis." />
         <meta property="og:type" content="website" />

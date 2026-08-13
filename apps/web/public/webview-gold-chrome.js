@@ -1,0 +1,158 @@
+/**
+ * WebViewGold chrome (web-only). Makes the native status bar transparent so the
+ * page background paints behind the clock / signal. Safe in mobile Safari:
+ * schemes are always sent via a hidden iframe; location.href is WKWebView-only.
+ */
+(function () {
+  var DARK_HEX = '#1f1414';
+  var DARK_RGB = '31,20,20';
+  var LIGHT_HEX = '#ffffff';
+  var LIGHT_RGB = '255,255,255';
+  var LIGHT_PATH = /^\/(login|register|forgot-password|reset-password)\/?$/;
+
+  function isLightPath(path) {
+    return LIGHT_PATH.test(path || '');
+  }
+
+  function chromeForPath(path) {
+    if (isLightPath(path)) {
+      return { hex: LIGHT_HEX, rgb: LIGHT_RGB, text: 'black' };
+    }
+    return { hex: DARK_HEX, rgb: DARK_RGB, text: 'white' };
+  }
+
+  function ping(url) {
+    try {
+      var iframe = document.createElement('iframe');
+      iframe.setAttribute('aria-hidden', 'true');
+      iframe.setAttribute('tabindex', '-1');
+      iframe.style.cssText =
+        'display:none;width:0;height:0;border:0;position:absolute;left:-9999px';
+      iframe.src = url;
+      (document.body || document.documentElement).appendChild(iframe);
+      setTimeout(function () {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 1000);
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  /**
+   * Native WebViewGold: iOS WKWebView has no window.safari (Safari does).
+   * Never treat CriOS / FxiOS / etc. as native — location.href would show
+   * “cannot open page”. Always iframe-ping regardless of this result.
+   */
+  function isNativeWebView() {
+    var ua = navigator.userAgent || '';
+    var isIOS = /iPhone|iPad|iPod/i.test(ua);
+    var isAndroid = /Android/i.test(ua);
+    if (isIOS) {
+      if (typeof window.safari !== 'undefined') return false;
+      if (/CriOS|FxiOS|EdgiOS|OPiOS|DuckDuckGo|GSA\//i.test(ua)) return false;
+      return true;
+    }
+    if (isAndroid) {
+      return /; wv\)/i.test(ua);
+    }
+    return false;
+  }
+
+  function isIOS() {
+    return /iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+  }
+
+  function fallbackSatPx() {
+    var h = (window.screen && window.screen.height) || 0;
+    if (h >= 852) return 59;
+    if (h >= 812) return 47;
+    return 20;
+  }
+
+  function envSatPx() {
+    var probe = document.createElement('div');
+    probe.style.cssText =
+      'position:absolute;visibility:hidden;pointer-events:none;' +
+      'height:constant(safe-area-inset-top);height:env(safe-area-inset-top, 0px)';
+    (document.body || document.documentElement).appendChild(probe);
+    var px = probe.getBoundingClientRect().height || 0;
+    if (probe.parentNode) probe.parentNode.removeChild(probe);
+    return Math.round(px);
+  }
+
+  function isEdgeToEdge() {
+    var screenH = (window.screen && window.screen.height) || 0;
+    var innerH = window.innerHeight || 0;
+    if (!screenH) return false;
+    return Math.abs(innerH - screenH) <= 8;
+  }
+
+  function applySat() {
+    var envPx = envSatPx();
+    var sat = envPx;
+    // Only invent a status-bar height when the webview already fills the screen.
+    // If env is 0 and the webview is inset below the native bar, leave 0 so we
+    // do not double the empty band.
+    if (envPx === 0 && isIOS() && isEdgeToEdge()) {
+      sat = fallbackSatPx();
+    }
+    document.documentElement.style.setProperty('--app-sat', sat + 'px');
+  }
+
+  function applyChrome(path) {
+    var chrome = chromeForPath(path);
+    document.documentElement.style.setProperty('--app-chrome-bg', chrome.hex);
+    var theme = document.querySelector('meta[name="theme-color"]');
+    if (theme) theme.setAttribute('content', chrome.hex);
+    return chrome;
+  }
+
+  function runNativeSchemes(chrome, useLocationHref) {
+    ping('hidebars://on');
+    ping('statusbarcolor://' + chrome.rgb);
+    ping('statusbartextcolor://' + chrome.text);
+
+    if (!useLocationHref || !isNativeWebView()) return;
+
+    // iOS WebViewGold often only honors one location.href scheme per page load.
+    try {
+      window.location.href = 'hidebars://on';
+    } catch (e) {
+      /* ignore */
+    }
+    setTimeout(function () {
+      try {
+        window.location.href = 'statusbarcolor://' + chrome.rgb;
+      } catch (e) {
+        /* ignore */
+      }
+    }, 350);
+  }
+
+  function init() {
+    var chrome = applyChrome(location.pathname);
+    applySat();
+    runNativeSchemes(chrome, true);
+  }
+
+  window.__myxcrowApplyChrome = function (path) {
+    var chrome = applyChrome(path || location.pathname);
+    // SPA navigations: iframe only. Do not use location.href again.
+    ping('statusbarcolor://' + chrome.rgb);
+    ping('statusbartextcolor://' + chrome.text);
+    applySat();
+  };
+
+  init();
+
+  function onViewportChange() {
+    applySat();
+  }
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', onViewportChange);
+  }
+  window.addEventListener('resize', onViewportChange);
+  setTimeout(applySat, 400);
+  setTimeout(applySat, 1000);
+})();

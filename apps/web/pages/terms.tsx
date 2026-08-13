@@ -9,7 +9,7 @@ export default function TermsPage() {
       <Head>
         <title>Terms and Conditions - MYXCROW</title>
         <meta name="description" content="Terms and Conditions for MYXCROW secure escrow services. Ghana-based platform for web, Android and iOS." />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
       <PublicHeader />
       <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10]">

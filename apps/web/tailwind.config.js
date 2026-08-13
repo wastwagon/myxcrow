@@ -44,7 +44,7 @@ module.exports = {
       },
       spacing: {
         'tab-bar': 'var(--tab-bar-height)',
-        'safe-top': 'var(--safe-top)',
+        'safe-top': 'var(--app-sat, env(safe-area-inset-top, 0px))',
         'safe-bottom': 'var(--safe-bottom)',
       },
       colors: {

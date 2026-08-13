@@ -18,7 +18,7 @@ export default function PublicHeader() {
     router.pathname === href || (href !== '/' && router.pathname.startsWith(href));
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-[var(--nav-bar-bg)] backdrop-blur-ios border-b border-white/10 shadow-tab-bar pt-safe">
+    <header className="sticky top-0 z-50 w-full bg-[var(--app-chrome-bg)] border-b border-white/10 shadow-tab-bar pt-safe">
       <div className="container mx-auto px-4">
         <div className="flex h-14 md:h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-3 group" onClick={() => setOpen(false)}>

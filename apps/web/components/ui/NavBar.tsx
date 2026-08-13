@@ -33,7 +33,7 @@ export function NavBar({
     <header
       className={cn(
         'sticky top-0 z-40 pt-safe',
-        'bg-[var(--nav-bar-bg)] backdrop-blur-ios border-b border-white/10 shadow-tab-bar',
+        'bg-[var(--app-chrome-bg)] border-b border-white/10 shadow-tab-bar',
         className
       )}
     >

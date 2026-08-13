@@ -13,6 +13,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   return (
     <div className="min-h-screen app-gradient-bg flex flex-col">
+      <div className="app-sat-spacer xl:hidden" aria-hidden />
       <Navigation />
       <main className="container mx-auto px-4 py-6 max-w-7xl flex-1 text-label-primary">{children}</main>
     </div>

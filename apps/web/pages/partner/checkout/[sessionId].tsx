@@ -75,7 +75,7 @@ export default function PartnerCheckoutPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0f0a0a] text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#0f0a0a] pt-safe text-white">
         <Loader2 className="h-10 w-10 animate-spin text-amber-400" />
       </div>
     );
@@ -83,7 +83,7 @@ export default function PartnerCheckoutPage() {
 
   if (error && !session) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0f0a0a] px-4 text-white">
+      <div className="flex min-h-screen items-center justify-center bg-[#0f0a0a] px-4 pt-safe text-white">
         <div className="max-w-md rounded-2xl border border-white/10 bg-black/40 p-8 text-center">
           <p className="text-lg font-semibold">Checkout unavailable</p>
           <p className="mt-2 text-sm text-white/70">{error}</p>
@@ -98,7 +98,10 @@ export default function PartnerCheckoutPage() {
     .join(' ');
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#1a0f0f] to-[#0f0a0a] px-4 py-12 text-white">
+    <div
+      className="min-h-screen bg-gradient-to-b from-[#1a0f0f] to-[#0f0a0a] px-4 pb-12 text-white"
+      style={{ paddingTop: 'calc(3rem + var(--app-sat, env(safe-area-inset-top, 0px)))' }}
+    >
       <div className="mx-auto max-w-md">
         <div className="mb-8 flex items-center gap-3">
           <ShieldCheck className="h-8 w-8 text-amber-400" />

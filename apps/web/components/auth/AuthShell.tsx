@@ -60,7 +60,7 @@ export function AuthShell({
   maxWidthClass?: string;
 }) {
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col pt-safe">
       <div
         className={cn(
           'flex-1 flex flex-col items-center px-4 pt-10 pb-12 sm:pt-16 sm:pb-16',

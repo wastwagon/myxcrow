@@ -27,9 +27,13 @@
     --tint: #d0ab63;
     --destructive: #ff453a;
 
-    /* Tab bar / chrome */
+    /* Tab bar / chrome — opaque so the status-bar region is not an empty frost strip */
+    --app-chrome-bg: #1f1414;
+    --app-sat: 0px;
+    --app-sat: constant(safe-area-inset-top);
+    --app-sat: env(safe-area-inset-top, 0px);
     --tab-bar-bg: rgba(22, 15, 16, 0.92);
-    --nav-bar-bg: rgba(22, 15, 16, 0.94);
+    --nav-bar-bg: var(--app-chrome-bg);
 
     /* shadcn-compat (light forms on auth pages) */
     --background: 0 0% 100%;
@@ -53,8 +57,8 @@
     --ring: 38 52% 64%;
     --radius: 0.75rem;
 
-    /* Safe areas (fallbacks overridden on supporting browsers) */
-    --safe-top: env(safe-area-inset-top, 0px);
+    /* Safe areas (JS may replace --app-sat when env() reports 0 in edge-to-edge WebView) */
+    --safe-top: var(--app-sat, env(safe-area-inset-top, 0px));
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-left: env(safe-area-inset-left, 0px);
     --safe-right: env(safe-area-inset-right, 0px);
@@ -72,8 +76,14 @@
     text-size-adjust: 100%;
   }
 
+  html,
+  body,
+  #__next {
+    background-color: var(--app-chrome-bg);
+  }
+
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
     font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui,
       'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-feature-settings: 'kern' 1;
@@ -86,6 +96,19 @@
   input[type='button'] {
     touch-action: manipulation;
   }
+}
+
+/* Paints behind the clock / signal; first child of <body>, pointer-events none */
+#app-status-bar-cover {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: constant(safe-area-inset-top);
+  height: var(--app-sat, env(safe-area-inset-top, 0px));
+  background-color: var(--app-chrome-bg);
+  pointer-events: none;
+  z-index: 200;
 }
 
 @layer utilities {
@@ -133,7 +156,15 @@
   }
 
   .pt-safe {
-    padding-top: var(--safe-top);
+    padding-top: constant(safe-area-inset-top);
+    padding-top: var(--app-sat, env(safe-area-inset-top, 0px));
+  }
+
+  .app-sat-spacer {
+    height: constant(safe-area-inset-top);
+    height: var(--app-sat, env(safe-area-inset-top, 0px));
+    flex-shrink: 0;
+    pointer-events: none;
   }
 }
 
