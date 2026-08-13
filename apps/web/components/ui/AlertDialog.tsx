@@ -10,6 +10,7 @@ export interface AlertDialogProps {
   destructive?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  tone?: 'dark' | 'light';
 }
 
 export function AlertDialog({
@@ -21,6 +22,7 @@ export function AlertDialog({
   destructive,
   onConfirm,
   onCancel,
+  tone = 'dark',
 }: AlertDialogProps) {
   useEffect(() => {
     if (!open) return;
@@ -32,6 +34,8 @@ export function AlertDialog({
   }, [open, onCancel]);
 
   if (!open) return null;
+
+  const light = tone === 'light';
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
@@ -47,26 +51,32 @@ export function AlertDialog({
         aria-labelledby="alert-title"
         aria-describedby="alert-desc"
         className={cn(
-          'relative z-10 w-full max-w-[20rem] rounded-ios-xl overflow-hidden',
-          'bg-[#2a1c1e] border border-white/15 shadow-ios-card'
+          'relative z-10 w-full max-w-[20rem] rounded-[14px] overflow-hidden shadow-ios-card',
+          light ? 'bg-white/92 backdrop-blur-xl' : 'bg-[#2a1c1e] border border-white/15'
         )}
       >
         <div className="px-4 pt-5 pb-3 text-center">
-          <h2 id="alert-title" className="text-ios-headline font-semibold text-label-primary">
+          <h2
+            id="alert-title"
+            className={cn('text-[17px] font-semibold', light ? 'text-gray-900' : 'text-label-primary')}
+          >
             {title}
           </h2>
-          <p id="alert-desc" className="mt-2 text-ios-subhead text-label-secondary">
+          <p
+            id="alert-desc"
+            className={cn('mt-2 text-[13px]', light ? 'text-[rgba(60,60,67,0.6)]' : 'text-label-secondary')}
+          >
             {message}
           </p>
         </div>
-        <div className="border-t border-white/10 flex flex-col">
+        <div className={cn('flex flex-col', light ? 'border-t border-[rgba(60,60,67,0.18)]' : 'border-t border-white/10')}>
           <button
             type="button"
             onClick={onConfirm}
             className={cn(
-              'min-h-[44px] w-full text-ios-body font-semibold touch-manipulation',
-              'hover:bg-white/5 active:bg-white/10 transition-colors',
-              destructive ? 'text-ios-destructive' : 'text-brand-gold'
+              'min-h-[44px] w-full text-[17px] font-semibold touch-manipulation',
+              light ? 'active:bg-[#d1d1d6]/40' : 'hover:bg-white/5 active:bg-white/10 transition-colors',
+              destructive ? 'text-ios-destructive' : light ? 'text-brand-maroon' : 'text-brand-gold'
             )}
           >
             {confirmLabel}
@@ -74,7 +84,12 @@ export function AlertDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="min-h-[44px] w-full border-t border-white/10 text-ios-body font-medium text-label-secondary hover:bg-white/5 active:bg-white/10 touch-manipulation"
+            className={cn(
+              'min-h-[44px] w-full text-[17px] font-medium touch-manipulation',
+              light
+                ? 'border-t border-[rgba(60,60,67,0.18)] text-[rgba(60,60,67,0.6)] active:bg-[#d1d1d6]/40'
+                : 'border-t border-white/10 text-label-secondary hover:bg-white/5 active:bg-white/10'
+            )}
           >
             {cancelLabel}
           </button>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -13,7 +13,6 @@ import {
   DollarSign,
   AlertCircle,
   Upload,
-  FileText,
   Star,
   Copy,
 } from 'lucide-react';
@@ -24,10 +23,8 @@ import MilestoneManagement from '@/components/MilestoneManagement';
 import EscrowMessaging from '@/components/EscrowMessaging';
 import RatingModal from '@/components/RatingModal';
 import UserProfileLink from '@/components/UserProfileLink';
-import PageHeader from '@/components/PageHeader';
 import { useConfirm, usePrompt } from '@/components/providers/UIProvider';
 import { Button, ButtonLink } from '@/components/ui/Button';
-import { NavBar } from '@/components/ui/NavBar';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Input } from '@/components/ui/Input';
 import { Banner } from '@/components/ui/Banner';
@@ -312,20 +309,20 @@ export default function EscrowDetailPage() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <CustomerLayout title="Escrow" back large={false}>
         <PageDetailSkeleton />
-      </Layout>
+      </CustomerLayout>
     );
   }
 
   if (!escrow) {
     return (
-      <Layout>
+      <CustomerLayout title="Escrow" back large={false}>
         <div className="text-center py-12">
           <AlertCircle className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
           <p className="text-label-secondary">Escrow not found</p>
         </div>
-      </Layout>
+      </CustomerLayout>
     );
   }
 
@@ -349,63 +346,55 @@ export default function EscrowDetailPage() {
   const isStaffView = isAdmin() && !isBuyer && !isSeller;
 
   return (
-    <Layout>
+    <CustomerLayout title="Escrow" back large={false}>
       <PullToRefresh onRefresh={refreshEscrow} disabled={!isMobile} className="space-y-6">
-        <div className="xl:hidden -mx-4 mb-2 -mt-[calc(1.5rem+var(--app-sat,env(safe-area-inset-top,0px)))]">
-          <NavBar title="Escrow" showBack />
-        </div>
         {isStaffView && (
-          <Banner tone="brand" title="Admin view">
+          <Banner light tone="brand" title="Admin view">
             Read-only access for records and printing. Participant actions are disabled.
           </Banner>
         )}
-        <PageHeader
-          eyebrow="Agreement"
-          title="Escrow details"
-          subtitle={`ID: ${escrow.id}`}
-          icon={<FileText className="w-6 h-6" />}
-          action={
-            <div className="flex items-center gap-2 flex-wrap">
-              <PrintReceiptButton
-                receipt={buildEscrowReceipt(escrow, {
-                  viewerRole,
-                  isAdminCopy: viewerRole === 'admin',
-                })}
-                size="sm"
-                variant="secondary"
-              />
-              <StatusBadge status={escrow.status} />
-            </div>
-          }
-        />
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[13px] text-[rgba(60,60,67,0.6)] truncate">ID {escrow.id}</p>
+          <StatusBadge status={escrow.status} onDark={false} />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <PrintReceiptButton
+            receipt={buildEscrowReceipt(escrow, {
+              viewerRole,
+              isAdminCopy: viewerRole === 'admin',
+            })}
+            size="sm"
+            variant="outline"
+          />
+        </div>
 
         {/* Main Info */}
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Details</h2>
+          <div className="rounded-[12px] bg-white p-5">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Details</h2>
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-white/70">Description</p>
-                <p className="font-medium text-white">{escrow.description || 'N/A'}</p>
+                <p className="text-sm text-[rgba(60,60,67,0.6)]">Description</p>
+                <p className="font-medium text-gray-900">{escrow.description || 'N/A'}</p>
               </div>
               {escrow.escrowCategory && (
                 <div>
-                  <p className="text-sm text-white/70">Category</p>
-                  <p className="font-medium text-white">
+                  <p className="text-sm text-[rgba(60,60,67,0.6)]">Category</p>
+                  <p className="font-medium text-gray-900">
                     {ESCROW_CATEGORY_LABELS[escrow.escrowCategory as keyof typeof ESCROW_CATEGORY_LABELS] ?? escrow.escrowCategory}
                   </p>
                 </div>
               )}
               {escrow.serviceType && (
                 <div>
-                  <p className="text-sm text-white/70">Service type</p>
-                  <p className="font-medium text-white">{escrow.serviceType}</p>
+                  <p className="text-sm text-[rgba(60,60,67,0.6)]">Service type</p>
+                  <p className="font-medium text-gray-900">{escrow.serviceType}</p>
                 </div>
               )}
               {escrow.buyer && (
                 <div>
-                  <p className="text-sm text-white/70">Buyer</p>
-                  <p className="font-medium text-white">
+                  <p className="text-sm text-[rgba(60,60,67,0.6)]">Buyer</p>
+                  <p className="font-medium text-gray-900">
                     <UserProfileLink
                       userId={escrow.buyerId}
                       name={escrow.buyer.firstName && escrow.buyer.lastName ? `${escrow.buyer.firstName} ${escrow.buyer.lastName}` : undefined}
@@ -416,8 +405,8 @@ export default function EscrowDetailPage() {
               )}
               {escrow.seller && (
                 <div>
-                  <p className="text-sm text-white/70">Seller</p>
-                  <p className="font-medium text-white">
+                  <p className="text-sm text-[rgba(60,60,67,0.6)]">Seller</p>
+                  <p className="font-medium text-gray-900">
                     <UserProfileLink
                       userId={escrow.sellerId}
                       name={escrow.seller.firstName && escrow.seller.lastName ? `${escrow.seller.firstName} ${escrow.seller.lastName}` : undefined}
@@ -427,8 +416,8 @@ export default function EscrowDetailPage() {
                 </div>
               )}
               <div>
-                <p className="text-sm text-white/70">Deal Amount</p>
-                <p className="font-medium text-white text-2xl">
+                <p className="text-sm text-[rgba(60,60,67,0.6)]">Deal Amount</p>
+                <p className="font-medium text-gray-900 text-2xl">
                   {formatCurrency(escrow.amountCents, 'GHS')}
                 </p>
               </div>
@@ -439,20 +428,20 @@ export default function EscrowDetailPage() {
               )}
               {(!feeSummary || escrow.feeCents === 0) && (
                 <div>
-                  <p className="text-sm text-white/70">Net Amount</p>
-                  <p className="font-medium text-white">
+                  <p className="text-sm text-[rgba(60,60,67,0.6)]">Net Amount</p>
+                  <p className="font-medium text-gray-900">
                     {formatCurrency(escrow.netAmountCents, 'GHS')}
                   </p>
                 </div>
               )}
               <div>
-                <p className="text-sm text-white/70">Created</p>
-                <p className="font-medium text-white">{formatDate(escrow.createdAt)}</p>
+                <p className="text-sm text-[rgba(60,60,67,0.6)]">Created</p>
+                <p className="font-medium text-gray-900">{formatDate(escrow.createdAt)}</p>
               </div>
               {(escrow.deliveryRegion || escrow.deliveryCity || escrow.deliveryAddressLine) && isPhysicalGoods && (
                 <div>
-                  <p className="text-sm text-white/70">Ship to</p>
-                  <p className="font-medium text-white">
+                  <p className="text-sm text-[rgba(60,60,67,0.6)]">Ship to</p>
+                  <p className="font-medium text-gray-900">
                     {[escrow.deliveryAddressLine, escrow.deliveryCity, escrow.deliveryRegion].filter(Boolean).join(', ')}
                     {escrow.deliveryPhone && ` · ${escrow.deliveryPhone}`}
                   </p>
@@ -530,12 +519,13 @@ export default function EscrowDetailPage() {
           </div>
 
           {/* Actions */}
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
-            <h2 className="text-xl font-semibold text-white mb-4">Actions</h2>
+          <div className="rounded-[12px] bg-white p-5">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
             <div className="space-y-3">
               {canFund && (
                 <Button
                   fullWidth
+                  variant="maroon"
                   onClick={handleFund}
                   loading={fundMutation.isPending}
                   disabled={fundMutation.isPending}
@@ -551,7 +541,7 @@ export default function EscrowDetailPage() {
               {canShip && (
                 <Button
                   fullWidth
-                  variant="tinted"
+                  variant="outline"
                   onClick={handleShip}
                   loading={shipMutation.isPending}
                   disabled={shipMutation.isPending}
@@ -563,7 +553,7 @@ export default function EscrowDetailPage() {
               {canMarkServiceCompleted && (
                 <Button
                   fullWidth
-                  variant="tinted"
+                  variant="outline"
                   onClick={handleServiceCompleted}
                   loading={serviceCompletedMutation.isPending}
                   disabled={serviceCompletedMutation.isPending}
@@ -576,6 +566,7 @@ export default function EscrowDetailPage() {
                 <>
                   <Button
                     fullWidth
+                    variant="maroon"
                     onClick={handleDeliver}
                     loading={deliverMutation.isPending}
                     disabled={deliverMutation.isPending}
@@ -591,6 +582,7 @@ export default function EscrowDetailPage() {
                     <div className="flex gap-2">
                       <Input
                         type="text"
+                        tone="light"
                         placeholder="Enter delivery code"
                         value={deliveryCodeInput}
                         onChange={(e) => setDeliveryCodeInput(e.target.value.toUpperCase())}
@@ -599,6 +591,7 @@ export default function EscrowDetailPage() {
                       />
                       <Button
                         size="sm"
+                        variant="maroon"
                         onClick={handleConfirmDeliveryByCode}
                         loading={confirmDeliveryByCodeMutation.isPending}
                         disabled={confirmDeliveryByCodeMutation.isPending || !deliveryCodeInput.trim()}
@@ -617,6 +610,7 @@ export default function EscrowDetailPage() {
               {canRelease && (
                 <Button
                   fullWidth
+                  variant="maroon"
                   onClick={handleRelease}
                   loading={releaseMutation.isPending}
                   disabled={releaseMutation.isPending}
@@ -630,12 +624,12 @@ export default function EscrowDetailPage() {
                 </Button>
               )}
               {!canFund && !canShip && !canMarkServiceCompleted && !canDeliver && !canRelease && (
-                <p className="text-sm text-white/70 text-center py-4">
+                <p className="text-sm text-[rgba(60,60,67,0.6)] text-center py-4">
                   No actions available for this status
                 </p>
               )}
-              <div className="pt-4 border-t border-white/10 space-y-2">
-                <ButtonLink href={`/escrows/${id}/evidence`} variant="secondary" fullWidth>
+              <div className="pt-4 border-t border-[rgba(60,60,67,0.12)] space-y-2">
+                <ButtonLink href={`/escrows/${id}/evidence`} variant="outline" fullWidth>
                   <Upload className="w-4 h-4" />
                   Manage Evidence
                 </ButtonLink>
@@ -649,8 +643,7 @@ export default function EscrowDetailPage() {
               {canRate && (
                 <Button
                   type="button"
-                  variant="tinted"
-                  fullWidth
+                  variant="outline"
                   onClick={() => {
                     if (!escrow || !user) return;
                     const otherParty = isBuyer ? escrow.seller : escrow.buyer;
@@ -674,13 +667,14 @@ export default function EscrowDetailPage() {
         </div>
 
         {/* Tabs: Timeline, Ledger, Milestones */}
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card">
-          <div className="p-4 border-b border-white/10 overflow-x-auto">
+        <div className="rounded-[12px] bg-white overflow-hidden">
+          <div className="p-4 border-b border-[rgba(60,60,67,0.12)] overflow-x-auto">
             <SegmentedControl
               options={tabOptions}
               value={activeTab}
               onChange={setActiveTab}
               scrollable
+              tone="light"
             />
           </div>
           <div className="p-6">
@@ -709,7 +703,7 @@ export default function EscrowDetailPage() {
           />
         )}
       </PullToRefresh>
-    </Layout>
+    </CustomerLayout>
   );
 }
 

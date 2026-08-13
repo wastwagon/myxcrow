@@ -14,7 +14,7 @@ export default function UserProfileLink({ userId, name, email, className = '' }:
   return (
     <Link
       href={`/profile/${userId}`}
-      className={`inline-flex items-center gap-1 text-brand-gold hover:text-brand-gold/80 hover:underline transition-colors ${className}`}
+      className={`inline-flex items-center gap-1 text-brand-maroon hover:text-brand-maroon-dark hover:underline transition-colors ${className}`}
     >
       <User className="w-4 h-4 shrink-0" />
       <span>{displayName}</span>

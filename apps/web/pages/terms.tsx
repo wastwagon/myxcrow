@@ -1,26 +1,15 @@
-import Head from 'next/head';
 import Link from 'next/link';
-import PublicHeader from '@/components/PublicHeader';
+import PublicPage from '@/components/PublicPage';
 import { publicForm } from '@/lib/form-classes';
 
 export default function TermsPage() {
   return (
-    <>
-      <Head>
-        <title>Terms and Conditions - MYXCROW</title>
-        <meta name="description" content="Terms and Conditions for MYXCROW secure escrow services. Ghana-based platform for web, Android and iOS." />
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-      </Head>
-      <PublicHeader />
-      <div className="min-h-screen bg-gradient-to-br from-[#1f1414] via-[#331518] to-[#160f10]">
-        <div className="container mx-auto px-4 py-8 max-w-3xl">
-          <div className="mb-6 px-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">Legal</p>
-            <h1 className="mt-1 text-3xl md:text-4xl font-bold tracking-tight text-white">Terms and Conditions</h1>
-            <p className="mt-1 text-sm text-white/55">Last updated: February 2025. Ghana-based. Applies to web, Android and iOS.</p>
-          </div>
-          <div className="bg-white/95 rounded-2xl shadow-xl border border-brand-gold/20 overflow-hidden">
-            <div className="p-6 md:p-10">
+    <PublicPage
+      title="Terms and Conditions"
+      subtitle="Last updated: February 2025. Ghana-based. Applies to web, Android and iOS."
+      documentTitle="Terms and Conditions - MYXCROW"
+      description="Terms and Conditions for MYXCROW secure escrow services. Ghana-based platform for web, Android and iOS."
+    >
               <section className={publicForm.legalProse}>
                 <div>
                   <h2 className={publicForm.legalSectionTitle}>1. Acceptance and scope</h2>
@@ -110,14 +99,10 @@ export default function TermsPage() {
               </section>
 
               <div className={publicForm.legalFooter}>
-                <Link href="/privacy" className="text-brand-maroon font-semibold hover:underline">Privacy Policy</Link>
-                <Link href="/support" className="text-brand-maroon font-semibold hover:underline">Support</Link>
-                <Link href="/" className="text-brand-maroon font-semibold hover:underline">Home</Link>
+                <Link href="/privacy" className="text-brand-maroon font-semibold">Privacy Policy</Link>
+                <Link href="/support" className="text-brand-maroon font-semibold">Support</Link>
+                <Link href="/" className="text-brand-maroon font-semibold">Home</Link>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+    </PublicPage>
   );
 }

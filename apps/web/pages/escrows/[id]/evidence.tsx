@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -8,7 +8,6 @@ import { formatDate } from '@/lib/utils';
 import { Upload, File, Download, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useConfirm } from '@/components/providers/UIProvider';
-import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -154,26 +153,11 @@ export default function EvidencePage() {
   const evidenceList: Evidence[] = escrow?.evidence ?? [];
 
   return (
-    <Layout>
+    <CustomerLayout title="Evidence" back>
       <PullToRefresh onRefresh={refreshEvidence} disabled={!isMobile} className="space-y-6">
-        <button
-          type="button"
-          onClick={() => router.push(`/escrows/${escrowId}`)}
-          className="text-sm font-medium text-brand-gold hover:text-brand-gold/80 transition-colors"
-        >
-          ← Back to escrow
-        </button>
-
-        <PageHeader
-          eyebrow="Agreement"
-          title="Evidence"
-          subtitle="Upload and manage evidence for this escrow"
-          icon={<File className="w-6 h-6" />}
-        />
-
         <div className={form.panel}>
-          <h2 className="text-ios-headline font-semibold text-label-primary mb-4">Upload evidence</h2>
-          <div className="border-2 border-dashed border-white/20 rounded-ios-lg p-8 text-center">
+          <h2 className="text-[17px] font-semibold text-gray-900 mb-4">Upload evidence</h2>
+          <div className="border-2 border-dashed border-[rgba(60,60,67,0.18)] rounded-[12px] p-8 text-center">
             <Upload className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
             <input
               type="file"
@@ -183,7 +167,7 @@ export default function EvidencePage() {
               accept="image/*,application/pdf,.doc,.docx"
             />
             <label htmlFor="file-upload" className="cursor-pointer inline-block">
-              <span className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-ios-lg bg-brand-gold text-brand-maroon-black font-semibold hover:bg-brand-gold/90 touch-manipulation">
+              <span className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-[10px] bg-brand-maroon text-white font-semibold hover:bg-brand-maroon-dark touch-manipulation">
                 Select file
               </span>
             </label>
@@ -194,17 +178,18 @@ export default function EvidencePage() {
                 </p>
                 <div className="flex justify-center">
                   <Checkbox
+                    tone="light"
                     checked={includeLocation}
                     onChange={(e) => setIncludeLocation(e.target.checked)}
                     label="Include my location (proof of delivery)"
                   />
                 </div>
                 {locationError && (
-                  <Banner tone="error" className="text-left">
+                  <Banner light tone="error" className="text-left">
                     {locationError}
                   </Banner>
                 )}
-                <Button type="button" variant="filled" loading={uploading} onClick={handleUpload}>
+                <Button type="button" variant="maroon" loading={uploading} onClick={handleUpload}>
                   <Upload className="w-4 h-4" />
                   Upload file
                 </Button>
@@ -216,20 +201,20 @@ export default function EvidencePage() {
           </p>
         </div>
 
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card overflow-hidden">
-          <div className="p-6 border-b border-white/10">
-            <h2 className="text-ios-headline font-semibold text-label-primary">Uploaded evidence</h2>
+        <div className="rounded-[12px] bg-white overflow-hidden">
+          <div className="p-5 border-b border-[rgba(60,60,67,0.12)]">
+            <h2 className="text-[17px] font-semibold text-gray-900">Uploaded evidence</h2>
           </div>
-          <div className="p-6">
+          <div className="p-5">
             {evidenceList.length > 0 ? (
               <div className="space-y-3">
                 {evidenceList.map((evidence) => (
                   <div
                     key={evidence.id}
-                    className="flex items-center justify-between p-4 border border-white/10 rounded-ios-lg hover:bg-white/5 transition-colors"
+                    className="flex items-center justify-between p-4 border border-[rgba(60,60,67,0.12)] rounded-[12px]"
                   >
                     <div className="flex items-center gap-4 min-w-0">
-                      <File className="w-8 h-8 text-brand-gold shrink-0" />
+                      <File className="w-8 h-8 text-brand-maroon shrink-0" />
                       <div className="min-w-0">
                         <p className="font-medium text-label-primary truncate">{evidence.fileName}</p>
                         <p className="text-ios-caption text-label-secondary mt-1">
@@ -285,12 +270,13 @@ export default function EvidencePage() {
                 icon={<File className="w-6 h-6" />}
                 title="No evidence uploaded yet"
                 description="Upload files as proof of shipment or delivery"
+                tone="light"
                 className="border-0 bg-transparent"
               />
             )}
           </div>
         </div>
       </PullToRefresh>
-    </Layout>
+    </CustomerLayout>
   );
 }

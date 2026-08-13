@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated } from '@/lib/auth';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,7 +11,6 @@ import { Plus, X, Copy } from 'lucide-react';
 import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import { form } from '@/lib/form-classes';
-import PageHeader from '@/components/PageHeader';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import EscrowFeeSummary from '@/components/EscrowFeeSummary';
 import { calculateEscrowFees } from '@/lib/fee-calculator';
@@ -248,22 +247,8 @@ export default function CreateEscrowPage() {
   }
 
   return (
-    <Layout>
-      <div className="mx-auto max-w-3xl space-y-6">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="text-sm font-medium text-white/60 hover:text-white transition-colors"
-        >
-          ← Back
-        </button>
-        <PageHeader
-          eyebrow="New agreement"
-          title="Create new escrow"
-          subtitle="Set up a protected payment between buyer and seller"
-        />
-
-        <form onSubmit={handleSubmit(onSubmit)} className={`${form.panel} space-y-6`}>
+    <CustomerLayout title="New escrow" back>
+      <form onSubmit={handleSubmit(onSubmit)} className={`${form.panel} space-y-6`}>
           <div>
             <label htmlFor="sellerId" className={form.label}>
               Seller Phone *
@@ -314,13 +299,13 @@ export default function CreateEscrowPage() {
                         setValue('serviceType', undefined);
                       }
                     }}
-                    className={`p-4 rounded-ios-lg border text-left transition-colors touch-manipulation min-h-[56px] ${
+                    className={`p-4 rounded-[10px] border text-left transition-colors touch-manipulation min-h-[56px] ${
                       selected
-                        ? 'border-brand-gold/50 bg-brand-gold/15 ring-1 ring-brand-gold/30'
-                        : 'border-white/15 bg-white/5 hover:bg-white/10'
+                        ? 'border-brand-maroon/40 bg-brand-maroon/5 ring-1 ring-brand-maroon/20'
+                        : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]'
                     }`}
                   >
-                    <span className="text-sm font-semibold text-white">{label}</span>
+                    <span className="text-sm font-semibold text-gray-900">{label}</span>
                   </button>
                 );
               })}
@@ -427,12 +412,12 @@ export default function CreateEscrowPage() {
                     id="deliveryPin"
                     value={deliveryPin || ''}
                     readOnly
-                    className={`${form.input} font-mono tracking-[0.3em] select-all bg-white/10`}
+                    className={`${form.input} font-mono tracking-[0.3em] select-all`}
                     aria-readonly="true"
                   />
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="outline"
                     size="sm"
                     className="shrink-0 !px-3"
                     onClick={async () => {
@@ -487,7 +472,7 @@ export default function CreateEscrowPage() {
           {wallet && (
             <div className="text-sm text-label-secondary">
               Wallet available:{' '}
-              <span className="font-medium text-white">
+              <span className="font-medium text-gray-900">
                 {formatCurrency(wallet.availableCents, wallet.currency || 'GHS')}
               </span>
             </div>
@@ -542,13 +527,14 @@ export default function CreateEscrowPage() {
             {useMilestones && (
               <div className="space-y-4">
                 {fields.map((field, index) => (
-                  <div key={field.id} className="p-4 border border-white/10 rounded-ios-xl bg-white/5">
+                  <div key={field.id} className="p-4 rounded-[12px] bg-[#f2f2f7]">
                     <div className="flex items-start justify-between mb-3">
-                      <h4 className="font-medium text-label-primary">Milestone {index + 1}</h4>
+                      <h4 className="font-medium text-gray-900">Milestone {index + 1}</h4>
                       <button
                         type="button"
                         onClick={() => remove(index)}
-                        className="text-red-400 hover:text-red-300"
+                        className="min-w-[44px] min-h-[44px] -mr-2 -mt-2 inline-flex items-center justify-center text-red-600 touch-manipulation"
+                        aria-label={`Remove milestone ${index + 1}`}
                       >
                         <X className="w-4 h-4" />
                       </button>
@@ -637,25 +623,25 @@ export default function CreateEscrowPage() {
                   </div>
                 ))}
 
-                <Button type="button" variant="tinted" size="sm" onClick={addMilestone}>
+                <Button type="button" variant="outline" size="sm" onClick={addMilestone}>
                   <Plus className="w-4 h-4" />
                   Add Milestone
                 </Button>
 
                 {fields.length > 0 && (
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-ios-lg">
+                  <div className="p-4 bg-[#f2f2f7] rounded-[10px]">
                     <div className="flex justify-between text-sm">
                       <span className="text-label-secondary">Total Milestones:</span>
-                      <span className="font-medium text-white">{CURRENCY_SYMBOL} {totalMilestoneAmount.toFixed(2)}</span>
+                      <span className="font-medium text-gray-900">{CURRENCY_SYMBOL} {totalMilestoneAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm mt-2">
                       <span className="text-label-secondary">Remaining Amount:</span>
-                      <span className={`font-medium ${remainingAmount < 0 ? 'text-red-400' : 'text-emerald-400'}`}>
+                      <span className={`font-medium ${remainingAmount < 0 ? 'text-red-600' : 'text-emerald-700'}`}>
                         {CURRENCY_SYMBOL} {remainingAmount.toFixed(2)}
                       </span>
                     </div>
                     {remainingAmount < 0 && (
-                      <p className="mt-2 text-xs text-red-400">
+                      <p className="mt-2 text-xs text-red-600">
                         Total milestone amounts exceed escrow amount
                       </p>
                     )}
@@ -663,28 +649,16 @@ export default function CreateEscrowPage() {
                 )}
 
                 {errors.milestones && (
-                  <p className="text-sm text-red-400">{errors.milestones.message}</p>
+                  <p className={form.inputError}>{errors.milestones.message}</p>
                 )}
               </div>
             )}
           </div>
 
-          <div className="flex gap-4">
-            <Button type="button" variant="secondary" fullWidth onClick={() => router.back()}>
-              Cancel
+            <Button type="submit" variant="maroon" size="lg" fullWidth loading={createMutation.isPending} disabled={hasSufficientBalance === false || createMutation.isPending}>
+              {createMutation.isPending ? 'Creating…' : 'Create & fund'}
             </Button>
-            <Button
-              type="submit"
-              variant="filled"
-              fullWidth
-              loading={createMutation.isPending}
-              disabled={hasSufficientBalance === false || createMutation.isPending}
-            >
-              {createMutation.isPending ? 'Creating & funding...' : 'Create & fund escrow'}
-            </Button>
-          </div>
         </form>
-      </div>
-    </Layout>
+    </CustomerLayout>
   );
 }

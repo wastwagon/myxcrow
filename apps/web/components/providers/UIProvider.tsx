@@ -10,6 +10,8 @@ import {
 import { AlertDialog } from '@/components/ui/AlertDialog';
 import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
+import { isLightAppSurface } from '@/lib/app-chrome';
+import { form } from '@/lib/form-classes';
 
 export interface ConfirmOptions {
   title: string;
@@ -120,6 +122,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
   };
 
   const value = useMemo(() => ({ confirm, prompt }), [confirm, prompt]);
+  const light = isLightAppSurface();
 
   return (
     <UIContext.Provider value={value}>
@@ -127,6 +130,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
       {confirmState?.open && (
         <AlertDialog
           open
+          tone={light ? 'light' : 'dark'}
           title={confirmState.title}
           message={confirmState.message}
           confirmLabel={confirmState.confirmLabel}
@@ -139,24 +143,34 @@ export function UIProvider({ children }: { children: ReactNode }) {
       {promptState?.open && (
         <Sheet
           open
+          tone={light ? 'light' : 'dark'}
           onClose={() => closePrompt(null)}
           title={promptState.title}
           footer={
             <div className="flex flex-col gap-2 pb-2">
               <Button
                 fullWidth
+                variant={light ? 'maroon' : 'filled'}
                 onClick={() => closePrompt(promptState.value.trim())}
               >
                 {promptState.submitLabel ?? 'Continue'}
               </Button>
-              <Button fullWidth variant="plain" onClick={() => closePrompt(null)}>
+              <Button fullWidth variant={light ? 'outline' : 'plain'} onClick={() => closePrompt(null)}>
                 {promptState.cancelLabel ?? 'Cancel'}
               </Button>
             </div>
           }
         >
           {promptState.message && (
-            <p className="text-ios-subhead text-label-secondary mb-4">{promptState.message}</p>
+            <p
+              className={
+                light
+                  ? 'mb-4 text-[15px] text-[rgba(60,60,67,0.6)]'
+                  : 'mb-4 text-ios-subhead text-label-secondary'
+              }
+            >
+              {promptState.message}
+            </p>
           )}
           <input
             type="text"
@@ -166,7 +180,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
               setPromptState((s) => (s ? { ...s, value: e.target.value } : s))
             }
             placeholder={promptState.placeholder}
-            className="w-full min-h-[48px] px-4 py-3 rounded-ios-lg bg-white/5 border border-white/20 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none"
+            className={light ? form.input : 'w-full min-h-[48px] px-4 py-3 rounded-ios-lg bg-white/5 border border-white/20 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none'}
             onKeyDown={(e) => {
               if (e.key === 'Enter') closePrompt(promptState.value.trim());
             }}

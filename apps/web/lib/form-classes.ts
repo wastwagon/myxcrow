@@ -1,17 +1,17 @@
-/** Shared form field classes for pages on the dark app shell. */
+/** Shared form field classes — colors come from CSS variables so customer-app can go light. */
 export const form = {
   panel:
-    'rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6',
-  label: 'block text-ios-footnote font-medium text-label-secondary mb-1.5',
+    'rounded-[12px] border border-[var(--form-panel-border)] bg-[var(--form-panel-bg)] p-5 sm:p-6',
+  label: 'block text-[13px] font-medium text-[var(--form-label)] mb-1.5',
   input:
-    'w-full px-4 py-3 border border-white/20 rounded-ios-lg bg-white/5 text-white placeholder:text-white/45 focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none',
-  inputError: 'mt-1 text-sm text-red-400',
-  calloutInfo: 'rounded-ios-lg border border-brand-gold/30 bg-brand-gold/10 p-4',
-  calloutWarning: 'rounded-ios-lg border border-amber-500/35 bg-amber-500/15 p-4',
-  calloutDestructive: 'rounded-ios-lg border border-red-500/30 bg-red-500/10 p-4',
+    'w-full min-h-[44px] px-4 py-3 rounded-[10px] border border-[var(--form-input-border)] bg-[var(--form-input-bg)] text-[var(--form-input-text)] placeholder:text-[var(--form-placeholder)] focus:ring-2 focus:ring-brand-maroon/25 focus:border-brand-maroon/30 outline-none',
+  inputError: 'mt-1 text-sm text-[var(--form-error)]',
+  calloutInfo: 'rounded-[12px] border border-brand-gold/30 bg-brand-gold/10 p-4',
+  calloutWarning: 'rounded-[12px] border border-amber-500/35 bg-amber-500/15 p-4',
+  calloutDestructive: 'rounded-[12px] border border-red-500/30 bg-red-500/10 p-4',
   checkbox:
-    'rounded border-white/25 bg-white/5 text-brand-gold focus:ring-brand-gold focus:ring-offset-0',
-  checkboxLabel: 'text-sm font-medium text-label-secondary',
+    'rounded border-[var(--form-input-border)] bg-[var(--form-input-bg)] text-brand-maroon focus:ring-brand-maroon focus:ring-offset-0',
+  checkboxLabel: 'text-sm font-medium text-[var(--form-label)]',
 };
 
 /** Light card forms on the public gradient (login, register, support). */
@@ -19,15 +19,15 @@ export const publicForm = {
   label: 'block text-sm font-semibold text-gray-700 mb-2',
   labelCompact: 'block text-sm font-semibold text-gray-700 mb-1',
   input:
-    'w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none',
+    'w-full px-4 py-3 rounded-[10px] border border-transparent bg-[#f2f2f7] text-gray-900 placeholder:text-[rgba(60,60,67,0.4)] focus:ring-2 focus:ring-brand-maroon/25 outline-none',
   inputTouch:
-    'w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation',
+    'w-full min-h-[48px] px-4 py-3 rounded-[10px] border border-transparent bg-[#f2f2f7] text-gray-900 placeholder:text-[rgba(60,60,67,0.4)] focus:ring-2 focus:ring-brand-maroon/25 outline-none touch-manipulation',
   inputMono:
-    'w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl font-mono uppercase focus:ring-2 focus:ring-brand-gold focus:border-brand-gold outline-none touch-manipulation',
+    'w-full min-h-[48px] px-4 py-3 rounded-[10px] border border-transparent bg-[#f2f2f7] font-mono uppercase text-gray-900 focus:ring-2 focus:ring-brand-maroon/25 outline-none touch-manipulation',
   inputCode:
-    'w-full min-h-[48px] px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none text-center text-lg tracking-widest touch-manipulation',
+    'w-full min-h-[48px] px-4 py-3 rounded-[10px] border border-transparent bg-[#f2f2f7] text-gray-900 focus:ring-2 focus:ring-brand-maroon/25 outline-none text-center text-lg tracking-widest touch-manipulation',
   passwordInput:
-    'w-full min-h-[48px] px-4 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-gold focus:border-brand-gold transition-all outline-none touch-manipulation',
+    'w-full min-h-[48px] px-4 pr-12 py-3 rounded-[10px] border border-transparent bg-[#f2f2f7] text-gray-900 placeholder:text-[rgba(60,60,67,0.4)] focus:ring-2 focus:ring-brand-maroon/25 outline-none touch-manipulation',
   passwordToggle:
     'absolute inset-y-0 right-0 px-3 text-gray-500 hover:text-brand-maroon flex items-center justify-center',
   hint: 'mt-1 text-xs text-gray-500',
@@ -49,15 +49,15 @@ export const publicForm = {
   footerMuted: 'text-xs text-gray-500',
   footerText: 'text-sm text-gray-600',
   submit:
-    'w-full py-3 px-6 bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white rounded-xl hover:from-brand-maroon-dark hover:to-brand-maroon-darker disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl',
+    'w-full py-3 px-6 bg-brand-maroon text-white rounded-[10px] hover:bg-brand-maroon-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold',
   submitTouch:
-    'w-full min-h-[48px] py-3 px-6 bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white rounded-xl hover:from-brand-maroon-dark hover:to-brand-maroon-darker focus:outline-none focus:ring-2 focus:ring-brand-gold focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold transition-all shadow-lg hover:shadow-xl touch-manipulation',
+    'w-full min-h-[48px] py-3 px-6 bg-brand-maroon text-white rounded-[10px] hover:bg-brand-maroon-dark focus:outline-none focus:ring-2 focus:ring-brand-maroon/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold touch-manipulation',
   submitMaroon:
-    'w-full py-3 px-6 bg-brand-maroon text-white rounded-xl hover:bg-brand-maroon-dark font-semibold',
+    'w-full py-3 px-6 bg-brand-maroon text-white rounded-[10px] hover:bg-brand-maroon-dark font-semibold',
   submitDelivery:
-    'w-full min-h-[48px] py-3 px-6 bg-brand-maroon text-white rounded-xl hover:bg-brand-maroon-dark focus:outline-none focus:ring-2 focus:ring-brand-gold disabled:opacity-50 disabled:cursor-not-allowed font-semibold touch-manipulation',
+    'w-full min-h-[48px] py-3 px-6 bg-brand-maroon text-white rounded-[10px] hover:bg-brand-maroon-dark focus:outline-none focus:ring-2 focus:ring-brand-maroon/25 disabled:opacity-50 disabled:cursor-not-allowed font-semibold touch-manipulation',
   outlineBtn:
-    'mt-3 w-full min-h-[48px] py-3 px-4 border-2 border-brand-maroon text-brand-maroon rounded-xl hover:bg-brand-maroon/5 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation',
+    'mt-3 w-full min-h-[48px] py-3 px-4 border-2 border-brand-maroon text-brand-maroon rounded-[10px] hover:bg-brand-maroon/5 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation',
   /** Legal / static content on white cards */
   legalMeta: 'text-sm text-gray-500 mb-8',
   legalProse: 'space-y-6 text-gray-700',

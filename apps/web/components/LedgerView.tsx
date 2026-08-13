@@ -64,8 +64,8 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
   return (
     <div className="space-y-6">
       {journals.map((journal) => (
-        <div key={journal.id} className="border border-white/10 rounded-lg overflow-hidden">
-          <div className="bg-white/5 px-4 py-3 border-b border-white/10">
+        <div key={journal.id} className="border border-[var(--separator)] rounded-[12px] overflow-hidden">
+          <div className="bg-[var(--form-input-bg)] px-4 py-3 border-b border-[var(--separator)]">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h4 className="font-medium text-label-primary">
@@ -79,7 +79,7 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
                 <PrintReceiptButton
                   receipt={buildLedgerReceipt(journal, escrowId)}
                   iconOnly
-                  variant="plain"
+                  variant="outline"
                   size="sm"
                   label="Print ledger receipt"
                 />
@@ -87,7 +87,7 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
               </div>
             </div>
           </div>
-          <div className="divide-y divide-white/10">
+          <div className="divide-y divide-[var(--separator)]">
             {journal.entries.map((entry) => {
               const isCredit = entry.amountCents > 0;
               return (

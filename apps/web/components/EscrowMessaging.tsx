@@ -98,15 +98,15 @@ export default function EscrowMessaging({ escrowId }: EscrowMessagingProps) {
     <div className={form.panel}>
       {header}
 
-      <div className="border border-white/10 rounded-ios-lg h-96 overflow-y-auto p-4 mb-4 space-y-4 bg-white/[0.03]">
+      <div className="border border-[var(--separator)] rounded-[12px] h-96 overflow-y-auto p-4 mb-4 space-y-4 bg-[var(--form-input-bg)]">
         {messages && messages.length > 0 ? (
           messages.map((msg) => (
             <div key={msg.id} className={`flex ${isOwnMessage(msg) ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-ios-lg ${
+                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-[12px] ${
                   isOwnMessage(msg)
-                    ? 'bg-brand-gold/25 text-label-primary border border-brand-gold/30'
-                    : 'bg-white/10 text-label-primary border border-white/10'
+                    ? 'bg-brand-maroon/10 text-[var(--form-input-text)] border border-brand-maroon/20'
+                    : 'bg-[var(--form-panel-bg)] text-[var(--form-input-text)] border border-[var(--separator)]'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
@@ -135,7 +135,7 @@ export default function EscrowMessaging({ escrowId }: EscrowMessagingProps) {
           className={`flex-1 ${form.input}`}
           disabled={sending}
         />
-        <Button type="submit" variant="filled" disabled={!message.trim() || sending} loading={sending}>
+        <Button type="submit" variant="maroon" disabled={!message.trim() || sending} loading={sending}>
           <Send className="w-4 h-4" />
           Send
         </Button>

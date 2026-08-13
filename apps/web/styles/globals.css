@@ -63,6 +63,17 @@
     --safe-left: env(safe-area-inset-left, 0px);
     --safe-right: env(safe-area-inset-right, 0px);
     --tab-bar-height: 3.5rem;
+
+    /* Dark form surfaces (overridden on .customer-app) */
+    --form-panel-bg: rgba(255, 255, 255, 0.07);
+    --form-panel-border: rgba(255, 255, 255, 0.1);
+    --form-label: rgba(255, 255, 255, 0.72);
+    --form-input-bg: rgba(255, 255, 255, 0.05);
+    --form-input-border: rgba(255, 255, 255, 0.2);
+    --form-input-text: #ffffff;
+    --form-placeholder: rgba(255, 255, 255, 0.45);
+    --form-error: #f87171;
+    --skeleton: rgba(255, 255, 255, 0.15);
   }
 }
 
@@ -109,6 +120,164 @@
   background-color: var(--app-chrome-bg);
   pointer-events: none;
   z-index: 200;
+}
+
+/* Logged-in customer app: iOS grouped Settings / Wallet chrome */
+html.customer-app {
+  --app-chrome-bg: #f2f2f7;
+  --ios-grouped-bg: #f2f2f7;
+  --ios-separator: rgba(60, 60, 67, 0.12);
+  --ios-hairline: rgba(60, 60, 67, 0.29);
+  --ios-label-secondary: rgba(60, 60, 67, 0.6);
+  --label-primary: #000000;
+  --label-secondary: rgba(60, 60, 67, 0.6);
+  --label-tertiary: rgba(60, 60, 67, 0.4);
+  --tab-bar-bg: rgba(249, 249, 249, 0.92);
+  --tab-bar-height: 49px;
+  --form-panel-bg: #ffffff;
+  --form-panel-border: transparent;
+  --form-label: rgba(60, 60, 67, 0.6);
+  --form-input-bg: #f2f2f7;
+  --form-input-border: transparent;
+  --form-input-text: #000000;
+  --form-placeholder: rgba(60, 60, 67, 0.4);
+  --form-error: #ff3b30;
+  --separator: rgba(60, 60, 67, 0.12);
+  --skeleton: #e5e5ea;
+}
+
+/* Public utility pages: same grouped light surface, without locking the viewport */
+html.public-light {
+  --app-chrome-bg: #f2f2f7;
+  --label-primary: #000000;
+  --label-secondary: rgba(60, 60, 67, 0.6);
+  --label-tertiary: rgba(60, 60, 67, 0.4);
+  --separator: rgba(60, 60, 67, 0.12);
+  --skeleton: #e5e5ea;
+  --form-panel-bg: #ffffff;
+  --form-label: rgba(60, 60, 67, 0.6);
+  --form-input-bg: #f2f2f7;
+  --form-input-border: transparent;
+  --form-input-text: #000000;
+  --form-placeholder: rgba(60, 60, 67, 0.4);
+  --form-error: #ff3b30;
+}
+
+html.public-light,
+html.public-light body {
+  background-color: #f2f2f7;
+}
+
+html.customer-app,
+html.customer-app body,
+html.customer-app #__next {
+  height: 100svh;
+  max-height: 100svh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background-color: #f2f2f7;
+}
+
+html.customer-app #__next {
+  display: flex;
+  flex-direction: column;
+}
+
+html.customer-app #__next > div:first-of-type {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-shell {
+  flex: 1;
+  min-height: 0;
+}
+
+#customer-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: none;
+  padding-bottom: calc(var(--tab-bar-height) + max(12px, var(--safe-bottom)));
+}
+
+@media (min-width: 1280px) {
+  #customer-scroll {
+    padding-bottom: 2rem;
+  }
+}
+
+/* Leftover dark-glass utilities on customer and public light screens */
+html.customer-app [class*="text-white/"],
+html.public-light [class*="text-white/"] {
+  color: rgba(60, 60, 67, 0.6);
+}
+
+html.customer-app [class*="bg-white/[0.07]"],
+html.customer-app [class*="bg-white/[0.06]"],
+html.customer-app [class*="bg-white/[0.03]"],
+html.customer-app [class*="bg-white/5"],
+html.customer-app [class*="bg-black/20"],
+html.customer-app [class*="bg-black/30"],
+html.customer-app [class*="bg-black/40"],
+html.public-light [class*="bg-white/[0.07]"],
+html.public-light [class*="bg-white/[0.06]"],
+html.public-light [class*="bg-white/[0.03]"],
+html.public-light [class*="bg-white/5"],
+html.public-light [class*="bg-black/20"],
+html.public-light [class*="bg-black/30"],
+html.public-light [class*="bg-black/40"] {
+  background-color: #ffffff;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+html.customer-app [class*="border-white/10"],
+html.customer-app [class*="border-white/15"],
+html.customer-app [class*="border-white/20"],
+html.public-light [class*="border-white/10"],
+html.public-light [class*="border-white/15"],
+html.public-light [class*="border-white/20"] {
+  border-color: rgba(60, 60, 67, 0.12);
+}
+
+html.customer-app .shadow-ios-card,
+html.public-light .shadow-ios-card {
+  box-shadow: none;
+}
+
+html.customer-app [class*="text-blue-100"],
+html.public-light [class*="text-blue-100"] {
+  color: #1d4ed8;
+}
+
+html.customer-app [class*="text-emerald-100"],
+html.customer-app [class*="text-emerald-200"],
+html.public-light [class*="text-emerald-100"],
+html.public-light [class*="text-emerald-200"] {
+  color: #047857;
+}
+
+html.customer-app [class*="text-amber-100"],
+html.customer-app [class*="text-amber-200"],
+html.public-light [class*="text-amber-100"],
+html.public-light [class*="text-amber-200"] {
+  color: #b45309;
+}
+
+html.customer-app [class*="text-red-100"],
+html.public-light [class*="text-red-100"] {
+  color: #b91c1c;
+}
+
+html.customer-app button[class*="bg-white/15"],
+html.customer-app a[class*="bg-white/15"],
+html.public-light button[class*="bg-white/15"],
+html.public-light a[class*="bg-white/15"] {
+  background-color: #e5e5ea;
+  color: #111827;
+  border-color: transparent;
+  box-shadow: none;
 }
 
 @layer utilities {
@@ -187,7 +356,7 @@
 }
 
 .page-transition-in {
-  animation: page-enter 0.28s ease-out both;
+  animation: page-enter 0.2s ease-out both;
 }
 
 /* V2 intentional motion */
@@ -214,7 +383,7 @@
 @keyframes page-enter {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(6px);
   }
   to {
     opacity: 1;

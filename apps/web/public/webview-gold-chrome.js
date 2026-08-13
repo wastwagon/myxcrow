@@ -6,17 +6,26 @@
 (function () {
   var DARK_HEX = '#1f1414';
   var DARK_RGB = '31,20,20';
-  var LIGHT_HEX = '#ffffff';
-  var LIGHT_RGB = '255,255,255';
-  var LIGHT_PATH = /^\/(login|register|forgot-password|reset-password)\/?$/;
-
-  function isLightPath(path) {
-    return LIGHT_PATH.test(path || '');
-  }
+  var GROUPED_HEX = '#f2f2f7';
+  var GROUPED_RGB = '242,242,247';
+  var AUTH_PATH = /^\/(login|register|forgot-password|reset-password)\/?$/;
+  var CUSTOMER_PATH =
+    /^\/(dashboard|escrows|wallet|disputes|profile|kyc|change-password|payments)(\/|$)/;
+  var PUBLIC_LIGHT_PATH =
+    /^\/(confirm-delivery|terms|privacy|support|404|500)\/?$/;
 
   function chromeForPath(path) {
-    if (isLightPath(path)) {
-      return { hex: LIGHT_HEX, rgb: LIGHT_RGB, text: 'black' };
+    var p = path || '';
+    if (/^\/wallet\/admin/.test(p)) {
+      return { hex: DARK_HEX, rgb: DARK_RGB, text: 'white' };
+    }
+    if (
+      AUTH_PATH.test(p) ||
+      CUSTOMER_PATH.test(p) ||
+      PUBLIC_LIGHT_PATH.test(p) ||
+      /^\/partner\/checkout/.test(p)
+    ) {
+      return { hex: GROUPED_HEX, rgb: GROUPED_RGB, text: 'black' };
     }
     return { hex: DARK_HEX, rgb: DARK_RGB, text: 'white' };
   }
@@ -101,6 +110,10 @@
 
   function applyChrome(path) {
     var chrome = chromeForPath(path);
+    var p = path || '';
+    var isCustomer =
+      CUSTOMER_PATH.test(p) && !/^\/wallet\/admin/.test(p);
+    document.documentElement.classList.toggle('customer-app', isCustomer);
     document.documentElement.style.setProperty('--app-chrome-bg', chrome.hex);
     var theme = document.querySelector('meta[name="theme-color"]');
     if (theme) theme.setAttribute('content', chrome.hex);

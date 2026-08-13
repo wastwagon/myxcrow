@@ -38,14 +38,14 @@ export function PayoutDetailsFields({
                 type="button"
                 onClick={() => setValue('methodType', option.value, { shouldValidate: true })}
                 className={cn(
-                  'flex flex-col items-start gap-2 p-4 rounded-ios-lg border text-left transition-colors',
+                  'flex flex-col items-start gap-2 p-4 rounded-[10px] border text-left transition-colors',
                   selected
-                    ? 'border-brand-gold/50 bg-brand-gold/15 ring-1 ring-brand-gold/30'
-                    : 'border-white/15 bg-white/5 hover:bg-white/10',
+                    ? 'border-brand-maroon/40 bg-brand-maroon/5 ring-1 ring-brand-maroon/20'
+                    : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]',
                 )}
               >
-                <Icon className={cn('w-5 h-5', selected ? 'text-brand-gold' : 'text-white/60')} />
-                <span className="text-sm font-semibold text-white">{option.label}</span>
+                <Icon className={cn('w-5 h-5', selected ? 'text-brand-maroon' : 'text-[rgba(60,60,67,0.4)]')} />
+                <span className="text-sm font-semibold text-gray-900">{option.label}</span>
               </button>
             );
           })}
@@ -54,15 +54,15 @@ export function PayoutDetailsFields({
       </div>
 
       {methodType === 'BANK_ACCOUNT' && (
-        <div className="space-y-4 rounded-ios-lg border border-white/10 bg-white/[0.04] p-4">
-          <p className="text-sm font-medium text-white">Bank account details</p>
+        <div className="space-y-4 rounded-[10px] bg-[#f2f2f7] p-4">
+          <p className="text-sm font-medium text-gray-900">Bank account details</p>
           <div>
             <label htmlFor="accountName" className={form.label}>
               Account holder name *
             </label>
             <input {...register('accountName')} id="accountName" className={form.input} />
             {'accountName' in errors && errors.accountName && (
-              <p className="mt-1 text-sm text-red-400">{errors.accountName.message}</p>
+              <p className={form.inputError}>{errors.accountName.message}</p>
             )}
           </div>
           <div>
@@ -80,7 +80,7 @@ export function PayoutDetailsFields({
               ))}
             </select>
             {'bankName' in errors && errors.bankName && (
-              <p className="mt-1 text-sm text-red-400">{errors.bankName.message}</p>
+              <p className={form.inputError}>{errors.bankName.message}</p>
             )}
           </div>
           <div>
@@ -94,7 +94,7 @@ export function PayoutDetailsFields({
               className={form.input}
             />
             {'accountNumber' in errors && errors.accountNumber && (
-              <p className="mt-1 text-sm text-red-400">{errors.accountNumber.message}</p>
+              <p className={form.inputError}>{errors.accountNumber.message}</p>
             )}
           </div>
           <div>
@@ -107,8 +107,8 @@ export function PayoutDetailsFields({
       )}
 
       {methodType === 'MOBILE_MONEY' && (
-        <div className="space-y-4 rounded-ios-lg border border-white/10 bg-white/[0.04] p-4">
-          <p className="text-sm font-medium text-white">Mobile money details</p>
+        <div className="space-y-4 rounded-[10px] bg-[#f2f2f7] p-4">
+          <p className="text-sm font-medium text-gray-900">Mobile money details</p>
           <div>
             <label htmlFor="network" className={form.label}>
               Network *
@@ -124,7 +124,7 @@ export function PayoutDetailsFields({
               ))}
             </select>
             {'network' in errors && errors.network && (
-              <p className="mt-1 text-sm text-red-400">{errors.network.message}</p>
+              <p className={form.inputError}>{errors.network.message}</p>
             )}
           </div>
           <div>
@@ -133,7 +133,7 @@ export function PayoutDetailsFields({
             </label>
             <input {...register('mobileNumber')} id="mobileNumber" type="tel" className={form.input} />
             {'mobileNumber' in errors && errors.mobileNumber && (
-              <p className="mt-1 text-sm text-red-400">{errors.mobileNumber.message}</p>
+              <p className={form.inputError}>{errors.mobileNumber.message}</p>
             )}
           </div>
           <div>

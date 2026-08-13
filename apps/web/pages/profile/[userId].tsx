@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import CustomerLayout from '@/components/CustomerLayout';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDate, formatCurrency } from '@/lib/utils';
@@ -10,7 +10,6 @@ import { form } from '@/lib/form-classes';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { ProfilePageSkeleton } from '@/components/LoadingSkeleton';
-import PageHeader from '@/components/PageHeader';
 
 interface PublicProfile {
   userId: string;
@@ -65,20 +64,20 @@ export default function PublicProfilePage() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <CustomerLayout title="Profile" back>
         <ProfilePageSkeleton />
-      </Layout>
+      </CustomerLayout>
     );
   }
 
   if (!profile) {
     return (
-      <Layout>
+      <CustomerLayout title="Profile" back>
         <div className="text-center py-12">
           <User className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
           <p className="text-label-secondary">Profile not found</p>
         </div>
-      </Layout>
+      </CustomerLayout>
     );
   }
 
@@ -96,7 +95,7 @@ export default function PublicProfilePage() {
           <Star className="w-5 h-5 fill-yellow-400 text-yellow-400 opacity-50" />
         )}
         {[...Array(emptyStars)].map((_, i) => (
-          <Star key={i} className="w-5 h-5 text-white/25" />
+          <Star key={i} className="w-5 h-5 text-[#d1d1d6]" />
         ))}
         <span className="ml-2 text-sm font-medium text-label-secondary">
           {rating.toFixed(1)}
@@ -106,15 +105,8 @@ export default function PublicProfilePage() {
   };
 
   return (
-    <Layout>
+    <CustomerLayout title="Profile" back>
       <PullToRefresh onRefresh={refreshProfile} disabled={!isMobile} className="space-y-6">
-        <PageHeader
-          eyebrow="Reputation"
-          title={profile.name || 'User profile'}
-          subtitle="Public trading reputation on MyXcrow"
-          icon={<Shield className="w-6 h-6" />}
-        />
-
         {/* Profile Header */}
         <div className={`${form.panel} v2-fade-up`}>
           <div className="flex items-start justify-between">
@@ -126,7 +118,7 @@ export default function PublicProfilePage() {
                     {profile.name || 'User'}
                   </h2>
                   {profile.verifiedBadge && (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 rounded-full text-xs font-medium">
+                    <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-medium">
                       <CheckCircle className="w-3 h-3" />
                       Verified
                     </div>
@@ -204,30 +196,30 @@ export default function PublicProfilePage() {
           <div className={form.panel}>
             <h2 className="text-xl font-semibold text-label-primary mb-4">Statistics</h2>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-ios-lg bg-brand-gold/10 border border-brand-gold/25">
+              <div className="flex items-center justify-between p-4 rounded-[10px] bg-[#f2f2f7]">
                 <div className="flex items-center gap-3">
-                  <TrendingUp className="w-5 h-5 text-brand-gold" />
-                  <span className="font-medium text-label-primary">Completion Rate</span>
+                  <TrendingUp className="w-5 h-5 text-brand-maroon" />
+                  <span className="font-medium text-gray-900">Completion Rate</span>
                 </div>
-                <span className="text-2xl font-bold text-brand-gold">
+                <span className="text-2xl font-bold text-gray-900">
                   {profile.reputation.completionRate.toFixed(1)}%
                 </span>
               </div>
-              <div className="flex items-center justify-between p-4 rounded-ios-lg bg-emerald-500/15 border border-emerald-500/25">
+              <div className="flex items-center justify-between p-4 rounded-[10px] bg-emerald-50">
                 <div className="flex items-center gap-3">
-                  <Star className="w-5 h-5 text-emerald-400" />
+                  <Star className="w-5 h-5 text-emerald-600" />
                   <span className="font-medium text-label-primary">Total Ratings</span>
                 </div>
-                <span className="text-2xl font-bold text-emerald-400">
+                <span className="text-2xl font-bold text-emerald-700">
                   {profile.reputation.totalRatings}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-4 rounded-ios-lg bg-white/10 border border-white/15">
+              <div className="flex items-center justify-between p-4 rounded-[10px] bg-[#f2f2f7]">
                 <div className="flex items-center gap-3">
-                  <Shield className="w-5 h-5 text-white/80" />
+                  <Shield className="w-5 h-5 text-[rgba(60,60,67,0.6)]" />
                   <span className="font-medium text-label-primary">KYC Status</span>
                 </div>
-                <span className="text-lg font-semibold text-white/80">
+                <span className="text-lg font-semibold text-gray-900">
                   {profile.reputation.kycLevel}
                 </span>
               </div>
@@ -270,7 +262,7 @@ export default function PublicProfilePage() {
           </div>
         )}
       </PullToRefresh>
-    </Layout>
+    </CustomerLayout>
   );
 }
 

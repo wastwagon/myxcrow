@@ -11,6 +11,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
+import { isCustomerAppPath } from '@/lib/app-chrome';
 import { TabBar, type TabBarItem } from '@/components/ui/TabBar';
 
 const LOGGED_OUT_ITEMS = [
@@ -25,7 +26,7 @@ const getLoggedInItems = (admin: boolean): Omit<TabBarItem, 'isActive'>[] => [
   { href: '/escrows', label: 'Escrows', icon: Shield },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
   { href: '/disputes', label: 'Disputes', icon: AlertCircle },
-  { href: '/profile', label: 'Profile', icon: User },
+  { href: '/profile', label: 'Account', icon: User },
 ];
 
 export default function MobileBottomNav() {
@@ -56,5 +57,5 @@ export default function MobileBottomNav() {
     isActive: isActive(item.href),
   }));
 
-  return <TabBar items={items} />;
+  return <TabBar items={items} tone={isCustomerAppPath(router.pathname) ? 'ios' : 'dark'} />;
 }

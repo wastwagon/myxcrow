@@ -2,8 +2,8 @@ import { cn } from '@/lib/utils';
 
 const variants = {
   gold: 'bg-brand-gold/20 text-brand-gold ring-brand-gold/35',
-  maroon: 'bg-brand-maroon/50 text-white ring-brand-maroon/40',
-  muted: 'bg-white/10 text-white/90 ring-white/15',
+  maroon: 'bg-brand-maroon text-white ring-brand-maroon/40',
+  muted: 'bg-[#e5e5ea] text-gray-700 ring-[#d1d1d6]',
 } as const;
 
 interface UserAvatarProps {

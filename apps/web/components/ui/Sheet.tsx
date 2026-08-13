@@ -9,9 +9,10 @@ interface SheetProps {
   children: ReactNode;
   footer?: ReactNode;
   className?: string;
+  tone?: 'dark' | 'light';
 }
 
-export function Sheet({ open, onClose, title, children, footer, className }: SheetProps) {
+export function Sheet({ open, onClose, title, children, footer, className, tone = 'dark' }: SheetProps) {
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
@@ -45,24 +46,34 @@ export function Sheet({ open, onClose, title, children, footer, className }: She
         aria-modal="true"
         aria-labelledby={title ? 'sheet-title' : undefined}
         className={cn(
-          'relative z-10 w-full max-h-[90vh] flex flex-col',
-          'bg-[#1f1414] border-t border-white/10 rounded-t-ios-xl shadow-2xl',
-          'pb-[max(1rem,var(--safe-bottom))]',
+          'relative z-10 w-full max-h-[90vh] flex flex-col rounded-t-[16px] shadow-2xl',
+          tone === 'light'
+            ? 'bg-[#f2f2f7] pb-[max(1rem,var(--safe-bottom))]'
+            : 'bg-[#1f1414] border-t border-white/10 pb-[max(1rem,var(--safe-bottom))]',
           className
         )}
       >
         <div className="flex justify-center pt-2 pb-1 shrink-0" aria-hidden>
-          <div className="w-9 h-1 rounded-full bg-white/25" />
+          <div className={cn('w-9 h-1 rounded-full', tone === 'light' ? 'bg-black/20' : 'bg-white/25')} />
         </div>
         {title && (
           <div className="flex items-center justify-between px-4 pb-3 shrink-0">
-            <h2 id="sheet-title" className="text-ios-title-3 text-label-primary font-semibold">
+            <h2
+              id="sheet-title"
+              className={cn(
+                'text-ios-title-3 font-semibold',
+                tone === 'light' ? 'text-gray-900' : 'text-label-primary'
+              )}
+            >
               {title}
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-ios text-label-secondary hover:bg-white/10"
+              className={cn(
+                'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[10px]',
+                tone === 'light' ? 'text-[rgba(60,60,67,0.6)] hover:bg-black/5' : 'text-label-secondary hover:bg-white/10'
+              )}
               aria-label="Close"
             >
               <X className="w-5 h-5" />
@@ -70,7 +81,16 @@ export function Sheet({ open, onClose, title, children, footer, className }: She
           </div>
         )}
         <div className="overflow-y-auto px-4 flex-1">{children}</div>
-        {footer && <div className="px-4 pt-3 shrink-0 border-t border-white/10">{footer}</div>}
+        {footer && (
+          <div
+            className={cn(
+              'px-4 pt-3 shrink-0',
+              tone === 'light' ? 'border-t border-[rgba(60,60,67,0.12)]' : 'border-t border-white/10'
+            )}
+          >
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );

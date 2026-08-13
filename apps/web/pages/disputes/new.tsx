@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,7 +11,6 @@ import { AlertCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/utils';
 import { form } from '@/lib/form-classes';
-import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
 
 const disputeSchema = z.object({
@@ -80,23 +79,16 @@ export default function CreateDisputePage() {
   if (!mounted || !isAuthenticated()) return null;
 
   return (
-    <Layout>
-      <div className="max-w-2xl mx-auto space-y-6">
-        <PageHeader
-          eyebrow="Resolution"
-          title="Open dispute"
-          subtitle="Create a dispute for this escrow"
-          icon={<AlertCircle className="w-6 h-6" />}
-        />
-
+    <CustomerLayout title="New dispute" back>
+      <div className="space-y-6">
         {escrow && (
           <div className={form.calloutInfo}>
-            <p className="text-ios-subhead text-label-primary">
-              <span className="text-label-secondary">Escrow: </span>
+            <p className="text-[15px] text-gray-900">
+              <span className="text-[rgba(60,60,67,0.6)]">Escrow: </span>
               {escrow.description || escrow.id}
             </p>
-            <p className="text-ios-subhead text-label-primary mt-1">
-              <span className="text-label-secondary">Amount: </span>
+            <p className="text-[15px] text-gray-900 mt-1">
+              <span className="text-[rgba(60,60,67,0.6)]">Amount: </span>
               {formatCurrency(escrow.amountCents, 'GHS')}
             </p>
           </div>
@@ -136,11 +128,11 @@ export default function CreateDisputePage() {
             {errors.description && <p className={form.inputError}>{errors.description.message}</p>}
           </div>
 
-          <div className={form.calloutWarning}>
+          <div className="rounded-[12px] border border-amber-500/25 bg-amber-50 p-4">
             <div className="flex items-start gap-2">
-              <AlertCircle className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
-              <div className="text-sm text-amber-100/90">
-                <p className="font-medium text-amber-200 mb-1">Important</p>
+              <AlertCircle className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
+              <div className="text-sm text-amber-900">
+                <p className="font-medium mb-1">Important</p>
                 <ul className="list-disc list-inside space-y-1">
                   <li>Opening a dispute sets the escrow status to DISPUTED</li>
                   <li>Funds are held until the dispute is resolved</li>
@@ -151,23 +143,18 @@ export default function CreateDisputePage() {
             </div>
           </div>
 
-          <div className="flex gap-4">
-            <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="destructive"
-              size="lg"
-              fullWidth
-              loading={createMutation.isPending}
-            >
-              <AlertCircle className="w-4 h-4" />
-              Open dispute
-            </Button>
-          </div>
+          <Button
+            type="submit"
+            variant="destructive"
+            size="lg"
+            fullWidth
+            loading={createMutation.isPending}
+          >
+            <AlertCircle className="w-4 h-4" />
+            Open dispute
+          </Button>
         </form>
       </div>
-    </Layout>
+    </CustomerLayout>
   );
 }

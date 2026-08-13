@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated, isAdmin, getUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -14,7 +14,6 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { Field } from '@/components/ui/Field';
-import PageHeader from '@/components/PageHeader';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
@@ -175,20 +174,20 @@ export default function DisputeDetailPage() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <CustomerLayout title="Dispute" back large={false}>
         <PageDetailSkeleton />
-      </Layout>
+      </CustomerLayout>
     );
   }
 
   if (!dispute) {
     return (
-      <Layout>
+      <CustomerLayout title="Dispute" back large={false}>
         <div className="text-center py-12">
           <AlertCircle className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
           <p className="text-label-secondary">Dispute not found</p>
         </div>
-      </Layout>
+      </CustomerLayout>
     );
   }
 
@@ -196,28 +195,18 @@ export default function DisputeDetailPage() {
   const isAdminUser = isAdmin();
 
   return (
-    <Layout>
-      <PullToRefresh onRefresh={refreshDispute} disabled={!isMobile} className="mx-auto max-w-6xl space-y-6">
-        <button
-          type="button"
-          onClick={() => router.back()}
-          className="text-sm font-medium text-white/60 hover:text-white transition-colors"
-        >
-          ← Back
-        </button>
-        <PageHeader
-          eyebrow="Resolution"
-          title="Dispute details"
-          subtitle={`ID: ${dispute.id}`}
-          icon={<AlertCircle className="w-6 h-6" />}
-          action={<StatusBadge status={dispute.status} />}
-        />
+    <CustomerLayout title="Dispute" back large={false}>
+      <PullToRefresh onRefresh={refreshDispute} disabled={!isMobile} className="space-y-6">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[13px] text-[rgba(60,60,67,0.6)] truncate">ID {dispute.id}</p>
+          <StatusBadge status={dispute.status} onDark={false} />
+        </div>
 
         {/* SLA Timer */}
         {dispute && dispute.status === 'OPEN' && <DisputeSLATimer disputeId={dispute.id} />}
 
         {/* Dispute Info */}
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
+        <div className="rounded-[12px] bg-white p-5">
           <h2 className="text-xl font-semibold text-label-primary mb-4">Dispute Information</h2>
           <div className="space-y-3">
             {escrow && (
@@ -276,8 +265,8 @@ export default function DisputeDetailPage() {
         </div>
 
         {/* Messages */}
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card overflow-hidden">
-          <div className="p-6 border-b border-white/10">
+        <div className="rounded-[12px] bg-white overflow-hidden">
+          <div className="p-5 border-b border-[rgba(60,60,67,0.12)]">
             <h2 className="text-xl font-semibold text-label-primary">Messages</h2>
           </div>
           <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
@@ -291,8 +280,8 @@ export default function DisputeDetailPage() {
                     msg.senderId === user?.id
                       ? 'bg-brand-gold/15 ml-8 border border-brand-gold/25'
                       : msg.isSystem
-                      ? 'bg-white/10'
-                      : 'bg-white/10 mr-8 border border-white/10'
+                      ? 'bg-[#f2f2f7]'
+                      : 'bg-[#f2f2f7] mr-8'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -311,17 +300,18 @@ export default function DisputeDetailPage() {
 
           {/* Message Input */}
           {canSendMessage && (
-            <div className="p-6 border-t border-white/10">
+            <div className="p-5 border-t border-[rgba(60,60,67,0.12)]">
               <form onSubmit={handleSendMessage} className="flex gap-2">
                 <Input
                   type="text"
+                  tone="light"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Type your message..."
                   className="flex-1"
                   disabled={sending}
                 />
-                <Button type="submit" disabled={sending || !message.trim()} loading={sending}>
+                <Button type="submit" variant="maroon" disabled={sending || !message.trim()} loading={sending}>
                   <Send className="w-4 h-4" />
                   Send
                 </Button>
@@ -332,26 +322,28 @@ export default function DisputeDetailPage() {
 
         {/* Admin Actions */}
         {isAdminUser && dispute && ['OPEN', 'NEGOTIATION', 'MEDIATION', 'ARBITRATION'].includes(dispute.status) && (
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-6">
+          <div className="rounded-[12px] bg-white p-5">
             <h2 className="text-xl font-semibold text-label-primary mb-4">Admin Actions</h2>
             <form onSubmit={handleResolve} className="space-y-4">
               <Field
                 label="Resolution outcome"
                 htmlFor="outcome"
                 required
+                tone="light"
                 hint="Release pays the seller; Refund returns funds to the buyer."
               >
-                <Select id="outcome" name="outcome" required className="max-w-md">
+                <Select id="outcome" name="outcome" required tone="light" className="max-w-md">
                   <option value="">Select outcome</option>
                   <option value="RELEASE_TO_SELLER">Release to seller</option>
                   <option value="REFUND_TO_BUYER">Refund to buyer</option>
                 </Select>
               </Field>
-              <Field label="Resolution notes" htmlFor="resolution">
+              <Field label="Resolution notes" htmlFor="resolution" tone="light">
                 <Textarea
                   id="resolution"
                   name="resolution"
                   rows={3}
+                  tone="light"
                   placeholder="Brief notes on the resolution decision..."
                 />
               </Field>
@@ -367,8 +359,7 @@ export default function DisputeDetailPage() {
                 </Button>
                 <Button
                   type="button"
-                  variant="secondary"
-                  onClick={handleClose}
+                  variant="outline"
                   loading={closeMutation.isPending}
                 >
                   <XCircle className="w-4 h-4" />
@@ -379,7 +370,7 @@ export default function DisputeDetailPage() {
           </div>
         )}
       </PullToRefresh>
-    </Layout>
+    </CustomerLayout>
   );
 }
 

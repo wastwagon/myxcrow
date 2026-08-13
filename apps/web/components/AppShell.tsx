@@ -2,6 +2,8 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import { isAuthenticated } from '@/lib/auth';
+import { isCustomerAppPath } from '@/lib/app-chrome';
+import { cn } from '@/lib/utils';
 
 const PremiumFooter = dynamic(() => import('@/components/PremiumFooter'));
 const MobileBottomNav = dynamic(() => import('@/components/MobileBottomNav'), { ssr: false });
@@ -20,9 +22,7 @@ const APP_ROUTE_PREFIXES = [
 ];
 
 function isAppRoute(pathname: string): boolean {
-  return APP_ROUTE_PREFIXES.some(
-    (p) => pathname === p || pathname.startsWith(`${p}/`)
-  );
+  return APP_ROUTE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 interface AppShellProps {
@@ -41,16 +41,21 @@ export default function AppShell({ children }: AppShellProps) {
 
   const onAppRoute = isAppRoute(router.pathname);
   const showTabBar = mounted && authenticated && onAppRoute;
-  const showFooter = mounted && (!authenticated || !onAppRoute);
+  const showFooter = mounted && router.pathname === '/';
+  const customerShell = mounted && authenticated && isCustomerAppPath(router.pathname);
 
   return (
     <>
       <div
-        className={
-          showTabBar ? 'min-h-screen flex flex-col pb-tab-bar xl:pb-0' : 'min-h-screen flex flex-col'
-        }
+        className={cn(
+            customerShell
+            ? 'flex-1 min-h-0 flex flex-col overflow-hidden'
+            : showTabBar
+              ? 'min-h-screen flex flex-col pb-tab-bar xl:pb-0'
+              : 'min-h-screen flex flex-col'
+        )}
       >
-        <div className="flex-1">{children}</div>
+        <div className={customerShell ? 'flex-1 min-h-0' : 'flex-1'}>{children}</div>
         {showFooter && <PremiumFooter />}
       </div>
       {showTabBar && <MobileBottomNav />}

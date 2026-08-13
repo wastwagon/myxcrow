@@ -9,7 +9,7 @@ export default function PageTransition({ children }: PageTransitionProps) {
   const router = useRouter();
 
   return (
-    <div key={router.asPath} className="page-transition-in flex-1 min-h-0">
+    <div key={router.asPath} className="page-transition-in flex-1 min-h-0 flex flex-col">
       {children}
     </div>
   );

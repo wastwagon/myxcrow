@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated } from '@/lib/auth';
 import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { toast } from 'react-hot-toast';
-import { Lock, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { form } from '@/lib/form-classes';
 
@@ -59,24 +59,8 @@ export default function ChangePasswordPage() {
   if (!isAuthenticated()) return null;
 
   return (
-    <Layout>
-      <div className="mx-auto max-w-2xl space-y-6">
-        <header className="flex items-end justify-between gap-3 px-1">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">
-              Security
-            </p>
-            <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight text-white">
-              Change password
-            </h1>
-            <p className="mt-1 text-sm text-white/55">Update your account password</p>
-          </div>
-          <div className="hidden sm:flex h-11 w-11 items-center justify-center rounded-full border border-brand-gold/25 bg-brand-gold/10 text-brand-gold">
-            <Lock className="h-5 w-5" />
-          </div>
-        </header>
-
-        <form onSubmit={handleSubmit} className={`${form.panel} space-y-6`}>
+    <CustomerLayout title="Password" back>
+      <form onSubmit={handleSubmit} className={`${form.panel} space-y-6`}>
           <div>
             <label htmlFor="currentPassword" className={form.label}>
               Current password *
@@ -140,9 +124,9 @@ export default function ChangePasswordPage() {
           </div>
 
           {newPassword && (
-            <div className="rounded-ios-lg bg-white/5 border border-white/10 p-4">
-              <p className="text-ios-footnote font-medium text-label-secondary mb-2">Password strength</p>
-              <ul className="space-y-1 text-ios-footnote">
+            <div className="rounded-[12px] bg-[#f2f2f7] p-4">
+              <p className="text-[13px] font-medium text-[rgba(60,60,67,0.6)] mb-2">Password</p>
+              <ul className="space-y-1 text-[13px]">
                 {[
                   { ok: newPassword.length >= 8, label: 'At least 8 characters' },
                   { ok: /[A-Z]/.test(newPassword), label: 'Uppercase letter' },
@@ -150,7 +134,7 @@ export default function ChangePasswordPage() {
                   { ok: /[0-9]/.test(newPassword), label: 'Number' },
                   { ok: /[^A-Za-z0-9]/.test(newPassword), label: 'Special character' },
                 ].map(({ ok, label }) => (
-                  <li key={label} className={ok ? 'text-emerald-400' : 'text-label-tertiary'}>
+                  <li key={label} className={ok ? 'text-emerald-600' : 'text-[rgba(60,60,67,0.4)]'}>
                     {ok ? '✓' : '○'} {label}
                   </li>
                 ))}
@@ -159,22 +143,19 @@ export default function ChangePasswordPage() {
           )}
 
           <div className="flex gap-4 pt-2">
-            <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
+            <Button type="button" variant="outline" size="lg" fullWidth onClick={() => router.back()}>
               Cancel
             </Button>
-            <Button type="submit" variant="filled" size="lg" fullWidth loading={changePasswordMutation.isPending}>
-              Change password
+            <Button type="submit" variant="maroon" size="lg" fullWidth loading={changePasswordMutation.isPending}>
+              Save
             </Button>
           </div>
         </form>
-
-        <div className={form.calloutInfo}>
-          <p className="text-sm text-label-secondary">
-            <strong className="text-label-primary">Security notice: </strong>
-            A confirmation SMS will be sent to your registered phone. You will stay signed in on this device — log out everywhere if you suspect unauthorized access.
+        <div className={`${form.calloutInfo} mt-4`}>
+          <p className="text-sm text-[var(--form-label)]">
+            A confirmation SMS will be sent to your phone. You stay signed in on this device.
           </p>
         </div>
-      </div>
-    </Layout>
+    </CustomerLayout>
   );
 }

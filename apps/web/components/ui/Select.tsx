@@ -5,7 +5,7 @@ import type { FieldTone } from './Input';
 const selectTone: Record<FieldTone, string> = {
   dark: 'border-white/20 bg-[#2a1c1e] text-white focus:ring-brand-gold focus:border-brand-gold/50',
   light:
-    'border-2 border-gray-200 bg-white text-gray-900 focus:ring-brand-gold focus:border-brand-gold',
+    'border-transparent bg-[#f2f2f7] text-gray-900 focus:ring-brand-maroon/25 focus:border-brand-maroon/20',
 };
 
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
@@ -19,7 +19,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       <select
         ref={ref}
         className={cn(
-          'w-full min-h-[44px] px-4 py-3 rounded-ios-lg outline-none appearance-none transition-colors',
+          'w-full min-h-[44px] px-4 py-3 rounded-[10px] border outline-none appearance-none transition-colors',
           'focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation',
           selectTone[tone],
           error &&

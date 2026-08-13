@@ -30,8 +30,8 @@ export function Field({
         <label
           htmlFor={htmlFor}
           className={cn(
-            'block text-sm font-medium',
-            light ? 'text-gray-700' : 'text-ios-footnote text-label-secondary'
+            'block',
+            light ? 'text-[13px] font-medium text-[rgba(60,60,67,0.6)]' : 'text-ios-footnote text-label-secondary'
           )}
         >
           {label}
@@ -44,7 +44,7 @@ export function Field({
       {error ? (
         <p className={cn('text-sm', light ? 'text-red-600' : 'text-red-400')}>{error}</p>
       ) : hint ? (
-        <p className={cn('text-xs', light ? 'text-gray-500' : 'text-ios-caption text-label-tertiary')}>
+        <p className={cn('text-[13px]', light ? 'text-[rgba(60,60,67,0.6)]' : 'text-ios-caption text-label-tertiary')}>
           {hint}
         </p>
       ) : null}

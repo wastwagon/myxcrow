@@ -77,17 +77,19 @@ export default function RatingModal({
       open={isOpen}
       onClose={onClose}
       title={`Rate ${rateeName}`}
+      tone="light"
       footer={
         <div className="flex flex-col gap-2 pb-2">
           <Button
             fullWidth
+            variant="maroon"
             onClick={handleSubmit}
             loading={ratingMutation.isPending}
             disabled={score === 0}
           >
             Submit rating
           </Button>
-          <Button fullWidth variant="plain" onClick={onClose}>
+          <Button fullWidth variant="outline" onClick={onClose}>
             Cancel
           </Button>
         </div>
@@ -95,7 +97,7 @@ export default function RatingModal({
     >
       <div className="space-y-5 pb-2">
         <div>
-          <p className="text-ios-footnote text-label-secondary mb-3">Tap a star (1–5)</p>
+          <p className="text-[13px] text-[rgba(60,60,67,0.6)] mb-3">Tap a star (1–5)</p>
           <div className="flex items-center justify-center gap-3">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -111,7 +113,7 @@ export default function RatingModal({
                   className={`w-9 h-9 transition-colors ${
                     star <= (hoveredScore || score)
                       ? 'fill-brand-gold text-brand-gold'
-                      : 'text-white/25'
+                      : 'text-[#d1d1d6]'
                   }`}
                 />
               </button>
@@ -120,7 +122,7 @@ export default function RatingModal({
         </div>
 
         <div>
-          <label htmlFor="rating-comment" className="block text-ios-footnote text-label-secondary mb-2">
+          <label htmlFor="rating-comment" className="block text-[13px] text-[rgba(60,60,67,0.6)] mb-2">
             Comment (optional)
           </label>
           <textarea
@@ -128,7 +130,7 @@ export default function RatingModal({
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={4}
-            className="w-full px-4 py-3 rounded-ios-lg bg-white/5 border border-white/20 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none resize-none"
+            className="w-full px-4 py-3 rounded-[10px] bg-[#f2f2f7] border-0 text-gray-900 placeholder:text-[rgba(60,60,67,0.4)] focus:ring-2 focus:ring-brand-maroon/25 outline-none resize-none"
             placeholder="Share your experience..."
           />
         </div>

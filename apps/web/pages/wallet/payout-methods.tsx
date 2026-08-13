@@ -1,18 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { toast } from 'react-hot-toast';
-import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-import { Building2, Smartphone, Star, Trash2, Plus } from 'lucide-react';
-import Link from 'next/link';
+import { Building2, Smartphone, Star, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { SavedPayoutMethod } from '@/lib/withdrawal-payout';
 import { Sheet } from '@/components/ui/Sheet';
@@ -108,36 +106,32 @@ export default function PayoutMethodsPage() {
   if (!isAuthenticated()) return null;
 
   return (
-    <Layout>
-      <PullToRefresh onRefresh={refresh} disabled={!isMobile} className="max-w-2xl mx-auto space-y-5">
-        <PageHeader
-          eyebrow="Wallet"
-          title="Payout methods"
-          subtitle="Saved bank accounts and mobile money wallets for withdrawals"
-          icon={<Building2 className="w-6 h-6" />}
-          action={
-            <Button size="sm" variant="tinted" onClick={() => setAddOpen(true)}>
-              <Plus className="w-4 h-4" />
-              Add method
-            </Button>
-          }
-        />
-
+    <CustomerLayout
+      title="Payout methods"
+      back
+      trailing={
+        <button
+          type="button"
+          onClick={() => setAddOpen(true)}
+          className="min-h-[44px] px-2 text-[17px] font-semibold text-brand-maroon touch-manipulation"
+        >
+          Add
+        </button>
+      }
+    >
+      <PullToRefresh onRefresh={refresh} disabled={!isMobile} className="space-y-5">
         {isLoading ? (
-          <div className="h-32 bg-white/10 animate-pulse rounded-ios-xl" />
+          <div className="h-32 bg-white animate-pulse rounded-[12px]" />
         ) : methods.length === 0 ? (
-          <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] p-8 text-center">
-            <Smartphone className="w-12 h-12 mx-auto mb-3 text-white/30" />
-            <p className="text-white font-medium mb-1">No saved payout methods</p>
-            <p className="text-sm text-white/60 mb-5">
+          <div className="rounded-[12px] bg-white p-8 text-center">
+            <Smartphone className="w-12 h-12 mx-auto mb-3 text-[rgba(60,60,67,0.3)]" />
+            <p className="text-gray-900 font-medium mb-1">No saved payout methods</p>
+            <p className="text-sm text-[rgba(60,60,67,0.6)] mb-5">
               Save a bank account or mobile money wallet to withdraw faster next time.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={() => setAddOpen(true)}>Add payout method</Button>
-              <Link href="/wallet/withdraw">
-                <Button variant="secondary">Request withdrawal</Button>
-              </Link>
-            </div>
+            <Button variant="maroon" onClick={() => setAddOpen(true)}>
+              Add payout method
+            </Button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -147,36 +141,36 @@ export default function PayoutMethodsPage() {
                 <div
                   key={method.id}
                   className={cn(
-                    'rounded-ios-xl border p-4 bg-white/[0.07]',
-                    method.isDefault ? 'border-brand-gold/40 ring-1 ring-brand-gold/20' : 'border-white/10',
+                    'rounded-[12px] bg-white p-4',
+                    method.isDefault && 'ring-1 ring-brand-maroon/25'
                   )}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-ios-lg bg-brand-gold/15 flex items-center justify-center shrink-0">
-                      <Icon className="w-5 h-5 text-brand-gold" />
+                    <div className="w-10 h-10 rounded-[10px] bg-brand-maroon/10 flex items-center justify-center shrink-0">
+                      <Icon className="w-5 h-5 text-brand-maroon" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-white">
+                        <p className="font-semibold text-gray-900">
                           {method.label || method.methodLabel}
                         </p>
                         {method.isDefault && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-brand-gold/20 text-brand-gold border border-brand-gold/30">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-brand-maroon/10 text-brand-maroon">
                             Default
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-white/65 mt-0.5">{method.payoutSummary}</p>
+                      <p className="text-sm text-[rgba(60,60,67,0.6)] mt-0.5">{method.payoutSummary}</p>
                       {method.details.accountName && (
-                        <p className="text-xs text-white/50 mt-1">{method.details.accountName}</p>
+                        <p className="text-xs text-[rgba(60,60,67,0.4)] mt-1">{method.details.accountName}</p>
                       )}
                     </div>
                   </div>
-                  <div className="flex gap-2 mt-4 pt-3 border-t border-white/10">
+                  <div className="flex gap-2 mt-4 pt-3 border-t border-[rgba(60,60,67,0.12)]">
                     {!method.isDefault && (
                       <Button
                         size="sm"
-                        variant="secondary"
+                        variant="outline"
                         onClick={() => defaultMutation.mutate(method.id)}
                         loading={defaultMutation.isPending}
                       >
@@ -204,7 +198,7 @@ export default function PayoutMethodsPage() {
           </div>
         )}
 
-        <p className="text-xs text-white/50 text-center">
+        <p className="text-[13px] text-[rgba(60,60,67,0.6)] text-center">
           Payout details are encrypted. Only masked values are shown here.
         </p>
       </PullToRefresh>
@@ -213,15 +207,16 @@ export default function PayoutMethodsPage() {
         open={addOpen}
         onClose={closeAddSheet}
         title="Add payout method"
+        tone="light"
         footer={
           <div className="flex gap-3 px-4">
-            <Button type="button" variant="secondary" fullWidth onClick={closeAddSheet}>
+            <Button type="button" variant="outline" fullWidth onClick={closeAddSheet}>
               Cancel
             </Button>
             <Button
               type="submit"
               form="add-payout-method-form"
-              variant="filled"
+              variant="maroon"
               fullWidth
               loading={createMutation.isPending}
             >
@@ -260,10 +255,10 @@ export default function PayoutMethodsPage() {
               onChange={(e) => setSetDefault(e.target.checked)}
               className={form.checkbox}
             />
-            <span className="text-sm text-white/80">Set as default payout method</span>
+            <span className="text-sm text-[rgba(60,60,67,0.6)]">Set as default payout method</span>
           </label>
         </form>
       </Sheet>
-    </Layout>
+    </CustomerLayout>
   );
 }

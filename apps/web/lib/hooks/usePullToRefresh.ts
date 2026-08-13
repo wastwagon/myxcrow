@@ -18,6 +18,8 @@ export function usePullToRefresh({ onRefresh, disabled }: UsePullToRefreshOption
   const canPull = useCallback(() => {
     if (disabled || refreshing) return false;
     if (typeof window === 'undefined') return false;
+    const scroller = document.getElementById('customer-scroll');
+    if (scroller) return scroller.scrollTop <= 0;
     return window.scrollY <= 0;
   }, [disabled, refreshing]);
 

@@ -134,6 +134,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
   if (!milestones || milestones.length === 0) {
     return (
       <EmptyState
+        tone="light"
         icon={<Clock className="w-6 h-6" />}
         title="No milestones"
         description="This escrow does not use milestone payments"
@@ -188,7 +189,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                   ? 'border-brand-gold/30 bg-brand-gold/10'
                   : milestone.status === 'submitted'
                   ? 'border-amber-500/30 bg-amber-500/10'
-                  : 'border-white/10 bg-white/[0.06]'
+                  : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]'
               )}
             >
               <div className="flex items-start justify-between">
@@ -201,7 +202,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                           ? 'bg-emerald-600 text-white'
                           : milestone.status === 'completed' || milestone.status === 'approved'
                           ? 'bg-brand-maroon text-white'
-                          : 'bg-white/15 text-label-secondary'
+                          : 'bg-[#e5e5ea] text-gray-700'
                       )}
                     >
                       {index + 1}
@@ -213,15 +214,15 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       )}
                       <div className="flex flex-wrap items-center gap-2 mt-2">
                         {milestone.targetDate && (
-                          <Badge color="gold" variant="subtle">
+                          <Badge tone="light" color="gold" variant="subtle">
                             Target: {formatDate(milestone.targetDate)}
                           </Badge>
                         )}
-                        <Badge color="warning" variant="subtle">
+                        <Badge tone="light" color="warning" variant="subtle">
                           Approval window: {milestone.approvalWindowDays ?? 5} day{(milestone.approvalWindowDays ?? 5) > 1 ? 's' : ''}
                         </Badge>
                         {milestone.status === 'submitted' && approvalMeta && (
-                          <Badge color={approvalMeta.daysLeft <= 1 ? 'error' : 'warning'} variant="subtle">
+                          <Badge tone="light" color={approvalMeta.daysLeft <= 1 ? 'error' : 'warning'} variant="subtle">
                             Auto-approve due: {formatDate(approvalMeta.due)} ({approvalMeta.daysLeft <= 0 ? 'today/overdue' : `${approvalMeta.daysLeft} day(s) left`})
                           </Badge>
                         )}
@@ -233,6 +234,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       </p>
                       <Badge
                         className="mt-1"
+                        tone="light"
                         color={
                           milestone.status === 'released' || milestone.status === 'approved'
                             ? 'success'
@@ -285,6 +287,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                   {canSubmit && (
                     <Button
                       size="sm"
+                      variant="maroon"
                       onClick={() => handleSubmitMilestone(milestone.id, milestone.name)}
                       loading={completeMutation.isPending}
                     >
@@ -295,7 +298,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                   {canApprove && (
                     <Button
                       size="sm"
-                      variant="tinted"
+                      variant="outline"
                       onClick={() => handleApprove(milestone.id, milestone.name)}
                       loading={approveMutation.isPending}
                     >
@@ -306,6 +309,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                   {canRelease && (
                     <Button
                       size="sm"
+                      variant="maroon"
                       onClick={() => handleRelease(milestone.id, milestone.name)}
                       loading={releaseMutation.isPending}
                     >

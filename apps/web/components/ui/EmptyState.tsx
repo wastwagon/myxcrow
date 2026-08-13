@@ -25,7 +25,7 @@ export function EmptyState({
       className={cn(
         'flex flex-col items-center justify-center text-center px-6 py-12 rounded-ios-xl border',
         light
-          ? 'border-gray-200 bg-white'
+          ? 'bg-transparent border-0'
           : 'border-white/10 bg-white/[0.05]',
         className
       )}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated } from '@/lib/auth';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -69,19 +69,17 @@ export default function EscrowCreatedPage() {
   if (!isAuthenticated()) return null;
 
   return (
-    <Layout>
-      <div className="mx-auto max-w-2xl space-y-6">
-        <header className="px-1">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-gold/80">Success</p>
-          <div className="mt-3 flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-emerald-400/40 bg-emerald-500/20">
-              <CheckCircle2 className="h-7 w-7 text-emerald-400" />
+    <CustomerLayout title="Escrow" back>
+      <div className="space-y-6">
+        <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100">
+              <CheckCircle2 className="h-7 w-7 text-emerald-600" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white">
+              <h2 className="text-[22px] font-bold tracking-tight text-gray-900">
                 {isFunded ? 'Escrow created & funded' : 'Escrow created'}
-              </h1>
-              <p className="mt-1 text-sm text-white/60">
+              </h2>
+              <p className="mt-1 text-sm text-[rgba(60,60,67,0.6)]">
                 {isFunded
                   ? isProfessional
                     ? 'Funds are secured. The seller can start the service.'
@@ -89,28 +87,27 @@ export default function EscrowCreatedPage() {
                   : 'Complete wallet funding from escrow details to activate this deal.'}
               </p>
             </div>
-          </div>
-        </header>
+        </div>
 
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm p-6 md:p-8 shadow-ios-card">
+        <div className="rounded-[12px] bg-white p-5 space-y-4">
           <div className="grid sm:grid-cols-2 gap-4 text-sm">
-            <div className="rounded-xl bg-white/5 border border-white/10 p-4 sm:col-span-2">
-              <p className="text-white/60">Escrow ID</p>
-              <p className="text-white font-medium break-all">{id}</p>
+            <div className="rounded-[10px] bg-[#f2f2f7] p-4 sm:col-span-2">
+              <p className="text-[rgba(60,60,67,0.6)]">Escrow ID</p>
+              <p className="text-gray-900 font-medium break-all">{id}</p>
             </div>
             {escrow?.serviceType && (
-              <div className="rounded-ios-lg bg-white/5 border border-white/10 p-4 sm:col-span-2">
-                <p className="text-white/60">Service</p>
-                <p className="text-white font-medium">{escrow.serviceType}</p>
+              <div className="rounded-[10px] bg-[#f2f2f7] p-4 sm:col-span-2">
+                <p className="text-[rgba(60,60,67,0.6)]">Service</p>
+                <p className="text-gray-900 font-medium">{escrow.serviceType}</p>
               </div>
             )}
-            <div className="rounded-ios-lg bg-white/5 border border-white/10 p-4">
-              <p className="text-white/60">Deal amount</p>
-              <p className="text-white font-medium">{amountText || '—'}</p>
+            <div className="rounded-[10px] bg-[#f2f2f7] p-4">
+              <p className="text-[rgba(60,60,67,0.6)]">Deal amount</p>
+              <p className="text-gray-900 font-medium">{amountText || '—'}</p>
             </div>
-            <div className="rounded-ios-lg bg-white/5 border border-white/10 p-4">
-              <p className="text-white/60">{isFunded ? 'Funded from wallet' : 'Amount to fund'}</p>
-              <p className="text-white font-medium">{fundAmountText || '—'}</p>
+            <div className="rounded-[10px] bg-[#f2f2f7] p-4">
+              <p className="text-[rgba(60,60,67,0.6)]">{isFunded ? 'Funded from wallet' : 'Amount to fund'}</p>
+              <p className="text-gray-900 font-medium">{fundAmountText || '—'}</p>
             </div>
           </div>
 
@@ -122,6 +119,7 @@ export default function EscrowCreatedPage() {
 
           {generatedPin && (
             <Banner
+              light
               tone="warning"
               title="Delivery PIN (auto-generated)"
               icon={<Shield className="w-5 h-5" />}
@@ -131,13 +129,13 @@ export default function EscrowCreatedPage() {
                 This PIN confirms delivery before auto-release. It is also saved on your escrow details page.
               </p>
               <div className="flex flex-wrap items-center gap-2">
-                <code className="font-mono text-lg font-bold text-label-primary bg-black/20 px-3 py-1 rounded-ios">
+                <code className="font-mono text-lg font-bold text-gray-900 bg-[#f2f2f7] px-3 py-1 rounded-[10px]">
                   {generatedPin}
                 </code>
                 <Button
                   type="button"
                   size="sm"
-                  variant="secondary"
+                  variant="outline"
                   onClick={async () => {
                     await navigator.clipboard.writeText(generatedPin);
                     toast.success('PIN copied');
@@ -155,18 +153,18 @@ export default function EscrowCreatedPage() {
               <PrintReceiptButton
                 receipt={buildEscrowReceipt(escrow, { viewerRole: 'buyer' })}
                 className="sm:flex-none"
-                variant="secondary"
+                variant="outline"
               />
             )}
-            <ButtonLink href={`/escrows/${id}`} className="flex-1">
+            <ButtonLink href={`/escrows/${id}`} variant="maroon" className="flex-1">
               View escrow details
             </ButtonLink>
-            <ButtonLink href="/escrows" variant="secondary" className="flex-1">
+            <ButtonLink href="/escrows" variant="outline" className="flex-1">
               Go to escrows list
             </ButtonLink>
           </div>
         </div>
       </div>
-    </Layout>
+    </CustomerLayout>
   );
 }

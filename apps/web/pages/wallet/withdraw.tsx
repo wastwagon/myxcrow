@@ -1,15 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { cn, formatCurrency } from '@/lib/utils';
-import { ArrowUpCircle, Building2, Smartphone, Star } from 'lucide-react';
+import { Building2, Smartphone, Star } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
@@ -22,7 +21,6 @@ import {
   type PayoutDetailsFormData,
 } from '@/lib/payout-form-schema';
 import { PayoutDetailsFields } from '@/components/wallet/PayoutDetailsFields';
-import Link from 'next/link';
 
 export default function WithdrawPage() {
   const router = useRouter();
@@ -129,32 +127,15 @@ export default function WithdrawPage() {
   const availableBalance = wallet ? wallet.availableCents / 100 : 0;
 
   return (
-    <Layout>
-      <PullToRefresh onRefresh={refreshWithdraw} disabled={!isMobile} className="max-w-2xl mx-auto space-y-5">
-        <PageHeader
-          eyebrow="Wallet"
-          title="Request withdrawal"
-          subtitle="Choose how you want to receive your payout"
-          icon={<ArrowUpCircle className="w-6 h-6" />}
-          action={
-            <Link href="/wallet/payout-methods" className="text-sm text-brand-gold hover:text-brand-gold/80 font-medium">
-              Manage methods
-            </Link>
-          }
-        />
-
+    <CustomerLayout title="Withdraw" back>
+      <PullToRefresh onRefresh={refreshWithdraw} disabled={!isMobile} className="space-y-5">
         {wallet && (
-          <div className="rounded-ios-lg border border-brand-gold/30 bg-brand-gold/10 px-4 py-3">
-            <p className="text-sm text-white/80">
-              <span className="text-white/60">Available balance: </span>
-              <span className="font-semibold text-brand-gold">
-                {formatCurrency(wallet.availableCents, wallet.currency || 'GHS')}
-              </span>
-            </p>
-          </div>
+          <p className="text-[13px] text-[rgba(60,60,67,0.6)]">
+            Available {formatCurrency(wallet.availableCents, wallet.currency || 'GHS')}
+          </p>
         )}
 
-        <div className="rounded-ios-xl border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card p-5 md:p-6 space-y-5">
+        <div className={`${form.panel} space-y-5`}>
           <div>
             <label htmlFor="amountGhs" className={form.label}>
               Amount (₵) *
@@ -175,6 +156,7 @@ export default function WithdrawPage() {
           {savedMethods.length > 0 && (
             <SegmentedControl
               className="w-full"
+              tone="light"
               value={payoutMode}
               onChange={setPayoutMode}
               options={[
@@ -196,44 +178,39 @@ export default function WithdrawPage() {
                     type="button"
                     onClick={() => setSelectedMethodId(method.id)}
                     className={cn(
-                      'w-full text-left p-4 rounded-ios-lg border transition-colors',
+                      'w-full text-left p-4 rounded-[10px] border transition-colors',
                       selected
-                        ? 'border-brand-gold/50 bg-brand-gold/10 ring-1 ring-brand-gold/25'
-                        : 'border-white/15 bg-white/5 hover:bg-white/10'
+                        ? 'border-brand-maroon/40 bg-brand-maroon/5 ring-1 ring-brand-maroon/20'
+                        : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]'
                     )}
                   >
                     <div className="flex items-start gap-3">
-                      <Icon className={cn('w-5 h-5 mt-0.5', selected ? 'text-brand-gold' : 'text-white/50')} />
+                      <Icon className={cn('w-5 h-5 mt-0.5', selected ? 'text-brand-maroon' : 'text-[rgba(60,60,67,0.4)]')} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-white">
+                          <span className="font-medium text-gray-900">
                             {method.label || method.methodLabel}
                           </span>
                           {method.isDefault && (
                             <Star className="w-3.5 h-3.5 text-brand-gold fill-brand-gold" />
                           )}
                         </div>
-                        <p className="text-sm text-white/60 mt-0.5">{method.payoutSummary}</p>
+                        <p className="text-sm text-[rgba(60,60,67,0.6)] mt-0.5">{method.payoutSummary}</p>
                       </div>
                     </div>
                   </button>
                 );
               })}
-              <div className="flex gap-3 pt-2">
-                <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  variant="filled"
-                  size="lg"
-                  fullWidth
-                  loading={withdrawMutation.isPending}
-                  onClick={onSubmitSaved}
-                >
-                  Submit request
-                </Button>
-              </div>
+              <Button
+                type="button"
+                variant="maroon"
+                size="lg"
+                fullWidth
+                loading={withdrawMutation.isPending}
+                onClick={onSubmitSaved}
+              >
+                Submit request
+              </Button>
             </div>
           ) : (
             <form onSubmit={handleSubmit(onSubmitNew)} className="space-y-5">
@@ -251,7 +228,7 @@ export default function WithdrawPage() {
                   onChange={(e) => setSavePayoutMethod(e.target.checked)}
                   className={form.checkbox}
                 />
-                <span className="text-sm text-white/80">Save these payout details for future withdrawals</span>
+                <span className="text-sm text-[rgba(60,60,67,0.6)]">Save these payout details for future withdrawals</span>
               </label>
 
               {savePayoutMethod && (
@@ -267,24 +244,19 @@ export default function WithdrawPage() {
                 </div>
               )}
 
-              <div className="rounded-ios-lg border border-amber-500/35 bg-amber-500/15 p-4">
-                <p className="text-sm text-amber-100/90">
+              <div className="rounded-[12px] border border-amber-500/25 bg-amber-50 p-4">
+                <p className="text-sm text-amber-800">
                   Withdrawals are reviewed manually. You will be notified when your request is processed.
                 </p>
               </div>
 
-              <div className="flex gap-3">
-                <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
-                  Cancel
-                </Button>
-                <Button type="submit" variant="filled" size="lg" fullWidth loading={withdrawMutation.isPending}>
-                  Submit request
-                </Button>
-              </div>
+              <Button type="submit" variant="maroon" size="lg" fullWidth loading={withdrawMutation.isPending}>
+                Submit request
+              </Button>
             </form>
           )}
         </div>
       </PullToRefresh>
-    </Layout>
+    </CustomerLayout>
   );
 }

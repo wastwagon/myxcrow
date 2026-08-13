@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 
@@ -46,13 +47,19 @@ export default function PartnerCheckoutCallbackPage() {
   }, [sessionId, reference]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0f0a0a] px-4 text-white">
-      <div className="w-full max-w-md rounded-2xl border border-white/10 bg-black/40 p-8 text-center">
-        {status === 'loading' && <Loader2 className="mx-auto h-12 w-12 animate-spin text-amber-400" />}
-        {status === 'success' && <CheckCircle className="mx-auto h-12 w-12 text-emerald-400" />}
-        {status === 'error' && <XCircle className="mx-auto h-12 w-12 text-red-400" />}
-        <p className="mt-4 font-medium">{message}</p>
+    <>
+      <Head>
+        <title>Payment status - MYXCROW</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      </Head>
+      <div className="flex min-h-screen items-center justify-center bg-[#f2f2f7] px-4">
+        <div className="w-full max-w-md rounded-[12px] bg-white p-8 text-center">
+          {status === 'loading' && <Loader2 className="mx-auto h-12 w-12 animate-spin text-brand-maroon" />}
+          {status === 'success' && <CheckCircle className="mx-auto h-12 w-12 text-green-600" />}
+          {status === 'error' && <XCircle className="mx-auto h-12 w-12 text-red-500" />}
+          <p className="mt-4 text-[17px] font-medium text-gray-900">{message}</p>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -11,18 +11,18 @@ const variants = {
   destructive: 'bg-ios-destructive text-white hover:opacity-90 active:opacity-80 shadow-sm shadow-black/15',
   secondary:
     'bg-white/15 text-white border border-white/25 hover:bg-white/22 active:opacity-80 shadow-sm shadow-black/10',
-  /** Maroon primary for light auth/marketing cards */
+  /** Maroon primary for light auth/customer surfaces */
   maroon:
-    'bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white hover:from-brand-maroon-dark hover:to-brand-maroon-darker shadow-lg hover:shadow-xl active:opacity-90',
+    'bg-brand-maroon text-white hover:bg-brand-maroon-dark active:opacity-90',
   /** Outline on light surfaces */
   outline:
     'bg-transparent border-2 border-brand-maroon text-brand-maroon hover:bg-brand-maroon/5 active:opacity-90',
 } as const;
 
 const sizes = {
-  sm: 'min-h-[36px] px-3 py-2 text-ios-footnote rounded-ios',
-  md: 'min-h-[44px] px-4 py-2.5 text-ios-body rounded-ios-lg',
-  lg: 'min-h-[50px] px-5 py-3 text-ios-headline rounded-ios-lg',
+  sm: 'min-h-[36px] px-3 py-2 text-ios-footnote rounded-[10px]',
+  md: 'min-h-[44px] px-4 py-2.5 text-ios-body rounded-[10px]',
+  lg: 'min-h-[50px] px-5 py-3 text-ios-headline rounded-[10px]',
 } as const;
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

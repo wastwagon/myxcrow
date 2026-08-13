@@ -23,7 +23,7 @@ export default function Document() {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){var l=/^\\/(login|register|forgot-password|reset-password)\\/?$/.test(location.pathname);document.documentElement.style.setProperty('--app-chrome-bg',l?'#ffffff':'#1f1414');})();",
+              "(function(){var p=location.pathname;var c=/^\\/wallet\\/admin/.test(p)?'#1f1414':/^\\/(login|register|forgot-password|reset-password)\\/?$/.test(p)?'#ffffff':/^\\/(dashboard|escrows|wallet|disputes|profile|kyc|change-password|payments)(\\/|$)/.test(p)?'#f2f2f7':'#1f1414';document.documentElement.style.setProperty('--app-chrome-bg',c);if(c==='#f2f2f7')document.documentElement.classList.add('customer-app');})();",
           }}
         />
       </Head>

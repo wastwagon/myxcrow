@@ -15,10 +15,10 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         id={id}
         type="checkbox"
         className={cn(
-          'h-4 w-4 rounded border focus:ring-2 focus:ring-brand-gold focus:ring-offset-0 touch-manipulation',
+          'h-4 w-4 rounded border focus:ring-2 focus:ring-offset-0 touch-manipulation',
           tone === 'dark'
-            ? 'border-white/25 bg-white/5 text-brand-gold'
-            : 'border-gray-300 bg-white text-brand-maroon',
+            ? 'border-white/25 bg-white/5 text-brand-gold focus:ring-brand-gold'
+            : 'border-gray-300 bg-white text-brand-maroon focus:ring-brand-maroon',
           className
         )}
         {...props}

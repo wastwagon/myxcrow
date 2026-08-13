@@ -26,14 +26,14 @@ export function PullToRefresh({ onRefresh, children, className, disabled }: Pull
         style={{ top: Math.max(pull - 36, 0) }}
         aria-hidden
       >
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/10 backdrop-blur-sm">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 border border-[rgba(60,60,67,0.12)] shadow-sm backdrop-blur-sm">
           <Loader2
-            className={cn('w-4 h-4 text-brand-gold', refreshing && 'animate-spin')}
+            className={cn('w-4 h-4 text-brand-maroon', refreshing && 'animate-spin')}
             style={{
               transform: refreshing ? undefined : `rotate(${pullProgress * 180}deg)`,
             }}
           />
-          <span className="text-ios-caption text-label-secondary">
+          <span className="text-[11px] text-[rgba(60,60,67,0.6)]">
             {refreshing ? 'Refreshing…' : pullProgress >= 1 ? 'Release to refresh' : 'Pull to refresh'}
           </span>
         </div>

@@ -9,17 +9,15 @@ function AuthModeTabs({ mode }: { mode: AuthMode }) {
   return (
     <div
       role="tablist"
-      className="flex w-full p-1 rounded-ios-lg border border-gray-200 bg-gray-100"
+      className="flex w-full p-1 rounded-[10px] bg-[#e5e5ea]"
     >
       <Link
         href="/register"
         role="tab"
         aria-selected={mode === 'register'}
         className={cn(
-          'flex-1 min-h-[36px] inline-flex items-center justify-center px-3 py-1.5 rounded-ios text-sm font-semibold transition-colors',
-          mode === 'register'
-            ? 'bg-white text-gray-900 shadow-sm border border-gray-200/80'
-            : 'text-gray-500 hover:text-gray-800'
+          'flex-1 min-h-[36px] inline-flex items-center justify-center px-3 py-1.5 rounded-[8px] text-[15px] font-semibold transition-colors',
+          mode === 'register' ? 'bg-white text-gray-900 shadow-sm' : 'text-[rgba(60,60,67,0.6)]'
         )}
       >
         Sign up
@@ -29,10 +27,8 @@ function AuthModeTabs({ mode }: { mode: AuthMode }) {
         role="tab"
         aria-selected={mode === 'login'}
         className={cn(
-          'flex-1 min-h-[36px] inline-flex items-center justify-center px-3 py-1.5 rounded-ios text-sm font-semibold transition-colors',
-          mode === 'login'
-            ? 'bg-white text-gray-900 shadow-sm border border-gray-200/80'
-            : 'text-gray-500 hover:text-gray-800'
+          'flex-1 min-h-[36px] inline-flex items-center justify-center px-3 py-1.5 rounded-[8px] text-[15px] font-semibold transition-colors',
+          mode === 'login' ? 'bg-white text-gray-900 shadow-sm' : 'text-[rgba(60,60,67,0.6)]'
         )}
       >
         Log in
@@ -60,7 +56,7 @@ export function AuthShell({
   maxWidthClass?: string;
 }) {
   return (
-    <div className="min-h-screen bg-white flex flex-col pt-safe">
+    <div className="min-h-screen bg-[#f2f2f7] flex flex-col pt-safe">
       <div
         className={cn(
           'flex-1 flex flex-col items-center px-4 pt-10 pb-12 sm:pt-16 sm:pb-16',
@@ -70,7 +66,7 @@ export function AuthShell({
         <div className={cn('w-full flex flex-col items-center gap-6', maxWidthClass)}>
           <div className="flex flex-col items-center gap-5 w-full text-center">
             <Link href="/" className="inline-flex flex-col items-center gap-3 group">
-              <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm ring-1 ring-brand-maroon/10 group-hover:ring-brand-gold/40 transition">
+              <div className="relative flex h-10 w-10 items-center justify-center overflow-hidden rounded-[10px] bg-brand-maroon-deep ring-1 ring-brand-gold/35 shadow-sm">
                 <Image
                   src="/logo/MYXCROWLOGO.png"
                   alt="MYXCROW"
@@ -80,20 +76,20 @@ export function AuthShell({
                   priority
                 />
               </div>
-              <span className="text-sm font-bold tracking-tight text-brand-maroon">MYXCROW</span>
+              <span className="text-[13px] font-semibold tracking-tight text-brand-maroon">MYXCROW</span>
             </Link>
 
             <div className="space-y-2 w-full">
-              <h1 className="text-2xl font-semibold tracking-tight text-gray-900">{title}</h1>
-              {subtitle && <p className="text-base text-gray-500">{subtitle}</p>}
+              <h1 className="text-[34px] font-bold tracking-tight leading-[1.15] text-gray-900">{title}</h1>
+              {subtitle && <p className="text-[15px] text-[rgba(60,60,67,0.6)]">{subtitle}</p>}
             </div>
 
             {mode && <AuthModeTabs mode={mode} />}
           </div>
 
-          <div className="w-full">{children}</div>
+          <div className="w-full rounded-[12px] bg-white p-5">{children}</div>
 
-          {footer && <div className="w-full text-center text-sm text-gray-500">{footer}</div>}
+          {footer && <div className="w-full text-center text-[15px] text-[rgba(60,60,67,0.6)]">{footer}</div>}
         </div>
       </div>
     </div>
@@ -113,20 +109,20 @@ export function AuthAlert({
 }) {
   const styles =
     tone === 'success'
-      ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+      ? 'bg-green-50 text-green-800'
       : tone === 'warning'
-        ? 'bg-amber-50 border-amber-200 text-amber-900'
-        : 'bg-red-50 border-red-200 text-red-700';
+        ? 'bg-amber-50 text-amber-900'
+        : 'bg-red-50 text-red-700';
 
   return (
     <div
       id={id}
       role="alert"
-      className={cn('mb-4 rounded-lg border px-3 py-3 text-sm flex items-start gap-2', styles)}
+      className={cn('mb-4 rounded-[10px] px-3 py-3 text-sm flex items-start gap-2', styles)}
     >
       <div className="flex-1 min-w-0">{children}</div>
       {onDismiss && (
-        <button type="button" onClick={onDismiss} className="text-current/70 hover:text-current shrink-0">
+        <button type="button" onClick={onDismiss} className="text-current/70 hover:text-current shrink-0 min-h-[32px] min-w-[32px]">
           ×
         </button>
       )}
@@ -151,8 +147,8 @@ export function AuthSuccessPanel({
         {icon}
       </div>
       <div className="space-y-2">
-        <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
-        <p className="text-sm text-gray-500 leading-relaxed">{description}</p>
+        <h2 className="text-[22px] font-bold text-gray-900">{title}</h2>
+        <p className="text-[15px] text-[rgba(60,60,67,0.6)] leading-relaxed">{description}</p>
       </div>
       {children && <div className="w-full pt-2">{children}</div>}
     </div>
