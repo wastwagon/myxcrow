@@ -6,35 +6,51 @@ export interface User {
   lastName?: string;
   roles: string[];
   kycStatus: string;
+  impersonatedBy?: string;
 }
 
 export interface AuthResponse {
   user: User;
-  accessToken: string;
-  refreshToken: string;
+  accessToken?: string;
+  refreshToken?: string;
+}
+
+const USER_KEY = 'user';
+
+/** Drop pre-cookie JWTs so they cannot be reused after this deploy. */
+export function migrateLegacyTokens(): void {
+  if (typeof window === 'undefined') return;
+  const hadLegacy =
+    !!localStorage.getItem('accessToken') ||
+    !!localStorage.getItem('refreshToken') ||
+    !!localStorage.getItem('token');
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('token');
+  if (hadLegacy) {
+    localStorage.removeItem(USER_KEY);
+  }
 }
 
 export function getAccessToken(): string | null {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem('accessToken');
+  return null;
 }
 
-export function setAuthTokens(accessToken: string, refreshToken: string): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem('accessToken', accessToken);
-  localStorage.setItem('refreshToken', refreshToken);
+export function setAuthTokens(_accessToken?: string, _refreshToken?: string): void {
+  /* Tokens are httpOnly cookies set by the API. */
 }
 
 export function clearAuth(): void {
   if (typeof window === 'undefined') return;
+  localStorage.removeItem(USER_KEY);
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
-  localStorage.removeItem('user');
+  localStorage.removeItem('token');
 }
 
 export function getUser(): User | null {
   if (typeof window === 'undefined') return null;
-  const userStr = localStorage.getItem('user');
+  const userStr = localStorage.getItem(USER_KEY);
   if (!userStr) return null;
   try {
     return JSON.parse(userStr);
@@ -45,11 +61,11 @@ export function getUser(): User | null {
 
 export function setUser(user: User): void {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('user', JSON.stringify(user));
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
 }
 
 export function isAuthenticated(): boolean {
-  return !!getAccessToken();
+  return !!getUser();
 }
 
 export function isAdmin(): boolean {
@@ -57,6 +73,22 @@ export function isAdmin(): boolean {
   return user?.roles?.includes('ADMIN') ?? false;
 }
 
+export function isImpersonating(): boolean {
+  return !!getUser()?.impersonatedBy;
+}
 
-
-
+export async function logout(): Promise<void> {
+  if (typeof window !== 'undefined') {
+    try {
+      const { getApiBaseUrl } = await import('./api-base');
+      await fetch(`${getApiBaseUrl()}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } catch {
+      /* still clear local state */
+    }
+  }
+  clearAuth();
+}

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { WalletFundingSource } from '@prisma/client';
+import { EscrowStatus, WalletFundingSource } from '@prisma/client';
 
 @Injectable()
 export class AdminStatsService {
@@ -15,6 +15,28 @@ export class AdminStatsService {
   async getEnhancedStats() {
     const since24h = this.getTwentyFourHoursAgo();
 
+    const completedStatuses: EscrowStatus[] = [
+      EscrowStatus.RELEASED,
+      EscrowStatus.REFUNDED,
+      EscrowStatus.CANCELLED,
+    ];
+    const hotStatuses: EscrowStatus[] = [
+      EscrowStatus.FUNDED,
+      EscrowStatus.DISPUTED,
+      EscrowStatus.AWAITING_RELEASE,
+    ];
+
+    const monthStarts: Date[] = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(1);
+      d.setHours(0, 0, 0, 0);
+      d.setMonth(d.getMonth() - i);
+      monthStarts.push(d);
+    }
+    const monthEnd = new Date(monthStarts[monthStarts.length - 1]);
+    monthEnd.setMonth(monthEnd.getMonth() + 1);
+
     const [
       topUps24h,
       topUpsCount24h,
@@ -24,6 +46,16 @@ export class AdminStatsService {
       totalWalletBalance,
       recentTopUps,
       recentEscrows,
+      userCount,
+      escrowCount,
+      activeEscrowCount,
+      fundedEscrowCount,
+      openDisputeCount,
+      escrowValueTotal,
+      openDisputes,
+      pendingWithdrawals,
+      hotEscrows,
+      pendingWithdrawalCount,
     ] = await Promise.all([
       this.prisma.walletFunding.aggregate({
         where: {
@@ -88,7 +120,68 @@ export class AdminStatsService {
           seller: { select: { email: true } },
         },
       }),
+      this.prisma.user.count({ where: { deletedAt: null } }),
+      this.prisma.escrowAgreement.count(),
+      this.prisma.escrowAgreement.count({
+        where: { status: { notIn: completedStatuses } },
+      }),
+      this.prisma.escrowAgreement.count({
+        where: { status: EscrowStatus.FUNDED },
+      }),
+      this.prisma.dispute.count({ where: { status: 'OPEN' } }),
+      this.prisma.escrowAgreement.aggregate({
+        where: { status: { not: EscrowStatus.CANCELLED } },
+        _sum: { amountCents: true },
+      }),
+      this.prisma.dispute.findMany({
+        where: { status: 'OPEN' },
+        orderBy: { createdAt: 'desc' },
+        take: 12,
+        select: { id: true, reason: true, status: true, createdAt: true },
+      }),
+      this.prisma.withdrawal.findMany({
+        where: { status: 'REQUESTED' },
+        orderBy: { createdAt: 'desc' },
+        take: 12,
+        select: {
+          id: true,
+          amountCents: true,
+          status: true,
+          createdAt: true,
+          wallet: { select: { user: { select: { email: true } } } },
+        },
+      }),
+      this.prisma.escrowAgreement.findMany({
+        where: { status: { in: hotStatuses } },
+        orderBy: { updatedAt: 'desc' },
+        take: 12,
+        select: {
+          id: true,
+          description: true,
+          status: true,
+          amountCents: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.withdrawal.count({ where: { status: 'REQUESTED' } }),
     ]);
+
+    const monthlyVolume = await Promise.all(
+      monthStarts.map(async (start, i) => {
+        const end = i < monthStarts.length - 1 ? monthStarts[i + 1] : monthEnd;
+        const agg = await this.prisma.escrowAgreement.aggregate({
+          where: {
+            createdAt: { gte: start, lt: end },
+            status: { not: EscrowStatus.CANCELLED },
+          },
+          _sum: { amountCents: true },
+        });
+        return {
+          label: start.toLocaleString('en', { month: 'short' }),
+          amountCents: agg._sum.amountCents || 0,
+        };
+      }),
+    );
 
     const topUpAmount24h = topUps24h._sum.amountCents || 0;
     const fees24h = feesRevenue24h._sum.amountCents || 0;
@@ -105,6 +198,30 @@ export class AdminStatsService {
       },
       totals: {
         walletBalanceCents: totalBalance,
+        userCount,
+        escrowCount,
+        activeEscrowCount,
+        fundedEscrowCount,
+        openDisputeCount,
+        escrowValueCents: escrowValueTotal._sum.amountCents || 0,
+        pendingWithdrawalCount,
+      },
+      monthlyVolume,
+      queue: {
+        disputes: openDisputes.map((d) => ({
+          id: d.id,
+          reason: d.reason,
+          status: d.status,
+          createdAt: d.createdAt,
+        })),
+        withdrawals: pendingWithdrawals.map((w) => ({
+          id: w.id,
+          amountCents: w.amountCents,
+          status: w.status,
+          createdAt: w.createdAt,
+          userEmail: w.wallet?.user?.email,
+        })),
+        escrows: hotEscrows,
       },
       recentTransactions: recentTopUps.map((f) => ({
         id: f.id,

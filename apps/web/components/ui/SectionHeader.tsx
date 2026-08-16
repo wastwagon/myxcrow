@@ -30,7 +30,7 @@ export function SectionHeader({
         </h2>
       </div>
       {href && (
-        <Link href={href} className="flex items-center gap-1 text-xs font-semibold text-brand-gold">
+        <Link href={href} className="inline-flex min-h-[44px] items-center gap-1 text-[15px] font-semibold text-brand-gold touch-manipulation">
           {linkLabel} <ArrowRight className="w-4 h-4" />
         </Link>
       )}

@@ -170,18 +170,18 @@ describe('DisputesService', () => {
       };
       mockPrismaService.dispute.findUnique.mockResolvedValue(disputeWithRelations);
 
-      const result = await service.getDispute('dispute-id-123');
+      const result = await service.getDispute('dispute-id-123', 'buyer-id-123');
 
       expect(result).toHaveProperty('escrow');
       expect(result).toHaveProperty('initiator');
     });
 
-    it('should return null if dispute not found', async () => {
+    it('should throw NotFoundException if dispute not found', async () => {
       mockPrismaService.dispute.findUnique.mockResolvedValue(null);
 
-      const result = await service.getDispute('non-existent-dispute');
-
-      expect(result).toBeNull();
+      await expect(service.getDispute('non-existent-dispute', 'buyer-id-123')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

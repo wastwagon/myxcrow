@@ -12,6 +12,7 @@ import {
   BadRequestException,
   Headers,
   Logger,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { KYCService } from './kyc.service';
 import { SmileIDService } from './smile-id.service';
@@ -106,13 +107,13 @@ export class KYCController {
   ) {
     this.logger.log(`Received Smile ID callback for user ${body.user_id}`);
 
-    // Verify signature
-    if (signature && timestamp) {
-      const isValid = this.smileIdService.verifySignature(timestamp, signature);
-      if (!isValid) {
-        this.logger.warn(`Invalid signature for Smile ID callback. User: ${body.user_id}`);
-        // In production, you might want to throw error here
-      }
+    if (!signature || !timestamp) {
+      throw new UnauthorizedException('Missing Smile ID webhook signature');
+    }
+    const isValid = this.smileIdService.verifySignature(timestamp, signature);
+    if (!isValid) {
+      this.logger.warn(`Invalid signature for Smile ID callback. User: ${body.user_id}`);
+      throw new UnauthorizedException('Invalid Smile ID webhook signature');
     }
 
     // Process callback via service

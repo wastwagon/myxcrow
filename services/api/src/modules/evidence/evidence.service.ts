@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { AntivirusService } from '../../common/security/antivirus.service';
@@ -28,11 +28,13 @@ export class EvidenceService {
     // Extract host and port from endpoint URL if it's a full URL
     let endPoint = endpoint;
     let port = 9000;
-    
+    let useSSL = false;
+
     if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
       const url = new URL(endpoint);
       endPoint = url.hostname;
-      port = parseInt(url.port || '9000', 10);
+      useSSL = url.protocol === 'https:';
+      port = parseInt(url.port || (useSSL ? '443' : '80'), 10);
     } else {
       endPoint = endpoint.replace(/^http:\/\//, '').replace(/^https:\/\//, '').split(':')[0];
       const portMatch = endpoint.match(/:(\d+)/);
@@ -44,7 +46,7 @@ export class EvidenceService {
     this.minioClient = new MinIO.Client({
       endPoint,
       port,
-      useSSL: false,
+      useSSL,
       accessKey,
       secretKey,
     });
@@ -53,7 +55,6 @@ export class EvidenceService {
                       this.configService.get<string>('MINIO_BUCKET') || 
                       'evidence';
     
-    // Only ensure bucket when S3/MinIO is explicitly configured (skip when default "minio" host in production)
     const hasStorageConfig = this.configService.get<string>('S3_ENDPOINT') || this.configService.get<string>('MINIO_ENDPOINT');
     if (hasStorageConfig) {
       this.ensureBucketExists();
@@ -72,8 +73,26 @@ export class EvidenceService {
     }
   }
 
-  async generatePresignedUploadUrl(escrowId: string, fileName: string, fileSize: number, mimeType: string) {
-    const objectName = `escrow/${escrowId}/${Date.now()}_${fileName}`;
+  private async assertEscrowParticipant(escrowId: string, userId: string) {
+    const escrow = await this.prisma.escrowAgreement.findUnique({
+      where: { id: escrowId },
+      select: { buyerId: true, sellerId: true },
+    });
+    if (!escrow || (escrow.buyerId !== userId && escrow.sellerId !== userId)) {
+      throw new ForbiddenException('You are not a participant in this escrow');
+    }
+  }
+
+  async generatePresignedUploadUrl(
+    escrowId: string,
+    fileName: string,
+    fileSize: number,
+    mimeType: string,
+    userId: string,
+  ) {
+    await this.assertEscrowParticipant(escrowId, userId);
+    const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 120);
+    const objectName = `escrow/${escrowId}/${Date.now()}_${safeName}`;
     const expiresIn = 3600; // 1 hour
 
     const url = await this.minioClient.presignedPutObject(this.bucketName, objectName, expiresIn);
@@ -98,6 +117,12 @@ export class EvidenceService {
     latitude?: number;
     longitude?: number;
   }) {
+    await this.assertEscrowParticipant(data.escrowId, data.uploadedBy);
+    const expectedPrefix = `escrow/${data.escrowId}/`;
+    if (!data.objectName?.startsWith(expectedPrefix)) {
+      throw new BadRequestException('Invalid upload object');
+    }
+
     // Scan file if buffer is provided
     if (data.fileBuffer) {
       const scanResult = await this.antivirusService.scanFile(
@@ -155,17 +180,21 @@ export class EvidenceService {
     };
   }
 
-  async getEvidence(id: string) {
-    return this.prisma.evidence.findUnique({
-      where: { id },
-    });
+  async getEvidence(id: string, userId: string) {
+    const evidence = await this.prisma.evidence.findUnique({ where: { id } });
+    if (!evidence) throw new NotFoundException('Evidence not found');
+    await this.assertEscrowParticipant(evidence.escrowId, userId);
+    return evidence;
   }
 
-  async getDownloadUrlForEvidence(id: string) {
+  async getDownloadUrlForEvidence(id: string, userId: string) {
+    const evidence = await this.prisma.evidence.findUnique({ where: { id } });
+    if (!evidence) throw new NotFoundException('Evidence not found');
+    await this.assertEscrowParticipant(evidence.escrowId, userId);
     return this.generatePresignedDownloadUrl(id);
   }
 
-  async deleteEvidence(id: string) {
+  async deleteEvidence(id: string, userId: string) {
     const evidence = await this.prisma.evidence.findUnique({
       where: { id },
     });
@@ -173,6 +202,7 @@ export class EvidenceService {
     if (!evidence) {
       throw new NotFoundException('Evidence not found');
     }
+    await this.assertEscrowParticipant(evidence.escrowId, userId);
 
     await this.minioClient.removeObject(this.bucketName, evidence.fileKey);
     await this.prisma.evidence.delete({

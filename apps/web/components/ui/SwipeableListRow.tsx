@@ -72,7 +72,7 @@ export function SwipeableListRow({
             'flex flex-col items-center justify-center w-[72px] h-full text-ios-caption font-semibold touch-manipulation',
             action.variant === 'destructive'
               ? 'bg-ios-destructive/90 text-white'
-              : 'bg-brand-gold/90 text-brand-maroon-black'
+              : 'bg-brand-maroon text-white'
           );
           if (action.href) {
             return (

@@ -103,11 +103,11 @@ export default function Home() {
                 </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <ButtonLink href="/register" size="lg" className="sm:min-w-[180px]">
-                    Start an Escrow
+                    Start an escrow
                     <ArrowRight className="w-5 h-5" />
                   </ButtonLink>
-                  <ButtonLink href="/login" variant="secondary" size="lg" className="sm:min-w-[140px]">
-                    Sign In
+                  <ButtonLink href="/login" variant="ghost" size="lg" className="sm:min-w-[140px]">
+                    Sign in
                   </ButtonLink>
                 </div>
               </div>
@@ -121,7 +121,7 @@ export default function Home() {
                 { label: 'Secure', sub: 'Encrypted & protected' },
                 { label: 'No chargebacks', sub: 'Funds released on approval' },
               ].map((badge) => (
-                <div key={badge.label} className="bg-white/95 rounded-xl px-4 py-3 md:py-4 border border-brand-gold/20 text-center">
+                <div key={badge.label} className="bg-white/95 rounded-[12px] px-4 py-3 md:py-4 border border-brand-maroon/15 text-center">
                   <p className="text-sm font-semibold text-brand-maroon-black">{badge.label}</p>
                   <p className={`${publicForm.marketingMuted} mt-0.5`}>{badge.sub}</p>
                 </div>
@@ -133,7 +133,7 @@ export default function Home() {
               <h2 id="how-it-works-heading" className="text-2xl md:text-4xl font-bold text-white mb-10 md:mb-14 text-center tracking-tight">
                 How it works
               </h2>
-              <div className="grid grid-cols-2 gap-6 md:gap-8 md:grid-cols-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 md:grid-cols-5">
                 {HOW_IT_WORKS.map((item) => (
                   <div
                     key={item.step}
@@ -146,7 +146,7 @@ export default function Home() {
                     <h3 className="font-semibold text-white text-base md:text-lg mb-1.5">
                       {item.title}
                     </h3>
-                    <p className="text-sm md:text-base text-white/75 leading-relaxed max-w-xs">
+                    <p className="text-sm md:text-base text-white/85 leading-relaxed max-w-xs">
                       {item.desc}
                     </p>
                   </div>
@@ -184,9 +184,9 @@ export default function Home() {
                 return (
                   <div
                     key={index}
-                    className="bg-white/95 rounded-xl shadow-lg p-6 hover:shadow-xl transition-all border border-brand-gold/20"
+                    className="bg-white/95 rounded-[12px] shadow-lg p-6 hover:shadow-xl transition-all border border-brand-maroon/15"
                   >
-                    <div className="w-12 h-12 rounded-ios-lg bg-brand-gold/20 ring-1 ring-brand-gold/35 flex items-center justify-center mb-4">
+                    <div className="w-12 h-12 rounded-[12px] bg-brand-maroon/10 ring-1 ring-brand-maroon/20 flex items-center justify-center mb-4">
                       <Icon className="w-6 h-6 text-brand-maroon" />
                     </div>
                     <h3 className="text-lg font-semibold text-brand-maroon-black mb-2">{feature.title}</h3>
@@ -197,12 +197,17 @@ export default function Home() {
             </div>
 
             {/* Pricing transparency */}
-            <div className="bg-white/95 rounded-2xl shadow-xl p-6 md:p-8 mb-12 border border-brand-gold/20">
+            <div className="bg-white/95 rounded-[12px] shadow-xl p-6 md:p-8 mb-12 border border-brand-maroon/15">
               <h2 className="text-2xl md:text-3xl font-bold text-brand-maroon-black mb-4 text-center">
                 Simple, transparent pricing
               </h2>
               <p className={`${publicForm.marketingBody} text-center max-w-2xl mx-auto mb-6`}>
-                A small percentage fee on each successful transaction. No subscriptions, no hidden charges. Fees are shown before you confirm. See our <Link href="/terms" className="text-brand-maroon font-semibold hover:underline">Terms</Link> for details.
+                A small percentage fee on each successful transaction. No subscriptions, no hidden charges.
+                Fees are shown before you confirm. See our{' '}
+                <Link href="/terms" className="inline-flex min-h-[44px] items-center text-brand-maroon font-semibold hover:underline touch-manipulation">
+                  Terms
+                </Link>{' '}
+                for details.
               </p>
               <div className="flex flex-wrap justify-center gap-6 text-sm">
                 <span className="flex items-center gap-2 text-gray-700">
@@ -225,27 +230,30 @@ export default function Home() {
               <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 text-center">
                 Frequently asked questions
               </h2>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {FAQ_ITEMS.map((faq) => (
                   <button
                     key={faq.q}
                     type="button"
                     onClick={() => setFaqModal(faq)}
-                    className="min-h-[48px] bg-white/95 rounded-xl p-5 md:p-6 text-left border border-brand-gold/20 hover:border-brand-gold/50 shadow-lg hover:shadow-xl transition-all group touch-manipulation w-full"
+                    className="min-h-[48px] bg-white/95 rounded-[12px] p-5 md:p-6 text-left border border-brand-maroon/15 hover:border-brand-maroon/40 shadow-lg hover:shadow-xl transition-all group touch-manipulation w-full"
                   >
                     <div className="flex items-start justify-between gap-4">
                       <span className="font-semibold text-brand-maroon-black text-sm md:text-base group-hover:text-brand-maroon transition-colors">
                         {faq.q}
                       </span>
-                      <ChevronRight className="flex-shrink-0 w-5 h-5 text-brand-gold/70 group-hover:text-brand-maroon group-hover:translate-x-0.5 transition-all" />
+                      <ChevronRight className="flex-shrink-0 w-5 h-5 text-brand-maroon group-hover:translate-x-0.5 transition-all" />
                     </div>
                     <p className={`mt-2 ${publicForm.marketingMuted} line-clamp-2`}>{faq.a}</p>
                   </button>
                 ))}
               </div>
               <div className="mt-6 text-center">
-                <Link href="/support" className="text-brand-gold font-semibold hover:underline text-sm">
-                  More questions? Contact Support
+                <Link
+                  href="/support"
+                  className="inline-flex min-h-[44px] items-center justify-center px-3 text-brand-gold font-semibold hover:underline text-[15px] touch-manipulation"
+                >
+                  More questions? Contact support
                 </Link>
               </div>
             </div>
@@ -260,7 +268,7 @@ export default function Home() {
                 aria-labelledby="faq-modal-title"
               >
                 <div
-                  className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 md:p-8 border border-brand-gold/20"
+                  className="bg-white rounded-[20px] shadow-2xl max-w-lg w-full p-6 md:p-8 border border-brand-maroon/15"
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
@@ -270,7 +278,7 @@ export default function Home() {
                     <button
                       type="button"
                       onClick={() => setFaqModal(null)}
-                      className="flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-500 hover:text-brand-maroon transition-colors touch-manipulation"
+                      className="flex-shrink-0 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[12px] hover:bg-gray-100 text-gray-700 hover:text-brand-maroon transition-colors touch-manipulation"
                       aria-label="Close"
                     >
                       <X className="w-5 h-5" />
@@ -278,12 +286,9 @@ export default function Home() {
                   </div>
                   <p className={publicForm.marketingBodyLg}>{faqModal.a}</p>
                   <div className="mt-6 flex justify-end">
-                    <Link
-                      href="/support"
-                      className="text-brand-maroon font-semibold hover:underline text-sm"
-                    >
-                      Contact Support →
-                    </Link>
+                    <ButtonLink href="/support" variant="maroon" size="md">
+                      Contact support
+                    </ButtonLink>
                   </div>
                 </div>
               </div>
@@ -306,11 +311,11 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <ButtonLink href="/register" size="lg">
-                    Start an Escrow
+                    Start an escrow
                     <ArrowRight className="w-5 h-5" />
                   </ButtonLink>
-                  <ButtonLink href="/login" variant="secondary" size="lg">
-                    Sign In
+                  <ButtonLink href="/login" variant="ghost" size="lg">
+                    Sign in
                   </ButtonLink>
                 </div>
               </div>
@@ -318,9 +323,9 @@ export default function Home() {
 
             {/* Developer Tools (Local Only) */}
             {isLocal && (
-              <div className="bg-white/95 rounded-xl shadow-lg p-6 border border-brand-gold/20">
+              <div className="bg-white/95 rounded-[12px] shadow-lg p-6 border border-brand-maroon/15">
                 <h2 className="text-2xl font-semibold text-brand-maroon-black mb-4 flex items-center gap-2">
-                  <Zap className="w-6 h-6 text-brand-gold" />
+                  <Zap className="w-6 h-6 text-brand-maroon" />
                   Developer Tools
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
@@ -328,7 +333,7 @@ export default function Home() {
                     href={process.env.NEXT_PUBLIC_MAILPIT_URL || 'http://localhost:8025'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-3 rounded-ios-lg bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white font-semibold hover:from-brand-maroon-dark hover:to-brand-maroon-darker transition-colors"
+                    className="inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-3 rounded-[12px] bg-gradient-to-r from-brand-maroon to-brand-maroon-dark text-white font-semibold hover:from-brand-maroon-dark hover:to-brand-maroon-darker transition-colors"
                   >
                     Open Mailpit (Email Testing)
                   </a>
@@ -336,7 +341,7 @@ export default function Home() {
                     href={process.env.NEXT_PUBLIC_MINIO_CONSOLE || 'http://localhost:9001'}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-3 rounded-ios-lg border-2 border-brand-maroon text-brand-maroon font-semibold hover:bg-brand-maroon/5 transition-colors"
+                    className="inline-flex min-h-[44px] items-center justify-center gap-2 px-4 py-3 rounded-[12px] border-2 border-brand-maroon text-brand-maroon font-semibold hover:bg-brand-maroon/5 transition-colors"
                   >
                     Open MinIO Console
                   </a>

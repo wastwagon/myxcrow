@@ -12,7 +12,7 @@ import { dash } from '@/components/dashboard/lightClasses';
 
 type TableTone = 'dark' | 'light';
 
-const TableToneContext = createContext<TableTone>('dark');
+const TableToneContext = createContext<TableTone>('light');
 
 function useTableTone() {
   return useContext(TableToneContext);
@@ -23,7 +23,7 @@ export function TableShell({
   toolbar,
   footer,
   className,
-  tone = 'dark',
+  tone = 'light',
 }: {
   children: ReactNode;
   toolbar?: ReactNode;
@@ -41,16 +41,22 @@ export function TableShell({
         )}
       >
         {toolbar && (
-          <div className={cn(light ? 'p-4 border-b border-gray-100 bg-gray-50/80' : admin.tableToolbar)}>
+          <div
+            className={cn(
+              light
+                ? 'p-4 border-b border-[rgba(60,60,67,0.12)]'
+                : admin.tableToolbar
+            )}
+          >
             {toolbar}
           </div>
         )}
-        <div className="overflow-x-auto">{children}</div>
+        <div className="overflow-x-auto xl:overflow-visible">{children}</div>
         {footer && (
           <div
             className={cn(
               light
-                ? 'px-4 py-3 bg-gray-50/80 border-t border-gray-100 text-sm text-gray-600'
+                ? 'px-4 py-3 border-t border-[rgba(60,60,67,0.12)] text-[13px] text-[rgba(60,60,67,0.6)]'
                 : admin.footerBar
             )}
           >
@@ -80,7 +86,7 @@ export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSecti
   const tone = useTableTone();
   return (
     <tbody
-      className={cn(tone === 'light' ? 'divide-y divide-gray-100' : admin.tbody, className)}
+      className={cn(tone === 'light' ? undefined : admin.tbody, className)}
       {...props}
     />
   );
@@ -92,10 +98,13 @@ export function TableRow({
   ...props
 }: HTMLAttributes<HTMLTableRowElement> & { hover?: boolean }) {
   const tone = useTableTone();
+  const light = tone === 'light';
   return (
     <tr
       className={cn(
-        hover && (tone === 'light' ? dash.trHover : admin.trHover),
+        hover && (light ? dash.trHover : admin.trHover),
+        light &&
+          'relative after:absolute after:right-0 after:bottom-0 after:left-4 after:h-px after:bg-[rgba(60,60,67,0.12)] last:after:hidden',
         className
       )}
       {...props}
@@ -103,18 +112,32 @@ export function TableRow({
   );
 }
 
-export function TableTh({ className, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
+export function TableTh({
+  numeric,
+  className,
+  ...props
+}: ThHTMLAttributes<HTMLTableCellElement> & { numeric?: boolean }) {
   const tone = useTableTone();
   return (
-    <th className={cn(tone === 'light' ? dash.th : admin.th, className)} {...props} />
+    <th
+      className={cn(
+        tone === 'light' ? dash.th : admin.th,
+        numeric && 'text-right tabular-nums',
+        tone === 'light' &&
+          'sticky z-10 bg-white/90 backdrop-blur-xl top-[var(--table-sticky-top,0px)] shadow-[inset_0_-0.5px_0_rgba(60,60,67,0.12)]',
+        className
+      )}
+      {...props}
+    />
   );
 }
 
 export function TableTd({
   muted,
+  numeric,
   className,
   ...props
-}: TdHTMLAttributes<HTMLTableCellElement> & { muted?: boolean }) {
+}: TdHTMLAttributes<HTMLTableCellElement> & { muted?: boolean; numeric?: boolean }) {
   const tone = useTableTone();
   const light = tone === 'light';
   return (
@@ -122,6 +145,7 @@ export function TableTd({
       className={cn(
         light ? dash.td : admin.td,
         muted && (light ? dash.tdMuted : admin.tdMuted),
+        numeric && 'text-right tabular-nums',
         className
       )}
       {...props}

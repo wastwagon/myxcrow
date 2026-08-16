@@ -4,15 +4,16 @@ import Layout from '@/components/Layout';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { formatCurrency, formatDate } from '@/lib/utils';
-import { User } from 'lucide-react';
-import PageHeader from '@/components/PageHeader';
-import { form } from '@/lib/form-classes';
-import { AdminAvatar } from '@/components/admin/AdminIconBadge';
+import { formatCurrency } from '@/lib/utils';
+import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { ButtonLink } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { PageDetailSkeleton } from '@/components/LoadingSkeleton';
+import { LightShell } from '@/components/dashboard/LightShell';
+import { dash } from '@/components/dashboard/lightClasses';
+import { UserAvatar } from '@/components/ui/UserAvatar';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 export default function AdminViewWalletPage() {
   const router = useRouter();
@@ -52,75 +53,87 @@ export default function AdminViewWalletPage() {
   if (error || !data) {
     return (
       <Layout>
-        <div className="space-y-4">
-          <button onClick={() => router.back()} className="text-brand-gold hover:text-brand-gold/80 transition-colors">
-            ← Back
-          </button>
-          <p className="text-red-400">Failed to load wallet.</p>
-        </div>
+        <EmptyState
+          tone="light"
+          title="Wallet unavailable"
+          description="This wallet could not be loaded. Go back to users and try again."
+          action={{ href: '/admin/users', label: 'View users', variant: 'maroon' }}
+        />
       </Layout>
     );
   }
 
   const { wallet, user } = data;
+  const displayName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || 'User';
 
   return (
     <Layout>
-      <PullToRefresh onRefresh={refreshAdminWallet} disabled={!isMobile} className="space-y-6">
-        <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="text-brand-gold hover:text-brand-gold/80 transition-colors">
-            ← Back
-          </button>
-        </div>
-        <PageHeader
-          eyebrow="Admin"
-          title="View User Wallet"
-          subtitle={user?.email}
-          icon={<User className="w-6 h-6" />}
-        />
-
-        <div className={form.panel}>
-          <div className="flex items-center gap-3 mb-4">
-            <AdminAvatar label={user?.email || 'User'} variant="maroon" />
-            <h2 className="text-lg font-semibold text-label-primary">User</h2>
+      <PullToRefresh onRefresh={refreshAdminWallet} disabled={!isMobile}>
+        <LightShell>
+          <div>
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="inline-flex min-h-[44px] min-w-[44px] items-center text-brand-maroon text-[17px] font-semibold touch-manipulation"
+            >
+              Back
+            </button>
+            <h1 className={dash.title}>Wallet</h1>
+            <p className={dash.subtitle}>{user?.email}</p>
           </div>
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <dt className="text-label-secondary">Email</dt>
-            <dd className="font-medium">{user?.email}</dd>
-            <dt className="text-label-secondary">Name</dt>
-            <dd className="font-medium">{user?.firstName || user?.lastName ? `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim() : '—'}</dd>
-          </dl>
-        </div>
 
-        <div className={form.panel}>
-          <h2 className="text-lg font-semibold text-label-primary mb-4">Wallet</h2>
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <dt className="text-label-secondary">Available</dt>
-            <dd className="font-medium">{formatCurrency(wallet?.availableCents ?? 0, wallet?.currency ?? 'GHS')}</dd>
-            <dt className="text-label-secondary">Pending</dt>
-            <dd className="font-medium">{formatCurrency(wallet?.pendingCents ?? 0, wallet?.currency ?? 'GHS')}</dd>
-            <dt className="text-label-secondary">Currency</dt>
-            <dd className="font-medium">{wallet?.currency ?? 'GHS'}</dd>
-          </dl>
-        </div>
+          <ListGroup tone="light" title="User">
+            <ListRow
+              title={displayName}
+              subtitle={user?.email}
+              leading={<UserAvatar label={displayName} size="md" variant="maroon" />}
+              showChevron={false}
+            />
+          </ListGroup>
 
-        <div className="flex gap-3 flex-wrap">
-          <ButtonLink
-            href={`/admin/wallet/credit?userId=${userId}`}
-            className="bg-emerald-500/20 text-emerald-200 border border-emerald-500/30 hover:bg-emerald-500/30"
-          >
-            Credit (Top-up)
-          </ButtonLink>
-          <ButtonLink
-            href={`/admin/wallet/debit?userId=${userId}`}
-            className="bg-amber-500/20 text-amber-200 border border-amber-500/30 hover:bg-amber-500/30"
-          >
-            Debit (Deduct)
-          </ButtonLink>
-          <ButtonLink href="/admin/users" variant="secondary">
-            Back to Users
-          </ButtonLink>
-        </div>
+          <ListGroup tone="light" title="Balances">
+            <ListRow
+              title="Available"
+              trailing={
+                <span className="text-[17px] font-semibold text-gray-900">
+                  {formatCurrency(wallet?.availableCents ?? 0, wallet?.currency ?? 'GHS')}
+                </span>
+              }
+              showChevron={false}
+            />
+            <ListRow
+              title="Pending"
+              trailing={
+                <span className="text-[17px] text-[rgba(60,60,67,0.6)]">
+                  {formatCurrency(wallet?.pendingCents ?? 0, wallet?.currency ?? 'GHS')}
+                </span>
+              }
+              showChevron={false}
+            />
+            <ListRow
+              title="Currency"
+              trailing={
+                <span className="text-[17px] text-[rgba(60,60,67,0.6)]">
+                  {wallet?.currency ?? 'GHS'}
+                </span>
+              }
+              showChevron={false}
+            />
+          </ListGroup>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <ButtonLink href={`/admin/wallet/credit?userId=${userId}`} variant="maroon" size="lg">
+              Credit
+            </ButtonLink>
+            <ButtonLink href={`/admin/wallet/debit?userId=${userId}`} variant="outline" size="lg">
+              Debit
+            </ButtonLink>
+            <ButtonLink href="/admin/users" variant="outline" size="lg">
+              Users
+            </ButtonLink>
+          </div>
+        </LightShell>
       </PullToRefresh>
     </Layout>
   );

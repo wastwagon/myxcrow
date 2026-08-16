@@ -16,6 +16,16 @@ import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { StatusBadge } from '@/components/StatusBadge';
+import { PhoneOnly, DesktopOnly } from '@/components/ui/PhoneOnly';
+import {
+  TableShell,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableTh,
+  TableTd,
+} from '@/components/ui/Table';
 
 interface Wallet {
   id: string;
@@ -87,7 +97,7 @@ export default function WalletPage() {
         <div>
           <p className="text-[13px] text-[rgba(60,60,67,0.6)]">Available</p>
           {walletLoading ? (
-            <div className="mt-1 h-10 w-40 animate-pulse rounded-[10px] bg-black/5" />
+            <div className="mt-1 h-10 w-40 animate-pulse rounded-[12px] bg-black/5" />
           ) : (
             <p className="mt-0.5 text-[34px] font-bold tracking-tight leading-tight text-gray-900">
               {formatCurrency(available, 'GHS')}
@@ -113,89 +123,204 @@ export default function WalletPage() {
           {admin && <ListRow href="/admin" title="Admin" />}
         </ListGroup>
 
-        <ListGroup tone="light" title="Top-ups">
-          {fundingLoading ? (
+        {fundingLoading ? (
+          <ListGroup tone="light" title="Top-ups">
             <div className="px-4 py-3">
               <ListRowsSkeleton rows={3} rowClassName="h-12" />
             </div>
-          ) : fundingHistory && fundingHistory.length > 0 ? (
-            fundingHistory.map((funding) => (
-              <ListRow
-                key={funding.id}
-                title={formatCurrency(Math.abs(funding.amountCents), 'GHS')}
-                subtitle={`${funding.sourceType} · ${formatDate(funding.createdAt)}`}
-                trailing={
-                  <div className="flex items-center gap-2">
-                    <PrintReceiptButton
-                      receipt={buildWalletFundingReceipt(funding, receiptAccountHolder)}
-                      iconOnly
-                      variant="outline"
-                      size="sm"
-                    />
-                    <StatusBadge status={funding.status} onDark={false} />
-                  </div>
-                }
-                showChevron={false}
-              />
-            ))
-          ) : (
-            <EmptyState
-              tone="light"
-              icon={<WalletIcon className="h-6 w-6" />}
-              title="No top-ups yet"
-              className="py-8"
-            />
-          )}
-        </ListGroup>
+          </ListGroup>
+        ) : fundingHistory && fundingHistory.length > 0 ? (
+          <>
+            <PhoneOnly>
+              <ListGroup tone="light" title="Top-ups">
+                {fundingHistory.map((funding) => (
+                  <ListRow
+                    key={funding.id}
+                    title={formatCurrency(Math.abs(funding.amountCents), 'GHS')}
+                    subtitle={`${funding.sourceType} · ${formatDate(funding.createdAt)}`}
+                    trailing={
+                      <div className="flex items-center gap-2">
+                        <PrintReceiptButton
+                          receipt={buildWalletFundingReceipt(funding, receiptAccountHolder)}
+                          iconOnly
+                          variant="outline"
+                          size="sm"
+                        />
+                        <StatusBadge status={funding.status} onDark={false} />
+                      </div>
+                    }
+                    showChevron={false}
+                  />
+                ))}
+              </ListGroup>
+            </PhoneOnly>
+            <DesktopOnly>
+              <div className="space-y-1.5">
+                <p className="px-4 text-[13px] font-normal text-[rgba(60,60,67,0.6)]">Top-ups</p>
+                <TableShell tone="light">
+                  <Table>
+                    <TableHead>
+                      <tr>
+                        <TableTh numeric>Amount</TableTh>
+                        <TableTh>Source</TableTh>
+                        <TableTh>When</TableTh>
+                        <TableTh>Status</TableTh>
+                        <TableTh numeric>Receipt</TableTh>
+                      </tr>
+                    </TableHead>
+                    <TableBody>
+                      {fundingHistory.map((funding) => (
+                        <TableRow key={funding.id}>
+                          <TableTd numeric className="font-semibold">
+                            {formatCurrency(Math.abs(funding.amountCents), 'GHS')}
+                          </TableTd>
+                          <TableTd muted>{funding.sourceType}</TableTd>
+                          <TableTd muted>{formatDate(funding.createdAt)}</TableTd>
+                          <TableTd>
+                            <StatusBadge status={funding.status} onDark={false} />
+                          </TableTd>
+                          <TableTd numeric>
+                            <PrintReceiptButton
+                              receipt={buildWalletFundingReceipt(funding, receiptAccountHolder)}
+                              iconOnly
+                              variant="outline"
+                              size="sm"
+                            />
+                          </TableTd>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableShell>
+              </div>
+            </DesktopOnly>
+          </>
+        ) : (
+          <EmptyState
+            tone="light"
+            icon={<WalletIcon className="h-6 w-6" />}
+            title="No top-ups yet"
+            description="Add funds with MoMo or card, then create an escrow."
+            action={{ href: '/wallet/topup', label: 'Top up', variant: 'maroon' }}
+            className="py-8"
+          />
+        )}
 
-        <ListGroup tone="light" title="Withdrawals">
-          {withdrawalLoading ? (
+        {withdrawalLoading ? (
+          <ListGroup tone="light" title="Withdrawals">
             <div className="px-4 py-3">
               <ListRowsSkeleton rows={3} rowClassName="h-12" />
             </div>
-          ) : withdrawalHistory && withdrawalHistory.length > 0 ? (
-            withdrawalHistory.map((withdrawal: any) => (
-              <ListRow
-                key={withdrawal.id}
-                title={formatCurrency(withdrawal.amountCents, 'GHS')}
-                subtitle={`${withdrawal.methodLabel || withdrawal.methodType} · ${formatPayoutSummary(
-                  withdrawal.methodType,
-                  withdrawal.methodDetails,
-                  withdrawal.payoutSummary
-                )}`}
-                trailing={
-                  <div className="flex items-center gap-2">
-                    <PrintReceiptButton
-                      receipt={buildWithdrawalReceipt(withdrawal, receiptAccountHolder)}
-                      iconOnly
-                      variant="outline"
-                      size="sm"
-                    />
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
-                        withdrawal.status === 'SUCCEEDED'
-                          ? 'text-emerald-700 bg-emerald-50'
-                          : withdrawal.status === 'FAILED'
-                            ? 'text-red-600 bg-red-50'
-                            : 'text-amber-800 bg-amber-50'
-                      }`}
-                    >
-                      {formatWithdrawalStatusLabel(withdrawal.status)}
-                    </span>
-                  </div>
-                }
-                showChevron={false}
-              />
-            ))
-          ) : (
-            <EmptyState
-              tone="light"
-              icon={<ArrowUpCircle className="h-6 w-6" />}
-              title="No withdrawals yet"
-              className="py-8"
-            />
-          )}
-        </ListGroup>
+          </ListGroup>
+        ) : withdrawalHistory && withdrawalHistory.length > 0 ? (
+          <>
+            <PhoneOnly>
+              <ListGroup tone="light" title="Withdrawals">
+                {withdrawalHistory.map((withdrawal: any) => (
+                  <ListRow
+                    key={withdrawal.id}
+                    title={formatCurrency(withdrawal.amountCents, 'GHS')}
+                    subtitle={`${withdrawal.methodLabel || withdrawal.methodType} · ${formatPayoutSummary(
+                      withdrawal.methodType,
+                      withdrawal.methodDetails,
+                      withdrawal.payoutSummary
+                    )}`}
+                    trailing={
+                      <div className="flex items-center gap-2">
+                        <PrintReceiptButton
+                          receipt={buildWithdrawalReceipt(withdrawal, receiptAccountHolder)}
+                          iconOnly
+                          variant="outline"
+                          size="sm"
+                        />
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                            withdrawal.status === 'SUCCEEDED'
+                              ? 'text-emerald-700 bg-emerald-50'
+                              : withdrawal.status === 'FAILED'
+                                ? 'text-red-600 bg-red-50'
+                                : 'text-amber-800 bg-amber-50'
+                          }`}
+                        >
+                          {formatWithdrawalStatusLabel(withdrawal.status)}
+                        </span>
+                      </div>
+                    }
+                    showChevron={false}
+                  />
+                ))}
+              </ListGroup>
+            </PhoneOnly>
+            <DesktopOnly>
+              <div className="space-y-1.5">
+                <p className="px-4 text-[13px] font-normal text-[rgba(60,60,67,0.6)]">Withdrawals</p>
+                <TableShell tone="light">
+                  <Table>
+                    <TableHead>
+                      <tr>
+                        <TableTh numeric>Amount</TableTh>
+                        <TableTh>Method</TableTh>
+                        <TableTh>When</TableTh>
+                        <TableTh>Status</TableTh>
+                        <TableTh numeric>Receipt</TableTh>
+                      </tr>
+                    </TableHead>
+                    <TableBody>
+                      {withdrawalHistory.map((withdrawal: any) => (
+                        <TableRow key={withdrawal.id}>
+                          <TableTd numeric className="font-semibold">
+                            {formatCurrency(withdrawal.amountCents, 'GHS')}
+                          </TableTd>
+                          <TableTd>
+                            <p className="truncate">{withdrawal.methodLabel || withdrawal.methodType}</p>
+                            <p className="text-[13px] text-[rgba(60,60,67,0.6)] truncate">
+                              {formatPayoutSummary(
+                                withdrawal.methodType,
+                                withdrawal.methodDetails,
+                                withdrawal.payoutSummary
+                              )}
+                            </p>
+                          </TableTd>
+                          <TableTd muted>{formatDate(withdrawal.createdAt)}</TableTd>
+                          <TableTd>
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
+                                withdrawal.status === 'SUCCEEDED'
+                                  ? 'text-emerald-700 bg-emerald-50'
+                                  : withdrawal.status === 'FAILED'
+                                    ? 'text-red-600 bg-red-50'
+                                    : 'text-amber-800 bg-amber-50'
+                              }`}
+                            >
+                              {formatWithdrawalStatusLabel(withdrawal.status)}
+                            </span>
+                          </TableTd>
+                          <TableTd numeric>
+                            <PrintReceiptButton
+                              receipt={buildWithdrawalReceipt(withdrawal, receiptAccountHolder)}
+                              iconOnly
+                              variant="outline"
+                              size="sm"
+                            />
+                          </TableTd>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableShell>
+              </div>
+            </DesktopOnly>
+          </>
+        ) : (
+          <EmptyState
+            tone="light"
+            icon={<ArrowUpCircle className="h-6 w-6" />}
+            title="No withdrawals yet"
+            description="Send available balance to a bank or mobile money wallet."
+            action={{ href: '/wallet/withdraw', label: 'Withdraw', variant: 'maroon' }}
+            className="py-8"
+          />
+        )}
       </PullToRefresh>
     </CustomerLayout>
   );

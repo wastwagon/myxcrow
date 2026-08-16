@@ -1,9 +1,10 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { setAuthTokens } from './auth';
+import { clearAuth } from './auth';
+import { getApiBaseUrl } from './api-base';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
+const API_BASE_URL = getApiBaseUrl();
 
-const REFRESH_TIMEOUT_MS = 10000; // 10s - avoid indefinite hang on refresh
+const REFRESH_TIMEOUT_MS = 10000;
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -11,35 +12,26 @@ export const apiClient: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 30000,
+  withCredentials: true,
 });
 
-// Request interceptor: auth token + allow FormData (multipart) to set its own Content-Type
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof config.data !== 'undefined' && config.data instanceof FormData) {
-      delete config.headers['Content-Type']; // so axios sets multipart/form-data with boundary
-    }
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('accessToken');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+      delete config.headers['Content-Type'];
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error),
 );
 
-// Response interceptor for error handling and token refresh
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (value?: any) => void;
-  reject: (error?: any) => void;
+  resolve: (value?: unknown) => void;
+  reject: (error?: unknown) => void;
 }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
@@ -50,12 +42,28 @@ const processQueue = (error: any, token: string | null = null) => {
   failedQueue = [];
 };
 
+function isAuthRefreshRequest(url?: string) {
+  return typeof url === 'string' && /\/auth\/refresh(?:\?|$)/.test(url);
+}
+
+function shouldSkipRefresh(url?: string) {
+  if (!url) return false;
+  return /\/auth\/(login|register|logout|refresh|send-phone-otp)/.test(url);
+}
+
+function redirectToLogin() {
+  if (typeof window === 'undefined') return;
+  clearAuth();
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as any;
+    const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
 
-    // Log error details for debugging
     if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
       console.error('API Error:', {
         message: error.message,
@@ -70,90 +78,55 @@ apiClient.interceptors.response.use(
       });
     }
 
-    // Handle 401 Unauthorized
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      if (shouldSkipRefresh(originalRequest.url)) {
+        if (isAuthRefreshRequest(originalRequest.url)) {
+          processQueue(error, null);
+          isRefreshing = false;
+          redirectToLogin();
+        }
+        return Promise.reject(error);
+      }
+
       if (isRefreshing) {
-        // If already refreshing, queue this request
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
-          .then((token) => {
-            originalRequest.headers.Authorization = `Bearer ${token}`;
-            return apiClient(originalRequest);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+          .then(() => apiClient(originalRequest))
+          .catch((err) => Promise.reject(err));
       }
 
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null;
-
-      if (!refreshToken) {
-        // No refresh token, clear auth and redirect
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          // Only redirect if not already on login page
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
-          }
-        }
-        processQueue(error, null);
-        isRefreshing = false;
-        return Promise.reject(error);
-      }
-
       try {
-        const response = await axios.post(
+        await axios.post(
           `${API_BASE_URL}/auth/refresh`,
-          { refreshToken },
+          {},
           {
             headers: { 'Content-Type': 'application/json' },
             timeout: REFRESH_TIMEOUT_MS,
+            withCredentials: true,
           },
         );
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-        // Update tokens in localStorage
-        if (typeof window !== 'undefined') {
-          setAuthTokens(accessToken, newRefreshToken || refreshToken);
-        }
-
-        // Update the original request with new token
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
-        // Process queued requests
-        processQueue(null, accessToken);
+        processQueue(null, 'ok');
         isRefreshing = false;
-
-        // Retry the original request
         return apiClient(originalRequest);
-      } catch (refreshError: any) {
+      } catch (refreshError: unknown) {
         processQueue(refreshError, null);
         isRefreshing = false;
-        if (typeof window !== 'undefined') {
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-          if (window.location.pathname !== '/login') {
-            window.location.href = '/login';
-          }
-        }
-        if (refreshError?.code === 'ECONNABORTED' || refreshError?.message?.includes('timeout')) {
+        redirectToLogin();
+        const err = refreshError as { code?: string; message?: string };
+        if (err?.code === 'ECONNABORTED' || err?.message?.includes('timeout')) {
           return Promise.reject(new Error('Session expired. Please sign in again.'));
         }
         return Promise.reject(refreshError);
       }
     }
 
-    // Handle 403 Phone Required - redirect to profile to add phone
     if (error.response?.status === 403 && typeof window !== 'undefined') {
-      const msg = (error.response?.data as any)?.message || '';
+      const msg = (error.response?.data as { message?: string })?.message || '';
       if (msg.toLowerCase().includes('phone number required') || msg.toLowerCase().includes('add your ghana phone')) {
         if (window.location.pathname !== '/profile') {
           window.location.href = '/profile?phone_required=1';
@@ -166,4 +139,3 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
-

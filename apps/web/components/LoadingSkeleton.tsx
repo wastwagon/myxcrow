@@ -11,7 +11,7 @@ export function LoadingSkeleton({ lines = 3, className = '' }: LoadingSkeletonPr
       {Array.from({ length: lines }).map((_, i) => (
         <div
           key={i}
-          className="h-4 bg-[var(--skeleton)] rounded-ios"
+          className="h-4 bg-[var(--skeleton)] rounded-[12px]"
           style={{ width: i === lines - 1 ? '75%' : '100%' }}
         />
       ))}
@@ -22,11 +22,11 @@ export function LoadingSkeleton({ lines = 3, className = '' }: LoadingSkeletonPr
 export function CardSkeleton() {
   return (
     <div className={`${form.panel} animate-pulse`}>
-      <div className="h-6 bg-[var(--skeleton)] rounded-ios w-1/3 mb-4" />
+      <div className="h-6 bg-[var(--skeleton)] rounded-[12px] w-1/3 mb-4" />
       <div className="space-y-3">
-        <div className="h-4 bg-[var(--skeleton)] rounded-ios" />
-        <div className="h-4 bg-[var(--skeleton)] rounded-ios w-5/6" />
-        <div className="h-4 bg-[var(--skeleton)] rounded-ios w-4/6" />
+        <div className="h-4 bg-[var(--skeleton)] rounded-[12px]" />
+        <div className="h-4 bg-[var(--skeleton)] rounded-[12px] w-5/6" />
+        <div className="h-4 bg-[var(--skeleton)] rounded-[12px] w-4/6" />
       </div>
     </div>
   );
@@ -52,7 +52,7 @@ export function ListRowsSkeleton({
 export function PageDetailSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="h-8 bg-[var(--skeleton)] animate-pulse rounded-[10px] w-1/3" />
+      <div className="h-8 bg-[var(--skeleton)] animate-pulse rounded-[12px] w-1/3" />
       <CardSkeleton />
     </div>
   );

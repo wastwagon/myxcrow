@@ -95,9 +95,12 @@
 
   body {
     @apply text-foreground antialiased;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui,
-      'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    font-feature-settings: 'kern' 1;
+    /* -apple-system is SF Pro on Apple devices. Do not load SF as a webfont. */
+    font-family: -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, 'Segoe UI', Roboto,
+      'Helvetica Neue', Arial, sans-serif;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   button,
@@ -131,19 +134,20 @@ html.customer-app {
   --ios-label-secondary: rgba(60, 60, 67, 0.6);
   --label-primary: #000000;
   --label-secondary: rgba(60, 60, 67, 0.6);
-  --label-tertiary: rgba(60, 60, 67, 0.4);
+  --label-tertiary: rgba(60, 60, 67, 0.5);
   --tab-bar-bg: rgba(249, 249, 249, 0.92);
-  --tab-bar-height: 49px;
+  --tab-bar-height: 70px;
   --form-panel-bg: #ffffff;
   --form-panel-border: transparent;
   --form-label: rgba(60, 60, 67, 0.6);
   --form-input-bg: #f2f2f7;
   --form-input-border: transparent;
   --form-input-text: #000000;
-  --form-placeholder: rgba(60, 60, 67, 0.4);
+  --form-placeholder: rgba(60, 60, 67, 0.5);
   --form-error: #ff3b30;
   --separator: rgba(60, 60, 67, 0.12);
   --skeleton: #e5e5ea;
+  --table-sticky-top: calc(var(--app-sat, env(safe-area-inset-top, 0px)) + 44px);
 }
 
 /* Public utility pages: same grouped light surface, without locking the viewport */
@@ -151,7 +155,7 @@ html.public-light {
   --app-chrome-bg: #f2f2f7;
   --label-primary: #000000;
   --label-secondary: rgba(60, 60, 67, 0.6);
-  --label-tertiary: rgba(60, 60, 67, 0.4);
+  --label-tertiary: rgba(60, 60, 67, 0.5);
   --separator: rgba(60, 60, 67, 0.12);
   --skeleton: #e5e5ea;
   --form-panel-bg: #ffffff;
@@ -159,8 +163,9 @@ html.public-light {
   --form-input-bg: #f2f2f7;
   --form-input-border: transparent;
   --form-input-text: #000000;
-  --form-placeholder: rgba(60, 60, 67, 0.4);
+  --form-placeholder: rgba(60, 60, 67, 0.5);
   --form-error: #ff3b30;
+  --tab-bar-height: 70px;
 }
 
 html.public-light,
@@ -198,7 +203,7 @@ html.customer-app #__next > div:first-of-type {
 #customer-scroll {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;
-  padding-bottom: calc(var(--tab-bar-height) + max(12px, var(--safe-bottom)));
+  padding-bottom: calc(var(--tab-bar-height) + var(--safe-bottom));
 }
 
 @media (min-width: 1280px) {

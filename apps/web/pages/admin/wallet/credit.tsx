@@ -12,6 +12,7 @@ import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
 import { Button } from '@/components/ui/Button';
+import { useConfirm } from '@/components/providers/UIProvider';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Field } from '@/components/ui/Field';
@@ -39,6 +40,7 @@ export default function CreditWalletPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
+  const confirm = useConfirm();
   const userIdFromQuery = typeof router.query.userId === 'string' ? router.query.userId : undefined;
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserSearch, setShowUserSearch] = useState(false);
@@ -113,8 +115,13 @@ export default function CreditWalletPage() {
     },
   });
 
-  const onSubmit = (data: CreditFormData) => {
-    creditMutation.mutate(data);
+  const onSubmit = async (data: CreditFormData) => {
+    const ok = await confirm({
+      title: 'Credit wallet',
+      message: 'Add these funds to the user’s wallet?',
+      confirmLabel: 'Credit',
+    });
+    if (ok) creditMutation.mutate(data);
   };
 
   const handleUserSelect = (user: UserOption) => {
@@ -154,9 +161,9 @@ export default function CreditWalletPage() {
                   Select User *
                 </label>
                 {selectedUser ? (
-                  <div className="flex items-center justify-between p-4 rounded-ios-lg border border-brand-gold/40 bg-brand-gold/10">
+                  <div className="flex items-center justify-between p-4 rounded-[12px] border border-brand-maroon/25 bg-brand-maroon/5">
                     <div className="flex items-center gap-3">
-                      <AdminAvatar label={selectedUser.email} variant="gold" />
+                      <AdminAvatar label={selectedUser.email} variant="maroon" />
                       <div>
                         <p className="font-medium text-gray-900">{selectedUser.email}</p>
                         <p className="text-sm text-gray-500">User ID: {selectedUser.id.slice(0, 8)}...</p>
@@ -168,7 +175,8 @@ export default function CreditWalletPage() {
                         setSelectedUser(null);
                         setValue('userId', '');
                       }}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] text-gray-700 hover:bg-black/5 hover:text-gray-900 touch-manipulation"
+                      aria-label="Clear user"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -188,10 +196,10 @@ export default function CreditWalletPage() {
                       leading={<Search className="h-5 w-5" />}
                     />
                     {showUserSearch && searchTerm && (
-                      <div className="absolute z-10 w-full mt-2 rounded-ios-lg border border-gray-200 bg-white shadow-lg max-h-64 overflow-y-auto">
+                      <div className="absolute z-10 w-full mt-2 rounded-[12px] border border-gray-200 bg-white shadow-lg max-h-64 overflow-y-auto">
                         {usersLoading ? (
                           <div className="p-4 text-center">
-                            <Loader2 className="w-5 h-5 animate-spin mx-auto text-gray-400" />
+                            <Loader2 className="w-5 h-5 animate-spin mx-auto text-brand-maroon" />
                           </div>
                         ) : usersData?.users?.length > 0 ? (
                           usersData.users.map((user: UserOption) => (
@@ -199,9 +207,9 @@ export default function CreditWalletPage() {
                               key={user.id}
                               type="button"
                               onClick={() => handleUserSelect(user)}
-                              className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 last:border-0"
+                              className="w-full min-h-[44px] px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 last:border-0 touch-manipulation"
                             >
-                              <AdminAvatar label={user.email} variant="gold" className="w-8 h-8 text-xs" />
+                              <AdminAvatar label={user.email} variant="maroon" className="w-8 h-8 text-xs" />
                               <div className="flex-1">
                                 <p className="font-medium text-gray-900">{user.email}</p>
                                 <p className="text-sm text-gray-500">ID: {user.id.slice(0, 8)}...</p>
@@ -209,7 +217,9 @@ export default function CreditWalletPage() {
                             </button>
                           ))
                         ) : (
-                          <div className="p-4 text-center text-gray-500">No users found</div>
+                          <div className="p-4 text-center text-[15px] text-[rgba(60,60,67,0.6)]">
+                            No users match that search
+                          </div>
                         )}
                       </div>
                     )}
@@ -262,12 +272,12 @@ export default function CreditWalletPage() {
               </Field>
 
               <div className="flex gap-4 pt-4">
-                <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
+                <Button type="button" variant="outline" size="lg" fullWidth onClick={() => router.back()}>
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  variant="filled"
+                  variant="maroon"
                   size="lg"
                   fullWidth
                   disabled={!selectedUser}

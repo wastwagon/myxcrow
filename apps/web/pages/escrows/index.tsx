@@ -4,7 +4,7 @@ import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatDateShort } from '@/lib/utils';
 import { Plus, Search, Filter, Download, FileText } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { DISPUTE_ELIGIBLE_ESCROW_STATUSES } from '@/lib/constants';
@@ -18,7 +18,18 @@ import { Field } from '@/components/ui/Field';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
+import { PhoneOnly, DesktopOnly } from '@/components/ui/PhoneOnly';
+import {
+  TableShell,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableTh,
+  TableTd,
+} from '@/components/ui/Table';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import Link from 'next/link';
 
 interface Escrow {
   id: string;
@@ -88,20 +99,10 @@ export default function EscrowsPage() {
   const handleExportCSV = async () => {
     try {
       const params = buildQueryParams();
-      const token = localStorage.getItem('token');
-      const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
-      
-      const response = await fetch(`${apiBase}/escrows/export/csv?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await apiClient.get(`/escrows/export/csv?${params}`, {
+        responseType: 'blob',
       });
-      
-      if (!response.ok) {
-        throw new Error('Export failed');
-      }
-      
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -255,30 +256,74 @@ export default function EscrowsPage() {
         {isLoading ? (
           <ListRowsSkeleton rows={3} />
         ) : escrows && escrows.length > 0 ? (
-          <ListGroup tone="light">
-            {escrows.map((escrow) => {
-              const isBuyer = user?.id === escrow.buyerId;
-              const displayCents = isBuyer
-                ? escrow.fundingAmountCents || escrow.amountCents + (escrow.buyerFeeCents ?? 0)
-                : escrow.netAmountCents ?? escrow.amountCents;
-              const amountLabel = isBuyer ? 'Funded' : 'Receive';
+          <>
+            <PhoneOnly>
+              <ListGroup tone="light">
+                {escrows.map((escrow) => {
+                  const isBuyer = user?.id === escrow.buyerId;
+                  const displayCents = isBuyer
+                    ? escrow.fundingAmountCents || escrow.amountCents + (escrow.buyerFeeCents ?? 0)
+                    : escrow.netAmountCents ?? escrow.amountCents;
+                  const amountLabel = isBuyer ? 'Funded' : 'Receive';
 
-              return (
-                <SwipeableListRow
-                  key={escrow.id}
-                  disabled={!isMobile}
-                  actions={getEscrowSwipeActions(escrow)}
-                >
-                  <ListRow
-                    href={`/escrows/${escrow.id}`}
-                    title={escrow.description || 'Escrow'}
-                    subtitle={`${formatCurrency(displayCents, 'GHS')} · ${amountLabel}`}
-                    trailing={<StatusBadge status={escrow.status} onDark={false} />}
-                  />
-                </SwipeableListRow>
-              );
-            })}
-          </ListGroup>
+                  return (
+                    <SwipeableListRow
+                      key={escrow.id}
+                      disabled={!isMobile}
+                      actions={getEscrowSwipeActions(escrow)}
+                    >
+                      <ListRow
+                        href={`/escrows/${escrow.id}`}
+                        title={escrow.description || 'Escrow'}
+                        subtitle={`${formatCurrency(displayCents, 'GHS')} · ${amountLabel}`}
+                        trailing={<StatusBadge status={escrow.status} onDark={false} />}
+                      />
+                    </SwipeableListRow>
+                  );
+                })}
+              </ListGroup>
+            </PhoneOnly>
+            <DesktopOnly>
+              <TableShell tone="light">
+                <Table>
+                  <TableHead>
+                    <tr>
+                      <TableTh>Escrow</TableTh>
+                      <TableTh numeric>Amount</TableTh>
+                      <TableTh>Side</TableTh>
+                      <TableTh>Status</TableTh>
+                      <TableTh>When</TableTh>
+                    </tr>
+                  </TableHead>
+                  <TableBody>
+                    {escrows.map((escrow) => {
+                      const isBuyer = user?.id === escrow.buyerId;
+                      const displayCents = isBuyer
+                        ? escrow.fundingAmountCents || escrow.amountCents + (escrow.buyerFeeCents ?? 0)
+                        : escrow.netAmountCents ?? escrow.amountCents;
+                      return (
+                        <TableRow key={escrow.id}>
+                          <TableTd>
+                            <Link href={`/escrows/${escrow.id}`} className="block min-w-0 min-h-[44px] py-1">
+                              <p className="font-semibold text-gray-900 truncate">
+                                {escrow.description || 'Escrow'}
+                              </p>
+                            </Link>
+                          </TableTd>
+                          <TableTd numeric>{formatCurrency(displayCents, 'GHS')}</TableTd>
+                          <TableTd muted>{isBuyer ? 'Funded' : 'Receive'}</TableTd>
+                          <TableTd>
+                            <StatusBadge status={escrow.status} onDark={false} />
+                          </TableTd>
+                          <TableTd muted>{formatDateShort(escrow.createdAt)}</TableTd>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </TableShell>
+            </DesktopOnly>
+          </>
         ) : (
           <EmptyState
             tone="light"

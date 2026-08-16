@@ -35,15 +35,18 @@ export function isPublicLightPath(pathname: string, route?: string): boolean {
   return pathname.startsWith('/partner/checkout');
 }
 
+export function isAdminAppPath(pathname: string): boolean {
+  return pathname.startsWith('/admin') || pathname.startsWith('/wallet/admin');
+}
+
 export function isCustomerAppPath(pathname: string): boolean {
-  if (pathname.startsWith('/admin')) return false;
-  if (pathname.startsWith('/wallet/admin')) return false;
+  if (isAdminAppPath(pathname)) return false;
   return CUSTOMER_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
 /** @deprecated Use isAuthChromePath — kept for call-site compatibility */
 export function isLightChromePath(pathname: string): boolean {
-  return isAuthChromePath(pathname) || isCustomerAppPath(pathname) || isPublicLightPath(pathname);
+  return isAuthChromePath(pathname) || isCustomerAppPath(pathname) || isPublicLightPath(pathname) || isAdminAppPath(pathname);
 }
 
 declare global {
@@ -56,14 +59,16 @@ declare global {
 export function applyAppChrome(pathname: string, route?: string): void {
   if (typeof window === 'undefined') return;
   const publicLight = isPublicLightPath(pathname, route);
+  const adminLight = isAdminAppPath(pathname);
   document.documentElement.classList.toggle('customer-app', isCustomerAppPath(pathname));
-  document.documentElement.classList.toggle('public-light', publicLight);
+  document.documentElement.classList.toggle('public-light', publicLight || adminLight);
   const chromePath = publicLight && !isPublicLightPath(pathname) ? '/404' : pathname;
   if (typeof window.__myxcrowApplyChrome === 'function') {
     window.__myxcrowApplyChrome(chromePath);
     return;
   }
-  const hex = isCustomerAppPath(pathname) || publicLight ? APP_CHROME_GROUPED : APP_CHROME_DARK;
+  const hex =
+    isCustomerAppPath(pathname) || publicLight || adminLight ? APP_CHROME_GROUPED : APP_CHROME_DARK;
   document.documentElement.style.setProperty('--app-chrome-bg', hex);
   document.querySelector('meta[name="theme-color"]')?.setAttribute('content', hex);
 }
@@ -80,5 +85,5 @@ export function isLightAppSurface(): boolean {
 }
 
 export function isGroupedLightPath(pathname: string, route?: string): boolean {
-  return isCustomerAppPath(pathname) || isPublicLightPath(pathname, route);
+  return isCustomerAppPath(pathname) || isPublicLightPath(pathname, route) || isAdminAppPath(pathname);
 }

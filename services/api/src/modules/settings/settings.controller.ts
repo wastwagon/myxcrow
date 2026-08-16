@@ -26,7 +26,7 @@ export class SettingsController {
 
   @Get(':key')
   async getSetting(@Param('key') key: string) {
-    return this.settingsService.getSetting(key);
+    return this.settingsService.getPublicSetting(key);
   }
 
   @Put(':key')

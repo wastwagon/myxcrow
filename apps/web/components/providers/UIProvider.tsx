@@ -180,7 +180,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
               setPromptState((s) => (s ? { ...s, value: e.target.value } : s))
             }
             placeholder={promptState.placeholder}
-            className={light ? form.input : 'w-full min-h-[48px] px-4 py-3 rounded-ios-lg bg-white/5 border border-white/20 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none'}
+            className={light ? form.input : 'w-full min-h-[48px] px-4 py-3 rounded-[12px] bg-white/5 border border-white/20 text-label-primary placeholder:text-label-tertiary focus:ring-2 focus:ring-brand-gold focus:border-brand-gold/50 outline-none'}
             onKeyDown={(e) => {
               if (e.key === 'Enter') closePrompt(promptState.value.trim());
             }}

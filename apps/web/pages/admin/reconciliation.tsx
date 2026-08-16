@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/Table';
 import { Banner } from '@/components/ui/Banner';
 import { ButtonLink } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
 
@@ -93,9 +94,6 @@ export default function ReconciliationPage() {
         <LightShell>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-maroon">
-                Finance
-              </p>
               <h1 className={dash.title}>Reconciliation</h1>
               <p className={dash.subtitle}>
                 Escrow holds, fees, and balance integrity checks
@@ -109,7 +107,7 @@ export default function ReconciliationPage() {
           {summaryLoading ? (
             <div className="grid md:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-28 bg-gray-100 animate-pulse rounded-ios-lg" />
+                <div key={i} className="h-28 bg-gray-100 animate-pulse rounded-[12px]" />
               ))}
             </div>
           ) : summary ? (
@@ -146,26 +144,26 @@ export default function ReconciliationPage() {
           ) : null}
 
           {balanceLoading ? (
-            <div className="h-40 bg-gray-100 animate-pulse rounded-ios-xl" />
+            <div className="h-40 bg-gray-100 animate-pulse rounded-[12px]" />
           ) : balance ? (
             <LightPanel>
               <h2 className={`${dash.sectionTitle} mb-4`}>Balance reconciliation</h2>
               <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-3">
-                  <div className="p-4 rounded-ios-lg bg-gray-50 border border-gray-100">
+                  <div className="p-4 rounded-[12px] bg-gray-50 border border-gray-100">
                     <p className={dash.label}>Escrow hold balance</p>
                     <p className="mt-1 text-xl font-bold text-gray-900">
                       {formatCurrency(balance.escrowHoldBalance, 'GHS')}
                     </p>
                   </div>
-                  <div className="p-4 rounded-ios-lg bg-gray-50 border border-gray-100">
+                  <div className="p-4 rounded-[12px] bg-gray-50 border border-gray-100">
                     <p className={dash.label}>Pending escrows</p>
                     <p className="mt-1 text-xl font-bold text-gray-900">
                       {formatCurrency(balance.pendingEscrows, 'GHS')}
                     </p>
                   </div>
                 </div>
-                <div className="p-4 rounded-ios-lg border border-gray-200 bg-white">
+                <div className="p-4 rounded-[12px] border border-gray-200 bg-white">
                   <p className={dash.label}>Difference</p>
                   <p
                     className={`mt-1 text-xl font-bold ${
@@ -193,7 +191,7 @@ export default function ReconciliationPage() {
           ) : null}
 
           {summaryLoading ? (
-            <div className="h-64 bg-gray-100 animate-pulse rounded-ios-xl" />
+            <div className="h-64 bg-gray-100 animate-pulse rounded-[12px]" />
           ) : summary ? (
             <TableShell
               tone="light"
@@ -209,7 +207,16 @@ export default function ReconciliationPage() {
                 </TableHead>
                 <TableBody>
                   {summary.escrowsByStatus.length === 0 ? (
-                    <TableEmpty colSpan={3}>No escrow status data yet</TableEmpty>
+                    <TableEmpty colSpan={3}>
+                      <EmptyState
+                        tone="light"
+                        icon={<BarChart3 className="w-6 h-6" />}
+                        title="No escrow status data yet"
+                        description="Funded and released deals will populate this table."
+                        action={{ href: '/escrows', label: 'View escrows', variant: 'maroon' }}
+                        className="py-6"
+                      />
+                    </TableEmpty>
                   ) : (
                     summary.escrowsByStatus.map((item) => (
                       <TableRow key={item.status}>
@@ -229,7 +236,7 @@ export default function ReconciliationPage() {
           ) : null}
 
           {summaryLoading ? (
-            <div className="h-64 bg-gray-100 animate-pulse rounded-ios-xl" />
+            <div className="h-64 bg-gray-100 animate-pulse rounded-[12px]" />
           ) : summary ? (
             <TableShell
               tone="light"
@@ -247,7 +254,16 @@ export default function ReconciliationPage() {
                 </TableHead>
                 <TableBody>
                   {summary.escrowsByCurrency.length === 0 ? (
-                    <TableEmpty colSpan={5}>No currency breakdown yet</TableEmpty>
+                    <TableEmpty colSpan={5}>
+                      <EmptyState
+                        tone="light"
+                        icon={<DollarSign className="w-6 h-6" />}
+                        title="No currency breakdown yet"
+                        description="Amounts appear here once escrows are funded."
+                        action={{ href: '/escrows', label: 'View escrows', variant: 'maroon' }}
+                        className="py-6"
+                      />
+                    </TableEmpty>
                   ) : (
                     summary.escrowsByCurrency.map((item) => (
                       <TableRow key={item.currency}>

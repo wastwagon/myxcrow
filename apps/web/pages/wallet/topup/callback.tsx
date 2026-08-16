@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
 import apiClient from '@/lib/api-client';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button, ButtonLink } from '@/components/ui/Button';
 
 export default function WalletTopupCallbackPage() {
   const router = useRouter();
@@ -61,6 +61,9 @@ export default function WalletTopupCallbackPage() {
                 <CheckCircle className="mx-auto mb-4 h-12 w-12 text-emerald-600" />
                 <p className="font-medium text-gray-900">{message}</p>
                 <p className="mt-2 text-sm text-[rgba(60,60,67,0.6)]">Redirecting to wallet…</p>
+                <ButtonLink href="/wallet" variant="maroon" className="mt-5">
+                  View wallet
+                </ButtonLink>
               </>
             )}
             {status === 'error' && (

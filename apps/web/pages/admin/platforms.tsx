@@ -4,13 +4,25 @@ import Layout from '@/components/Layout';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { KeyRound, Plus, Trash2, Building2 } from 'lucide-react';
+import { KeyRound, Plus, Trash2 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { toast } from 'react-hot-toast';
-import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/Button';
+import { useConfirm } from '@/components/providers/UIProvider';
 import { Field } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
+import { dash } from '@/components/dashboard/lightClasses';
+import {
+  TableShell,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableTh,
+  TableTd,
+  TableEmpty,
+} from '@/components/ui/Table';
 
 type Platform = {
   id: string;
@@ -35,6 +47,7 @@ type ApiKeyRow = {
 export default function AdminPlatformsPage() {
   const router = useRouter();
   const qc = useQueryClient();
+  const confirm = useConfirm();
   const [name, setName] = useState('DwumaPOS');
   const [slug, setSlug] = useState('dwumapos');
   const [createdSecret, setCreatedSecret] = useState<string | null>(null);
@@ -103,11 +116,10 @@ export default function AdminPlatformsPage() {
   return (
     <Layout>
       <LightShell>
-        <PageHeader
-          title="Partner platforms"
-          subtitle="API keys for DwumaPOS and other commerce integrations"
-          icon={<Building2 className="h-6 w-6" />}
-        />
+        <div>
+          <h1 className={dash.title}>Partner platforms</h1>
+          <p className={dash.subtitle}>API keys for DwumaPOS and other commerce integrations</p>
+        </div>
 
         {createdSecret && (
           <LightPanel className="mb-4 border-amber-300 bg-amber-50">
@@ -118,6 +130,7 @@ export default function AdminPlatformsPage() {
             <Button
               type="button"
               size="sm"
+              variant="maroon"
               className="mt-3"
               onClick={() => {
                 void navigator.clipboard.writeText(createdSecret);
@@ -131,7 +144,7 @@ export default function AdminPlatformsPage() {
 
         <div className="grid gap-4 lg:grid-cols-2">
           <LightPanel>
-            <h2 className="mb-3 text-sm font-semibold">Create platform</h2>
+            <h2 className={`${dash.sectionTitle} mb-3`}>Create platform</h2>
             <div className="space-y-3">
               <Field tone="light" label="Name" htmlFor="platform-name">
                 <Input
@@ -151,8 +164,10 @@ export default function AdminPlatformsPage() {
               </Field>
               <Button
                 type="button"
+                variant="maroon"
                 onClick={() => createPlatform.mutate()}
                 disabled={createPlatform.isPending}
+                loading={createPlatform.isPending}
               >
                 <Plus className="mr-1 h-4 w-4" />
                 Create + live key
@@ -161,11 +176,17 @@ export default function AdminPlatformsPage() {
           </LightPanel>
 
           <LightPanel>
-            <h2 className="mb-3 text-sm font-semibold">Platforms</h2>
+            <h2 className={`${dash.sectionTitle} mb-3`}>Platforms</h2>
             {isLoading ? (
               <p className="text-sm text-gray-500">Loading…</p>
             ) : platforms.length === 0 ? (
-              <p className="text-sm text-gray-500">No platforms yet.</p>
+              <EmptyState
+                tone="light"
+                icon={<Plus className="w-6 h-6" />}
+                title="No platforms yet"
+                description="Use Create + live key on the left to add the first partner."
+                className="py-6"
+              />
             ) : (
               <ul className="space-y-2">
                 {platforms.map((p) => (
@@ -173,14 +194,14 @@ export default function AdminPlatformsPage() {
                     <button
                       type="button"
                       onClick={() => setSelectedId(p.id)}
-                      className={`w-full rounded-xl border px-3 py-2 text-left text-sm ${
+                      className={`w-full rounded-[12px] min-h-[44px] px-3 py-2.5 text-left text-[17px] touch-manipulation ${
                         selectedId === p.id
-                          ? 'border-brand-maroon bg-brand-maroon/5'
-                          : 'border-gray-200 hover:bg-gray-50'
+                          ? 'bg-brand-maroon/5 text-gray-900'
+                          : 'bg-transparent hover:bg-black/[0.03]'
                       }`}
                     >
-                      <div className="font-semibold">{p.name}</div>
-                      <div className="text-xs text-gray-500">
+                      <div className="font-semibold text-gray-900">{p.name}</div>
+                      <div className="text-[13px] text-[rgba(60,60,67,0.6)]">
                         {p.slug} · {p.releasePolicy} · {p.isActive ? 'active' : 'inactive'}
                       </div>
                     </button>
@@ -192,52 +213,74 @@ export default function AdminPlatformsPage() {
         </div>
 
         {selectedId && (
-          <LightPanel className="mt-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">API keys</h2>
-              <Button type="button" size="sm" onClick={() => createKey.mutate()}>
-                <KeyRound className="mr-1 h-4 w-4" />
-                New key
-              </Button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b text-xs text-gray-500">
-                    <th className="py-2">Key</th>
-                    <th>Type</th>
-                    <th>Env</th>
-                    <th>Status</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {keys.map((k) => (
-                    <tr key={k.id} className="border-b border-gray-100">
-                      <td className="py-2 font-mono text-xs">
+          <TableShell
+            tone="light"
+            toolbar={
+              <div className="flex items-center justify-between gap-3">
+                <h2 className={dash.sectionTitle}>API keys</h2>
+                <Button type="button" size="sm" variant="maroon" onClick={() => createKey.mutate()}>
+                  <KeyRound className="h-4 w-4" />
+                  New key
+                </Button>
+              </div>
+            }
+          >
+            <Table>
+              <TableHead>
+                <tr>
+                  <TableTh>Key</TableTh>
+                  <TableTh>Type</TableTh>
+                  <TableTh>Env</TableTh>
+                  <TableTh>Status</TableTh>
+                  <TableTh> </TableTh>
+                </tr>
+              </TableHead>
+              <TableBody>
+                {keys.length === 0 ? (
+                  <TableEmpty colSpan={5}>
+                    <EmptyState
+                      tone="light"
+                      icon={<KeyRound className="w-6 h-6" />}
+                      title="No keys yet"
+                      description="Create a live key with New key above."
+                      className="py-6"
+                    />
+                  </TableEmpty>
+                ) : (
+                  keys.map((k) => (
+                    <TableRow key={k.id}>
+                      <TableTd className="font-mono text-[15px]">
                         {k.keyId}…{k.lastFour}
-                      </td>
-                      <td>{k.keyType}</td>
-                      <td>{k.environment}</td>
-                      <td>{k.revokedAt ? 'revoked' : 'active'}</td>
-                      <td>
+                      </TableTd>
+                      <TableTd muted>{k.keyType}</TableTd>
+                      <TableTd muted>{k.environment}</TableTd>
+                      <TableTd muted>{k.revokedAt ? 'Revoked' : 'Active'}</TableTd>
+                      <TableTd>
                         {!k.revokedAt && (
                           <button
                             type="button"
-                            className="text-red-600"
-                            onClick={() => revokeKey.mutate(k.id)}
-                            title="Revoke"
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] text-[#ff3b30] hover:bg-red-50 touch-manipulation"
+                            onClick={async () => {
+                              const ok = await confirm({
+                                title: 'Revoke API key',
+                                message: 'Revoke this key? Integrations using it will stop working immediately.',
+                                confirmLabel: 'Revoke',
+                                destructive: true,
+                              });
+                              if (ok) revokeKey.mutate(k.id);
+                            }}
+                            aria-label="Revoke key"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </button>
                         )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </LightPanel>
+                      </TableTd>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableShell>
         )}
       </LightShell>
     </Layout>

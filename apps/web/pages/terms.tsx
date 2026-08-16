@@ -99,9 +99,9 @@ export default function TermsPage() {
               </section>
 
               <div className={publicForm.legalFooter}>
-                <Link href="/privacy" className="text-brand-maroon font-semibold">Privacy Policy</Link>
-                <Link href="/support" className="text-brand-maroon font-semibold">Support</Link>
-                <Link href="/" className="text-brand-maroon font-semibold">Home</Link>
+                <Link href="/privacy" className="inline-flex min-h-[44px] items-center text-brand-maroon font-semibold touch-manipulation">Privacy Policy</Link>
+                <Link href="/support" className="inline-flex min-h-[44px] items-center text-brand-maroon font-semibold touch-manipulation">Support</Link>
+                <Link href="/" className="inline-flex min-h-[44px] items-center text-brand-maroon font-semibold touch-manipulation">Home</Link>
               </div>
     </PublicPage>
   );

@@ -35,6 +35,7 @@ import {
 } from '@/components/admin/WithdrawalPayoutDetails';
 import { formatWithdrawalMethodLabel } from '@/lib/withdrawal-payout';
 import { StatusBadge } from '@/components/StatusBadge';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { LightShell } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
 import { MetricCard } from '@/components/ui/MetricCard';
@@ -125,9 +126,6 @@ export default function AdminWithdrawalsPage() {
         <LightShell>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-maroon">
-                Operations
-              </p>
               <h1 className={dash.title}>Withdrawals</h1>
               <p className={dash.subtitle}>
                 Review payout details and approve or deny requests
@@ -186,7 +184,7 @@ export default function AdminWithdrawalsPage() {
             tone="light"
             toolbar={
               <div className="flex items-center gap-3">
-                <Filter className="w-4 h-4 text-gray-400 shrink-0" />
+                <Filter className="w-4 h-4 text-brand-maroon shrink-0" />
                 <Select
                   tone="light"
                   value={statusFilter}
@@ -218,7 +216,7 @@ export default function AdminWithdrawalsPage() {
               <TableHead>
                 <tr>
                   <TableTh>User</TableTh>
-                  <TableTh>Amount</TableTh>
+                  <TableTh numeric>Amount</TableTh>
                   <TableTh>Payout</TableTh>
                   <TableTh>Status</TableTh>
                   <TableTh>Requested</TableTh>
@@ -251,7 +249,7 @@ export default function AdminWithdrawalsPage() {
                           </div>
                         </div>
                       </TableTd>
-                      <TableTd>
+                      <TableTd numeric>
                         <p className="font-semibold text-gray-900 whitespace-nowrap">
                           {formatCurrency(withdrawal.amountCents, withdrawal.currency || 'GHS')}
                         </p>
@@ -281,7 +279,7 @@ export default function AdminWithdrawalsPage() {
                           <button
                             type="button"
                             onClick={() => openDetails(withdrawal)}
-                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-ios-lg text-brand-maroon hover:bg-brand-maroon/10"
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] text-brand-maroon hover:bg-brand-maroon/10"
                             title="View payout details"
                           >
                             <Eye className="w-4 h-4" />
@@ -320,8 +318,14 @@ export default function AdminWithdrawalsPage() {
                   ))
                 ) : (
                   <TableEmpty colSpan={6}>
-                    <ArrowUpCircle className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p className="text-gray-600">No withdrawals found</p>
+                    <EmptyState
+                      tone="light"
+                      icon={<ArrowUpCircle className="w-6 h-6" />}
+                      title="No withdrawals found"
+                      description="When users request payouts they appear here."
+                      action={{ href: '/admin', label: 'Back to queue', variant: 'maroon' }}
+                      className="py-6"
+                    />
                   </TableEmpty>
                 )}
               </TableBody>
@@ -335,6 +339,7 @@ export default function AdminWithdrawalsPage() {
               setSelectedWithdrawal(null);
             }}
             title="Withdrawal details"
+            tone="light"
             footer={
               selectedWithdrawal ? (
                 <div className="flex flex-col gap-3 pb-2">
@@ -390,6 +395,7 @@ export default function AdminWithdrawalsPage() {
               setReason('');
             }}
             title={processAction === 'approve' ? 'Approve withdrawal' : 'Deny withdrawal'}
+            tone="light"
             footer={
               <>
                 <Button
@@ -418,8 +424,9 @@ export default function AdminWithdrawalsPage() {
               <div className="space-y-4">
                 <WithdrawalPayoutDetailsView withdrawal={selectedWithdrawal} showSensitive />
                 {processAction === 'deny' && (
-                  <Field label="Reason" required>
+                  <Field tone="light" label="Reason" required>
                     <Textarea
+                      tone="light"
                       value={reason}
                       onChange={(e) => setReason(e.target.value)}
                       rows={3}

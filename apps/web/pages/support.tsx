@@ -145,23 +145,23 @@ export default function SupportPage() {
       <section className={publicForm.sectionDivider}>
         <p className={`${publicForm.footerText} mb-4`}>
           See our{' '}
-          <Link href="/terms" className="text-brand-maroon font-semibold">
+          <Link href="/terms" className="inline-flex min-h-[44px] items-center text-brand-maroon font-semibold touch-manipulation">
             Terms and Conditions
           </Link>{' '}
           and{' '}
-          <Link href="/privacy" className="text-brand-maroon font-semibold">
+          <Link href="/privacy" className="inline-flex min-h-[44px] items-center text-brand-maroon font-semibold touch-manipulation">
             Privacy Policy
           </Link>{' '}
           for full legal and data protection information.
         </p>
-        <div className="flex flex-wrap gap-4">
-          <Link href="/terms" className="text-brand-maroon font-semibold text-sm">
+        <div className="flex flex-wrap gap-2">
+          <Link href="/terms" className="inline-flex min-h-[44px] items-center px-1 text-brand-maroon font-semibold text-[15px] touch-manipulation">
             Terms
           </Link>
-          <Link href="/privacy" className="text-brand-maroon font-semibold text-sm">
+          <Link href="/privacy" className="inline-flex min-h-[44px] items-center px-1 text-brand-maroon font-semibold text-[15px] touch-manipulation">
             Privacy
           </Link>
-          <Link href="/" className="text-brand-maroon font-semibold text-sm">
+          <Link href="/" className="inline-flex min-h-[44px] items-center px-1 text-brand-maroon font-semibold text-[15px] touch-manipulation">
             Home
           </Link>
         </div>

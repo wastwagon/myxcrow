@@ -6,12 +6,14 @@ import {
   Put,
   Delete,
   Req,
+  Res,
   UseGuards,
   UseInterceptors,
   UploadedFiles,
   BadRequestException,
+  UnauthorizedException,
 } from '@nestjs/common';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
@@ -27,6 +29,15 @@ import { RequestPasswordResetDto } from './dto/request-password-reset.dto';
 import { ConfirmPasswordResetDto } from './dto/confirm-password-reset.dto';
 import { SendPhoneOtpDto } from './dto/send-phone-otp.dto';
 import { UserRole } from '@prisma/client';
+import {
+  ADMIN_REFRESH_COOKIE,
+  REFRESH_COOKIE,
+  clearAllAuthCookies,
+  clearAdminCookies,
+  parseCookieHeader,
+  setAuthCookies,
+  stashAdminCookies,
+} from './auth-cookies';
 
 @Controller('auth')
 export class AuthController {
@@ -38,7 +49,11 @@ export class AuthController {
       limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max per file
     }),
   )
-  async register(@Req() req: Request, @UploadedFiles() files?: any[]) {
+  async register(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @UploadedFiles() files?: any[],
+  ) {
     // Multipart/form-data: global ValidationPipe can leave @Body() empty; multer puts fields in req.body.
     const raw = (req.body || {}) as Record<string, any>;
     const data = plainToClass(RegisterDto, raw, { enableImplicitConversion: true });
@@ -80,12 +95,20 @@ export class AuthController {
       }
     }
 
-    return this.authService.register(data, fileBuffers);
+    const result = await this.authService.register(data, fileBuffers);
+    setAuthCookies(req, res, result);
+    return result;
   }
 
   @Post('login')
-  async login(@Body() data: LoginDto) {
-    return this.authService.login(data);
+  async login(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Body() data: LoginDto,
+  ) {
+    const result = await this.authService.login(data);
+    setAuthCookies(req, res, result);
+    return result;
   }
 
   @Post('password-reset/request')
@@ -106,7 +129,11 @@ export class AuthController {
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   async getProfile(@CurrentUser() user: ICurrentUser) {
-    return this.authService.getProfile(user.id);
+    const profile = await this.authService.getProfile(user.id);
+    return {
+      ...profile,
+      impersonatedBy: user.impersonatedBy,
+    };
   }
 
   @Put('profile')
@@ -137,15 +164,67 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(@Body() data: { refreshToken: string }) {
-    return this.authService.refreshToken(data.refreshToken);
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Body() data?: { refreshToken?: string },
+  ) {
+    const cookies = parseCookieHeader(req.headers.cookie);
+    const refreshToken = data?.refreshToken || cookies[REFRESH_COOKIE];
+    if (!refreshToken) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+    const result = await this.authService.refreshToken(refreshToken);
+    setAuthCookies(req, res, result, { impersonating: result.impersonating });
+    return result;
+  }
+
+  @Post('logout')
+  async logout(@Res({ passthrough: true }) res: Response) {
+    clearAllAuthCookies(res);
+    return { success: true };
   }
 
   @Post('admin/impersonate')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async adminImpersonate(@CurrentUser() admin: ICurrentUser, @Body() body: { userId: string }) {
-    return this.authService.adminImpersonate(admin.id, body.userId);
+  async adminImpersonate(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @CurrentUser() admin: ICurrentUser,
+    @Body() body: { userId: string },
+  ) {
+    if (admin.impersonatedBy) {
+      throw new BadRequestException('Stop impersonating before starting another session');
+    }
+    const result = await this.authService.adminImpersonate(admin.id, body.userId);
+    stashAdminCookies(req, res);
+    setAuthCookies(req, res, result, { impersonating: true });
+    return result;
+  }
+
+  @Post('admin/stop-impersonate')
+  @UseGuards(JwtAuthGuard)
+  async stopImpersonate(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    if (!user.impersonatedBy) {
+      throw new BadRequestException('Not impersonating');
+    }
+    const cookies = parseCookieHeader(req.headers.cookie);
+    const adminRefresh = cookies[ADMIN_REFRESH_COOKIE];
+    if (!adminRefresh) {
+      throw new BadRequestException('Admin session expired. Sign in again.');
+    }
+    const restored = await this.authService.refreshToken(adminRefresh);
+    if (!restored.user?.roles?.includes(UserRole.ADMIN)) {
+      throw new UnauthorizedException('Admin session could not be restored');
+    }
+    setAuthCookies(req, res, restored);
+    clearAdminCookies(res);
+    return { user: restored.user };
   }
 }
 

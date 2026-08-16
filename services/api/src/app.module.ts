@@ -33,6 +33,7 @@ import { SecurityModule } from './common/security/security.module';
 import { RateLimitModule } from './common/rate-limit/rate-limit.module';
 import { SimpleRateLimitMiddleware } from './common/middleware/simple-rate-limit.middleware';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
+import { CookieAuthOriginMiddleware } from './common/middleware/cookie-auth-origin.middleware';
 import { CsrfMiddleware } from './common/middleware/csrf.middleware';
 import paystackConfig from './config/paystack.config';
 
@@ -79,7 +80,7 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Order matters: Request ID first, then CSRF, then rate limiting
     consumer
-      .apply(RequestIdMiddleware, CsrfMiddleware, SimpleRateLimitMiddleware)
+      .apply(RequestIdMiddleware, CookieAuthOriginMiddleware, CsrfMiddleware, SimpleRateLimitMiddleware)
       .forRoutes('*');
   }
 }

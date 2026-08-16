@@ -1,10 +1,10 @@
 import { cn } from '@/lib/utils';
-import { formatStatus, WITHDRAWAL_STATUS_COLORS, formatWithdrawalStatusLabel } from '@/lib/constants';
+import { formatStatus } from '@/lib/constants';
 
 interface StatusBadgeProps {
   status: string;
   className?: string;
-  /** Use on dark app backgrounds (default). Set false for light admin cards. */
+  /** Dark-glass badges. Default is light (grouped #f2f2f7). */
   onDark?: boolean;
 }
 
@@ -16,7 +16,7 @@ const statusConfig: Record<string, { label: string; light: string; dark: string 
   },
   AWAITING_FUNDING: {
     label: 'Awaiting Funding',
-    light: 'bg-yellow-100 text-yellow-800',
+    light: 'bg-amber-50 text-amber-800',
     dark: 'bg-yellow-500/20 text-yellow-200 border-yellow-500/30',
   },
   FUNDED: {
@@ -71,7 +71,7 @@ const statusConfig: Record<string, { label: string; light: string; dark: string 
   },
   OPEN: {
     label: 'Open',
-    light: 'bg-yellow-100 text-yellow-800',
+    light: 'bg-amber-50 text-amber-800',
     dark: 'bg-yellow-500/20 text-yellow-200 border-yellow-500/30',
   },
   NEGOTIATION: {
@@ -101,7 +101,7 @@ const statusConfig: Record<string, { label: string; light: string; dark: string 
   },
   REQUESTED: {
     label: 'Requested',
-    light: 'bg-yellow-100 text-yellow-800',
+    light: 'bg-amber-50 text-amber-800',
     dark: 'bg-yellow-500/20 text-yellow-200 border-yellow-500/30',
   },
   PROCESSING: {
@@ -126,7 +126,7 @@ const statusConfig: Record<string, { label: string; light: string; dark: string 
   },
   PENDING: {
     label: 'Pending',
-    light: 'bg-yellow-100 text-yellow-800',
+    light: 'bg-amber-50 text-amber-800',
     dark: 'bg-yellow-500/20 text-yellow-200 border-yellow-500/30',
   },
   VERIFIED: {
@@ -162,7 +162,7 @@ const defaultConfig = {
   dark: 'bg-white/10 text-white/80 border-white/20',
 };
 
-export function StatusBadge({ status, className, onDark = true }: StatusBadgeProps) {
+export function StatusBadge({ status, className, onDark = false }: StatusBadgeProps) {
   const config = statusConfig[status] ?? defaultConfig;
   const label = config.label || formatStatus(status);
 
@@ -179,25 +179,14 @@ export function StatusBadge({ status, className, onDark = true }: StatusBadgePro
   );
 }
 
-const defaultWithdrawalColor =
-  'bg-white/10 text-white/80 border-white/20';
-
 export function WithdrawalStatusBadge({
   status,
   className,
+  onDark = false,
 }: {
   status: string;
   className?: string;
+  onDark?: boolean;
 }) {
-  return (
-    <span
-      className={cn(
-        'px-2.5 py-0.5 text-ios-caption font-medium rounded-full border',
-        WITHDRAWAL_STATUS_COLORS[status] ?? defaultWithdrawalColor,
-        className,
-      )}
-    >
-      {formatWithdrawalStatusLabel(status)}
-    </span>
-  );
+  return <StatusBadge status={status} className={className} onDark={onDark} />;
 }

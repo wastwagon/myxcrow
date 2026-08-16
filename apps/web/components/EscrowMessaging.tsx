@@ -80,8 +80,8 @@ export default function EscrowMessaging({ escrowId }: EscrowMessagingProps) {
 
   const header = (
     <div className="flex items-center gap-2 mb-4">
-      <MessageSquare className="w-5 h-5 text-brand-gold" />
-      <h3 className="text-ios-headline font-semibold text-label-primary">Messages</h3>
+      <MessageSquare className="w-5 h-5 text-brand-maroon" />
+      <h3 className="text-ios-headline font-semibold text-gray-900">Messages</h3>
     </div>
   );
 
@@ -89,7 +89,7 @@ export default function EscrowMessaging({ escrowId }: EscrowMessagingProps) {
     return (
       <div className={form.panel}>
         {header}
-        <div className="text-center py-8 text-label-tertiary">Loading messages…</div>
+        <div className="text-center py-8 text-gray-500">Loading messages…</div>
       </div>
     );
   }
@@ -111,17 +111,19 @@ export default function EscrowMessaging({ escrowId }: EscrowMessagingProps) {
               >
                 <div className="flex items-center gap-2 mb-1">
                   <User className="w-3 h-3 opacity-70" />
-                  <span className="text-ios-caption font-medium text-label-secondary">
+                  <span className="text-ios-caption font-medium text-[rgba(60,60,67,0.6)]">
                     {isOwnMessage(msg) ? 'You' : getSenderName(msg)}
                   </span>
                 </div>
                 <p className="text-ios-subhead whitespace-pre-wrap">{msg.content}</p>
-                <p className="text-ios-caption mt-1 text-label-tertiary">{formatDate(msg.createdAt)}</p>
+                <p className="text-ios-caption mt-1 text-gray-500">{formatDate(msg.createdAt)}</p>
               </div>
             </div>
           ))
         ) : (
-          <div className="text-center py-8 text-label-tertiary">No messages yet. Start the conversation!</div>
+          <p className="text-center py-8 text-[15px] text-[rgba(60,60,67,0.6)]">
+            No messages yet. Start the conversation.
+          </p>
         )}
         <div ref={messagesEndRef} />
       </div>

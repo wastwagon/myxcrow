@@ -6,6 +6,7 @@ import {
   Clock, DollarSign, Truck, Package, CheckCircle, 
   AlertCircle, XCircle, FileText, MessageSquare 
 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 
 interface AuditLog {
   id: string;
@@ -96,11 +97,13 @@ export default function ActivityTimeline({ escrowId }: ActivityTimelineProps) {
 
   if (!canViewAudit) {
     return (
-      <div className="text-center py-8 text-label-tertiary">
-        <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
-        <p>Activity timeline</p>
-        <p className="text-sm mt-1">Visible to admin/auditor roles</p>
-      </div>
+      <EmptyState
+        tone="light"
+        icon={<Clock className="w-6 h-6" />}
+        title="Activity timeline"
+        description="Visible to admin and auditor roles."
+        className="py-8"
+      />
     );
   }
 
@@ -109,10 +112,10 @@ export default function ActivityTimeline({ escrowId }: ActivityTimelineProps) {
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
           <div key={i} className="flex items-start gap-4">
-            <div className="w-8 h-8 bg-white/15 animate-pulse rounded-full" />
+            <div className="w-8 h-8 bg-black/5 animate-pulse rounded-full" />
             <div className="flex-1">
-              <div className="h-4 bg-white/15 animate-pulse rounded w-1/3 mb-2" />
-              <div className="h-3 bg-white/15 animate-pulse rounded w-1/4" />
+              <div className="h-4 bg-black/5 animate-pulse rounded w-1/3 mb-2" />
+              <div className="h-3 bg-black/5 animate-pulse rounded w-1/4" />
             </div>
           </div>
         ))}
@@ -122,11 +125,13 @@ export default function ActivityTimeline({ escrowId }: ActivityTimelineProps) {
 
   if (!auditLogs || auditLogs.length === 0) {
     return (
-      <div className="text-center py-8 text-label-tertiary">
-        <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
-        <p>No activity logs available</p>
-        <p className="text-sm mt-1">Activity timeline requires admin access</p>
-      </div>
+      <EmptyState
+        tone="light"
+        icon={<Clock className="w-6 h-6" />}
+        title="No activity yet"
+        description="Timeline events appear as this escrow moves through funding, delivery, and release."
+        className="py-8"
+      />
     );
   }
 
@@ -145,12 +150,12 @@ export default function ActivityTimeline({ escrowId }: ActivityTimelineProps) {
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1">
-                  <p className="font-medium text-label-primary">{label}</p>
+                  <p className="font-medium text-gray-900">{label}</p>
                   {log.user && (
-                    <p className="text-sm text-label-secondary">by {log.user.email}</p>
+                    <p className="text-sm text-[rgba(60,60,67,0.6)]">by {log.user.email}</p>
                   )}
                   {log.details && typeof log.details === 'object' && (
-                    <div className="mt-1 text-sm text-label-tertiary">
+                    <div className="mt-1 text-sm text-gray-500">
                       {log.details.amountCents && (
                         <span>Amount: GHS {(log.details.amountCents / 100).toFixed(2)}</span>
                       )}
@@ -163,7 +168,7 @@ export default function ActivityTimeline({ escrowId }: ActivityTimelineProps) {
                     </div>
                   )}
                 </div>
-                <p className="text-sm text-label-tertiary whitespace-nowrap">
+                <p className="text-sm text-gray-500 whitespace-nowrap">
                   {formatDate(log.createdAt)}
                 </p>
               </div>

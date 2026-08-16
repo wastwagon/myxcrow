@@ -52,9 +52,9 @@ export class DisputesController {
   }
 
   @Get(':id')
-  async getOne(@Param('id') id: string) {
-    const dispute = await this.disputesService.getDispute(id);
-    const sla = await this.disputesService.getDisputeSLA(id);
+  async getOne(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
+    const dispute = await this.disputesService.getDispute(id, user.id, user.roles);
+    const sla = await this.disputesService.getDisputeSLA(id, user.id, user.roles);
     return {
       ...dispute,
       sla,
@@ -62,8 +62,8 @@ export class DisputesController {
   }
 
   @Get(':id/sla')
-  async getSLA(@Param('id') id: string) {
-    return this.disputesService.getDisputeSLA(id);
+  async getSLA(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
+    return this.disputesService.getDisputeSLA(id, user.id, user.roles);
   }
 
   @Post(':id/message')
@@ -72,7 +72,7 @@ export class DisputesController {
     @Body() data: { content: string },
     @CurrentUser() user: ICurrentUser,
   ) {
-    return this.disputesService.addMessage(id, user.id, data.content);
+    return this.disputesService.addMessage(id, user.id, data.content, user.roles);
   }
 
   @Put(':id/resolve')

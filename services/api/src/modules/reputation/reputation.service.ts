@@ -1,6 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
+function maskEmail(email: string | null | undefined): string {
+  if (!email || !email.includes('@')) return '';
+  const [local, domain] = email.split('@');
+  const visible = local.slice(0, 1);
+  return `${visible}***@${domain}`;
+}
+
 export interface Rating {
   id: string;
   escrowId: string;
@@ -280,7 +287,7 @@ export class ReputationService {
     return {
       userId: user.id,
       name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : null,
-      email: user.email, // In production, consider masking
+      email: maskEmail(user.email),
       kycStatus: user.kycStatus,
       verifiedBadge: reputation.verifiedBadge,
       memberSince: user.createdAt,

@@ -7,8 +7,8 @@ import { isPublicLightPath } from '@/lib/app-chrome';
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/login', label: 'Sign In' },
-  { href: '/register', label: 'Register' },
+  { href: '/support', label: 'Support' },
+  { href: '/login', label: 'Sign in' },
 ];
 
 export default function PublicHeader() {
@@ -19,16 +19,16 @@ export default function PublicHeader() {
   const isActive = (href: string) =>
     router.pathname === href || (href !== '/' && router.pathname.startsWith(href));
 
-  const navClass = (active: boolean) =>
+  const quietNav = (active: boolean) =>
     cn(
-      'flex min-h-[48px] items-center px-4 rounded-[10px] font-semibold touch-manipulation',
+      'inline-flex min-h-[44px] items-center px-3 rounded-[12px] font-semibold touch-manipulation',
       active
         ? light
           ? 'text-brand-maroon'
-          : 'bg-brand-gold text-brand-maroon-black'
+          : 'text-brand-gold'
         : light
-          ? 'text-[rgba(60,60,67,0.6)] active:bg-black/5'
-          : 'text-label-secondary hover:bg-white/10 hover:text-label-primary'
+          ? 'text-[rgba(60,60,67,0.75)] hover:text-gray-900'
+          : 'text-white/85 hover:text-white hover:bg-white/10'
     );
 
   return (
@@ -43,15 +43,15 @@ export default function PublicHeader() {
     >
       <div className="container mx-auto px-4">
         <div className="flex h-14 md:h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-3 group" onClick={() => setOpen(false)}>
-            <div className="relative flex h-9 w-9 md:h-10 md:w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-brand-maroon-deep ring-1 ring-brand-gold/35 shadow-sm group-hover:scale-105 transition-transform">
+          <Link href="/" className="flex min-h-[44px] items-center gap-3 group" onClick={() => setOpen(false)}>
+            <div className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center overflow-hidden rounded-[12px] bg-brand-maroon-deep ring-1 ring-brand-gold/35 shadow-sm group-hover:scale-105 transition-transform">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={40} height={40} className="object-contain" />
             </div>
             <span
               className={cn(
                 'hidden text-lg font-bold tracking-tight sm:inline md:text-xl transition-colors',
-                light ? 'text-gray-900 group-hover:text-brand-maroon' : 'text-label-primary group-hover:text-brand-gold'
+                light ? 'text-gray-900 group-hover:text-brand-maroon' : 'text-white group-hover:text-brand-gold'
               )}
             >
               MYXCROW
@@ -60,32 +60,30 @@ export default function PublicHeader() {
 
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'inline-flex min-h-[44px] items-center px-4 rounded-ios-lg font-semibold transition-all',
-                  isActive(link.href)
-                    ? light
-                      ? 'text-brand-maroon'
-                      : 'bg-brand-gold text-brand-maroon-black shadow-sm'
-                    : light
-                      ? 'text-[rgba(60,60,67,0.6)] hover:text-gray-900'
-                      : 'text-label-secondary hover:bg-white/10 hover:text-label-primary'
-                )}
-              >
+              <Link key={link.href} href={link.href} className={quietNav(isActive(link.href))}>
                 {link.label}
               </Link>
             ))}
+            <Link
+              href="/register"
+              className={cn(
+                'ml-2 inline-flex min-h-[44px] items-center px-4 rounded-[12px] font-semibold touch-manipulation',
+                light
+                  ? 'bg-brand-maroon text-white hover:bg-brand-maroon-dark'
+                  : 'bg-brand-gold text-brand-maroon-black hover:bg-brand-gold/90'
+              )}
+            >
+              Register
+            </Link>
           </nav>
 
           <button
             type="button"
             className={cn(
-              'md:hidden inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[10px] touch-manipulation',
+              'md:hidden inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] touch-manipulation',
               light
-                ? 'text-[rgba(60,60,67,0.6)] hover:bg-black/5 hover:text-gray-900'
-                : 'text-label-secondary hover:bg-white/10 hover:text-label-primary'
+                ? 'text-gray-900 hover:bg-black/5'
+                : 'text-white hover:bg-white/10'
             )}
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
@@ -107,17 +105,22 @@ export default function PublicHeader() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setOpen(false)}
-                className={navClass(isActive(link.href))}
+                className={cn(quietNav(isActive(link.href)), 'w-full px-4')}
               >
                 {link.label}
               </Link>
             ))}
             <Link
-              href="/support"
+              href="/register"
               onClick={() => setOpen(false)}
-              className={navClass(router.pathname === '/support')}
+              className={cn(
+                'flex min-h-[44px] items-center justify-center px-4 rounded-[12px] font-semibold touch-manipulation',
+                light
+                  ? 'bg-brand-maroon text-white'
+                  : 'bg-brand-gold text-brand-maroon-black'
+              )}
             >
-              Support
+              Register
             </Link>
           </nav>
         )}

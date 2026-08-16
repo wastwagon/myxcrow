@@ -12,6 +12,9 @@ import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/utils';
 import { form } from '@/lib/form-classes';
 import { Button } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
+import { useConfirm } from '@/components/providers/UIProvider';
 
 const disputeSchema = z.object({
   escrowId: z.string().min(1, 'Escrow ID is required'),
@@ -28,6 +31,7 @@ export default function CreateDisputePage() {
   const router = useRouter();
   const { escrowId } = router.query;
   const queryClient = useQueryClient();
+  const confirm = useConfirm();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -94,14 +98,25 @@ export default function CreateDisputePage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit((d) => createMutation.mutate(d))} className={`${form.panel} space-y-6`}>
+        <form
+          onSubmit={handleSubmit(async (d) => {
+            const ok = await confirm({
+              title: 'Open dispute',
+              message: 'This holds funds until the dispute is resolved. Continue?',
+              confirmLabel: 'Open dispute',
+              destructive: true,
+            });
+            if (ok) createMutation.mutate(d);
+          })}
+          className={`${form.panel} space-y-6`}
+        >
           <input type="hidden" {...register('escrowId')} />
 
           <div>
             <label htmlFor="reason" className={form.label}>
               Reason for dispute *
             </label>
-            <select {...register('reason')} id="reason" className={form.input}>
+            <Select {...register('reason')} id="reason" tone="light" error={!!errors.reason}>
               <option value="">Select a reason</option>
               <option value="NOT_RECEIVED">Item not received</option>
               <option value="NOT_AS_DESCRIBED">Not as described</option>
@@ -109,7 +124,7 @@ export default function CreateDisputePage() {
               <option value="WRONG_ITEM">Wrong item received</option>
               <option value="PARTIAL_DELIVERY">Partial delivery</option>
               <option value="OTHER">Other</option>
-            </select>
+            </Select>
             {errors.reason && <p className={form.inputError}>{errors.reason.message}</p>}
           </div>
 
@@ -117,14 +132,16 @@ export default function CreateDisputePage() {
             <label htmlFor="description" className={form.label}>
               Description *
             </label>
-            <textarea
+            <Textarea
               {...register('description')}
               id="description"
+              tone="light"
               rows={6}
               placeholder="Please provide details about the issue…"
-              className={`${form.input} resize-none`}
+              className="resize-none"
+              error={!!errors.description}
             />
-            <p className="mt-1 text-ios-caption text-label-tertiary">Minimum 10 characters</p>
+            <p className="mt-1 text-ios-caption text-gray-500">Minimum 10 characters</p>
             {errors.description && <p className={form.inputError}>{errors.description.message}</p>}
           </div>
 

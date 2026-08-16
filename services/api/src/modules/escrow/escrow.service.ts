@@ -1398,7 +1398,7 @@ export class EscrowService {
 
     const result: any = { ...escrow };
     if (
-      isParticipant &&
+      isBuyer &&
       escrow.deliveryConfirmationMode === 'pin' &&
       escrow.deliveryPinEncrypted
     ) {

@@ -5,6 +5,7 @@ import { Star } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Sheet } from '@/components/ui/Sheet';
 import { Button } from '@/components/ui/Button';
+import { Textarea } from '@/components/ui/Textarea';
 
 interface RatingModalProps {
   isOpen: boolean;
@@ -113,7 +114,7 @@ export default function RatingModal({
                   className={`w-9 h-9 transition-colors ${
                     star <= (hoveredScore || score)
                       ? 'fill-brand-gold text-brand-gold'
-                      : 'text-[#d1d1d6]'
+                      : 'text-[#8e8e93]'
                   }`}
                 />
               </button>
@@ -125,12 +126,13 @@ export default function RatingModal({
           <label htmlFor="rating-comment" className="block text-[13px] text-[rgba(60,60,67,0.6)] mb-2">
             Comment (optional)
           </label>
-          <textarea
+          <Textarea
             id="rating-comment"
+            tone="light"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             rows={4}
-            className="w-full px-4 py-3 rounded-[10px] bg-[#f2f2f7] border-0 text-gray-900 placeholder:text-[rgba(60,60,67,0.4)] focus:ring-2 focus:ring-brand-maroon/25 outline-none resize-none"
+            className="resize-none"
             placeholder="Share your experience..."
           />
         </div>

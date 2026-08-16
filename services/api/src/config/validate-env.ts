@@ -7,13 +7,35 @@ const REQUIRED = [
   'JWT_SECRET',
 ] as const;
 
+const PRODUCTION_REQUIRED = [
+  'PAYSTACK_SECRET_KEY',
+  'PAYSTACK_WEBHOOK_SECRET',
+  'WEB_APP_URL',
+] as const;
+
 export function validateEnv(): void {
   const missing: string[] = [];
+  const production = process.env.NODE_ENV === 'production';
 
   for (const key of REQUIRED) {
     const val = process.env[key];
     if (!val || val.trim() === '') {
       missing.push(key);
+    }
+  }
+
+  if (production) {
+    for (const key of PRODUCTION_REQUIRED) {
+      const val = process.env[key];
+      if (!val || val.trim() === '') {
+        missing.push(key);
+      }
+    }
+    if (process.env.OTP_DEV_BYPASS === 'true') {
+      missing.push('OTP_DEV_BYPASS must not be true in production');
+    }
+    if (process.env.SWAGGER_ENABLED === 'true') {
+      missing.push('SWAGGER_ENABLED must not be true in production');
     }
   }
 

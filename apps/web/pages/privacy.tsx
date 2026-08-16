@@ -109,9 +109,9 @@ export default function PrivacyPage() {
               </section>
 
               <div className={publicForm.legalFooter}>
-                <Link href="/terms" className="text-brand-maroon font-semibold">Terms and Conditions</Link>
-                <Link href="/support" className="text-brand-maroon font-semibold">Support</Link>
-                <Link href="/" className="text-brand-maroon font-semibold">Home</Link>
+                <Link href="/terms" className="inline-flex min-h-[44px] items-center text-brand-maroon font-semibold touch-manipulation">Terms and Conditions</Link>
+                <Link href="/support" className="inline-flex min-h-[44px] items-center text-brand-maroon font-semibold touch-manipulation">Support</Link>
+                <Link href="/" className="inline-flex min-h-[44px] items-center text-brand-maroon font-semibold touch-manipulation">Home</Link>
               </div>
     </PublicPage>
   );

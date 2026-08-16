@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { DisputeStatus, DisputeReason, DisputeResolutionOutcome } from '@prisma/client';
+import { DisputeStatus, DisputeReason, DisputeResolutionOutcome, UserRole } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
 import { EscrowService } from '../escrow/escrow.service';
@@ -106,7 +106,43 @@ export class DisputesService {
     return dispute;
   }
 
-  async getDispute(id: string) {
+  private isStaff(roles?: string[]) {
+    return (
+      !!roles?.includes(UserRole.ADMIN) ||
+      !!roles?.includes(UserRole.SUPPORT) ||
+      !!roles?.includes(UserRole.AUDITOR)
+    );
+  }
+
+  private async assertCanAccessDispute(
+    disputeId: string,
+    userId: string,
+    roles: string[] | undefined,
+    opts?: { write?: boolean },
+  ) {
+    const dispute = await this.prisma.dispute.findUnique({
+      where: { id: disputeId },
+      include: { escrow: { select: { buyerId: true, sellerId: true } } },
+    });
+    if (!dispute) {
+      throw new NotFoundException('Dispute not found');
+    }
+    const staff = this.isStaff(roles);
+    if (opts?.write && roles?.includes(UserRole.AUDITOR) && !roles.includes(UserRole.ADMIN) && !roles.includes(UserRole.SUPPORT)) {
+      throw new ForbiddenException('Not allowed');
+    }
+    if (
+      !staff &&
+      dispute.escrow.buyerId !== userId &&
+      dispute.escrow.sellerId !== userId
+    ) {
+      throw new ForbiddenException('Not allowed');
+    }
+    return dispute;
+  }
+
+  async getDispute(id: string, userId: string, roles?: string[]) {
+    await this.assertCanAccessDispute(id, userId, roles);
     return this.prisma.dispute.findUnique({
       where: { id },
       include: {
@@ -177,15 +213,8 @@ export class DisputesService {
     });
   }
 
-  async addMessage(disputeId: string, userId: string, content: string) {
-    const dispute = await this.prisma.dispute.findUnique({
-      where: { id: disputeId },
-      include: { escrow: { select: { buyerId: true, sellerId: true } } },
-    });
-
-    if (!dispute) {
-      throw new NotFoundException('Dispute not found');
-    }
+  async addMessage(disputeId: string, userId: string, content: string, roles?: string[]) {
+    const dispute = await this.assertCanAccessDispute(disputeId, userId, roles, { write: true });
 
     const message = await this.prisma.disputeMessage.create({
       data: {
@@ -308,7 +337,8 @@ export class DisputesService {
   /**
    * Calculate SLA status for a dispute
    */
-  async getDisputeSLA(disputeId: string) {
+  async getDisputeSLA(disputeId: string, userId: string, roles?: string[]) {
+    await this.assertCanAccessDispute(disputeId, userId, roles);
     const dispute = await this.prisma.dispute.findUnique({
       where: { id: disputeId },
       select: {

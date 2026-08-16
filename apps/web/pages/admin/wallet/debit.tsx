@@ -12,6 +12,7 @@ import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
 import { Button } from '@/components/ui/Button';
+import { useConfirm } from '@/components/providers/UIProvider';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Field } from '@/components/ui/Field';
@@ -39,6 +40,7 @@ export default function DebitWalletPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
+  const confirm = useConfirm();
   const userIdFromQuery = typeof router.query.userId === 'string' ? router.query.userId : undefined;
   const [searchTerm, setSearchTerm] = useState('');
   const [showUserSearch, setShowUserSearch] = useState(false);
@@ -113,8 +115,14 @@ export default function DebitWalletPage() {
     },
   });
 
-  const onSubmit = (data: DebitFormData) => {
-    debitMutation.mutate(data);
+  const onSubmit = async (data: DebitFormData) => {
+    const ok = await confirm({
+      title: 'Debit wallet',
+      message: 'Remove these funds from the user’s wallet? This cannot be undone from here.',
+      confirmLabel: 'Debit',
+      destructive: true,
+    });
+    if (ok) debitMutation.mutate(data);
   };
 
   const handleUserSelect = (user: UserOption) => {
@@ -147,7 +155,7 @@ export default function DebitWalletPage() {
             icon={<Wallet className="w-6 h-6" />}
           />
 
-          <div className="rounded-ios-xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+          <div className="rounded-[12px] border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-amber-900">Warning</p>
@@ -165,7 +173,7 @@ export default function DebitWalletPage() {
                   Select User *
                 </label>
                 {selectedUser ? (
-                  <div className="flex items-center justify-between p-4 rounded-ios-lg border border-red-200 bg-red-50">
+                  <div className="flex items-center justify-between p-4 rounded-[12px] border border-red-200 bg-red-50">
                     <div className="flex items-center gap-3">
                       <AdminAvatar label={selectedUser.email} variant="destructive" />
                       <div>
@@ -179,7 +187,8 @@ export default function DebitWalletPage() {
                         setSelectedUser(null);
                         setValue('userId', '');
                       }}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] text-gray-700 hover:bg-black/5 hover:text-gray-900 touch-manipulation"
+                      aria-label="Clear user"
                     >
                       <X className="w-5 h-5" />
                     </button>
@@ -199,10 +208,10 @@ export default function DebitWalletPage() {
                       leading={<Search className="h-5 w-5" />}
                     />
                     {showUserSearch && searchTerm && (
-                      <div className="absolute z-10 w-full mt-2 rounded-ios-lg border border-gray-200 bg-white shadow-lg max-h-64 overflow-y-auto">
+                      <div className="absolute z-10 w-full mt-2 rounded-[12px] border border-gray-200 bg-white shadow-lg max-h-64 overflow-y-auto">
                         {usersLoading ? (
                           <div className="p-4 text-center">
-                            <Loader2 className="w-5 h-5 animate-spin mx-auto text-gray-400" />
+                            <Loader2 className="w-5 h-5 animate-spin mx-auto text-brand-maroon" />
                           </div>
                         ) : usersData?.users?.length > 0 ? (
                           usersData.users.map((user: UserOption) => (
@@ -210,7 +219,7 @@ export default function DebitWalletPage() {
                               key={user.id}
                               type="button"
                               onClick={() => handleUserSelect(user)}
-                              className="w-full px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 last:border-0"
+                              className="w-full min-h-[44px] px-4 py-3 text-left hover:bg-gray-50 flex items-center gap-3 border-b border-gray-100 last:border-0 touch-manipulation"
                             >
                               <AdminAvatar
                                 label={user.email}
@@ -224,7 +233,9 @@ export default function DebitWalletPage() {
                             </button>
                           ))
                         ) : (
-                          <div className="p-4 text-center text-gray-500">No users found</div>
+                          <div className="p-4 text-center text-[15px] text-[rgba(60,60,67,0.6)]">
+                            No users match that search
+                          </div>
                         )}
                       </div>
                     )}
@@ -285,7 +296,7 @@ export default function DebitWalletPage() {
               </Field>
 
               <div className="flex gap-4 pt-4">
-                <Button type="button" variant="secondary" size="lg" fullWidth onClick={() => router.back()}>
+                <Button type="button" variant="outline" size="lg" fullWidth onClick={() => router.back()}>
                   Cancel
                 </Button>
                 <Button

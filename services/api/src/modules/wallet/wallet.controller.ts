@@ -105,7 +105,6 @@ export class WalletController {
       methodDetails: data.methodDetails as Record<string, unknown> | undefined,
       savePayoutMethod: data.savePayoutMethod,
       payoutLabel: data.payoutLabel,
-      feeCents: data.feeCents,
     });
   }
 

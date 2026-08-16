@@ -33,7 +33,7 @@ export default function DisputeSLATimer({ disputeId }: DisputeSLATimerProps) {
 
   const getStatusColor = () => {
     if (sla.status === 'overdue') return 'bg-red-100 text-red-800 border-red-300';
-    if (sla.status === 'warning') return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+    if (sla.status === 'warning') return 'bg-amber-50 text-amber-800 border-amber-200';
     return 'bg-green-100 text-green-800 border-green-300';
   };
 
@@ -58,33 +58,33 @@ export default function DisputeSLATimer({ disputeId }: DisputeSLATimerProps) {
   };
 
   return (
-    <div className={`border-2 rounded-lg p-4 ${getStatusColor()}`}>
+    <div className={`border rounded-[12px] p-4 ${getStatusColor()}`}>
       <div className="flex items-center gap-3 mb-3">
         {getStatusIcon()}
         <div>
           <h3 className="font-semibold">SLA Status: {getStatusText()}</h3>
-          <p className="text-sm opacity-75">
+          <p className="text-sm text-current/80">
             {sla.ageDays} day{sla.ageDays !== 1 ? 's' : ''} since dispute opened
           </p>
         </div>
       </div>
       <div className="space-y-2 text-sm">
         <div className="flex justify-between">
-          <span className="opacity-75">Initial Response Deadline:</span>
+          <span className="text-current/80">Initial Response Deadline:</span>
           <span className="font-medium">{formatDate(sla.initialResponseDeadline)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="opacity-75">Resolution Deadline:</span>
+          <span className="text-current/80">Resolution Deadline:</span>
           <span className="font-medium">{formatDate(sla.resolutionDeadline)}</span>
         </div>
         {sla.isOverdue && (
-          <div className="mt-2 pt-2 border-t border-current opacity-50">
-            <p className="font-medium">⚠️ This dispute has exceeded the resolution SLA</p>
+          <div className="mt-2 pt-2 border-t border-current/30">
+            <p className="font-medium">This dispute has exceeded the resolution SLA</p>
           </div>
         )}
         {sla.isWarning && !sla.isOverdue && (
-          <div className="mt-2 pt-2 border-t border-current opacity-50">
-            <p className="font-medium">⚠️ Approaching resolution deadline</p>
+          <div className="mt-2 pt-2 border-t border-current/30">
+            <p className="font-medium">Approaching resolution deadline</p>
           </div>
         )}
       </div>

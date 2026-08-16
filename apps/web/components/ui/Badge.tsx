@@ -64,7 +64,7 @@ const colorMapLight: Record<BadgeColor, Record<BadgeVariant, string>> = {
   },
   gold: {
     subtle: 'bg-amber-50 text-amber-800 border-amber-200',
-    solid: 'bg-brand-gold text-brand-maroon-black border-transparent',
+    solid: 'bg-amber-500 text-brand-maroon-black border-transparent',
     outline: 'bg-transparent text-amber-800 border-amber-300',
   },
   success: {
@@ -116,7 +116,7 @@ export function Badge({
   dot,
   icon,
   className,
-  tone = 'dark',
+  tone = 'light',
 }: BadgeProps) {
   const map = tone === 'light' ? colorMapLight : colorMapDark;
   return (

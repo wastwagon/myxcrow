@@ -113,7 +113,7 @@ export function PromoCarousel({
           </h2>
           <p
             className={cn(
-              'mt-2 max-w-md leading-relaxed text-white/70',
+              'mt-2 max-w-md leading-relaxed text-white/85',
               isHero ? 'text-sm md:text-base' : 'text-sm'
             )}
           >
@@ -144,10 +144,10 @@ export function PromoCarousel({
                   aria-label={s.eyebrow}
                   onClick={() => selectSlide(i)}
                   className={cn(
-                    'shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors touch-manipulation',
+                    'shrink-0 min-h-[44px] rounded-full border px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors touch-manipulation',
                     i === active
                       ? 'border-brand-gold/50 bg-brand-gold text-brand-maroon-black'
-                      : 'border-white/20 bg-black/35 text-white/75 backdrop-blur-sm hover:border-white/35 hover:text-white'
+                      : 'border-white/40 bg-black/45 text-white backdrop-blur-sm hover:border-white hover:bg-black/55'
                   )}
                 >
                   {s.eyebrow}
@@ -162,10 +162,16 @@ export function PromoCarousel({
                   aria-label={s.eyebrow}
                   onClick={() => selectSlide(i)}
                   className={cn(
-                    'h-2 rounded-full transition-all touch-manipulation',
-                    i === active ? 'w-6 bg-brand-gold' : 'w-2 bg-white/35 hover:bg-white/55'
+                    'min-h-[44px] min-w-[44px] inline-flex items-center justify-center touch-manipulation',
                   )}
-                />
+                >
+                  <span
+                    className={cn(
+                      'rounded-full transition-all',
+                      i === active ? 'h-2 w-6 bg-brand-gold' : 'h-2 w-2 bg-white/55 hover:bg-white'
+                    )}
+                  />
+                </button>
               ))}
         </div>
       )}

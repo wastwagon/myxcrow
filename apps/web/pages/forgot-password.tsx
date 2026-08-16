@@ -65,7 +65,10 @@ export default function ForgotPasswordPage() {
         !sent ? (
           <p>
             Remembered your password?{' '}
-            <Link href="/login" className="font-semibold text-brand-maroon hover:text-brand-maroon-dark">
+            <Link
+              href="/login"
+              className="inline-flex min-h-[44px] items-center font-semibold text-brand-maroon hover:text-brand-maroon-dark touch-manipulation"
+            >
               Sign in
             </Link>
           </p>

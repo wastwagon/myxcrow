@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 import DisputeSLATimer from '@/components/DisputeSLATimer';
 import { useConfirm } from '@/components/providers/UIProvider';
 import { Button } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
@@ -183,10 +184,13 @@ export default function DisputeDetailPage() {
   if (!dispute) {
     return (
       <CustomerLayout title="Dispute" back large={false}>
-        <div className="text-center py-12">
-          <AlertCircle className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
-          <p className="text-label-secondary">Dispute not found</p>
-        </div>
+        <EmptyState
+          tone="light"
+          icon={<AlertCircle className="h-6 w-6" />}
+          title="Dispute not found"
+          description="It may have been closed, or the link is incorrect."
+          action={{ href: '/disputes', label: 'View disputes', variant: 'maroon' }}
+        />
       </CustomerLayout>
     );
   }
@@ -207,12 +211,12 @@ export default function DisputeDetailPage() {
 
         {/* Dispute Info */}
         <div className="rounded-[12px] bg-white p-5">
-          <h2 className="text-xl font-semibold text-label-primary mb-4">Dispute Information</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Dispute Information</h2>
           <div className="space-y-3">
             {escrow && (
               <div>
-                <p className="text-sm text-label-secondary">Escrow</p>
-                <p className="font-medium text-label-primary">
+                <p className="text-sm text-[rgba(60,60,67,0.6)]">Escrow</p>
+                <p className="font-medium text-gray-900">
                   {escrow.description || escrow.id}
                 </p>
               </div>
@@ -220,25 +224,25 @@ export default function DisputeDetailPage() {
             {dispute && (
               <>
                 <div>
-                  <p className="text-sm text-label-secondary">Reason</p>
-                  <p className="font-medium text-label-primary">
+                  <p className="text-sm text-[rgba(60,60,67,0.6)]">Reason</p>
+                  <p className="font-medium text-gray-900">
                     {dispute.reason.replace('_', ' ')}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-label-secondary">Description</p>
-                  <p className="font-medium text-label-primary">{dispute.description}</p>
+                  <p className="text-sm text-[rgba(60,60,67,0.6)]">Description</p>
+                  <p className="font-medium text-gray-900">{dispute.description}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-label-secondary">Created</p>
-                  <p className="font-medium text-label-primary">{formatDate(dispute.createdAt)}</p>
+                  <p className="text-sm text-[rgba(60,60,67,0.6)]">Created</p>
+                  <p className="font-medium text-gray-900">{formatDate(dispute.createdAt)}</p>
                 </div>
                 {dispute.status === 'RESOLVED' && (
                   <>
                     {dispute.resolutionOutcome && (
                       <div>
-                        <p className="text-sm text-label-secondary">Outcome</p>
-                        <p className="font-medium text-emerald-400">
+                        <p className="text-sm text-[rgba(60,60,67,0.6)]">Outcome</p>
+                        <p className="font-medium text-emerald-700">
                           {dispute.resolutionOutcome === 'RELEASE_TO_SELLER'
                             ? 'Released to seller'
                             : 'Refunded to buyer'}
@@ -247,14 +251,14 @@ export default function DisputeDetailPage() {
                     )}
                     {dispute.resolution && (
                       <div>
-                        <p className="text-sm text-label-secondary">Resolution notes</p>
-                        <p className="font-medium text-label-primary">{dispute.resolution}</p>
+                        <p className="text-sm text-[rgba(60,60,67,0.6)]">Resolution notes</p>
+                        <p className="font-medium text-gray-900">{dispute.resolution}</p>
                       </div>
                     )}
                     {dispute.resolvedAt && (
                       <div>
-                        <p className="text-sm text-label-secondary">Resolved at</p>
-                        <p className="font-medium text-label-primary">{formatDate(dispute.resolvedAt)}</p>
+                        <p className="text-sm text-[rgba(60,60,67,0.6)]">Resolved at</p>
+                        <p className="font-medium text-gray-900">{formatDate(dispute.resolvedAt)}</p>
                       </div>
                     )}
                   </>
@@ -267,7 +271,7 @@ export default function DisputeDetailPage() {
         {/* Messages */}
         <div className="rounded-[12px] bg-white overflow-hidden">
           <div className="p-5 border-b border-[rgba(60,60,67,0.12)]">
-            <h2 className="text-xl font-semibold text-label-primary">Messages</h2>
+            <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
           </div>
           <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
             {messagesLoading ? (
@@ -276,25 +280,27 @@ export default function DisputeDetailPage() {
               messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`p-4 rounded-lg ${
+                  className={`p-4 rounded-[12px] ${
                     msg.senderId === user?.id
-                      ? 'bg-brand-gold/15 ml-8 border border-brand-gold/25'
+                      ? 'bg-brand-maroon/10 ml-8 border border-brand-maroon/20'
                       : msg.isSystem
                       ? 'bg-[#f2f2f7]'
                       : 'bg-[#f2f2f7] mr-8'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-label-primary">
+                    <span className="text-sm font-medium text-gray-900">
                       {msg.isSystem ? 'System' : msg.senderId === user?.id ? 'You' : 'Other Party'}
                     </span>
-                    <span className="text-xs text-label-tertiary">{formatDate(msg.createdAt)}</span>
+                    <span className="text-xs text-gray-500">{formatDate(msg.createdAt)}</span>
                   </div>
-                  <p className="text-label-secondary">{msg.content}</p>
+                  <p className="text-[rgba(60,60,67,0.6)]">{msg.content}</p>
                 </div>
               ))
             ) : (
-              <p className="text-center text-label-tertiary py-8">No messages yet</p>
+              <p className="text-center py-8 text-[15px] text-[rgba(60,60,67,0.6)]">
+                No messages yet. Use the field below to reply.
+              </p>
             )}
           </div>
 
@@ -323,7 +329,7 @@ export default function DisputeDetailPage() {
         {/* Admin Actions */}
         {isAdminUser && dispute && ['OPEN', 'NEGOTIATION', 'MEDIATION', 'ARBITRATION'].includes(dispute.status) && (
           <div className="rounded-[12px] bg-white p-5">
-            <h2 className="text-xl font-semibold text-label-primary mb-4">Admin Actions</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Admin Actions</h2>
             <form onSubmit={handleResolve} className="space-y-4">
               <Field
                 label="Resolution outcome"
@@ -350,7 +356,7 @@ export default function DisputeDetailPage() {
               <div className="flex flex-wrap gap-3">
                 <Button
                   type="submit"
-                  variant="filled"
+                  variant="maroon"
                   loading={resolveMutation.isPending}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white"
                 >
@@ -361,6 +367,7 @@ export default function DisputeDetailPage() {
                   type="button"
                   variant="outline"
                   loading={closeMutation.isPending}
+                  onClick={handleClose}
                 >
                   <XCircle className="w-4 h-4" />
                   Close only (no funds)

@@ -2,12 +2,12 @@ import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 const variants = {
-  gold: 'bg-brand-gold/20 text-brand-gold ring-brand-gold/35',
-  emerald: 'bg-emerald-500/20 text-emerald-400 ring-emerald-500/35',
-  destructive: 'bg-red-500/20 text-red-400 ring-red-500/35',
-  maroon: 'bg-brand-maroon/50 text-white ring-brand-maroon/40',
-  amber: 'bg-amber-500/20 text-amber-400 ring-amber-500/35',
-  muted: 'bg-white/10 text-white/80 ring-white/15',
+  gold: 'bg-amber-50 text-amber-800 ring-amber-200',
+  emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  destructive: 'bg-red-50 text-red-700 ring-red-200',
+  maroon: 'bg-brand-maroon text-white ring-brand-maroon/40',
+  amber: 'bg-amber-50 text-amber-800 ring-amber-200',
+  muted: 'bg-gray-100 text-gray-800 ring-gray-200',
 } as const;
 
 interface AdminIconBadgeProps {
@@ -18,9 +18,9 @@ interface AdminIconBadgeProps {
 }
 
 const sizes = {
-  sm: 'w-10 h-10 rounded-lg [&_svg]:w-4 [&_svg]:h-4',
-  md: 'w-12 h-12 rounded-ios-lg [&_svg]:w-6 [&_svg]:h-6',
-  lg: 'w-14 h-14 rounded-ios-lg [&_svg]:w-7 [&_svg]:h-7',
+  sm: 'w-10 h-10 rounded-[12px] [&_svg]:w-4 [&_svg]:h-4',
+  md: 'w-12 h-12 rounded-[12px] [&_svg]:w-6 [&_svg]:h-6',
+  lg: 'w-14 h-14 rounded-[12px] [&_svg]:w-7 [&_svg]:h-7',
 };
 
 export function AdminIconBadge({

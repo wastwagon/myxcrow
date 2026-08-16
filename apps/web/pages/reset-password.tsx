@@ -79,7 +79,10 @@ export default function ResetPasswordPage() {
       subtitle={done ? undefined : 'Choose a strong password to secure your MYXCROW account.'}
       footer={
         !done ? (
-          <Link href="/login" className="font-semibold text-brand-maroon hover:text-brand-maroon-dark">
+          <Link
+            href="/login"
+            className="inline-flex min-h-[44px] items-center font-semibold text-brand-maroon hover:text-brand-maroon-dark touch-manipulation"
+          >
             Back to login
           </Link>
         ) : undefined
@@ -133,7 +136,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="px-2 text-gray-500 hover:text-brand-maroon"
+                  className="px-2 min-h-[44px] min-w-[44px] text-gray-600 hover:text-brand-maroon touch-manipulation"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}

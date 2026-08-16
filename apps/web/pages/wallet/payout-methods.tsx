@@ -8,9 +8,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
+import { useConfirm } from '@/components/providers/UIProvider';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { Building2, Smartphone, Star, Trash2 } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { cn } from '@/lib/utils';
 import type { SavedPayoutMethod } from '@/lib/withdrawal-payout';
 import { Sheet } from '@/components/ui/Sheet';
@@ -26,6 +29,7 @@ export default function PayoutMethodsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
+  const confirm = useConfirm();
   const [addOpen, setAddOpen] = useState(false);
   const [label, setLabel] = useState('');
   const [setDefault, setSetDefault] = useState(false);
@@ -123,15 +127,14 @@ export default function PayoutMethodsPage() {
         {isLoading ? (
           <div className="h-32 bg-white animate-pulse rounded-[12px]" />
         ) : methods.length === 0 ? (
-          <div className="rounded-[12px] bg-white p-8 text-center">
-            <Smartphone className="w-12 h-12 mx-auto mb-3 text-[rgba(60,60,67,0.3)]" />
-            <p className="text-gray-900 font-medium mb-1">No saved payout methods</p>
-            <p className="text-sm text-[rgba(60,60,67,0.6)] mb-5">
-              Save a bank account or mobile money wallet to withdraw faster next time.
-            </p>
-            <Button variant="maroon" onClick={() => setAddOpen(true)}>
-              Add payout method
-            </Button>
+          <div className="rounded-[12px] bg-white">
+            <EmptyState
+              tone="light"
+              icon={<Smartphone className="w-6 h-6" />}
+              title="No saved payout methods"
+              description="Save a bank account or mobile money wallet to withdraw faster next time."
+              action={{ label: 'Add payout method', onClick: () => setAddOpen(true), variant: 'maroon' }}
+            />
           </div>
         ) : (
           <div className="space-y-3">
@@ -146,7 +149,7 @@ export default function PayoutMethodsPage() {
                   )}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-[10px] bg-brand-maroon/10 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-[12px] bg-brand-maroon/10 flex items-center justify-center shrink-0">
                       <Icon className="w-5 h-5 text-brand-maroon" />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -162,7 +165,7 @@ export default function PayoutMethodsPage() {
                       </div>
                       <p className="text-sm text-[rgba(60,60,67,0.6)] mt-0.5">{method.payoutSummary}</p>
                       {method.details.accountName && (
-                        <p className="text-xs text-[rgba(60,60,67,0.4)] mt-1">{method.details.accountName}</p>
+                        <p className="text-xs text-gray-500 mt-1">{method.details.accountName}</p>
                       )}
                     </div>
                   </div>
@@ -171,7 +174,14 @@ export default function PayoutMethodsPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => defaultMutation.mutate(method.id)}
+                        onClick={async () => {
+                          const ok = await confirm({
+                            title: 'Default payout method',
+                            message: 'Use this method for withdrawals?',
+                            confirmLabel: 'Set default',
+                          });
+                          if (ok) defaultMutation.mutate(method.id);
+                        }}
                         loading={defaultMutation.isPending}
                       >
                         <Star className="w-4 h-4" />
@@ -181,10 +191,14 @@ export default function PayoutMethodsPage() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => {
-                        if (confirm('Remove this payout method?')) {
-                          deleteMutation.mutate(method.id);
-                        }
+                      onClick={async () => {
+                        const ok = await confirm({
+                          title: 'Remove payout method',
+                          message: 'Remove this payout method? You can add it again later.',
+                          confirmLabel: 'Remove',
+                          destructive: true,
+                        });
+                        if (ok) deleteMutation.mutate(method.id);
                       }}
                       loading={deleteMutation.isPending}
                     >
@@ -248,15 +262,13 @@ export default function PayoutMethodsPage() {
               className={form.input}
             />
           </div>
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={setDefault}
-              onChange={(e) => setSetDefault(e.target.checked)}
-              className={form.checkbox}
-            />
-            <span className="text-sm text-[rgba(60,60,67,0.6)]">Set as default payout method</span>
-          </label>
+          <Checkbox
+            id="set-default-payout"
+            tone="light"
+            checked={setDefault}
+            onChange={(e) => setSetDefault(e.target.checked)}
+            label="Set as default payout method"
+          />
         </form>
       </Sheet>
     </CustomerLayout>

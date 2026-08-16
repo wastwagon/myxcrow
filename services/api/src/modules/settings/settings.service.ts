@@ -95,6 +95,14 @@ export class SettingsService implements OnModuleInit {
     return setting;
   }
 
+  async getPublicSetting(key: string) {
+    const setting = await this.getSetting(key);
+    if (!setting.isPublic) {
+      throw new NotFoundException(`Setting ${key} not found`);
+    }
+    return setting;
+  }
+
   async updateSetting(key: string, value: any, updatedBy?: string) {
     return this.prisma.platformSettings.upsert({
       where: { key },

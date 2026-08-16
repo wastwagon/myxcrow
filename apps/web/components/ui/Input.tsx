@@ -6,7 +6,7 @@ export type FieldTone = 'dark' | 'light';
 const inputTone: Record<FieldTone, string> = {
   dark: 'border-white/20 bg-white/5 text-white placeholder:text-white/45 focus:ring-brand-gold focus:border-brand-gold/50',
   light:
-    'border-transparent bg-[#f2f2f7] text-gray-900 placeholder:text-[rgba(60,60,67,0.4)] focus:ring-brand-maroon/25 focus:border-brand-maroon/20',
+    'border-transparent bg-[#f2f2f7] text-gray-900 placeholder:text-[rgba(60,60,67,0.5)] focus:ring-brand-maroon/25 focus:border-brand-maroon/20',
 };
 
 export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -17,12 +17,12 @@ export interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, tone = 'dark', error, leading, trailing, ...props }, ref) => {
+  ({ className, tone = 'light', error, leading, trailing, ...props }, ref) => {
     const field = (
       <input
         ref={ref}
         className={cn(
-          'w-full min-h-[44px] px-4 py-3 rounded-[10px] border outline-none transition-colors',
+          'w-full min-h-[44px] px-4 py-3 rounded-[12px] border outline-none transition-colors',
           'focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation',
           inputTone[tone],
           error &&
@@ -42,7 +42,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative">
         {leading && (
-          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-label-tertiary">
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-[rgba(60,60,67,0.65)]">
             {leading}
           </span>
         )}

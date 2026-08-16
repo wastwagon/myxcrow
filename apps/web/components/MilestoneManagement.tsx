@@ -149,21 +149,21 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
 
   return (
     <div className="space-y-4">
-      <div className="rounded-ios-lg border border-brand-gold/30 bg-brand-gold/10 p-4">
+      <div className="rounded-[12px] bg-[#f2f2f7] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <div>
-            <span className="text-label-secondary">Total Milestones:</span>
-            <span className="font-medium text-label-primary ml-2">{milestones.length}</span>
+            <span className="text-[rgba(60,60,67,0.6)]">Total Milestones:</span>
+            <span className="font-medium text-gray-900 ml-2">{milestones.length}</span>
           </div>
           <div>
-            <span className="text-label-secondary">Total Amount:</span>
-            <span className="font-medium text-label-primary ml-2">
+            <span className="text-[rgba(60,60,67,0.6)]">Total Amount:</span>
+            <span className="font-medium text-gray-900 ml-2">
               {formatCurrency(totalAmount, 'GHS')}
             </span>
           </div>
           <div>
-            <span className="text-label-secondary">Progress:</span>
-            <span className="font-medium text-label-primary ml-2">
+            <span className="text-[rgba(60,60,67,0.6)]">Progress:</span>
+            <span className="font-medium text-gray-900 ml-2">
               {completedCount}/{milestones.length} completed, {releasedCount} released
             </span>
           </div>
@@ -182,13 +182,13 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
             <div
               key={milestone.id}
               className={cn(
-                'rounded-ios-lg border p-4',
+                'rounded-[12px] border p-4',
                 milestone.status === 'released'
-                  ? 'border-emerald-500/30 bg-emerald-500/15'
+                  ? 'border-emerald-200 bg-emerald-50'
                   : milestone.status === 'completed' || milestone.status === 'approved'
-                  ? 'border-brand-gold/30 bg-brand-gold/10'
+                  ? 'border-brand-maroon/20 bg-brand-maroon/5'
                   : milestone.status === 'submitted'
-                  ? 'border-amber-500/30 bg-amber-500/10'
+                  ? 'border-amber-200 bg-amber-50'
                   : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]'
               )}
             >
@@ -208,9 +208,9 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       {index + 1}
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-semibold text-label-primary">{milestone.name}</h4>
+                      <h4 className="font-semibold text-gray-900">{milestone.name}</h4>
                       {milestone.description && (
-                        <p className="text-sm text-label-secondary mt-1">{milestone.description}</p>
+                        <p className="text-sm text-[rgba(60,60,67,0.6)] mt-1">{milestone.description}</p>
                       )}
                       <div className="flex flex-wrap items-center gap-2 mt-2">
                         {milestone.targetDate && (
@@ -229,7 +229,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-label-primary">
+                      <p className="font-semibold text-gray-900">
                         {formatCurrency(milestone.amountCents, 'GHS')}
                       </p>
                       <Badge
@@ -260,22 +260,22 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
                   </div>
 
                   {milestone.submittedAt && (
-                    <p className="text-xs text-label-tertiary ml-11">
+                    <p className="text-xs text-gray-500 ml-11">
                       Submitted: {formatDate(milestone.submittedAt)}
                     </p>
                   )}
                   {milestone.approvedAt && (
-                    <p className="text-xs text-label-tertiary ml-11">
+                    <p className="text-xs text-gray-500 ml-11">
                       Approved: {formatDate(milestone.approvedAt)}
                     </p>
                   )}
                   {milestone.completedAt && (
-                    <p className="text-xs text-label-tertiary ml-11">
+                    <p className="text-xs text-gray-500 ml-11">
                       Completed: {formatDate(milestone.completedAt)}
                     </p>
                   )}
                   {milestone.releasedAt && (
-                    <p className="text-xs text-label-tertiary ml-11">
+                    <p className="text-xs text-gray-500 ml-11">
                       Released: {formatDate(milestone.releasedAt)}
                     </p>
                   )}

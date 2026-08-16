@@ -3,11 +3,10 @@ import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { CheckCircle, Loader2, XCircle } from 'lucide-react';
 
-const API_BASE = (
-  process.env.NEXT_PUBLIC_API_URL ||
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  'http://localhost:4000/api'
-).replace(/\/$/, '');
+import { getApiBaseUrl } from '@/lib/api-base';
+import { isSafeHttpsRedirect } from '@/lib/safe-url';
+
+const API_BASE = getApiBaseUrl();
 
 export default function PartnerCheckoutCallbackPage() {
   const router = useRouter();
@@ -29,7 +28,7 @@ export default function PartnerCheckoutCallbackPage() {
         if (cancelled) return;
         setStatus('success');
         setMessage('Payment received. Returning to store…');
-        if (data.redirectUrl) {
+        if (data.redirectUrl && isSafeHttpsRedirect(data.redirectUrl)) {
           setTimeout(() => {
             window.location.href = data.redirectUrl;
           }, 1200);
@@ -58,6 +57,15 @@ export default function PartnerCheckoutCallbackPage() {
           {status === 'success' && <CheckCircle className="mx-auto h-12 w-12 text-green-600" />}
           {status === 'error' && <XCircle className="mx-auto h-12 w-12 text-red-500" />}
           <p className="mt-4 text-[17px] font-medium text-gray-900">{message}</p>
+          {status === 'error' && (
+            <button
+              type="button"
+              onClick={() => window.location.reload()}
+              className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-[12px] bg-brand-maroon px-5 text-[17px] font-semibold text-white touch-manipulation"
+            >
+              Try again
+            </button>
+          )}
         </div>
       </div>
     </>

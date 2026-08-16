@@ -15,6 +15,7 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
   const confirm = useConfirm();
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -25,6 +26,16 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
       }
     };
   }, [stream]);
+
+  useEffect(() => {
+    if (!value) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(value);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [value]);
 
   const startCamera = async () => {
     try {
@@ -99,11 +110,13 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
       {value ? (
         <div className="relative">
           {/* eslint-disable-next-line @next/next/no-img-element -- Blob URLs from createObjectURL */}
+          {previewUrl && (
           <img
-            src={URL.createObjectURL(value)}
+            src={previewUrl}
             alt="Selfie preview"
-            className="w-full h-48 md:h-64 object-cover rounded-ios-xl border-2 border-emerald-500/60 bg-white/5"
+            className="w-full h-48 md:h-64 object-cover rounded-[20px] border-2 border-emerald-500/60 bg-black/20"
           />
+          )}
           <button
             type="button"
             onClick={onRemove}
@@ -117,34 +130,34 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
           </div>
         </div>
       ) : isCapturing ? (
-        <div className="relative rounded-ios-xl overflow-hidden border-2 border-brand-gold/50 bg-black/40">
+        <div className="relative rounded-[20px] overflow-hidden border-2 border-brand-gold/50 bg-black/40">
           <video ref={videoRef} autoPlay playsInline className="w-full h-48 md:h-64 object-cover" />
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex flex-col sm:flex-row gap-2 px-4">
             <Button type="button" variant="filled" size="sm" onClick={capturePhoto}>
-              Capture Photo
+              Capture photo
             </Button>
-            <Button type="button" variant="secondary" size="sm" onClick={stopCamera}>
+            <Button type="button" variant="ghost" size="sm" onClick={stopCamera}>
               Cancel
             </Button>
           </div>
         </div>
       ) : (
-        <div className="border-2 border-dashed border-white/20 rounded-ios-xl p-6 md:p-8 text-center hover:border-brand-gold/40 hover:bg-white/5 transition-all group">
-          <Camera className="w-12 h-12 md:w-16 md:h-16 mx-auto text-label-tertiary mb-4 group-hover:text-brand-gold transition-colors" />
-          <p className="text-sm md:text-base font-medium text-label-primary mb-2">
+        <div className="border-2 border-dashed border-[rgba(60,60,67,0.22)] rounded-[12px] p-6 md:p-8 text-center hover:border-brand-maroon/40 hover:bg-black/[0.03] transition-all group">
+          <Camera className="w-12 h-12 md:w-16 md:h-16 mx-auto text-[rgba(60,60,67,0.45)] mb-4 group-hover:text-brand-maroon transition-colors" />
+          <p className="text-sm md:text-base font-medium text-gray-900 mb-2">
             Take a clear selfie matching your Ghana Card photo
           </p>
-          <p className="text-xs text-label-tertiary mb-4">
+          <p className="text-xs text-[rgba(60,60,67,0.6)] mb-4">
             Ensure good lighting and your face is clearly visible
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button type="button" variant="filled" onClick={startCamera} className="gap-2">
+            <Button type="button" variant="maroon" onClick={startCamera} className="gap-2">
               <Camera className="w-4 h-4" />
-              Use Camera
+              Use camera
             </Button>
-            <label className="inline-flex min-h-[44px] px-4 py-2.5 items-center justify-center gap-2 rounded-ios-lg bg-white/10 text-white border border-white/15 hover:bg-white/15 font-semibold text-ios-body cursor-pointer transition-colors">
+            <label className="inline-flex min-h-[44px] px-4 py-2.5 items-center justify-center gap-2 rounded-[12px] bg-transparent border-2 border-brand-maroon text-brand-maroon hover:bg-brand-maroon/5 font-semibold text-ios-body cursor-pointer transition-colors">
               <Upload className="w-4 h-4" />
-              Upload File
+              Upload file
               <input
                 type="file"
                 accept="image/*"
@@ -158,11 +171,11 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
       )}
 
       {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-ios-lg">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="p-3 bg-red-50 border border-red-200 rounded-[12px]">
+          <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
-      <p className="text-xs text-label-tertiary mt-2">
+      <p className="text-xs text-[rgba(60,60,67,0.6)] mt-2">
         Requirements: clear face, good lighting, similar angle to Ghana Card photo
       </p>
 

@@ -5,7 +5,7 @@ import type { FieldTone } from './Input';
 const textareaTone: Record<FieldTone, string> = {
   dark: 'border-white/20 bg-white/5 text-white placeholder:text-white/45 focus:ring-brand-gold focus:border-brand-gold/50',
   light:
-    'border-transparent bg-[#f2f2f7] text-gray-900 placeholder:text-[rgba(60,60,67,0.4)] focus:ring-brand-maroon/25 focus:border-brand-maroon/20',
+    'border-transparent bg-[#f2f2f7] text-gray-900 placeholder:text-[rgba(60,60,67,0.5)] focus:ring-brand-maroon/25 focus:border-brand-maroon/20',
 };
 
 export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
@@ -14,12 +14,12 @@ export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElemen
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className, tone = 'dark', error, ...props }, ref) => {
+  ({ className, tone = 'light', error, ...props }, ref) => {
     return (
       <textarea
         ref={ref}
         className={cn(
-          'w-full min-h-[96px] px-4 py-3 rounded-[10px] border outline-none transition-colors resize-y',
+          'w-full min-h-[96px] px-4 py-3 rounded-[12px] border outline-none transition-colors resize-y',
           'focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation',
           textareaTone[tone],
           error &&

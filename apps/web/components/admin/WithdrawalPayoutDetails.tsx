@@ -33,9 +33,9 @@ export interface WithdrawalRecord {
 function DetailRow({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
-    <div className="flex justify-between gap-4 py-2 border-b border-white/10 last:border-0">
-      <span className="text-sm text-white/60 shrink-0">{label}</span>
-      <span className="text-sm text-white font-medium text-right break-all">{value}</span>
+    <div className="flex justify-between gap-4 py-2.5 border-b border-[rgba(60,60,67,0.12)] last:border-0">
+      <span className="text-[15px] text-[rgba(60,60,67,0.6)] shrink-0">{label}</span>
+      <span className="text-[15px] text-gray-900 font-medium text-right break-all">{value}</span>
     </div>
   );
 }
@@ -53,35 +53,33 @@ export function WithdrawalPayoutDetailsView({
 
   return (
     <div className="space-y-4">
-      <div className="p-4 rounded-ios-lg bg-white/5 border border-white/10 space-y-1">
-        <p className="text-xs font-medium text-white/55 uppercase tracking-wide">User</p>
-        <p className="font-medium text-white">{user?.email ?? '—'}</p>
+      <div className="rounded-[12px] bg-white px-4 py-3 space-y-1">
+        <p className="text-[13px] text-[rgba(60,60,67,0.6)]">User</p>
+        <p className="text-[17px] font-semibold text-gray-900">{user?.email ?? '—'}</p>
         {(user?.firstName || user?.lastName) && (
-          <p className="text-sm text-white/70">
+          <p className="text-[15px] text-[rgba(60,60,67,0.6)]">
             {[user?.firstName, user?.lastName].filter(Boolean).join(' ')}
           </p>
         )}
-        {user?.phone && <p className="text-sm text-white/70">{user.phone}</p>}
-        {user?.id && (
-          <p className="text-xs text-white/50 font-mono">ID: {user.id}</p>
-        )}
+        {user?.phone && <p className="text-[15px] text-[rgba(60,60,67,0.6)]">{user.phone}</p>}
+        {user?.id && <p className="text-[13px] text-gray-500 font-mono">ID: {user.id}</p>}
       </div>
 
-      <div className="p-4 rounded-ios-lg bg-white/5 border border-white/10">
-        <p className="text-xs font-medium text-white/55 uppercase tracking-wide mb-2">Amount</p>
-        <p className="text-2xl font-bold text-white">
+      <div className="rounded-[12px] bg-white px-4 py-3">
+        <p className="text-[13px] text-[rgba(60,60,67,0.6)] mb-1">Amount</p>
+        <p className="text-[28px] font-bold tracking-tight text-gray-900">
           {formatCurrency(withdrawal.amountCents, currency)}
         </p>
         {withdrawal.feeCents > 0 && (
-          <p className="text-sm text-white/60 mt-1">
+          <p className="text-[15px] text-[rgba(60,60,67,0.6)] mt-1">
             Fee: {formatCurrency(withdrawal.feeCents, currency)}
           </p>
         )}
       </div>
 
-      <div className="p-4 rounded-ios-lg bg-white/5 border border-white/10">
-        <p className="text-xs font-medium text-white/55 uppercase tracking-wide mb-3">
-          Payout method — {withdrawal.methodLabel || formatWithdrawalMethodLabel(withdrawal.methodType)}
+      <div className="rounded-[12px] bg-white px-4 py-3">
+        <p className="text-[13px] text-[rgba(60,60,67,0.6)] mb-2">
+          Payout — {withdrawal.methodLabel || formatWithdrawalMethodLabel(withdrawal.methodType)}
         </p>
 
         {withdrawal.methodType === 'BANK_ACCOUNT' && (
@@ -89,30 +87,24 @@ export function WithdrawalPayoutDetailsView({
             <DetailRow label="Account name" value={details.accountName} />
             <DetailRow label="Bank" value={details.bankName} />
             <DetailRow label="Branch" value={details.branch} />
-            <DetailRow
-              label="Account number"
-              value={showSensitive ? details.accountNumber : details.accountNumber}
-            />
+            <DetailRow label="Account number" value={details.accountNumber} />
           </>
         )}
 
         {withdrawal.methodType === 'MOBILE_MONEY' && (
           <>
             <DetailRow label="Network" value={details.network} />
-            <DetailRow
-              label="Mobile number"
-              value={showSensitive ? details.mobileNumber : details.mobileNumber}
-            />
+            <DetailRow label="Mobile number" value={details.mobileNumber} />
             <DetailRow label="Registered name" value={details.accountName} />
           </>
         )}
 
         {!showSensitive && withdrawal.payoutSummary && (
-          <p className="text-xs text-white/50 mt-2">Summary: {withdrawal.payoutSummary}</p>
+          <p className="text-[13px] text-[rgba(60,60,67,0.6)] mt-2">Summary: {withdrawal.payoutSummary}</p>
         )}
       </div>
 
-      <div className="p-4 rounded-ios-lg bg-white/5 border border-white/10 space-y-1">
+      <div className="rounded-[12px] bg-white px-4 py-3 space-y-0">
         <DetailRow label="Status" value={formatWithdrawalStatusLabel(withdrawal.status)} />
         <DetailRow label="Requested" value={formatDate(withdrawal.createdAt)} />
         {withdrawal.processedAt && (

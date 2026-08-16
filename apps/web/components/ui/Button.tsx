@@ -10,7 +10,10 @@ const variants = {
   plain: 'bg-transparent text-brand-gold hover:bg-white/10 active:opacity-80',
   destructive: 'bg-ios-destructive text-white hover:opacity-90 active:opacity-80 shadow-sm shadow-black/15',
   secondary:
-    'bg-white/15 text-white border border-white/25 hover:bg-white/22 active:opacity-80 shadow-sm shadow-black/10',
+    'bg-white/15 text-white border border-white/50 hover:bg-white/25 active:opacity-80 backdrop-blur-sm',
+  /** White outline for photography / maroon marketing surfaces */
+  ghost:
+    'bg-transparent text-white border-2 border-white/75 hover:bg-white/15 hover:border-white active:opacity-90',
   /** Maroon primary for light auth/customer surfaces */
   maroon:
     'bg-brand-maroon text-white hover:bg-brand-maroon-dark active:opacity-90',
@@ -20,9 +23,9 @@ const variants = {
 } as const;
 
 const sizes = {
-  sm: 'min-h-[36px] px-3 py-2 text-ios-footnote rounded-[10px]',
-  md: 'min-h-[44px] px-4 py-2.5 text-ios-body rounded-[10px]',
-  lg: 'min-h-[50px] px-5 py-3 text-ios-headline rounded-[10px]',
+  sm: 'min-h-[44px] px-3 py-2 text-ios-footnote rounded-[12px]',
+  md: 'min-h-[44px] px-4 py-2.5 text-ios-body rounded-[12px]',
+  lg: 'min-h-[50px] px-5 py-3 text-ios-headline rounded-[12px]',
 } as const;
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

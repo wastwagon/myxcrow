@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 interface PageHeaderProps {
   title: string;
   subtitle?: string;
-  /** Optional uppercase eyebrow label above the title */
+  /** Optional 13pt secondary label above the title */
   eyebrow?: string;
   icon?: ReactNode;
   action?: ReactNode;
@@ -20,7 +20,7 @@ export default function PageHeader({
   eyebrow,
   icon,
   action,
-  tone = 'dark',
+  tone = 'light',
 }: PageHeaderProps) {
   const light = tone === 'light';
   return (
@@ -42,8 +42,8 @@ export default function PageHeader({
           {eyebrow && (
             <p
               className={cn(
-                'text-xs font-semibold uppercase tracking-[0.14em]',
-                light ? 'text-brand-maroon' : 'text-brand-gold/80'
+                'text-[13px] font-normal',
+                light ? 'text-[rgba(60,60,67,0.6)]' : 'text-white/70'
               )}
             >
               {eyebrow}

@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import Script from 'next/script';
-import { getUser } from '@/lib/auth';
 
 declare global {
   interface Window {
@@ -9,27 +8,17 @@ declare global {
 }
 
 export function IntercomChat() {
-  const user = getUser();
   const INTERCOM_APP_ID = process.env.NEXT_PUBLIC_INTERCOM_APP_ID;
 
   useEffect(() => {
     if (!INTERCOM_APP_ID) return;
 
     if (typeof window !== 'undefined' && window.Intercom) {
-      if (user) {
-        window.Intercom('boot', {
-          app_id: INTERCOM_APP_ID,
-          user_id: user.id,
-          email: user.email,
-          name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
-        });
-      } else {
-        window.Intercom('boot', {
-          app_id: INTERCOM_APP_ID,
-        });
-      }
+      window.Intercom('boot', {
+        app_id: INTERCOM_APP_ID,
+      });
     }
-  }, [user, INTERCOM_APP_ID]);
+  }, [INTERCOM_APP_ID]);
 
   if (!INTERCOM_APP_ID) {
     return null;

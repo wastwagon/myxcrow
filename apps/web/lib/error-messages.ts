@@ -43,11 +43,8 @@ export function getErrorMessage(error: unknown, fallback = 'Something went wrong
     if (lower.includes('phone') && lower.includes('already registered')) {
       return 'This phone number is already registered. Sign in instead, or use a different phone.';
     }
-    if (lower.includes('sms disabled')) {
-      return 'SMS is not configured. Set OTP_DEV_BYPASS=true on the server to get a code for testing, or configure Arkesel for real SMS.';
-    }
-    if (lower.includes('arkesel') && lower.includes('api key')) {
-      return 'SMS is not configured. Add ARKESEL_API_KEY on the server, or set OTP_DEV_BYPASS=true for testing.';
+    if (lower.includes('sms disabled') || (lower.includes('arkesel') && lower.includes('api key'))) {
+      return 'SMS is temporarily unavailable. Please try again shortly.';
     }
     if (lower.includes('wait') && lower.includes('seconds')) {
       return msg; // e.g. "Please wait 60 seconds before requesting another code"

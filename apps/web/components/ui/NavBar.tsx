@@ -22,7 +22,7 @@ export function NavBar({
   trailing,
   large,
   className,
-  tone = 'dark',
+  tone = 'light',
 }: NavBarProps) {
   const router = useRouter();
   const light = tone === 'light';
@@ -37,7 +37,7 @@ export function NavBar({
       className={cn(
         'sticky top-0 z-40',
         light
-          ? 'bg-[#f2f2f7] pt-[var(--app-sat,env(safe-area-inset-top,0px))]'
+          ? 'bg-[rgba(242,242,247,0.72)] backdrop-blur-[28px] pt-[var(--app-sat,env(safe-area-inset-top,0px))]'
           : 'pt-safe bg-[var(--app-chrome-bg)] border-b border-white/10 shadow-tab-bar',
         className
       )}
@@ -48,7 +48,7 @@ export function NavBar({
             type="button"
             onClick={handleBack}
             className={cn(
-              'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[10px] touch-manipulation',
+              'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[12px] touch-manipulation',
               light ? 'text-brand-maroon hover:bg-black/5' : 'text-brand-gold hover:bg-white/10'
             )}
             aria-label="Go back"

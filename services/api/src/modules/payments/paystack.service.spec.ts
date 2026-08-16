@@ -42,11 +42,9 @@ describe('PaystackService', () => {
       expect(result).toBe(false);
     });
 
-    it('returns false when payload is tampered', async () => {
-      const payload = '{"event":"charge.success"}';
-      const crypto = require('crypto');
-      const validSig = crypto.createHmac('sha512', secret).update(payload).digest('hex');
-      const result = await service.verifyWebhookSignature(payload + 'x', validSig);
+    it('returns false when webhook secret is missing', () => {
+      configGet.mockImplementation(() => undefined);
+      const result = service.verifyWebhookSignature('{}', 'sig');
       expect(result).toBe(false);
     });
   });

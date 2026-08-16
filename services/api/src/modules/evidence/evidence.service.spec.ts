@@ -36,6 +36,12 @@ describe('EvidenceService', () => {
       create: jest.fn(),
       delete: jest.fn(),
     },
+    escrowAgreement: {
+      findUnique: jest.fn().mockResolvedValue({
+        buyerId: 'buyer-id-123',
+        sellerId: 'seller-id-123',
+      }),
+    },
   };
 
   const mockConfigService = {
@@ -85,6 +91,7 @@ describe('EvidenceService', () => {
         'receipt.pdf',
         1024,
         'application/pdf',
+        'buyer-id-123',
       );
 
       expect(result).toHaveProperty('uploadUrl', 'https://presigned-upload-url');
@@ -126,7 +133,7 @@ describe('EvidenceService', () => {
         service.verifyAndCreateEvidence({
           escrowId: 'escrow-id-123',
           uploadedBy: 'buyer-id-123',
-          objectName: 'file.pdf',
+          objectName: 'escrow/escrow-id-123/file.pdf',
           fileName: 'file.pdf',
           fileSize: 1024,
           mimeType: 'application/pdf',
@@ -161,7 +168,7 @@ describe('EvidenceService', () => {
     it('should return evidence by id', async () => {
       mockPrismaService.evidence.findUnique.mockResolvedValue(mockEvidence);
 
-      const result = await service.getEvidence('evidence-id-123');
+      const result = await service.getEvidence('evidence-id-123', 'buyer-id-123');
 
       expect(result).toEqual(mockEvidence);
       expect(mockPrismaService.evidence.findUnique).toHaveBeenCalledWith({
@@ -175,7 +182,7 @@ describe('EvidenceService', () => {
       mockPrismaService.evidence.findUnique.mockResolvedValue(mockEvidence);
       mockPrismaService.evidence.delete.mockResolvedValue(mockEvidence);
 
-      const result = await service.deleteEvidence('evidence-id-123');
+      const result = await service.deleteEvidence('evidence-id-123', 'buyer-id-123');
 
       expect(result).toEqual({ success: true });
       expect(mockPrismaService.evidence.delete).toHaveBeenCalledWith({
@@ -187,7 +194,7 @@ describe('EvidenceService', () => {
     it('should throw NotFoundException if evidence not found', async () => {
       mockPrismaService.evidence.findUnique.mockResolvedValue(null);
 
-      await expect(service.deleteEvidence('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.deleteEvidence('non-existent', 'buyer-id-123')).rejects.toThrow(NotFoundException);
     });
   });
 });

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class PaystackService {
@@ -65,10 +66,18 @@ export class PaystackService {
     }
   }
 
-  async verifyWebhookSignature(payload: string, signature: string): Promise<boolean> {
-    const crypto = require('crypto');
-    const hash = crypto.createHmac('sha512', this.configService.get<string>('PAYSTACK_WEBHOOK_SECRET') || '').update(payload).digest('hex');
-    return hash === signature;
+  verifyWebhookSignature(payload: string, signature: string): boolean {
+    const secret = this.configService.get<string>('PAYSTACK_WEBHOOK_SECRET')?.trim();
+    if (!secret || !signature) {
+      return false;
+    }
+    const hash = crypto.createHmac('sha512', secret).update(payload).digest('hex');
+    const a = Buffer.from(hash, 'utf8');
+    const b = Buffer.from(signature, 'utf8');
+    if (a.length !== b.length) {
+      return false;
+    }
+    return crypto.timingSafeEqual(a, b);
   }
 
   async getBanks() {

@@ -12,6 +12,9 @@ import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import { form } from '@/lib/form-classes';
 import { Button, ButtonLink } from '@/components/ui/Button';
+import { Select } from '@/components/ui/Select';
+import { Textarea } from '@/components/ui/Textarea';
+import { Checkbox } from '@/components/ui/Checkbox';
 import EscrowFeeSummary from '@/components/EscrowFeeSummary';
 import { calculateEscrowFees } from '@/lib/fee-calculator';
 import {
@@ -212,9 +215,6 @@ export default function CreateEscrowPage() {
       queryClient.invalidateQueries({ queryKey: ['escrows'] });
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
       toast.success('Escrow created and funded from your wallet');
-      if (response.data.generatedDeliveryPin && typeof window !== 'undefined') {
-        sessionStorage.setItem(`newEscrowPin:${escrowId}`, response.data.generatedDeliveryPin);
-      }
       router.push(`/escrows/created/${escrowId}`);
     },
     onError: (error: any) => {
@@ -260,7 +260,7 @@ export default function CreateEscrowPage() {
               placeholder="0551234567"
               className={form.input}
             />
-            <p className="mt-1 text-xs text-label-tertiary">
+            <p className="mt-1 text-xs text-gray-500">
               Enter the seller&apos;s Ghana phone number. They must be registered.
             </p>
             {errors.sellerId && (
@@ -272,12 +272,13 @@ export default function CreateEscrowPage() {
             <label htmlFor="description" className={form.label}>
               Description *
             </label>
-            <textarea
+            <Textarea
               {...register('description')}
               id="description"
+              tone="light"
               rows={4}
               placeholder="Describe the item or service being escrowed..."
-              className={form.input}
+              error={!!errors.description}
             />
             {errors.description && (
               <p className={form.inputError}>{errors.description.message}</p>
@@ -285,7 +286,7 @@ export default function CreateEscrowPage() {
           </div>
 
           <div>
-            <p className="block text-sm font-medium text-label-secondary mb-2">Type of transaction *</p>
+            <p className="block text-sm font-medium text-[rgba(60,60,67,0.6)] mb-2">Type of transaction *</p>
             <div className="grid sm:grid-cols-2 gap-3">
               {(Object.entries(ESCROW_CATEGORY_LABELS) as [EscrowCategory, string][]).map(([value, label]) => {
                 const selected = escrowCategory === value;
@@ -299,7 +300,7 @@ export default function CreateEscrowPage() {
                         setValue('serviceType', undefined);
                       }
                     }}
-                    className={`p-4 rounded-[10px] border text-left transition-colors touch-manipulation min-h-[56px] ${
+                    className={`p-4 rounded-[12px] border text-left transition-colors touch-manipulation min-h-[56px] ${
                       selected
                         ? 'border-brand-maroon/40 bg-brand-maroon/5 ring-1 ring-brand-maroon/20'
                         : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]'
@@ -318,22 +319,23 @@ export default function CreateEscrowPage() {
               <label htmlFor="serviceType" className={form.label}>
                 Professional service *
               </label>
-              <select
+              <Select
                 {...register('serviceType')}
                 id="serviceType"
-                className={form.input}
+                tone="light"
                 defaultValue=""
+                error={!!errors.serviceType}
               >
                 <option value="" disabled>
                   Select a service category
                 </option>
                 {PROFESSIONAL_SERVICE_TYPES.map((type) => (
-                  <option key={type} value={type} className="text-black">
+                  <option key={type} value={type}>
                     {type}
                   </option>
                 ))}
-              </select>
-              <p className="mt-1 text-xs text-label-tertiary">
+              </Select>
+              <p className="mt-1 text-xs text-gray-500">
                 No shipping address needed — the seller marks the service complete when finished. Your transaction PIN still applies as the deal identifier.
               </p>
               {errors.serviceType && (
@@ -344,9 +346,9 @@ export default function CreateEscrowPage() {
 
           {isPhysicalGoods && (
           <>
-          <div className="border-t border-white/10 pt-4">
-            <h3 className="text-sm font-semibold text-label-primary mb-3">Delivery address (ship to)</h3>
-            <p className="text-xs text-label-tertiary mb-3">Where the seller should send the item. Only you and the seller see this.</p>
+          <div className="border-t border-[rgba(60,60,67,0.12)] pt-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Delivery address (ship to)</h3>
+            <p className="text-xs text-gray-500 mb-3">Where the seller should send the item. Only you and the seller see this.</p>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="deliveryRegion" className={form.label}>Region</label>
@@ -393,15 +395,17 @@ export default function CreateEscrowPage() {
           </>
           )}
 
-          <div className="border-t border-white/10 pt-4">
-            <h3 className="text-sm font-semibold text-label-primary mb-2">Transaction confirmation</h3>
-            <p className="text-xs text-label-tertiary mb-3">
+          <div className="border-t border-[rgba(60,60,67,0.12)] pt-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Transaction confirmation</h3>
+            <p className="text-xs text-gray-500 mb-3">
               Default: reference + delivery code (physical goods when shipped). Or use a <strong>transaction PIN</strong>: you and the seller both see this PIN on the escrow details — it identifies the deal for handoff or delivery. Entering the reference + PIN confirms completion before funds auto-release.
             </p>
-            <label className="flex items-center gap-2 cursor-pointer mb-3">
-              <input type="checkbox" {...register('useDeliveryPin')} className={form.checkbox} />
-              <span className={form.checkboxLabel}>Use PIN to confirm completion (auto-generate secure PIN for this escrow)</span>
-            </label>
+            <Checkbox
+              id="useDeliveryPin"
+              tone="light"
+              {...register('useDeliveryPin')}
+              label="Use PIN to confirm completion (auto-generate secure PIN for this escrow)"
+            />
             {useDeliveryPin && (
               <div className="mt-2">
                 <label htmlFor="deliveryPin" className={form.label}>
@@ -419,7 +423,7 @@ export default function CreateEscrowPage() {
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="shrink-0 !px-3"
+                    className="shrink-0 min-w-[44px] !px-3"
                     onClick={async () => {
                       if (!deliveryPin) return;
                       await navigator.clipboard.writeText(deliveryPin);
@@ -430,7 +434,7 @@ export default function CreateEscrowPage() {
                     <Copy className="w-4 h-4" />
                   </Button>
                 </div>
-                <p className="mt-1 text-xs text-label-tertiary">
+                <p className="mt-1 text-xs text-gray-500">
                   This PIN is saved on your escrow details and shared with the seller. You can view it anytime before completion.
                 </p>
                 {errors.deliveryPin && (
@@ -454,7 +458,7 @@ export default function CreateEscrowPage() {
                 className={form.input}
                 {...register('amountCents', { valueAsNumber: true })}
               />
-              <p className="mt-1 text-xs text-label-tertiary">
+              <p className="mt-1 text-xs text-gray-500">
                 Enter amount in Ghana Cedis
               </p>
               {errors.amountCents && (
@@ -470,7 +474,7 @@ export default function CreateEscrowPage() {
           {feePreview && <EscrowFeeSummary fees={feePreview} />}
 
           {wallet && (
-            <div className="text-sm text-label-secondary">
+            <div className="text-sm text-[rgba(60,60,67,0.6)]">
               Wallet available:{' '}
               <span className="font-medium text-gray-900">
                 {formatCurrency(wallet.availableCents, wallet.currency || 'GHS')}
@@ -478,12 +482,12 @@ export default function CreateEscrowPage() {
             </div>
           )}
 
-          <div className={`p-4 rounded-ios-lg border ${
+          <div className={`p-4 rounded-[12px] border ${
             hasSufficientBalance === false
-              ? 'border-red-400/40 bg-red-500/10'
-              : 'border-brand-gold/30 bg-brand-gold/10'
+              ? 'border-red-200 bg-red-50'
+              : 'border-amber-200 bg-amber-50'
           }`}>
-            <p className="text-sm text-label-primary">
+            <p className={`text-sm ${hasSufficientBalance === false ? 'text-red-800' : 'text-amber-950'}`}>
               {hasSufficientBalance === false ? (
                 <>
                   <strong>Insufficient balance.</strong> Top up your wallet before creating this escrow.
@@ -491,7 +495,7 @@ export default function CreateEscrowPage() {
                     <> You need {formatCurrency(fundingRequiredCents, 'GHS')} available.</>
                   )}
                   <span className="block mt-3">
-                    <ButtonLink href="/wallet/topup" size="sm" className="mt-1">
+                    <ButtonLink href="/wallet/topup" size="sm" variant="maroon" className="mt-1">
                       Top up wallet
                     </ButtonLink>
                   </span>
@@ -509,18 +513,13 @@ export default function CreateEscrowPage() {
           </div>
 
           <div className="border-t pt-6">
-            <div className="flex items-center mb-4">
-              <input
-                {...register('useMilestones')}
-                type="checkbox"
-                id="useMilestones"
-                className={`w-4 h-4 ${form.checkbox}`}
-              />
-              <label htmlFor="useMilestones" className="ml-2 text-sm font-medium text-label-secondary">
-                Use Milestone Payments
-              </label>
-            </div>
-            <p className="text-xs text-label-tertiary mb-4">
+            <Checkbox
+              id="useMilestones"
+              tone="light"
+              {...register('useMilestones')}
+              label="Use Milestone Payments"
+            />
+            <p className="text-xs text-gray-500 mb-4">
               Split the escrow into multiple milestone payments. Funds will be released incrementally as milestones are completed.
             </p>
 
@@ -559,10 +558,10 @@ export default function CreateEscrowPage() {
                         <label className={form.label}>
                           Description (Optional)
                         </label>
-                        <textarea
+                        <Textarea
                           {...register(`milestones.${index}.description`)}
+                          tone="light"
                           rows={2}
-                          className={form.input}
                           placeholder="Describe what needs to be completed..."
                         />
                       </div>
@@ -629,13 +628,13 @@ export default function CreateEscrowPage() {
                 </Button>
 
                 {fields.length > 0 && (
-                  <div className="p-4 bg-[#f2f2f7] rounded-[10px]">
+                  <div className="p-4 bg-[#f2f2f7] rounded-[12px]">
                     <div className="flex justify-between text-sm">
-                      <span className="text-label-secondary">Total Milestones:</span>
+                      <span className="text-[rgba(60,60,67,0.6)]">Total Milestones:</span>
                       <span className="font-medium text-gray-900">{CURRENCY_SYMBOL} {totalMilestoneAmount.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between text-sm mt-2">
-                      <span className="text-label-secondary">Remaining Amount:</span>
+                      <span className="text-[rgba(60,60,67,0.6)]">Remaining Amount:</span>
                       <span className={`font-medium ${remainingAmount < 0 ? 'text-red-600' : 'text-emerald-700'}`}>
                         {CURRENCY_SYMBOL} {remainingAmount.toFixed(2)}
                       </span>

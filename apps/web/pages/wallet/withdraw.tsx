@@ -11,6 +11,7 @@ import { Building2, Smartphone, Star } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { Button } from '@/components/ui/Button';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { Checkbox } from '@/components/ui/Checkbox';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { form } from '@/lib/form-classes';
@@ -178,21 +179,21 @@ export default function WithdrawPage() {
                     type="button"
                     onClick={() => setSelectedMethodId(method.id)}
                     className={cn(
-                      'w-full text-left p-4 rounded-[10px] border transition-colors',
+                      'w-full text-left p-4 rounded-[12px] border transition-colors min-h-[56px] touch-manipulation',
                       selected
                         ? 'border-brand-maroon/40 bg-brand-maroon/5 ring-1 ring-brand-maroon/20'
                         : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]'
                     )}
                   >
                     <div className="flex items-start gap-3">
-                      <Icon className={cn('w-5 h-5 mt-0.5', selected ? 'text-brand-maroon' : 'text-[rgba(60,60,67,0.4)]')} />
+                      <Icon className={cn('w-5 h-5 mt-0.5', selected ? 'text-brand-maroon' : 'text-[rgba(60,60,67,0.6)]')} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-gray-900">
                             {method.label || method.methodLabel}
                           </span>
                           {method.isDefault && (
-                            <Star className="w-3.5 h-3.5 text-brand-gold fill-brand-gold" />
+                            <Star className="w-3.5 h-3.5 text-brand-maroon fill-brand-maroon" />
                           )}
                         </div>
                         <p className="text-sm text-[rgba(60,60,67,0.6)] mt-0.5">{method.payoutSummary}</p>
@@ -221,15 +222,13 @@ export default function WithdrawPage() {
                 setValue={setValue}
               />
 
-              <label className="flex items-start gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={savePayoutMethod}
-                  onChange={(e) => setSavePayoutMethod(e.target.checked)}
-                  className={form.checkbox}
-                />
-                <span className="text-sm text-[rgba(60,60,67,0.6)]">Save these payout details for future withdrawals</span>
-              </label>
+              <Checkbox
+                id="save-payout-method"
+                tone="light"
+                checked={savePayoutMethod}
+                onChange={(e) => setSavePayoutMethod(e.target.checked)}
+                label="Save these payout details for future withdrawals"
+              />
 
               {savePayoutMethod && (
                 <div>

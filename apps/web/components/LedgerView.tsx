@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { FileText, TrendingUp, TrendingDown } from 'lucide-react';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { buildLedgerReceipt } from '@/lib/receipt-builders';
 import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
@@ -43,11 +44,13 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
 
   if (!journals || journals.length === 0) {
     return (
-      <div className="text-center py-8 text-label-tertiary">
-        <FileText className="w-12 h-12 mx-auto mb-2 opacity-50" />
-        <p>No ledger entries found</p>
-        <p className="text-sm mt-1">Ledger entries will appear here as transactions occur</p>
-      </div>
+      <EmptyState
+        tone="light"
+        icon={<FileText className="w-6 h-6" />}
+        title="No ledger entries"
+        description="Entries appear here as this escrow is funded, released, or refunded."
+        className="py-8"
+      />
     );
   }
 
@@ -68,11 +71,11 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
           <div className="bg-[var(--form-input-bg)] px-4 py-3 border-b border-[var(--separator)]">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <h4 className="font-medium text-label-primary">
+                <h4 className="font-medium text-gray-900">
                   {journal.type?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Transaction'}
                 </h4>
                 {journal.description && (
-                  <p className="text-sm text-label-secondary mt-1">{journal.description}</p>
+                  <p className="text-sm text-[rgba(60,60,67,0.6)] mt-1">{journal.description}</p>
                 )}
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -83,7 +86,7 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
                   size="sm"
                   label="Print ledger receipt"
                 />
-                <p className="text-sm text-label-tertiary">{formatDate(journal.createdAt)}</p>
+                <p className="text-sm text-gray-500">{formatDate(journal.createdAt)}</p>
               </div>
             </div>
           </div>
@@ -94,26 +97,26 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
                 <div key={entry.id} className="px-4 py-3 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {isCredit ? (
-                      <TrendingUp className="w-5 h-5 text-emerald-400" />
+                      <TrendingUp className="w-5 h-5 text-emerald-700" />
                     ) : (
-                      <TrendingDown className="w-5 h-5 text-red-400" />
+                      <TrendingDown className="w-5 h-5 text-red-700" />
                     )}
                     <div>
-                      <p className="font-medium text-label-primary">
+                      <p className="font-medium text-gray-900">
                         {getAccountLabel(entry.account)}
                       </p>
                       {entry.metadata && typeof entry.metadata === 'object' && (
-                        <p className="text-xs text-label-tertiary mt-0.5">
+                        <p className="text-xs text-gray-500 mt-0.5">
                           {entry.metadata.walletId && `Wallet: ${entry.metadata.walletId.slice(0, 8)}...`}
                         </p>
                       )}
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className={`font-semibold ${isCredit ? 'text-emerald-400' : 'text-red-400'}`}>
+                    <p className={`font-semibold ${isCredit ? 'text-emerald-700' : 'text-red-700'}`}>
                       {isCredit ? '+' : ''}{formatCurrency(Math.abs(entry.amountCents), 'GHS')}
                     </p>
-                    <p className="text-xs text-label-tertiary mt-0.5">{formatDate(entry.createdAt)}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{formatDate(entry.createdAt)}</p>
                   </div>
                 </div>
               );

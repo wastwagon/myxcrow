@@ -44,9 +44,4 @@ export class RequestWithdrawalDto {
   @IsString()
   @MaxLength(60)
   payoutLabel?: string;
-
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  feeCents?: number;
 }

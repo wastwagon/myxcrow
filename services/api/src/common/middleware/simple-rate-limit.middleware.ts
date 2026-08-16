@@ -48,6 +48,10 @@ export class SimpleRateLimitMiddleware implements NestMiddleware {
       limit = parseInt(process.env.RATE_LIMIT_REGISTER_PER_IP || '3', 10);
       windowMs = 60 * 60 * 1000; // 1 hour
       clientId = `register_ip_${req.ip || req.socket.remoteAddress}`;
+    } else if (pathNorm === '/api/delivery/verify') {
+      limit = parseInt(process.env.RATE_LIMIT_DELIVERY_PER_IP || '10', 10);
+      windowMs = 15 * 60 * 1000;
+      clientId = `delivery_ip_${req.ip || req.socket.remoteAddress}`;
     } else {
       limit = parseInt(process.env.RATE_LIMIT_REQUESTS_PER_MINUTE || '60', 10);
       windowMs = 60000;

@@ -26,6 +26,7 @@ interface DropdownMenuProps {
   align?: 'left' | 'right';
   triggerClassName?: string;
   triggerProps?: ButtonHTMLAttributes<HTMLButtonElement>;
+  tone?: 'dark' | 'light';
 }
 
 export function DropdownMenu({
@@ -34,10 +35,12 @@ export function DropdownMenu({
   align = 'right',
   triggerClassName,
   triggerProps,
+  tone = 'light',
 }: DropdownMenuProps) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const menuId = useId();
+  const light = tone === 'light';
 
   useEffect(() => {
     if (!open) return;
@@ -67,8 +70,11 @@ export function DropdownMenu({
         aria-label={label}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-ios-lg',
-          'text-label-secondary hover:bg-white/10 hover:text-label-primary transition-colors touch-manipulation',
+          'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px]',
+          'transition-colors touch-manipulation',
+          light
+            ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900'
+            : 'text-label-secondary hover:bg-white/10 hover:text-label-primary',
           triggerClassName
         )}
         {...triggerProps}
@@ -80,17 +86,24 @@ export function DropdownMenu({
           id={menuId}
           role="menu"
           className={cn(
-            'absolute z-50 mt-1 min-w-[200px] py-1 rounded-ios-xl border border-white/15 bg-[#261819] shadow-ios-card',
+            'absolute z-50 mt-1 min-w-[200px] py-1 rounded-[12px] overflow-hidden',
+            light
+              ? 'bg-white border border-[rgba(60,60,67,0.12)]'
+              : 'border border-white/15 bg-[#261819] shadow-ios-card',
             align === 'right' ? 'right-0' : 'left-0'
           )}
         >
           {items.map((item) => {
             const className = cn(
-              'flex w-full min-h-[44px] items-center gap-2 px-3 text-sm font-medium transition-colors text-left',
+              'flex w-full min-h-[44px] items-center gap-2 px-3 text-[17px] font-normal transition-colors text-left',
               item.disabled && 'opacity-40 pointer-events-none',
               item.destructive
-                ? 'text-red-300 hover:bg-red-500/15'
-                : 'text-label-secondary hover:bg-white/10 hover:text-label-primary'
+                ? light
+                  ? 'text-[#ff3b30] hover:bg-red-50'
+                  : 'text-red-300 hover:bg-red-500/15'
+                : light
+                  ? 'text-gray-900 hover:bg-black/[0.04]'
+                  : 'text-label-secondary hover:bg-white/10 hover:text-label-primary'
             );
 
             if (item.href) {

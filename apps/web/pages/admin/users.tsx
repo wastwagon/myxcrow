@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
-import { isAuthenticated, isAdmin, setAuthTokens, setUser } from '@/lib/auth';
+import { isAuthenticated, isAdmin, setUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { Search, User, CheckCircle, XCircle, DollarSign, Eye, Edit, Save, X, AlertCircle, LogIn, Minus } from 'lucide-react';
@@ -27,6 +27,8 @@ import {
   TableEmpty,
 } from '@/components/ui/Table';
 import { Badge } from '@/components/ui/Badge';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { useConfirm } from '@/components/providers/UIProvider';
 import { LightShell } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
 
@@ -46,6 +48,7 @@ export default function AdminUsersPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
+  const confirm = useConfirm();
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
@@ -143,10 +146,9 @@ export default function AdminUsersPage() {
       const res = await apiClient.post('/auth/admin/impersonate', { userId });
       return res.data;
     },
-    onSuccess: (data: { user: User; accessToken: string; refreshToken: string }) => {
-      setAuthTokens(data.accessToken, data.refreshToken);
+    onSuccess: (data: { user: User }) => {
       setUser(data.user);
-      toast.success(`Logged in as ${data.user.email}`);
+      toast.success(`Viewing as ${data.user.email}`);
       router.push('/dashboard');
     },
     onError: (error: any) => {
@@ -190,10 +192,7 @@ export default function AdminUsersPage() {
         <LightShell>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-brand-maroon">
-                Operations
-              </p>
-              <h1 className={dash.title}>User management</h1>
+              <h1 className={dash.title}>Users</h1>
               <p className={dash.subtitle}>Search, filter roles, and manage wallet access</p>
             </div>
             <ButtonLink href="/admin" variant="outline" size="sm">
@@ -337,7 +336,7 @@ export default function AdminUsersPage() {
                             <button
                               type="button"
                               onClick={() => handleEditRoles(user)}
-                              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-ios-lg text-brand-maroon hover:bg-brand-maroon/10"
+                              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] text-brand-maroon hover:bg-brand-maroon/10"
                               title="Edit Roles"
                             >
                               <Edit className="w-4 h-4" />
@@ -352,7 +351,14 @@ export default function AdminUsersPage() {
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => approveMutation.mutate(user.id)}
+                              onClick={async () => {
+                                const ok = await confirm({
+                                  title: 'Approve KYC',
+                                  message: `Approve identity for ${user.email}?`,
+                                  confirmLabel: 'Approve',
+                                });
+                                if (ok) approveMutation.mutate(user.id);
+                              }}
                               loading={approveMutation.isPending}
                             >
                               Approve
@@ -364,9 +370,18 @@ export default function AdminUsersPage() {
                         <Button
                           size="sm"
                           variant={user.isActive ? 'outline' : 'destructive'}
-                          onClick={() =>
-                            updateStatusMutation.mutate({ userId: user.id, isActive: !user.isActive })
-                          }
+                          onClick={async () => {
+                            if (user.isActive) {
+                              const ok = await confirm({
+                                title: 'Deactivate user',
+                                message: `Deactivate ${user.email}? They will not be able to sign in.`,
+                                confirmLabel: 'Deactivate',
+                                destructive: true,
+                              });
+                              if (!ok) return;
+                            }
+                            updateStatusMutation.mutate({ userId: user.id, isActive: !user.isActive });
+                          }}
                           loading={updateStatusMutation.isPending}
                         >
                           {user.isActive ? (
@@ -387,14 +402,22 @@ export default function AdminUsersPage() {
                       </TableTd>
                       <TableTd className="whitespace-nowrap">
                         <DropdownMenu
+                          tone="light"
                           label={`Actions for ${user.email}`}
                           items={[
                             {
                               id: 'impersonate',
-                              label: 'Login as user',
+                              label: 'View as user',
                               icon: <LogIn className="w-4 h-4" />,
                               disabled: impersonateMutation.isPending || user.roles.includes('ADMIN'),
-                              onClick: () => impersonateMutation.mutate(user.id),
+                              onClick: async () => {
+                                const ok = await confirm({
+                                  title: 'View as user',
+                                  message: `Open the app as ${user.email}? You can return to admin without signing in again.`,
+                                  confirmLabel: 'Continue',
+                                });
+                                if (ok) impersonateMutation.mutate(user.id);
+                              },
                             },
                             {
                               id: 'credit',
@@ -421,8 +444,13 @@ export default function AdminUsersPage() {
                   ))
                 ) : (
                   <TableEmpty colSpan={6}>
-                    <User className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p className="text-gray-600">No users found</p>
+                    <EmptyState
+                      tone="light"
+                      icon={<User className="w-6 h-6" />}
+                      title="No users found"
+                      description="Try a different search or role filter."
+                      className="py-6"
+                    />
                   </TableEmpty>
                 )}
               </TableBody>

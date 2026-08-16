@@ -21,7 +21,7 @@ export function Field({
   children,
   className,
   required,
-  tone = 'dark',
+  tone = 'light',
 }: FieldProps) {
   const light = tone === 'light';
   return (

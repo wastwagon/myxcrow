@@ -1,5 +1,4 @@
-import { IsEmail, IsString, MinLength, IsOptional, Matches, IsEnum, Length } from 'class-validator';
-import { UserRole } from '@prisma/client';
+import { IsEmail, IsString, MinLength, IsOptional, Matches, Length } from 'class-validator';
 
 export class RegisterDto {
   @IsEmail()
@@ -27,9 +26,5 @@ export class RegisterDto {
   @IsString()
   @Length(6, 6, { message: 'Enter the 6-digit code sent to your phone' })
   code: string;
-
-  @IsOptional()
-  @IsEnum(UserRole)
-  role?: UserRole;
 }
 

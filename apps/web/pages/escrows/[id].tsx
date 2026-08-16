@@ -25,6 +25,7 @@ import RatingModal from '@/components/RatingModal';
 import UserProfileLink from '@/components/UserProfileLink';
 import { useConfirm, usePrompt } from '@/components/providers/UIProvider';
 import { Button, ButtonLink } from '@/components/ui/Button';
+import { EmptyState } from '@/components/ui/EmptyState';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Input } from '@/components/ui/Input';
 import { Banner } from '@/components/ui/Banner';
@@ -253,13 +254,19 @@ export default function EscrowDetailPage() {
     if (ok) deliverMutation.mutate();
   };
 
-  const handleConfirmDeliveryByCode = () => {
+  const handleConfirmDeliveryByCode = async () => {
     const code = deliveryCodeInput.trim();
     if (!code) {
       toast.error('Enter the delivery code');
       return;
     }
-    confirmDeliveryByCodeMutation.mutate(code);
+    const ok = await confirm({
+      title: 'Confirm delivery',
+      message: 'Confirm delivery with this code? This may release funds.',
+      confirmLabel: 'Confirm',
+      destructive: true,
+    });
+    if (ok) confirmDeliveryByCodeMutation.mutate(code);
   };
 
   const confirmDeliveryBaseUrl = typeof window !== 'undefined' ? `${window.location.origin}/confirm-delivery` : '/confirm-delivery';
@@ -318,10 +325,13 @@ export default function EscrowDetailPage() {
   if (!escrow) {
     return (
       <CustomerLayout title="Escrow" back large={false}>
-        <div className="text-center py-12">
-          <AlertCircle className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
-          <p className="text-label-secondary">Escrow not found</p>
-        </div>
+        <EmptyState
+          tone="light"
+          icon={<AlertCircle className="h-6 w-6" />}
+          title="Escrow not found"
+          description="It may have been removed, or the link is incorrect."
+          action={{ href: '/escrows', label: 'View escrows', variant: 'maroon' }}
+        />
       </CustomerLayout>
     );
   }
@@ -423,7 +433,7 @@ export default function EscrowDetailPage() {
               </div>
               {feeSummary && escrow.feeCents > 0 && (
                 <div className="md:col-span-2">
-                  <EscrowFeeSummary fees={feeSummary} className="!bg-amber-50/10 !border-amber-400/20" />
+                  <EscrowFeeSummary fees={feeSummary} />
                 </div>
               )}
               {(!feeSummary || escrow.feeCents === 0) && (
@@ -448,7 +458,7 @@ export default function EscrowDetailPage() {
                 </div>
               )}
               {(isBuyer || isSeller) && (transactionReference || escrow.deliveryPin || firstShipmentWithCode) && (
-                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg md:col-span-2">
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-[12px] md:col-span-2">
                   {escrow.deliveryConfirmationMode === 'pin' && escrow.deliveryPin ? (
                     <>
                       <p className="text-sm font-semibold text-amber-900 mb-1">
@@ -473,7 +483,7 @@ export default function EscrowDetailPage() {
                         <p className="font-mono text-lg font-bold text-amber-900">Ref: {transactionReference.shortReference}</p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        <code className="font-mono text-lg font-bold text-amber-950 bg-amber-100 px-3 py-1 rounded">
+                        <code className="font-mono text-lg font-bold text-amber-950 bg-amber-100 px-3 py-1 rounded-[12px]">
                           PIN: {escrow.deliveryPin}
                         </code>
                         <button
@@ -482,7 +492,8 @@ export default function EscrowDetailPage() {
                             await navigator.clipboard.writeText(escrow.deliveryPin!);
                             toast.success('PIN copied');
                           }}
-                          className="px-2 py-1 text-sm text-amber-800 hover:bg-amber-100 rounded"
+                          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-amber-900 hover:bg-amber-100 rounded-[12px] touch-manipulation"
+                          aria-label="Copy PIN"
                         >
                           <Copy className="w-4 h-4" />
                         </button>
@@ -508,7 +519,7 @@ export default function EscrowDetailPage() {
                       href={`${confirmDeliveryBaseUrl}?ref=${encodeURIComponent(transactionReference.shortReference!)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-amber-700 hover:underline mt-2 inline-block"
+                      className="inline-flex min-h-[44px] items-center text-sm font-semibold text-amber-900 hover:underline mt-2 touch-manipulation"
                     >
                       Open confirm-delivery page →
                     </a>
@@ -601,7 +612,7 @@ export default function EscrowDetailPage() {
                     </div>
                   )}
                   {transactionReference && escrow.deliveryConfirmationMode === 'pin' && escrow.deliveryPin && (
-                    <p className="text-sm text-label-secondary mt-2">
+                    <p className="text-sm text-[rgba(60,60,67,0.6)] mt-2">
                       Your PIN is shown above. Enter reference + PIN on the confirm-delivery page when the {isPhysicalGoods ? 'order arrives' : 'service is complete'}.
                     </p>
                   )}
@@ -622,11 +633,6 @@ export default function EscrowDetailPage() {
                     ? 'Confirm Service & Release Funds'
                     : 'Release Funds'}
                 </Button>
-              )}
-              {!canFund && !canShip && !canMarkServiceCompleted && !canDeliver && !canRelease && (
-                <p className="text-sm text-[rgba(60,60,67,0.6)] text-center py-4">
-                  No actions available for this status
-                </p>
               )}
               <div className="pt-4 border-t border-[rgba(60,60,67,0.12)] space-y-2">
                 <ButtonLink href={`/escrows/${id}/evidence`} variant="outline" fullWidth>

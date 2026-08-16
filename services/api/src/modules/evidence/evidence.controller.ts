@@ -14,12 +14,14 @@ export class EvidenceController {
   @Post('presigned-url')
   async generatePresignedUrl(
     @Body() data: { escrowId: string; fileName: string; fileSize: number; mimeType: string },
+    @CurrentUser() user: ICurrentUser,
   ) {
     return this.evidenceService.generatePresignedUploadUrl(
       data.escrowId,
       data.fileName,
       data.fileSize,
       data.mimeType,
+      user.id,
     );
   }
 
@@ -46,24 +48,17 @@ export class EvidenceController {
   }
 
   @Get(':id')
-  @UseGuards(EscrowParticipantGuard)
-  async getEvidence(@Param('id') id: string) {
-    return this.evidenceService.getEvidence(id);
+  async getEvidence(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
+    return this.evidenceService.getEvidence(id, user.id);
   }
 
   @Get(':id/download')
-  @UseGuards(EscrowParticipantGuard)
-  async getDownloadUrl(@Param('id') id: string) {
-    return this.evidenceService.getDownloadUrlForEvidence(id);
+  async getDownloadUrl(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
+    return this.evidenceService.getDownloadUrlForEvidence(id, user.id);
   }
 
   @Delete(':id')
-  @UseGuards(EscrowParticipantGuard)
-  async deleteEvidence(@Param('id') id: string) {
-    return this.evidenceService.deleteEvidence(id);
+  async deleteEvidence(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
+    return this.evidenceService.deleteEvidence(id, user.id);
   }
 }
-
-
-
-

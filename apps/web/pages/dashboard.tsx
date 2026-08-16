@@ -14,6 +14,17 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { PhoneOnly, DesktopOnly } from '@/components/ui/PhoneOnly';
+import {
+  TableShell,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableTh,
+  TableTd,
+} from '@/components/ui/Table';
+import Link from 'next/link';
 
 interface WalletData {
   availableCents: number;
@@ -115,7 +126,7 @@ export default function Dashboard() {
         <div>
           <p className="text-[13px] text-[rgba(60,60,67,0.6)]">Available</p>
           {walletLoading ? (
-            <div className="mt-1 h-10 w-40 animate-pulse rounded-[10px] bg-black/5" />
+            <div className="mt-1 h-10 w-40 animate-pulse rounded-[12px] bg-black/5" />
           ) : (
             <p className="mt-0.5 text-[34px] font-bold tracking-tight leading-tight text-gray-900">
               {formatCurrency(available, 'GHS')}
@@ -174,45 +185,95 @@ export default function Dashboard() {
           </ListGroup>
         )}
 
-        <ListGroup tone="light" title="Recent">
-          {escrowsLoading ? (
+        {escrowsLoading ? (
+          <ListGroup tone="light" title="Recent">
             <div className="px-4 py-3">
               <ListRowsSkeleton rows={4} rowClassName="h-12" />
             </div>
-          ) : recentEscrows.length > 0 ? (
-            recentEscrows.map((escrow) => {
-              const isBuyer = user?.id === escrow.buyerId;
-              const displayCents = isBuyer
-                ? escrow.fundingAmountCents || escrow.amountCents + (escrow.buyerFeeCents ?? 0)
-                : escrow.netAmountCents ?? escrow.amountCents;
-              return (
-                <ListRow
-                  key={escrow.id}
-                  href={`/escrows/${escrow.id}`}
-                  title={escrow.description || 'Escrow'}
-                  subtitle={`${formatDate(escrow.createdAt)} · ${isBuyer ? 'Funded' : 'Receive'}`}
-                  trailing={
-                    <div className="text-right">
-                      <p className="text-[15px] font-semibold text-gray-900">
-                        {formatCurrency(displayCents, 'GHS')}
-                      </p>
-                      <StatusBadge status={escrow.status} onDark={false} className="mt-0.5" />
-                    </div>
-                  }
-                />
-              );
-            })
-          ) : (
-            <EmptyState
-              tone="light"
-              icon={<FileText className="w-6 h-6" />}
-              title="No escrows yet"
-              description="Create an escrow to protect a payment."
-              action={{ href: '/escrows/new', label: 'New escrow', variant: 'maroon' }}
-              className="py-8"
-            />
-          )}
-        </ListGroup>
+          </ListGroup>
+        ) : recentEscrows.length > 0 ? (
+          <>
+            <PhoneOnly>
+              <ListGroup tone="light" title="Recent">
+                {recentEscrows.map((escrow) => {
+                  const isBuyer = user?.id === escrow.buyerId;
+                  const displayCents = isBuyer
+                    ? escrow.fundingAmountCents || escrow.amountCents + (escrow.buyerFeeCents ?? 0)
+                    : escrow.netAmountCents ?? escrow.amountCents;
+                  return (
+                    <ListRow
+                      key={escrow.id}
+                      href={`/escrows/${escrow.id}`}
+                      title={escrow.description || 'Escrow'}
+                      subtitle={`${formatDate(escrow.createdAt)} · ${isBuyer ? 'Funded' : 'Receive'}`}
+                      trailing={
+                        <div className="text-right">
+                          <p className="text-[15px] font-semibold text-gray-900">
+                            {formatCurrency(displayCents, 'GHS')}
+                          </p>
+                          <StatusBadge status={escrow.status} onDark={false} className="mt-0.5" />
+                        </div>
+                      }
+                    />
+                  );
+                })}
+              </ListGroup>
+            </PhoneOnly>
+            <DesktopOnly>
+              <div className="space-y-1.5">
+                <p className="px-4 text-[13px] font-normal text-[rgba(60,60,67,0.6)]">Recent</p>
+                <TableShell tone="light">
+                  <Table>
+                    <TableHead>
+                      <tr>
+                        <TableTh>Escrow</TableTh>
+                        <TableTh numeric>Amount</TableTh>
+                        <TableTh>Status</TableTh>
+                        <TableTh>When</TableTh>
+                      </tr>
+                    </TableHead>
+                    <TableBody>
+                      {recentEscrows.map((escrow) => {
+                        const isBuyer = user?.id === escrow.buyerId;
+                        const displayCents = isBuyer
+                          ? escrow.fundingAmountCents || escrow.amountCents + (escrow.buyerFeeCents ?? 0)
+                          : escrow.netAmountCents ?? escrow.amountCents;
+                        return (
+                          <TableRow key={escrow.id}>
+                            <TableTd>
+                              <Link href={`/escrows/${escrow.id}`} className="block min-w-0 min-h-[44px] py-1">
+                                <p className="font-semibold text-gray-900 truncate">
+                                  {escrow.description || 'Escrow'}
+                                </p>
+                                <p className="text-[13px] text-[rgba(60,60,67,0.6)]">
+                                  {isBuyer ? 'Funded' : 'Receive'}
+                                </p>
+                              </Link>
+                            </TableTd>
+                            <TableTd numeric>{formatCurrency(displayCents, 'GHS')}</TableTd>
+                            <TableTd>
+                              <StatusBadge status={escrow.status} onDark={false} />
+                            </TableTd>
+                            <TableTd muted>{formatDate(escrow.createdAt)}</TableTd>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableShell>
+              </div>
+            </DesktopOnly>
+          </>
+        ) : (
+          <EmptyState
+            tone="light"
+            icon={<FileText className="w-6 h-6" />}
+            title="No escrows yet"
+            description="Create an escrow to protect a payment."
+            action={{ href: '/escrows/new', label: 'New escrow', variant: 'maroon' }}
+            className="py-8"
+          />
+        )}
       </PullToRefresh>
     </CustomerLayout>
   );

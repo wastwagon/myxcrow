@@ -3,11 +3,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { IntercomChat } from '@/components/IntercomChat';
+import { DeferredIntercom } from '@/components/DeferredIntercom';
 import AppShell from '@/components/AppShell';
 import PageTransition from '@/components/PageTransition';
 import { UIProvider } from '@/components/providers/UIProvider';
 import { applyAppChrome, isGroupedLightPath } from '@/lib/app-chrome';
+import { migrateLegacyTokens } from '@/lib/auth';
 import '../styles/globals.css';
 
 export default function App({ Component, pageProps, router }: AppProps) {
@@ -25,6 +26,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
   );
 
   useEffect(() => {
+    migrateLegacyTokens();
     applyAppChrome(router.pathname, router.route);
   }, [router.pathname, router.route]);
 
@@ -85,7 +87,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
               },
             }}
           />
-          <IntercomChat />
+          <DeferredIntercom />
         </UIProvider>
       </QueryClientProvider>
     </ErrorBoundary>

@@ -23,7 +23,7 @@ const accentRingDark: Record<NonNullable<MetricCardProps['accent']>, string> = {
 };
 
 const accentIconLight: Record<NonNullable<MetricCardProps['accent']>, string> = {
-  gold: 'bg-brand-gold/15 text-brand-maroon',
+  gold: 'bg-brand-maroon/10 text-brand-maroon',
   amber: 'bg-amber-100 text-amber-700',
   emerald: 'bg-emerald-100 text-emerald-700',
   maroon: 'bg-brand-maroon/10 text-brand-maroon',
@@ -37,7 +37,7 @@ export function MetricCard({
   accent = 'gold',
   loading,
   className,
-  tone = 'dark',
+  tone = 'light',
   trend,
   trendPositive = true,
 }: MetricCardProps) {
@@ -45,10 +45,10 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        'rounded-ios-xl p-4 shadow-sm',
+        'rounded-[12px] p-4',
         light
-          ? 'border border-gray-200 bg-white'
-          : cn('border border-white/10 bg-white/[0.07] backdrop-blur-sm shadow-ios-card ring-1', accentRingDark[accent]),
+          ? 'bg-white'
+          : cn('border border-white/10 bg-white/[0.07] backdrop-blur-sm ring-1', accentRingDark[accent]),
         className
       )}
     >
@@ -56,7 +56,7 @@ export function MetricCard({
         {icon && (
           <div
             className={cn(
-              'w-9 h-9 rounded-ios-lg flex items-center justify-center shrink-0',
+              'w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0',
               light ? accentIconLight[accent] : 'bg-brand-gold/15 text-brand-gold'
             )}
           >
@@ -71,7 +71,7 @@ export function MetricCard({
       </div>
       <p className={cn('text-xs font-medium mb-0.5', light ? 'text-gray-500' : 'text-white/65')}>{label}</p>
       {loading ? (
-        <div className={cn('h-8 w-24 animate-pulse rounded-ios', light ? 'bg-gray-100' : 'bg-white/10')} />
+        <div className={cn('h-8 w-24 animate-pulse rounded-[12px]', light ? 'bg-gray-100' : 'bg-white/10')} />
       ) : (
         <p className={cn('text-2xl font-bold tracking-tight', light ? 'text-gray-900' : 'text-white')}>{value}</p>
       )}

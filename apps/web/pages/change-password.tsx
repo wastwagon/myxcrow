@@ -7,7 +7,7 @@ import apiClient from '@/lib/api-client';
 import { toast } from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { form } from '@/lib/form-classes';
+import { ListGroup } from '@/components/ui/ListGroup';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -54,108 +54,97 @@ export default function ChangePasswordPage() {
     changePasswordMutation.mutate({ currentPassword, newPassword });
   };
 
-  const eyeBtn = 'absolute right-3 top-1/2 -translate-y-1/2 text-label-tertiary hover:text-label-primary';
+  const fieldRow =
+    'flex items-center min-h-[44px] px-4 gap-3 relative after:absolute after:right-0 after:bottom-0 after:h-px after:bg-[rgba(60,60,67,0.12)] after:left-4 last:after:hidden';
+  const fieldInput =
+    'flex-1 min-h-[44px] py-2 pr-10 text-[17px] bg-transparent outline-none text-gray-900 placeholder:text-[rgba(60,60,67,0.5)]';
+  const eyeBtn =
+    'absolute right-1 top-1/2 -translate-y-1/2 text-gray-600 hover:text-brand-maroon min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation';
 
   if (!isAuthenticated()) return null;
 
   return (
     <CustomerLayout title="Password" back>
-      <form onSubmit={handleSubmit} className={`${form.panel} space-y-6`}>
-          <div>
-            <label htmlFor="currentPassword" className={form.label}>
-              Current password *
-            </label>
-            <div className="relative">
+      <form onSubmit={handleSubmit} className="space-y-6 pb-4">
+        <ListGroup title="Current">
+          <div className={fieldRow}>
+            <div className="relative flex-1">
               <input
                 type={showCurrentPassword ? 'text' : 'password'}
                 id="currentPassword"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className={`${form.input} pr-12`}
-                placeholder="Enter current password"
+                className={fieldInput}
+                placeholder="Current password"
                 required
+                autoComplete="current-password"
               />
               <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className={eyeBtn}>
                 {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
+        </ListGroup>
 
-          <div>
-            <label htmlFor="newPassword" className={form.label}>
-              New password *
-            </label>
-            <div className="relative">
+        <ListGroup title="New" footer="At least 8 characters. You stay signed in on this device.">
+          <div className={fieldRow}>
+            <div className="relative flex-1">
               <input
                 type={showNewPassword ? 'text' : 'password'}
                 id="newPassword"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className={`${form.input} pr-12`}
-                placeholder="Min 8 characters"
+                className={fieldInput}
+                placeholder="New password"
                 required
                 minLength={8}
+                autoComplete="new-password"
               />
               <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className={eyeBtn}>
                 {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className={form.label}>
-              Confirm new password *
-            </label>
-            <div className="relative">
+          <div className="flex items-center min-h-[44px] px-4">
+            <div className="relative flex-1">
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
                 id="confirmPassword"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className={`${form.input} pr-12`}
+                className={fieldInput}
                 placeholder="Confirm new password"
                 required
                 minLength={8}
+                autoComplete="new-password"
               />
               <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className={eyeBtn}>
                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
+        </ListGroup>
 
-          {newPassword && (
-            <div className="rounded-[12px] bg-[#f2f2f7] p-4">
-              <p className="text-[13px] font-medium text-[rgba(60,60,67,0.6)] mb-2">Password</p>
-              <ul className="space-y-1 text-[13px]">
-                {[
-                  { ok: newPassword.length >= 8, label: 'At least 8 characters' },
-                  { ok: /[A-Z]/.test(newPassword), label: 'Uppercase letter' },
-                  { ok: /[a-z]/.test(newPassword), label: 'Lowercase letter' },
-                  { ok: /[0-9]/.test(newPassword), label: 'Number' },
-                  { ok: /[^A-Za-z0-9]/.test(newPassword), label: 'Special character' },
-                ].map(({ ok, label }) => (
-                  <li key={label} className={ok ? 'text-emerald-600' : 'text-[rgba(60,60,67,0.4)]'}>
-                    {ok ? '✓' : '○'} {label}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+        {newPassword && (
+          <ul className="px-4 space-y-1 text-[13px]">
+            {[
+              { ok: newPassword.length >= 8, label: 'At least 8 characters' },
+              { ok: /[A-Z]/.test(newPassword), label: 'Uppercase letter' },
+              { ok: /[a-z]/.test(newPassword), label: 'Lowercase letter' },
+              { ok: /[0-9]/.test(newPassword), label: 'Number' },
+              { ok: /[^A-Za-z0-9]/.test(newPassword), label: 'Special character' },
+            ].map(({ ok, label }) => (
+              <li key={label} className={ok ? 'text-emerald-700' : 'text-[rgba(60,60,67,0.6)]'}>
+                {ok ? 'Ready' : 'Needed'} — {label}
+              </li>
+            ))}
+          </ul>
+        )}
 
-          <div className="flex gap-4 pt-2">
-            <Button type="button" variant="outline" size="lg" fullWidth onClick={() => router.back()}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="maroon" size="lg" fullWidth loading={changePasswordMutation.isPending}>
-              Save
-            </Button>
-          </div>
-        </form>
-        <div className={`${form.calloutInfo} mt-4`}>
-          <p className="text-sm text-[var(--form-label)]">
-            A confirmation SMS will be sent to your phone. You stay signed in on this device.
-          </p>
-        </div>
+        <Button type="submit" variant="maroon" size="lg" fullWidth loading={changePasswordMutation.isPending}>
+          Update password
+        </Button>
+      </form>
     </CustomerLayout>
   );
 }

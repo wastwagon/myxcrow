@@ -13,4 +13,6 @@ export interface CurrentUser {
   roles: UserRole[];
   kycStatus: KYCStatus;
   isActive: boolean;
+  /** Set when this session is an admin impersonating the user. */
+  impersonatedBy?: string;
 }

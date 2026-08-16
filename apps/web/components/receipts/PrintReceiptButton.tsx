@@ -15,7 +15,7 @@ export function PrintReceiptButton({
   label = 'Print receipt',
   iconOnly = false,
   className,
-  variant = 'secondary',
+  variant = 'outline',
   size = 'sm',
   onClick,
   ...props
@@ -25,7 +25,7 @@ export function PrintReceiptButton({
       type="button"
       variant={variant}
       size={size}
-      className={cn(iconOnly && 'px-2.5', className)}
+      className={cn(iconOnly && 'min-w-[44px] px-2.5', className)}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();

@@ -8,26 +8,14 @@
   var DARK_RGB = '31,20,20';
   var GROUPED_HEX = '#f2f2f7';
   var GROUPED_RGB = '242,242,247';
-  var AUTH_PATH = /^\/(login|register|forgot-password|reset-password)\/?$/;
-  var CUSTOMER_PATH =
-    /^\/(dashboard|escrows|wallet|disputes|profile|kyc|change-password|payments)(\/|$)/;
-  var PUBLIC_LIGHT_PATH =
-    /^\/(confirm-delivery|terms|privacy|support|404|500)\/?$/;
 
   function chromeForPath(path) {
     var p = path || '';
-    if (/^\/wallet\/admin/.test(p)) {
+    if (p.length > 1 && p.charAt(p.length - 1) === '/') p = p.slice(0, -1);
+    if (p === '/') {
       return { hex: DARK_HEX, rgb: DARK_RGB, text: 'white' };
     }
-    if (
-      AUTH_PATH.test(p) ||
-      CUSTOMER_PATH.test(p) ||
-      PUBLIC_LIGHT_PATH.test(p) ||
-      /^\/partner\/checkout/.test(p)
-    ) {
-      return { hex: GROUPED_HEX, rgb: GROUPED_RGB, text: 'black' };
-    }
-    return { hex: DARK_HEX, rgb: DARK_RGB, text: 'white' };
+    return { hex: GROUPED_HEX, rgb: GROUPED_RGB, text: 'black' };
   }
 
   function ping(url) {
@@ -113,7 +101,14 @@
     var p = path || '';
     var isCustomer =
       CUSTOMER_PATH.test(p) && !/^\/wallet\/admin/.test(p);
+    var isAdminLight = /^\/admin(\/|$)/.test(p) || /^\/wallet\/admin/.test(p);
+    var isPublicLight =
+      AUTH_PATH.test(p) ||
+      PUBLIC_LIGHT_PATH.test(p) ||
+      /^\/partner\/checkout/.test(p) ||
+      isAdminLight;
     document.documentElement.classList.toggle('customer-app', isCustomer);
+    document.documentElement.classList.toggle('public-light', isPublicLight);
     document.documentElement.style.setProperty('--app-chrome-bg', chrome.hex);
     var theme = document.querySelector('meta[name="theme-color"]');
     if (theme) theme.setAttribute('content', chrome.hex);

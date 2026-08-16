@@ -5,7 +5,9 @@ import { Input } from '@/components/ui/Input';
 import { publicForm } from '@/lib/form-classes';
 import PublicPage from '@/components/PublicPage';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api';
+import { getApiBaseUrl } from '@/lib/api-base';
+
+const API_BASE = getApiBaseUrl();
 
 export default function ConfirmDeliveryPage() {
   const [shortReference, setShortReference] = useState('');
@@ -92,7 +94,7 @@ export default function ConfirmDeliveryPage() {
             <button
               type="button"
               onClick={() => setUsePin((v) => !v)}
-              className="text-xs text-brand-maroon font-medium min-h-[44px]"
+              className="inline-flex min-h-[44px] items-center text-[15px] text-brand-maroon font-semibold touch-manipulation"
             >
               Use {usePin ? 'code' : 'PIN'} instead
             </button>
@@ -133,7 +135,7 @@ export default function ConfirmDeliveryPage() {
       </p>
 
       <div className="mt-8 pt-6 border-t border-[rgba(60,60,67,0.12)]">
-        <Link href="/" className="text-brand-maroon font-semibold">
+        <Link href="/" className="inline-flex min-h-[44px] items-center text-brand-maroon font-semibold touch-manipulation">
           Home
         </Link>
       </div>

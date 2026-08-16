@@ -22,7 +22,7 @@ import { SMSModule } from '../notifications/sms.module';
         if (!secret || /change-in-production|your-secret-key|your-super-secret/i.test(secret)) {
           throw new Error('JWT_SECRET must be set to a secure value in production. Generate with: openssl rand -base64 32');
         }
-        return { secret, signOptions: { expiresIn: '7d' } };
+        return { secret, signOptions: { expiresIn: '15m' } };
       },
       inject: [ConfigService],
     }),

@@ -23,7 +23,7 @@ export default function Document() {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){var p=location.pathname;var c=/^\\/wallet\\/admin/.test(p)?'#1f1414':/^\\/(login|register|forgot-password|reset-password)\\/?$/.test(p)?'#ffffff':/^\\/(dashboard|escrows|wallet|disputes|profile|kyc|change-password|payments)(\\/|$)/.test(p)?'#f2f2f7':'#1f1414';document.documentElement.style.setProperty('--app-chrome-bg',c);if(c==='#f2f2f7')document.documentElement.classList.add('customer-app');})();",
+              "(function(){var p=location.pathname;if(p.length>1&&p.charAt(p.length-1)==='/')p=p.slice(0,-1);var light=p!=='/';var c=light?'#f2f2f7':'#1f1414';document.documentElement.style.setProperty('--app-chrome-bg',c);if(/^\\/(dashboard|escrows|wallet|disputes|profile|kyc|change-password|payments)(\\/|$)/.test(p)&&!/^\\/wallet\\/admin/.test(p))document.documentElement.classList.add('customer-app');if(light)document.documentElement.classList.add('public-light');})();",
           }}
         />
       </Head>

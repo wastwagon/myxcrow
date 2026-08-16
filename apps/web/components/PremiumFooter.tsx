@@ -24,8 +24,8 @@ export default function PremiumFooter() {
         <div className="flex flex-col items-center text-center md:flex-row md:items-center md:text-left gap-5 md:gap-4 md:justify-between">
           {/* Brand + nav: on mobile centered and stacked neatly */}
           <div className="flex flex-col items-center sm:flex-row sm:items-center gap-3 sm:gap-6 md:flex-1 md:justify-start md:flex-row">
-            <Link href="/" className="flex items-center gap-2.5 group w-fit">
-              <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center overflow-hidden bg-brand-maroon-deep ring-1 ring-white/10 group-hover:opacity-90 transition-opacity shrink-0">
+            <Link href="/" className="flex min-h-[44px] items-center gap-2.5 group w-fit">
+              <div className="w-11 h-11 rounded-[12px] flex items-center justify-center overflow-hidden bg-brand-maroon-deep ring-1 ring-white/10 group-hover:opacity-90 transition-opacity shrink-0">
                 <Image src="/logo/MYXCROWLOGO.png" alt="MYXCROW" width={40} height={40} className="object-contain w-full h-full" />
               </div>
               <span className="text-base md:text-lg font-bold text-white group-hover:text-brand-gold transition-colors">
@@ -38,7 +38,7 @@ export default function PremiumFooter() {
                   {i > 0 && <span className="text-white/40 mx-1.5 md:hidden" aria-hidden>·</span>}
                   <Link
                     href={link.href}
-                    className="min-h-[44px] min-w-[44px] py-2 px-2 flex items-center justify-center text-xs md:text-sm text-white/80 hover:text-brand-gold transition-colors touch-manipulation"
+                className="min-h-[44px] min-w-[44px] py-2 px-2 flex items-center justify-center text-sm text-white/90 hover:text-brand-gold transition-colors touch-manipulation"
                   >
                     {link.label}
                   </Link>
@@ -48,7 +48,7 @@ export default function PremiumFooter() {
           </div>
 
           {/* Copyright: one line, compact on mobile */}
-          <p className="text-xs md:text-sm text-white/55 md:flex-1 md:text-center px-2">
+            <p className="text-xs md:text-sm text-white/70 md:flex-1 md:text-center px-2">
             © {new Date().getFullYear()} MYXCROW. Secure escrow for safe transactions.
           </p>
 
@@ -60,7 +60,7 @@ export default function PremiumFooter() {
                 href={href}
                 target={href.startsWith('#') ? undefined : '_blank'}
                 rel={href.startsWith('#') ? undefined : 'noopener noreferrer'}
-                className="min-w-[40px] min-h-[40px] w-10 h-10 md:w-11 md:h-11 rounded-lg bg-white/10 flex items-center justify-center text-white/70 hover:bg-brand-gold hover:text-brand-maroon-black transition-all touch-manipulation"
+                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-[12px] bg-white/15 flex items-center justify-center text-white hover:bg-brand-gold hover:text-brand-maroon-black transition-all touch-manipulation"
                 aria-label={label}
               >
                 <Icon className="w-4 h-4 md:w-5 md:h-5" />

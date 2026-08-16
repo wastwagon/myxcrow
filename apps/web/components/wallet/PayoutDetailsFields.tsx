@@ -1,6 +1,7 @@
 import type { FieldErrors, UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { Building2, Smartphone } from 'lucide-react';
 import { form } from '@/lib/form-classes';
+import { Select } from '@/components/ui/Select';
 import { cn } from '@/lib/utils';
 import { GHANA_BANKS, MOBILE_MONEY_NETWORKS } from '@/lib/withdrawal-payout';
 import type { GhanaBank } from '@myxcrow/shared';
@@ -38,13 +39,13 @@ export function PayoutDetailsFields({
                 type="button"
                 onClick={() => setValue('methodType', option.value, { shouldValidate: true })}
                 className={cn(
-                  'flex flex-col items-start gap-2 p-4 rounded-[10px] border text-left transition-colors',
+                  'flex flex-col items-start gap-2 p-4 rounded-[12px] border text-left transition-colors min-h-[56px] touch-manipulation',
                   selected
                     ? 'border-brand-maroon/40 bg-brand-maroon/5 ring-1 ring-brand-maroon/20'
                     : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]',
                 )}
               >
-                <Icon className={cn('w-5 h-5', selected ? 'text-brand-maroon' : 'text-[rgba(60,60,67,0.4)]')} />
+                <Icon className={cn('w-5 h-5', selected ? 'text-brand-maroon' : 'text-[rgba(60,60,67,0.6)]')} />
                 <span className="text-sm font-semibold text-gray-900">{option.label}</span>
               </button>
             );
@@ -54,7 +55,7 @@ export function PayoutDetailsFields({
       </div>
 
       {methodType === 'BANK_ACCOUNT' && (
-        <div className="space-y-4 rounded-[10px] bg-[#f2f2f7] p-4">
+        <div className="space-y-4 rounded-[12px] bg-[#f2f2f7] p-4">
           <p className="text-sm font-medium text-gray-900">Bank account details</p>
           <div>
             <label htmlFor="accountName" className={form.label}>
@@ -69,7 +70,7 @@ export function PayoutDetailsFields({
             <label htmlFor="bankName" className={form.label}>
               Bank *
             </label>
-            <select {...register('bankName')} id="bankName" className={form.input} defaultValue="">
+            <Select {...register('bankName')} id="bankName" tone="light" defaultValue="" error={'bankName' in errors && !!errors.bankName}>
               <option value="" disabled>
                 Select your bank
               </option>
@@ -78,7 +79,7 @@ export function PayoutDetailsFields({
                   {bank}
                 </option>
               ))}
-            </select>
+            </Select>
             {'bankName' in errors && errors.bankName && (
               <p className={form.inputError}>{errors.bankName.message}</p>
             )}
@@ -107,13 +108,13 @@ export function PayoutDetailsFields({
       )}
 
       {methodType === 'MOBILE_MONEY' && (
-        <div className="space-y-4 rounded-[10px] bg-[#f2f2f7] p-4">
+        <div className="space-y-4 rounded-[12px] bg-[#f2f2f7] p-4">
           <p className="text-sm font-medium text-gray-900">Mobile money details</p>
           <div>
             <label htmlFor="network" className={form.label}>
               Network *
             </label>
-            <select {...register('network')} id="network" className={form.input} defaultValue="">
+            <Select {...register('network')} id="network" tone="light" defaultValue="" error={'network' in errors && !!errors.network}>
               <option value="" disabled>
                 Select network
               </option>
@@ -122,7 +123,7 @@ export function PayoutDetailsFields({
                   {item.label}
                 </option>
               ))}
-            </select>
+            </Select>
             {'network' in errors && errors.network && (
               <p className={form.inputError}>{errors.network.message}</p>
             )}

@@ -23,21 +23,15 @@ export default function EscrowCreatedPage() {
     if (!isAuthenticated()) router.push('/login');
   }, [router]);
 
-  useEffect(() => {
-    if (!id || typeof window === 'undefined') return;
-    const key = `newEscrowPin:${id}`;
-    const pin = sessionStorage.getItem(key);
-    if (pin) {
-      setGeneratedPin(pin);
-      sessionStorage.removeItem(key);
-    }
-  }, [id]);
-
   const { data: escrow } = useQuery({
     queryKey: ['escrow', id],
     queryFn: async () => (await apiClient.get(`/escrows/${id}`)).data,
     enabled: !!id,
   });
+
+  useEffect(() => {
+    if (escrow?.deliveryPin) setGeneratedPin(escrow.deliveryPin);
+  }, [escrow?.deliveryPin]);
 
   const isFunded = escrow?.status === 'FUNDED';
   const isProfessional = escrow?.escrowCategory === ESCROW_CATEGORY.PROFESSIONAL_SERVICE;
@@ -91,21 +85,21 @@ export default function EscrowCreatedPage() {
 
         <div className="rounded-[12px] bg-white p-5 space-y-4">
           <div className="grid sm:grid-cols-2 gap-4 text-sm">
-            <div className="rounded-[10px] bg-[#f2f2f7] p-4 sm:col-span-2">
+            <div className="rounded-[12px] bg-[#f2f2f7] p-4 sm:col-span-2">
               <p className="text-[rgba(60,60,67,0.6)]">Escrow ID</p>
               <p className="text-gray-900 font-medium break-all">{id}</p>
             </div>
             {escrow?.serviceType && (
-              <div className="rounded-[10px] bg-[#f2f2f7] p-4 sm:col-span-2">
+              <div className="rounded-[12px] bg-[#f2f2f7] p-4 sm:col-span-2">
                 <p className="text-[rgba(60,60,67,0.6)]">Service</p>
                 <p className="text-gray-900 font-medium">{escrow.serviceType}</p>
               </div>
             )}
-            <div className="rounded-[10px] bg-[#f2f2f7] p-4">
+            <div className="rounded-[12px] bg-[#f2f2f7] p-4">
               <p className="text-[rgba(60,60,67,0.6)]">Deal amount</p>
               <p className="text-gray-900 font-medium">{amountText || '—'}</p>
             </div>
-            <div className="rounded-[10px] bg-[#f2f2f7] p-4">
+            <div className="rounded-[12px] bg-[#f2f2f7] p-4">
               <p className="text-[rgba(60,60,67,0.6)]">{isFunded ? 'Funded from wallet' : 'Amount to fund'}</p>
               <p className="text-gray-900 font-medium">{fundAmountText || '—'}</p>
             </div>
@@ -129,7 +123,7 @@ export default function EscrowCreatedPage() {
                 This PIN confirms delivery before auto-release. It is also saved on your escrow details page.
               </p>
               <div className="flex flex-wrap items-center gap-2">
-                <code className="font-mono text-lg font-bold text-gray-900 bg-[#f2f2f7] px-3 py-1 rounded-[10px]">
+                <code className="font-mono text-lg font-bold text-gray-900 bg-[#f2f2f7] px-3 py-1 rounded-[12px]">
                   {generatedPin}
                 </code>
                 <Button

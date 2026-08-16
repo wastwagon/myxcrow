@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { form } from '@/lib/form-classes';
+import { isPaystackCheckoutUrl } from '@/lib/safe-url';
 
 /** Paystack processing fee % passed to customer (must match backend) */
 const PAYSTACK_FEE_PERCENT = 1.95;
@@ -35,10 +36,10 @@ export default function WalletTopupPage() {
       return r.data;
     },
     onSuccess: (data) => {
-      if (data?.authorizationUrl) {
+      if (data?.authorizationUrl && isPaystackCheckoutUrl(data.authorizationUrl)) {
         window.location.href = data.authorizationUrl;
       } else {
-        toast.error('Could not get payment URL');
+        toast.error('Could not get a valid payment URL');
       }
     },
     onError: (e: any) => {

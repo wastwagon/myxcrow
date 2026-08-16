@@ -11,7 +11,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
-import { isCustomerAppPath } from '@/lib/app-chrome';
+import { isAdminAppPath, isCustomerAppPath } from '@/lib/app-chrome';
 import { TabBar, type TabBarItem } from '@/components/ui/TabBar';
 
 const LOGGED_OUT_ITEMS = [
@@ -57,5 +57,10 @@ export default function MobileBottomNav() {
     isActive: isActive(item.href),
   }));
 
-  return <TabBar items={items} tone={isCustomerAppPath(router.pathname) ? 'ios' : 'dark'} />;
+  return (
+    <TabBar
+      items={items}
+      tone={isCustomerAppPath(router.pathname) || isAdminAppPath(router.pathname) ? 'ios' : 'dark'}
+    />
+  );
 }

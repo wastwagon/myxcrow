@@ -12,7 +12,18 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
+import { PhoneOnly, DesktopOnly } from '@/components/ui/PhoneOnly';
+import {
+  TableShell,
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableTh,
+  TableTd,
+} from '@/components/ui/Table';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import Link from 'next/link';
 
 interface Dispute {
   id: string;
@@ -53,36 +64,80 @@ export default function DisputesPage() {
         {isLoading ? (
           <ListRowsSkeleton rows={3} />
         ) : disputes && disputes.length > 0 ? (
-          <ListGroup tone="light">
-            {disputes.map((dispute) => (
-              <SwipeableListRow
-                key={dispute.id}
-                disabled={!isMobile}
-                actions={[
-                  { label: 'Open', href: `/disputes/${dispute.id}` },
-                  { label: 'Escrow', href: `/escrows/${dispute.escrowId}` },
-                ]}
-              >
-                <ListRow
-                  href={`/disputes/${dispute.id}`}
-                  leading={
-                    <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-red-50 text-red-600">
-                      <AlertCircle className="h-4 w-4" />
-                    </span>
-                  }
-                  title={dispute.reason.replace(/_/g, ' ')}
-                  subtitle={`Escrow ${dispute.escrowId.slice(0, 8)}… · ${formatDateShort(dispute.createdAt)}`}
-                  trailing={<StatusBadge status={dispute.status} onDark={false} />}
-                />
-              </SwipeableListRow>
-            ))}
-          </ListGroup>
+          <>
+            <PhoneOnly>
+              <ListGroup tone="light">
+                {disputes.map((dispute) => (
+                  <SwipeableListRow
+                    key={dispute.id}
+                    disabled={!isMobile}
+                    actions={[
+                      { label: 'Open', href: `/disputes/${dispute.id}` },
+                      { label: 'Escrow', href: `/escrows/${dispute.escrowId}` },
+                    ]}
+                  >
+                    <ListRow
+                      href={`/disputes/${dispute.id}`}
+                      leading={
+                        <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-red-50 text-red-600">
+                          <AlertCircle className="h-4 w-4" />
+                        </span>
+                      }
+                      title={dispute.reason.replace(/_/g, ' ')}
+                      subtitle={`Escrow ${dispute.escrowId.slice(0, 8)}… · ${formatDateShort(dispute.createdAt)}`}
+                      trailing={<StatusBadge status={dispute.status} onDark={false} />}
+                    />
+                  </SwipeableListRow>
+                ))}
+              </ListGroup>
+            </PhoneOnly>
+            <DesktopOnly>
+              <TableShell tone="light">
+                <Table>
+                  <TableHead>
+                    <tr>
+                      <TableTh>Reason</TableTh>
+                      <TableTh>Escrow</TableTh>
+                      <TableTh>Opened</TableTh>
+                      <TableTh>Status</TableTh>
+                    </tr>
+                  </TableHead>
+                  <TableBody>
+                    {disputes.map((dispute) => (
+                      <TableRow key={dispute.id}>
+                        <TableTd>
+                          <Link href={`/disputes/${dispute.id}`} className="block min-w-0 min-h-[44px] py-1">
+                            <p className="font-semibold text-gray-900 truncate">
+                              {dispute.reason.replace(/_/g, ' ')}
+                            </p>
+                          </Link>
+                        </TableTd>
+                        <TableTd>
+                          <Link
+                            href={`/escrows/${dispute.escrowId}`}
+                            className="inline-flex min-h-[44px] items-center text-[15px] font-semibold text-brand-maroon hover:text-brand-maroon-dark touch-manipulation"
+                          >
+                            {dispute.escrowId.slice(0, 8)}…
+                          </Link>
+                        </TableTd>
+                        <TableTd muted>{formatDateShort(dispute.createdAt)}</TableTd>
+                        <TableTd>
+                          <StatusBadge status={dispute.status} onDark={false} />
+                        </TableTd>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableShell>
+            </DesktopOnly>
+          </>
         ) : (
           <EmptyState
             tone="light"
             icon={<Scale className="h-6 w-6" />}
             title="No disputes"
             description="Cases you open on an escrow will show up here."
+            action={{ href: '/escrows', label: 'View escrows', variant: 'maroon' }}
           />
         )}
       </PullToRefresh>

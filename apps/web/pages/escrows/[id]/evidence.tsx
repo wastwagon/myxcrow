@@ -131,7 +131,7 @@ export default function EvidencePage() {
   const handleDownload = async (evidenceId: string) => {
     try {
       const response = await apiClient.get(`/evidence/${evidenceId}/download`);
-      window.open(response.data.downloadUrl, '_blank');
+      window.open(response.data.downloadUrl, '_blank', 'noopener,noreferrer');
     } catch {
       toast.error('Failed to get download URL');
     }
@@ -157,23 +157,23 @@ export default function EvidencePage() {
       <PullToRefresh onRefresh={refreshEvidence} disabled={!isMobile} className="space-y-6">
         <div className={form.panel}>
           <h2 className="text-[17px] font-semibold text-gray-900 mb-4">Upload evidence</h2>
-          <div className="border-2 border-dashed border-[rgba(60,60,67,0.18)] rounded-[12px] p-8 text-center">
-            <Upload className="w-12 h-12 mx-auto text-label-tertiary mb-4" />
+          <div id="file-upload" className="border-2 border-dashed border-[rgba(60,60,67,0.18)] rounded-[12px] p-8 text-center scroll-mt-20">
+            <Upload className="w-12 h-12 mx-auto text-gray-500 mb-4" />
             <input
               type="file"
-              id="file-upload"
+              id="evidence-file"
               onChange={handleFileSelect}
               className="hidden"
               accept="image/*,application/pdf,.doc,.docx"
             />
-            <label htmlFor="file-upload" className="cursor-pointer inline-block">
-              <span className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-[10px] bg-brand-maroon text-white font-semibold hover:bg-brand-maroon-dark touch-manipulation">
+            <label htmlFor="evidence-file" className="cursor-pointer inline-block">
+              <span className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-[12px] bg-brand-maroon text-white font-semibold hover:bg-brand-maroon-dark touch-manipulation">
                 Select file
               </span>
             </label>
             {selectedFile && (
               <div className="mt-4 space-y-3">
-                <p className="text-ios-subhead text-label-secondary">
+                <p className="text-ios-subhead text-[rgba(60,60,67,0.6)]">
                   Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
                 </p>
                 <div className="flex justify-center">
@@ -196,7 +196,7 @@ export default function EvidencePage() {
               </div>
             )}
           </div>
-          <p className="text-ios-caption text-label-tertiary text-center mt-3">
+          <p className="text-ios-caption text-gray-500 text-center mt-3">
             Images, PDF, Word — max 10MB
           </p>
         </div>
@@ -216,16 +216,16 @@ export default function EvidencePage() {
                     <div className="flex items-center gap-4 min-w-0">
                       <File className="w-8 h-8 text-brand-maroon shrink-0" />
                       <div className="min-w-0">
-                        <p className="font-medium text-label-primary truncate">{evidence.fileName}</p>
-                        <p className="text-ios-caption text-label-secondary mt-1">
+                        <p className="font-medium text-gray-900 truncate">{evidence.fileName}</p>
+                        <p className="text-ios-caption text-[rgba(60,60,67,0.6)] mt-1">
                           {(evidence.fileSize / 1024).toFixed(2)} KB · {evidence.type} ·{' '}
                           {formatDate(evidence.createdAt)}
                         </p>
                         {evidence.description && (
-                          <p className="text-ios-caption text-label-tertiary mt-1">{evidence.description}</p>
+                          <p className="text-ios-caption text-gray-500 mt-1">{evidence.description}</p>
                         )}
                         {evidence.metadata?.latitude != null && evidence.metadata?.longitude != null && (
-                          <p className="text-ios-caption text-label-tertiary mt-1">
+                          <p className="text-ios-caption text-gray-500 mt-1">
                             Location: {evidence.metadata.latitude.toFixed(5)},{' '}
                             {evidence.metadata.longitude.toFixed(5)}
                           </p>
@@ -235,7 +235,7 @@ export default function EvidencePage() {
                     <div className="flex items-center gap-1 shrink-0">
                       <Button
                         type="button"
-                        variant="plain"
+                        variant="outline"
                         size="sm"
                         onClick={() => handleDownload(evidence.id)}
                         aria-label="Download"
@@ -245,9 +245,9 @@ export default function EvidencePage() {
                       </Button>
                       <Button
                         type="button"
-                        variant="plain"
+                        variant="destructive"
                         size="sm"
-                        className="min-w-[44px] px-2 text-red-400 hover:bg-red-500/10"
+                        className="min-w-[44px] px-2"
                         aria-label="Delete"
                         onClick={async () => {
                           const ok = await confirm({
@@ -271,6 +271,7 @@ export default function EvidencePage() {
                 title="No evidence uploaded yet"
                 description="Upload files as proof of shipment or delivery"
                 tone="light"
+                action={{ href: '#file-upload', label: 'Select a file', variant: 'maroon' }}
                 className="border-0 bg-transparent"
               />
             )}

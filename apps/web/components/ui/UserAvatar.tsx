@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 const variants = {
-  gold: 'bg-brand-gold/20 text-brand-gold ring-brand-gold/35',
+  gold: 'bg-amber-50 text-amber-800 ring-amber-200',
   maroon: 'bg-brand-maroon text-white ring-brand-maroon/40',
   muted: 'bg-[#e5e5ea] text-gray-700 ring-[#d1d1d6]',
 } as const;
@@ -19,7 +19,7 @@ const sizes = {
   lg: 'w-16 h-16 text-xl font-bold',
 };
 
-export function UserAvatar({ label, variant = 'gold', size = 'md', className }: UserAvatarProps) {
+export function UserAvatar({ label, variant = 'maroon', size = 'md', className }: UserAvatarProps) {
   const initial = (label?.trim()?.[0] || '?').toUpperCase();
   return (
     <div

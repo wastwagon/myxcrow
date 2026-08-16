@@ -22,7 +22,7 @@ export function AlertDialog({
   destructive,
   onConfirm,
   onCancel,
-  tone = 'dark',
+  tone = 'light',
 }: AlertDialogProps) {
   useEffect(() => {
     if (!open) return;
@@ -87,7 +87,7 @@ export function AlertDialog({
             className={cn(
               'min-h-[44px] w-full text-[17px] font-medium touch-manipulation',
               light
-                ? 'border-t border-[rgba(60,60,67,0.18)] text-[rgba(60,60,67,0.6)] active:bg-[#d1d1d6]/40'
+                ? 'border-t border-[rgba(60,60,67,0.18)] text-gray-900 active:bg-[#d1d1d6]/40'
                 : 'border-t border-white/10 text-label-secondary hover:bg-white/5 active:bg-white/10'
             )}
           >

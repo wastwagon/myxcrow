@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 
 type ListTone = 'dark' | 'light';
 
-const ListToneContext = createContext<ListTone>('dark');
+const ListToneContext = createContext<ListTone>('light');
 
 interface ListGroupProps {
   title?: string;
@@ -15,7 +15,7 @@ interface ListGroupProps {
   tone?: ListTone;
 }
 
-export function ListGroup({ title, footer, children, className, tone = 'dark' }: ListGroupProps) {
+export function ListGroup({ title, footer, children, className, tone = 'light' }: ListGroupProps) {
   const light = tone === 'light';
   return (
     <ListToneContext.Provider value={tone}>
@@ -37,7 +37,7 @@ export function ListGroup({ title, footer, children, className, tone = 'dark' }:
             'overflow-hidden',
             light
               ? 'bg-white rounded-[12px]'
-              : 'rounded-ios-xl border backdrop-blur-sm bg-white/[0.07] border-white/10'
+              : 'rounded-[20px] border backdrop-blur-sm bg-white/[0.07] border-white/10'
           )}
         >
           <div className={light ? undefined : 'divide-y divide-white/10'}>{children}</div>
@@ -114,7 +114,7 @@ export function ListRow({
       {trailing && <div className="shrink-0 ml-3">{trailing}</div>}
       {showChevron && (
         <ChevronRight
-          className={cn('w-5 h-5 shrink-0 ml-1', light ? 'text-[#c7c7cc]' : 'text-label-tertiary')}
+          className={cn('w-5 h-5 shrink-0 ml-1', light ? 'text-[#8e8e93]' : 'text-label-tertiary')}
           strokeWidth={2}
           aria-hidden
         />

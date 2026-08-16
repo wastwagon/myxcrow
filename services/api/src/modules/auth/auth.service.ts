@@ -46,7 +46,9 @@ export class AuthService {
       throw new BadRequestException('Please wait 60 seconds before requesting another code');
     }
 
-    const devBypass = this.configService.get<string>('OTP_DEV_BYPASS') === 'true';
+    const devBypass =
+      process.env.NODE_ENV !== 'production' &&
+      this.configService.get<string>('OTP_DEV_BYPASS') === 'true';
     const useArkeselOtp = this.smsService.usesArkeselOtp() && !devBypass;
     const code = useArkeselOtp ? '' : String(Math.floor(100000 + Math.random() * 900000));
     const codeHash = useArkeselOtp ? 'arkesel' : crypto.createHash('sha256').update(code).digest('hex');
@@ -132,7 +134,7 @@ export class AuthService {
         firstName: data.firstName,
         lastName: data.lastName,
         phone: normalizedPhone,
-        roles: data.role ? [data.role] : [UserRole.BUYER],
+        roles: [UserRole.BUYER, UserRole.SELLER],
         kycStatus: KYCStatus.VERIFIED,
         isActive: true,
       },
@@ -226,10 +228,24 @@ export class AuthService {
     return result;
   }
 
-  private async generateTokens(userId: string, identifier: string) {
-    const payload = { sub: userId, identifier };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
+  private async generateTokens(
+    userId: string,
+    identifier: string,
+    opts?: {
+      accessExpires?: string;
+      refreshExpires?: string;
+      extra?: Record<string, unknown>;
+    },
+  ) {
+    const base = { sub: userId, identifier, ...(opts?.extra || {}) };
+    const accessToken = this.jwtService.sign(
+      { ...base, typ: 'access' },
+      { expiresIn: opts?.accessExpires ?? '15m' },
+    );
+    const refreshToken = this.jwtService.sign(
+      { ...base, typ: 'refresh' },
+      { expiresIn: opts?.refreshExpires ?? '30d' },
+    );
 
     return {
       accessToken,
@@ -433,13 +449,25 @@ export class AuthService {
 
   async refreshToken(refreshToken: string) {
     try {
-      const payload = this.jwtService.verify(refreshToken);
+      const payload = this.jwtService.verify(refreshToken) as {
+        sub: string;
+        typ?: string;
+        act?: string;
+        impersonating?: boolean;
+      };
+      if (payload.typ !== 'refresh') {
+        throw new UnauthorizedException('Invalid or expired refresh token');
+      }
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },
         select: {
           id: true,
           email: true,
           phone: true,
+          firstName: true,
+          lastName: true,
+          roles: true,
+          kycStatus: true,
           isActive: true,
         },
       });
@@ -448,11 +476,28 @@ export class AuthService {
         throw new UnauthorizedException('Invalid or expired refresh token');
       }
 
-      const tokens = await this.generateTokens(user.id, user.phone || user.email);
+      const impersonating = Boolean(payload.impersonating && payload.act);
+      const extra = impersonating ? { act: payload.act, impersonating: true } : undefined;
+      const tokens = await this.generateTokens(user.id, user.phone || user.email, {
+        extra,
+        accessExpires: impersonating ? '1h' : undefined,
+        refreshExpires: impersonating ? '1h' : undefined,
+      });
 
       return {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
+        impersonating,
+        user: {
+          id: user.id,
+          email: user.email,
+          phone: user.phone || undefined,
+          firstName: user.firstName || undefined,
+          lastName: user.lastName || undefined,
+          roles: user.roles,
+          kycStatus: user.kycStatus,
+          impersonatedBy: impersonating ? payload.act : undefined,
+        },
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');
@@ -573,7 +618,11 @@ export class AuthService {
       },
     });
 
-    const tokens = await this.generateTokens(targetUser.id, targetUser.phone || targetUser.email);
+    const tokens = await this.generateTokens(targetUser.id, targetUser.phone || targetUser.email, {
+      accessExpires: '1h',
+      refreshExpires: '1h',
+      extra: { act: adminUserId, impersonating: true },
+    });
 
     return {
       user: {
@@ -584,6 +633,7 @@ export class AuthService {
         lastName: targetUser.lastName || undefined,
         roles: targetUser.roles,
         kycStatus: targetUser.kycStatus,
+        impersonatedBy: adminUserId,
       },
       ...tokens,
     };

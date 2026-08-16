@@ -1,12 +1,17 @@
 import { type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { ButtonLink, type ButtonLinkProps } from './Button';
+import { Button, ButtonLink, type ButtonLinkProps } from './Button';
 
 export interface EmptyStateProps {
   icon?: ReactNode;
   title: string;
   description?: string;
-  action?: { href: string; label: string; variant?: ButtonLinkProps['variant'] };
+  action?: {
+    href?: string;
+    onClick?: () => void;
+    label: string;
+    variant?: ButtonLinkProps['variant'];
+  };
   className?: string;
   tone?: 'dark' | 'light';
 }
@@ -17,13 +22,14 @@ export function EmptyState({
   description,
   action,
   className,
-  tone = 'dark',
+  tone = 'light',
 }: EmptyStateProps) {
   const light = tone === 'light';
+  const variant = action?.variant ?? (light ? 'maroon' : 'filled');
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center text-center px-6 py-12 rounded-ios-xl border',
+        'flex flex-col items-center justify-center text-center px-6 py-12 rounded-[12px] border',
         light
           ? 'bg-transparent border-0'
           : 'border-white/10 bg-white/[0.05]',
@@ -51,18 +57,23 @@ export function EmptyState({
       {description && (
         <p
           className={cn(
-            'text-ios-subhead max-w-sm mb-5',
+            'text-ios-subhead max-w-sm',
+            action ? 'mb-5' : 'mb-0',
             light ? 'text-gray-500' : 'text-label-secondary'
           )}
         >
           {description}
         </p>
       )}
-      {action && (
-        <ButtonLink href={action.href} variant={action.variant ?? (light ? 'maroon' : 'filled')} size="md">
+      {action?.href ? (
+        <ButtonLink href={action.href} variant={variant} size="md">
           {action.label}
         </ButtonLink>
-      )}
+      ) : action?.onClick ? (
+        <Button type="button" variant={variant} size="md" onClick={action.onClick}>
+          {action.label}
+        </Button>
+      ) : null}
     </div>
   );
 }

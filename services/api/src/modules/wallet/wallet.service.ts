@@ -377,7 +377,7 @@ export class WalletService {
     }
 
     const wallet = await this.getOrCreateWallet(data.userId);
-    const feeCents = data.feeCents || 0;
+    const feeCents = 0;
 
     if (wallet.availableCents < data.amountCents + feeCents) {
       throw new BadRequestException('Insufficient available balance for withdrawal');

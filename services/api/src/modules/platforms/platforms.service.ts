@@ -101,7 +101,12 @@ export class PlatformsService {
     if (parsed.protocol !== 'https:' && process.env.NODE_ENV === 'production') {
       throw new BadRequestException(`${kind} URL must be HTTPS in production`);
     }
-    if (!allowlist.length) return; // open until configured
+    if (!allowlist.length) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new BadRequestException(`${kind} URL allowlist is not configured for this platform`);
+      }
+      return;
+    }
     const ok = allowlist.some((prefix) => url.startsWith(prefix));
     if (!ok) {
       throw new BadRequestException(`${kind} URL is not in platform allowlist`);

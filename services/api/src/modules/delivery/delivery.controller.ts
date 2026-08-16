@@ -1,14 +1,30 @@
-import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Inject,
+} from '@nestjs/common';
 import { EscrowService } from '../escrow/escrow.service';
+import { RATE_LIMIT_STORE } from '../../common/rate-limit/rate-limit.constants';
+import type { IRateLimitStore } from '../../common/rate-limit/rate-limit-store.interface';
+
+const MAX_ATTEMPTS = 5;
+const WINDOW_MS = 15 * 60 * 1000;
 
 /**
  * Public delivery confirmation. No auth required.
  * Delivery person gets the code from the recipient (buyer) and enters reference + code here.
- * Rate limiting is applied globally.
+ * Per-reference lockout is in addition to the global IP rate limit.
  */
 @Controller('delivery')
 export class DeliveryController {
-  constructor(private readonly escrowService: EscrowService) {}
+  constructor(
+    private readonly escrowService: EscrowService,
+    @Inject(RATE_LIMIT_STORE) private readonly rateLimitStore: IRateLimitStore,
+  ) {}
 
   @Post('verify')
   async verifyDelivery(
@@ -22,12 +38,19 @@ export class DeliveryController {
       throw new BadRequestException('shortReference is required');
     }
 
-    // PIN flow: reference + PIN (for escrows with deliveryConfirmationMode = 'pin')
+    const refKey = shortReference.toUpperCase();
+    const { count } = await this.rateLimitStore.increment(`delivery_ref_${refKey}`, WINDOW_MS);
+    if (count > MAX_ATTEMPTS) {
+      throw new HttpException(
+        'Too many attempts for this reference. Try again in 15 minutes.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
     if (deliveryPin) {
       return this.escrowService.confirmDeliveryByPin(shortReference, deliveryPin);
     }
 
-    // Code flow: reference + delivery code (default)
     if (!deliveryCode) {
       throw new BadRequestException('deliveryCode or deliveryPin is required');
     }

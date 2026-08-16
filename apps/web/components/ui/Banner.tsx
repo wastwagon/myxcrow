@@ -17,7 +17,7 @@ const lightToneStyles: Record<BannerTone, string> = {
   success: 'bg-green-50 text-green-900',
   warning: 'bg-amber-50 text-amber-900',
   error: 'bg-red-50 text-red-800',
-  brand: 'bg-brand-gold/10 text-gray-900',
+  brand: 'bg-brand-maroon/5 text-gray-900',
 };
 
 const toneIcons: Record<BannerTone, typeof Info> = {
@@ -35,7 +35,7 @@ export interface BannerProps {
   onDismiss?: () => void;
   className?: string;
   icon?: ReactNode;
-  /** Grouped iOS surface (customer / public). Default dark for admin. */
+  /** Grouped iOS surface (customer / public). Default light. */
   light?: boolean;
 }
 
@@ -46,7 +46,7 @@ export function Banner({
   onDismiss,
   className,
   icon,
-  light = false,
+  light = true,
 }: BannerProps) {
   const Icon = toneIcons[tone];
 
@@ -83,9 +83,9 @@ export function Banner({
           type="button"
           onClick={onDismiss}
           className={cn(
-            'shrink-0 min-h-[32px] min-w-[32px] inline-flex items-center justify-center rounded-[10px] touch-manipulation',
+            'shrink-0 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[12px] touch-manipulation',
             light
-              ? 'text-[rgba(60,60,67,0.6)] hover:bg-black/5'
+              ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900'
               : 'text-label-tertiary hover:bg-white/10 hover:text-label-primary'
           )}
           aria-label="Dismiss"
