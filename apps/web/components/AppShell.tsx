@@ -55,7 +55,7 @@ export default function AppShell({ children }: AppShellProps) {
               : 'min-h-screen flex flex-col'
         )}
       >
-        <div className={customerShell ? 'flex-1 min-h-0' : 'flex-1'}>{children}</div>
+        <div className={customerShell ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : 'flex-1'}>{children}</div>
         {showFooter && <PremiumFooter />}
       </div>
       {showTabBar && <MobileBottomNav />}

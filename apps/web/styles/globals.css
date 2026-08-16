@@ -285,11 +285,40 @@ html.public-light a[class*="bg-white/15"] {
   box-shadow: none;
 }
 
-/* Maroon CTAs keep white labels on grouped light screens (Sign in, Create account, New escrow). */
+/* Maroon CTAs keep white labels on grouped light screens. Do not use text-white here —
+   leftover [class*="text-white"] rewrites paint those labels near-black. */
+.mx-cta,
+.mx-cta * {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html.customer-app .bg-brand-maroon.mx-cta,
+html.public-light .bg-brand-maroon.mx-cta,
 html.customer-app .bg-brand-maroon,
 html.public-light .bg-brand-maroon {
-  color: #ffffff;
-  -webkit-text-fill-color: #ffffff;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Blocked empty frames (WebViewGold pings / Intercom boot) must not steal clicks. */
+iframe[src=''],
+iframe:not([src]) {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+#intercom-container,
+.intercom-namespace,
+.intercom-lightweight-app {
+  pointer-events: none !important;
+}
+
+#intercom-container iframe,
+.intercom-lightweight-app-launcher,
+.intercom-launcher-frame,
+.intercom-messenger-frame {
+  pointer-events: auto !important;
 }
 
 @layer utilities {

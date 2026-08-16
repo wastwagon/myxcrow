@@ -16,7 +16,7 @@ const variants = {
     'bg-transparent text-white border-2 border-white/75 hover:bg-white/15 hover:border-white active:opacity-90',
   /** Maroon primary for light auth/customer surfaces */
   maroon:
-    'bg-brand-maroon !text-white hover:bg-brand-maroon-dark active:opacity-90',
+    'bg-brand-maroon mx-cta hover:bg-brand-maroon-dark active:opacity-90',
   /** Outline on light surfaces */
   outline:
     'bg-transparent border-2 border-brand-maroon text-brand-maroon hover:bg-brand-maroon/5 active:opacity-90',

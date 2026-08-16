@@ -65,7 +65,7 @@ export default function CustomerLayout({
   };
 
   return (
-    <div className="customer-shell flex flex-1 min-h-0 bg-[#f2f2f7] text-gray-900">
+    <div className="customer-shell flex flex-1 min-h-0 overflow-hidden bg-[#f2f2f7] text-gray-900">
       <aside
         className="hidden xl:flex w-[220px] shrink-0 flex-col px-3 pb-4"
         style={{ paddingTop: 'max(1.5rem, var(--app-sat, env(safe-area-inset-top, 0px)))' }}

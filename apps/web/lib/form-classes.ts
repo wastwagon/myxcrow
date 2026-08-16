@@ -49,13 +49,13 @@ export const publicForm = {
   footerMuted: 'text-xs text-gray-500',
   footerText: 'text-sm text-gray-600',
   submit:
-    'w-full py-3 px-6 bg-brand-maroon text-white rounded-[12px] hover:bg-brand-maroon-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold',
+    'w-full py-3 px-6 bg-brand-maroon mx-cta rounded-[12px] hover:bg-brand-maroon-dark disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold',
   submitTouch:
-    'w-full min-h-[48px] py-3 px-6 bg-brand-maroon text-white rounded-[12px] hover:bg-brand-maroon-dark focus:outline-none focus:ring-2 focus:ring-brand-maroon/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold touch-manipulation',
+    'w-full min-h-[48px] py-3 px-6 bg-brand-maroon mx-cta rounded-[12px] hover:bg-brand-maroon-dark focus:outline-none focus:ring-2 focus:ring-brand-maroon/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 font-semibold touch-manipulation',
   submitMaroon:
-    'w-full py-3 px-6 bg-brand-maroon text-white rounded-[12px] hover:bg-brand-maroon-dark font-semibold',
+    'w-full py-3 px-6 bg-brand-maroon mx-cta rounded-[12px] hover:bg-brand-maroon-dark font-semibold',
   submitDelivery:
-    'w-full min-h-[48px] py-3 px-6 bg-brand-maroon text-white rounded-[12px] hover:bg-brand-maroon-dark focus:outline-none focus:ring-2 focus:ring-brand-maroon/25 disabled:opacity-50 disabled:cursor-not-allowed font-semibold touch-manipulation',
+    'w-full min-h-[48px] py-3 px-6 bg-brand-maroon mx-cta rounded-[12px] hover:bg-brand-maroon-dark focus:outline-none focus:ring-2 focus:ring-brand-maroon/25 disabled:opacity-50 disabled:cursor-not-allowed font-semibold touch-manipulation',
   outlineBtn:
     'mt-3 w-full min-h-[48px] py-3 px-4 border-2 border-brand-maroon text-brand-maroon rounded-[12px] hover:bg-brand-maroon/5 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-manipulation',
   /** Legal / static content on white cards */
