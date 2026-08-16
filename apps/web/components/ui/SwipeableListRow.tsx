@@ -71,8 +71,8 @@ export function SwipeableListRow({
           const btnClass = cn(
             'flex flex-col items-center justify-center w-[72px] h-full text-ios-caption font-semibold touch-manipulation',
             action.variant === 'destructive'
-              ? 'bg-ios-destructive/90 text-white'
-              : 'bg-brand-maroon text-white'
+              ? 'bg-ios-destructive/90 mx-cta'
+              : 'bg-brand-maroon mx-cta'
           );
           if (action.href) {
             return (

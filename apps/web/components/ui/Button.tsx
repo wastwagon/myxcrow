@@ -8,7 +8,7 @@ const variants = {
   tinted:
     'bg-brand-gold/25 text-brand-gold border border-brand-gold/45 hover:bg-brand-gold/35 active:opacity-80 shadow-sm shadow-black/10',
   plain: 'bg-transparent text-brand-gold hover:bg-white/10 active:opacity-80',
-  destructive: 'bg-ios-destructive text-white hover:opacity-90 active:opacity-80 shadow-sm shadow-black/15',
+  destructive: 'bg-ios-destructive mx-cta hover:opacity-90 active:opacity-80 shadow-sm shadow-black/15',
   secondary:
     'bg-white/15 text-white border border-white/50 hover:bg-white/25 active:opacity-80 backdrop-blur-sm',
   /** White outline for photography / maroon marketing surfaces */

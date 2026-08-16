@@ -296,7 +296,9 @@ html.public-light a[class*="bg-white/15"] {
 html.customer-app .bg-brand-maroon.mx-cta,
 html.public-light .bg-brand-maroon.mx-cta,
 html.customer-app .bg-brand-maroon,
-html.public-light .bg-brand-maroon {
+html.public-light .bg-brand-maroon,
+html.customer-app [class*='bg-ios-destructive'],
+html.public-light [class*='bg-ios-destructive'] {
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
 }
