@@ -88,6 +88,8 @@
     return Math.abs(innerH - screenH) <= 8;
   }
 
+  var lastSat = null;
+
   function applySat() {
     var envPx = envSatPx();
     var sat = envPx;
@@ -97,6 +99,8 @@
     if (envPx === 0 && isIOS() && isEdgeToEdge()) {
       sat = fallbackSatPx();
     }
+    if (lastSat === sat) return;
+    lastSat = sat;
     document.documentElement.style.setProperty('--app-sat', sat + 'px');
   }
 
@@ -121,11 +125,15 @@
   }
 
   function runNativeSchemes(chrome, useLocationHref) {
+    // Custom schemes are WebViewGold-only. In Safari/Chrome they become empty
+    // iframe URLs, CSP blocks Framing '', and the messenger overlay can freeze the page.
+    if (!isNativeWebView()) return;
+
     ping('hidebars://on');
     ping('statusbarcolor://' + chrome.rgb);
     ping('statusbartextcolor://' + chrome.text);
 
-    if (!useLocationHref || !isNativeWebView()) return;
+    if (!useLocationHref) return;
 
     // iOS WebViewGold often only honors one location.href scheme per page load.
     try {
@@ -155,9 +163,11 @@
   window.__myxcrowApplyChrome = function (path) {
     try {
       var chrome = applyChrome(path || location.pathname);
-      // SPA navigations: iframe only. Do not use location.href again.
-      ping('statusbarcolor://' + chrome.rgb);
-      ping('statusbartextcolor://' + chrome.text);
+      if (isNativeWebView()) {
+        // SPA navigations: iframe only. Do not use location.href again.
+        ping('statusbarcolor://' + chrome.rgb);
+        ping('statusbartextcolor://' + chrome.text);
+      }
       applySat();
     } catch (e) {
       /* never take down the page for chrome */

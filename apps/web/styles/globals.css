@@ -213,8 +213,8 @@ html.customer-app #__next > div:first-of-type {
 }
 
 /* Leftover dark-glass utilities on customer and public light screens */
-html.customer-app [class*="text-white/"],
-html.public-light [class*="text-white/"] {
+html.customer-app [class*="text-white/"]:not(.bg-brand-maroon),
+html.public-light [class*="text-white/"]:not(.bg-brand-maroon) {
   color: rgba(60, 60, 67, 0.6);
 }
 
@@ -283,6 +283,13 @@ html.public-light a[class*="bg-white/15"] {
   color: #111827;
   border-color: transparent;
   box-shadow: none;
+}
+
+/* Maroon CTAs keep white labels on grouped light screens (Sign in, Create account, New escrow). */
+html.customer-app .bg-brand-maroon,
+html.public-light .bg-brand-maroon {
+  color: #ffffff;
+  -webkit-text-fill-color: #ffffff;
 }
 
 @layer utilities {
