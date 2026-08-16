@@ -67,7 +67,12 @@ export class PaystackService {
   }
 
   verifyWebhookSignature(payload: string, signature: string): boolean {
-    const secret = this.configService.get<string>('PAYSTACK_WEBHOOK_SECRET')?.trim();
+    // Paystack HMAC-SHA512s the body with the secret key. Optional PAYSTACK_WEBHOOK_SECRET overrides.
+    const secret = (
+      this.configService.get<string>('PAYSTACK_WEBHOOK_SECRET') ||
+      this.configService.get<string>('PAYSTACK_SECRET_KEY') ||
+      ''
+    ).trim();
     if (!secret || !signature) {
       return false;
     }

@@ -47,5 +47,16 @@ describe('PaystackService', () => {
       const result = service.verifyWebhookSignature('{}', 'sig');
       expect(result).toBe(false);
     });
+
+    it('falls back to PAYSTACK_SECRET_KEY when webhook secret is unset', () => {
+      const sk = 'sk_test_fallback';
+      configGet.mockImplementation((key: string) =>
+        key === 'PAYSTACK_SECRET_KEY' ? sk : undefined,
+      );
+      const payload = '{"event":"charge.success"}';
+      const crypto = require('crypto');
+      const expectedSig = crypto.createHmac('sha512', sk).update(payload).digest('hex');
+      expect(service.verifyWebhookSignature(payload, expectedSig)).toBe(true);
+    });
   });
 });

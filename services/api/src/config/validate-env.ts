@@ -9,7 +9,6 @@ const REQUIRED = [
 
 const PRODUCTION_REQUIRED = [
   'PAYSTACK_SECRET_KEY',
-  'PAYSTACK_WEBHOOK_SECRET',
   'WEB_APP_URL',
 ] as const;
 
