@@ -64,7 +64,11 @@ export function applyAppChrome(pathname: string, route?: string): void {
   document.documentElement.classList.toggle('public-light', publicLight || adminLight);
   const chromePath = publicLight && !isPublicLightPath(pathname) ? '/404' : pathname;
   if (typeof window.__myxcrowApplyChrome === 'function') {
-    window.__myxcrowApplyChrome(chromePath);
+    try {
+      window.__myxcrowApplyChrome(chromePath);
+    } catch {
+      /* chrome helpers must not crash the Next.js tree */
+    }
     return;
   }
   const hex =

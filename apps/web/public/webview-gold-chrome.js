@@ -8,6 +8,10 @@
   var DARK_RGB = '31,20,20';
   var GROUPED_HEX = '#f2f2f7';
   var GROUPED_RGB = '242,242,247';
+  var AUTH_PATH = /^\/(login|register|forgot-password|reset-password)$/;
+  var PUBLIC_LIGHT_PATH = /^\/(confirm-delivery|terms|privacy|support|404|500)$/;
+  var CUSTOMER_PATH =
+    /^\/(dashboard|escrows|wallet|disputes|profile|kyc|change-password|payments)(\/|$)/;
 
   function chromeForPath(path) {
     var p = path || '';
@@ -99,6 +103,7 @@
   function applyChrome(path) {
     var chrome = chromeForPath(path);
     var p = path || '';
+    if (p.length > 1 && p.charAt(p.length - 1) === '/') p = p.slice(0, -1);
     var isCustomer =
       CUSTOMER_PATH.test(p) && !/^\/wallet\/admin/.test(p);
     var isAdminLight = /^\/admin(\/|$)/.test(p) || /^\/wallet\/admin/.test(p);
@@ -138,17 +143,25 @@
   }
 
   function init() {
-    var chrome = applyChrome(location.pathname);
-    applySat();
-    runNativeSchemes(chrome, true);
+    try {
+      var chrome = applyChrome(location.pathname);
+      applySat();
+      runNativeSchemes(chrome, true);
+    } catch (e) {
+      /* never take down the page for chrome */
+    }
   }
 
   window.__myxcrowApplyChrome = function (path) {
-    var chrome = applyChrome(path || location.pathname);
-    // SPA navigations: iframe only. Do not use location.href again.
-    ping('statusbarcolor://' + chrome.rgb);
-    ping('statusbartextcolor://' + chrome.text);
-    applySat();
+    try {
+      var chrome = applyChrome(path || location.pathname);
+      // SPA navigations: iframe only. Do not use location.href again.
+      ping('statusbarcolor://' + chrome.rgb);
+      ping('statusbartextcolor://' + chrome.text);
+      applySat();
+    } catch (e) {
+      /* never take down the page for chrome */
+    }
   };
 
   init();
