@@ -24,6 +24,7 @@ async function main() {
       roles: ['ADMIN'],
       kycStatus: 'VERIFIED',
       isActive: true,
+      phone: '0551000001',
     },
     create: {
       email: ADMIN_EMAIL,
@@ -33,6 +34,7 @@ async function main() {
       roles: ['ADMIN'],
       kycStatus: 'VERIFIED',
       isActive: true,
+      phone: '0551000001',
     },
   });
 

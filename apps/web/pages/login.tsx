@@ -54,7 +54,8 @@ export default function Login() {
 
       setUser(user);
 
-      router.push('/dashboard');
+      const admin = Array.isArray(user?.roles) && user.roles.includes('ADMIN');
+      router.push(admin ? '/admin' : '/dashboard');
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Login failed. Please try again.'));
     } finally {

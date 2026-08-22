@@ -20,6 +20,7 @@ async function main() {
       roles: [UserRole.ADMIN],
       kycStatus: KYCStatus.VERIFIED,
       isActive: true,
+      phone: '0551000001',
     },
     create: {
       email: ADMIN_EMAIL,
@@ -29,6 +30,7 @@ async function main() {
       roles: [UserRole.ADMIN],
       kycStatus: KYCStatus.VERIFIED,
       isActive: true,
+      phone: '0551000001',
     },
   });
 

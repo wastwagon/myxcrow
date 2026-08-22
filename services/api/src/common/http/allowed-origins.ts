@@ -21,8 +21,21 @@ function expandWwwPair(origin: string): string[] {
 export function getAllowedOrigins(): string[] {
   const raw = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
-    : [process.env.WEB_APP_URL || process.env.WEB_BASE_URL || 'http://localhost:3000'];
-  return [...new Set(raw.flatMap(expandWwwPair))];
+    : [process.env.WEB_APP_URL || process.env.WEB_BASE_URL || 'http://localhost:3007'];
+  const origins = [...new Set(raw.flatMap(expandWwwPair))];
+  if (process.env.NODE_ENV !== 'production') {
+    for (const extra of [
+      'http://localhost:3007',
+      'http://localhost:3000',
+      'http://localhost:3017',
+      'http://127.0.0.1:3007',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3017',
+    ]) {
+      if (!origins.includes(extra)) origins.push(extra);
+    }
+  }
+  return origins;
 }
 
 export function isAllowedOrigin(origin: string): boolean {

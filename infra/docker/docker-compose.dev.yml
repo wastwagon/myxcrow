@@ -87,6 +87,7 @@ services:
       PORT: 4000
       WEB_APP_URL: ${WEB_APP_URL:-http://localhost:3007}
       WEB_BASE_URL: ${WEB_BASE_URL:-http://localhost:3007}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3007,http://localhost:3000,http://127.0.0.1:3007}
       NODE_ENV: development
     volumes:
       - ../../:/usr/src/monorepo

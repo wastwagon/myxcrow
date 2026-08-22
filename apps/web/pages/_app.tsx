@@ -27,6 +27,9 @@ export default function App({ Component, pageProps, router }: AppProps) {
 
   useEffect(() => {
     migrateLegacyTokens();
+  }, []);
+
+  useEffect(() => {
     applyAppChrome(router.pathname, router.route);
   }, [router.pathname, router.route]);
 

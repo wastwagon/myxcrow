@@ -16,10 +16,12 @@ export interface AuthResponse {
 }
 
 const USER_KEY = 'user';
+const COOKIE_AUTH_MIGRATED_KEY = 'mx_cookie_auth_migrated';
 
 /** Drop pre-cookie JWTs so they cannot be reused after this deploy. */
 export function migrateLegacyTokens(): void {
   if (typeof window === 'undefined') return;
+  const alreadyMigrated = localStorage.getItem(COOKIE_AUTH_MIGRATED_KEY) === '1';
   const hadLegacy =
     !!localStorage.getItem('accessToken') ||
     !!localStorage.getItem('refreshToken') ||
@@ -27,9 +29,10 @@ export function migrateLegacyTokens(): void {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('refreshToken');
   localStorage.removeItem('token');
-  if (hadLegacy) {
+  if (!alreadyMigrated && hadLegacy) {
     localStorage.removeItem(USER_KEY);
   }
+  localStorage.setItem(COOKIE_AUTH_MIGRATED_KEY, '1');
 }
 
 export function getAccessToken(): string | null {

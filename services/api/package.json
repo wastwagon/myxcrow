@@ -13,6 +13,7 @@
     "prisma:studio": "prisma studio",
     "seed": "tsx scripts/seed-users-and-transactions.ts",
     "create-admin": "node scripts/create-admin.js",
+    "seed:local": "node scripts/seed-local-users.js",
     "list-users": "tsx scripts/list-users.ts",
     "seed:bash": "bash scripts/seed.sh",
     "seed:verify": "tsx scripts/verify-seed.ts",
