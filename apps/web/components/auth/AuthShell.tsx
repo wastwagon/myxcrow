@@ -40,6 +40,7 @@ function AuthModeTabs({ mode }: { mode: AuthMode }) {
 export function AuthShell({
   title,
   subtitle,
+  titleVariant = 'heading',
   children,
   footer,
   mode,
@@ -48,6 +49,8 @@ export function AuthShell({
 }: {
   title: string;
   subtitle?: string;
+  /** Compact capsule instead of the large page title. */
+  titleVariant?: 'heading' | 'badge';
   children: ReactNode;
   footer?: ReactNode;
   /** When set, shows Sign up / Log in tabs */
@@ -79,8 +82,14 @@ export function AuthShell({
               <span className="text-[13px] font-semibold tracking-tight text-brand-maroon">MYXCROW</span>
             </Link>
 
-            <div className="space-y-2 w-full">
-              <h1 className="text-[34px] font-bold tracking-tight leading-[1.15] text-gray-900">{title}</h1>
+            <div className={cn('w-full', titleVariant === 'heading' && subtitle && 'space-y-2')}>
+              {titleVariant === 'badge' ? (
+                <h1 className="inline-flex items-center rounded-full bg-white px-3.5 py-1 text-[12px] font-semibold tracking-tight text-brand-maroon ring-1 ring-black/[0.06] shadow-sm">
+                  {title}
+                </h1>
+              ) : (
+                <h1 className="text-[34px] font-bold tracking-tight leading-[1.15] text-gray-900">{title}</h1>
+              )}
               {subtitle && <p className="text-[15px] text-[rgba(60,60,67,0.6)]">{subtitle}</p>}
             </div>
 

@@ -66,7 +66,7 @@ export default function Login() {
     <AuthShell
       mode="login"
       title="Log in to your account"
-      subtitle="Welcome back. Enter your details to continue."
+      titleVariant="badge"
       footer={
         <p>
           Don&apos;t have an account?{' '}
