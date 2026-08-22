@@ -59,13 +59,18 @@ export function authCookieOptions(
   const https = forwarded.split(',')[0]?.trim() === 'https' || req?.protocol === 'https';
   const sameSite = resolveSameSite(req);
   const secure = sameSite === 'none' ? true : process.env.NODE_ENV === 'production' || https;
-  return {
+  const opts: CookieOptions & { partitioned?: boolean } = {
     httpOnly: true,
     secure,
     sameSite,
     path: '/',
     maxAge: maxAgeMs,
   };
+  // CHIPS: Chrome still sends these when the API host is third-party to the web app.
+  if (sameSite === 'none') {
+    opts.partitioned = true;
+  }
+  return opts;
 }
 
 export function setAuthCookies(
@@ -96,6 +101,7 @@ export function clearAuthCookies(res: Response) {
   const variants: CookieOptions[] = [
     { httpOnly: true, path: '/' },
     { httpOnly: true, path: '/', secure: true, sameSite: 'none' },
+    { httpOnly: true, path: '/', secure: true, sameSite: 'none', partitioned: true } as CookieOptions,
     { httpOnly: true, path: '/', sameSite: 'lax' },
   ];
   for (const name of [ACCESS_COOKIE, REFRESH_COOKIE]) {
@@ -107,6 +113,7 @@ export function clearAdminCookies(res: Response) {
   const variants: CookieOptions[] = [
     { httpOnly: true, path: '/' },
     { httpOnly: true, path: '/', secure: true, sameSite: 'none' },
+    { httpOnly: true, path: '/', secure: true, sameSite: 'none', partitioned: true } as CookieOptions,
     { httpOnly: true, path: '/', sameSite: 'lax' },
   ];
   for (const name of [ADMIN_ACCESS_COOKIE, ADMIN_REFRESH_COOKIE]) {

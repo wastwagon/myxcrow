@@ -114,5 +114,7 @@ services:
         value: production
       - key: NEXT_PUBLIC_API_BASE_URL
         value: https://myxcrow-bp-api.onrender.com/api
+      - key: API_PROXY_ORIGIN
+        value: https://myxcrow-bp-api.onrender.com
       - key: NEXT_PUBLIC_ENV
         value: production

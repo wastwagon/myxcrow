@@ -18,11 +18,22 @@ function expandWwwPair(origin: string): string[] {
   }
 }
 
+function expandSchemePair(origin: string): string[] {
+  try {
+    const url = new URL(origin);
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return [stripSlash(origin)];
+    const host = url.host;
+    return [`http://${host}`, `https://${host}`].map(stripSlash);
+  } catch {
+    return [stripSlash(origin)];
+  }
+}
+
 export function getAllowedOrigins(): string[] {
   const raw = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',').map((o) => o.trim()).filter(Boolean)
     : [process.env.WEB_APP_URL || process.env.WEB_BASE_URL || 'http://localhost:3007'];
-  const origins = [...new Set(raw.flatMap(expandWwwPair))];
+  const origins = [...new Set(raw.flatMap(expandWwwPair).flatMap(expandSchemePair))];
   if (process.env.NODE_ENV !== 'production') {
     for (const extra of [
       'http://localhost:3007',

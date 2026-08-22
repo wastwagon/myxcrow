@@ -1,13 +1,21 @@
 /** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === 'production';
 
-const apiOrigin = (() => {
-  try {
-    return new URL(process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api').origin;
-  } catch {
-    return 'http://localhost:4000';
+function getApiProxyOrigin() {
+  const explicit = (process.env.API_PROXY_ORIGIN || '').trim().replace(/\/$/, '');
+  if (explicit) return explicit;
+  const pub = (process.env.NEXT_PUBLIC_API_BASE_URL || '').trim();
+  if (/^https?:\/\//i.test(pub)) {
+    try {
+      return new URL(pub).origin;
+    } catch {
+      /* ignore */
+    }
   }
-})();
+  return 'http://localhost:4000';
+}
+
+const apiOrigin = getApiProxyOrigin();
 
 const connectSrc = [
   "'self'",
@@ -79,6 +87,14 @@ const nextConfig = {
       { source: '/mockup/:path*', destination: '/404', permanent: false },
       { source: '/play-store-icon.html', destination: '/404', permanent: false },
       { source: '/play-store-feature-graphic.html', destination: '/404', permanent: false },
+    ];
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${apiOrigin}/api/:path*`,
+      },
     ];
   },
   async headers() {

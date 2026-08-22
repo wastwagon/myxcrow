@@ -113,6 +113,7 @@ services:
       - "3007:3000"
     environment:
       NEXT_PUBLIC_API_BASE_URL: http://localhost:4000/api
+      API_PROXY_ORIGIN: http://api:4000
       NEXT_PUBLIC_MAILPIT_URL: http://localhost:8026
       NEXT_PUBLIC_MINIO_CONSOLE: http://localhost:9004
       NEXT_PUBLIC_ENV: local
