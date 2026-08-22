@@ -47,7 +47,7 @@ export default function PublicHeader() {
             </div>
             <span
               className={cn(
-                'text-lg font-bold tracking-tight md:text-xl transition-colors',
+                'text-[17px] font-semibold tracking-tight transition-colors',
                 light ? 'text-gray-900 group-hover:text-brand-maroon' : 'text-white group-hover:text-brand-gold'
               )}
             >

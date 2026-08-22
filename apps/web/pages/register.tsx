@@ -125,7 +125,6 @@ export default function Register() {
     <AuthShell
       mode="register"
       title="Create your account"
-      subtitle="Join MYXCROW and protect every deal with escrow."
       maxWidthClass="max-w-[400px]"
       footer={
         <p>

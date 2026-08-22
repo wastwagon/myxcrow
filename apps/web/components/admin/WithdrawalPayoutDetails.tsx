@@ -67,7 +67,7 @@ export function WithdrawalPayoutDetailsView({
 
       <div className="rounded-[20px] bg-white px-4 py-3">
         <p className="text-[13px] text-[rgba(60,60,67,0.6)] mb-1">Amount</p>
-        <p className="text-[28px] font-bold tracking-tight text-gray-900">
+        <p className="text-[22px] font-semibold tracking-tight text-gray-900">
           {formatCurrency(withdrawal.amountCents, currency)}
         </p>
         {withdrawal.feeCents > 0 && (

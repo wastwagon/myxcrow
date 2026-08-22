@@ -1,6 +1,7 @@
 import { type ReactNode, useLayoutEffect } from 'react';
 import Head from 'next/head';
 import PublicHeader from '@/components/PublicHeader';
+import { TitleBadge } from '@/components/ui/TitleBadge';
 import { cn } from '@/lib/utils';
 
 interface PublicPageProps {
@@ -17,6 +18,7 @@ interface PublicPageProps {
   showHeader?: boolean;
   titleClassName?: string;
   noIndex?: boolean;
+  titleVariant?: 'heading' | 'badge';
 }
 
 export default function PublicPage({
@@ -31,6 +33,7 @@ export default function PublicPage({
   showHeader = true,
   titleClassName,
   noIndex = false,
+  titleVariant = 'heading',
 }: PublicPageProps) {
   useLayoutEffect(() => {
     document.documentElement.classList.add('public-light');
@@ -55,16 +58,29 @@ export default function PublicPage({
             centered && 'flex min-h-[70vh] flex-col items-center justify-center text-center'
           )}
         >
-          <h1
-            className={cn(
-              'font-bold tracking-tight text-gray-900',
-              titleClassName || 'text-[34px] leading-[1.15] pb-2'
-            )}
-          >
-            {title}
-          </h1>
+          {titleVariant === 'badge' && !titleClassName ? (
+            <TitleBadge as="h1" className="mb-3">
+              {title}
+            </TitleBadge>
+          ) : (
+            <h1
+              className={cn(
+                'font-semibold tracking-tight text-gray-900',
+                titleClassName || 'text-[17px] leading-[1.2] pb-2'
+              )}
+            >
+              {title}
+            </h1>
+          )}
           {subtitle && (
-            <p className="text-[15px] text-[rgba(60,60,67,0.6)] pb-5">{subtitle}</p>
+            <p
+              className={cn(
+                'text-[rgba(60,60,67,0.6)]',
+                titleVariant === 'badge' ? 'text-[13px] pb-4' : 'text-[15px] pb-5'
+              )}
+            >
+              {subtitle}
+            </p>
           )}
           {card ? <div className="rounded-[20px] bg-white p-5 sm:p-8 text-left">{children}</div> : children}
         </div>

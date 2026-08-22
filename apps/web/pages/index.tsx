@@ -94,11 +94,11 @@ export default function Home() {
                     Trusted escrow for Ghana
                   </span>
                 </div>
-                <h1 className="text-4xl md:text-6xl font-bold text-white tracking-tight">MYXCROW</h1>
-                <p className="mt-2 text-base md:text-2xl font-medium text-brand-gold">
+                <h1 className="text-[22px] font-semibold text-white tracking-tight">MYXCROW</h1>
+                <p className="mt-2 text-[15px] md:text-[17px] font-medium text-brand-gold">
                   Secure Escrow Services
                 </p>
-                <p className="mt-2 max-w-xl text-sm md:text-lg leading-relaxed text-white/80">
+                <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-white/80">
                   For the home you&apos;re building from afar, or the deal you&apos;re closing in Accra. Funds held safely until both sides are satisfied.
                 </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -106,7 +106,7 @@ export default function Home() {
                     Start an escrow
                     <ArrowRight className="w-5 h-5" />
                   </ButtonLink>
-                  <ButtonLink href="/login" variant="ghost" size="lg" className="sm:min-w-[140px]">
+                  <ButtonLink href="/login" variant="secondary" size="lg" className="sm:min-w-[140px]">
                     Sign in
                   </ButtonLink>
                 </div>
@@ -130,7 +130,7 @@ export default function Home() {
 
             {/* How it works – modern premium, no background, minimal */}
             <section className="mb-16 md:mb-20" aria-labelledby="how-it-works-heading">
-              <h2 id="how-it-works-heading" className="text-2xl md:text-4xl font-bold text-white mb-10 md:mb-14 text-center tracking-tight">
+              <h2 id="how-it-works-heading" className="text-[17px] font-semibold text-white mb-10 md:mb-14 text-center tracking-tight">
                 How it works
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 md:grid-cols-5">
@@ -143,10 +143,10 @@ export default function Home() {
                     <div className="flex items-center justify-center w-11 h-11 md:w-12 md:h-12 rounded-full border-2 border-brand-gold/80 text-brand-gold font-semibold text-sm md:text-base mb-4 group-hover:border-brand-gold group-hover:bg-brand-gold/10 transition-colors">
                       {item.step}
                     </div>
-                    <h3 className="font-semibold text-white text-base md:text-lg mb-1.5">
+                    <h3 className="font-semibold text-white text-[17px] mb-1.5">
                       {item.title}
                     </h3>
-                    <p className="text-sm md:text-base text-white/85 leading-relaxed max-w-xs">
+                    <p className="text-[15px] text-white/85 leading-relaxed max-w-xs">
                       {item.desc}
                     </p>
                   </div>
@@ -157,7 +157,7 @@ export default function Home() {
             {/* Use cases – photo cards */}
             <div className="mb-12">
               <SectionHeader
-                className="mb-6 justify-center text-center [&_h2]:text-2xl md:[&_h2]:text-3xl [&_div]:w-full"
+                className="mb-6 justify-center text-center [&_h2]:text-[17px] [&_div]:w-full"
                 title="Built for your transactions"
               />
               <ImageCardRow columns={4} className="md:gap-6">
@@ -189,7 +189,7 @@ export default function Home() {
                     <div className="w-12 h-12 rounded-[12px] bg-brand-maroon/10 ring-1 ring-brand-maroon/20 flex items-center justify-center mb-4">
                       <Icon className="w-6 h-6 text-brand-maroon" />
                     </div>
-                    <h3 className="text-lg font-semibold text-brand-maroon-black mb-2">{feature.title}</h3>
+                    <h3 className="text-[17px] font-semibold text-brand-maroon-black mb-2">{feature.title}</h3>
                     <p className={publicForm.marketingBody}>{feature.description}</p>
                   </div>
                 );
@@ -198,7 +198,7 @@ export default function Home() {
 
             {/* Pricing transparency */}
             <div className="bg-white/95 rounded-[12px] shadow-xl p-6 md:p-8 mb-12 border border-brand-maroon/15">
-              <h2 className="text-2xl md:text-3xl font-bold text-brand-maroon-black mb-4 text-center">
+              <h2 className="text-[17px] font-semibold text-brand-maroon-black mb-4 text-center">
                 Simple, transparent pricing
               </h2>
               <p className={`${publicForm.marketingBody} text-center max-w-2xl mx-auto mb-6`}>
@@ -227,7 +227,7 @@ export default function Home() {
 
             {/* FAQ – premium cards with pop-up modal */}
             <div className="mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-6 text-center">
+              <h2 className="text-[17px] font-semibold text-white mb-6 text-center">
                 Frequently asked questions
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -272,7 +272,7 @@ export default function Home() {
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
-                    <h3 id="faq-modal-title" className="text-lg font-semibold text-brand-maroon-black pr-8">
+                    <h3 id="faq-modal-title" className="text-[17px] font-semibold text-brand-maroon-black pr-8">
                       {faqModal.q}
                     </h3>
                     <button
@@ -306,15 +306,15 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-black/60 to-black/20" />
               <div className="relative z-10 p-8 md:p-10 text-white">
                 <div className="mb-6 max-w-2xl">
-                  <h2 className="text-2xl md:text-3xl font-bold mb-2">Ready to protect your transaction?</h2>
-                  <p className="text-white/85 text-base md:text-lg">Start an escrow in Ghana Cedis. Secure, simple, transparent.</p>
+                  <h2 className="text-[17px] font-semibold mb-2">Ready to protect your transaction?</h2>
+                  <p className="text-white/85 text-[15px]">Start an escrow in Ghana Cedis. Secure, simple, transparent.</p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4">
                   <ButtonLink href="/register" size="lg">
                     Start an escrow
                     <ArrowRight className="w-5 h-5" />
                   </ButtonLink>
-                  <ButtonLink href="/login" variant="ghost" size="lg">
+                  <ButtonLink href="/login" variant="secondary" size="lg">
                     Sign in
                   </ButtonLink>
                 </div>
@@ -324,7 +324,7 @@ export default function Home() {
             {/* Developer Tools (Local Only) */}
             {isLocal && (
               <div className="bg-white/95 rounded-[12px] shadow-lg p-6 border border-brand-maroon/15">
-                <h2 className="text-2xl font-semibold text-brand-maroon-black mb-4 flex items-center gap-2">
+                <h2 className="text-[17px] font-semibold text-brand-maroon-black mb-4 flex items-center gap-2">
                   <Zap className="w-6 h-6 text-brand-maroon" />
                   Developer Tools
                 </h2>

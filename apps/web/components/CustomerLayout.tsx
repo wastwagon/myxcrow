@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { AlertCircle, ChevronLeft, Home, Shield, User, Wallet } from 'lucide-react';
@@ -18,7 +18,6 @@ interface CustomerLayoutProps {
   trailing?: ReactNode;
   back?: boolean;
   onBack?: () => void;
-  large?: boolean;
   children: ReactNode;
 }
 
@@ -27,12 +26,9 @@ export default function CustomerLayout({
   trailing,
   back,
   onBack,
-  large = true,
   children,
 }: CustomerLayoutProps) {
   const router = useRouter();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [compact, setCompact] = useState(!large);
 
   useEffect(() => {
     document.documentElement.classList.add('customer-app');
@@ -40,19 +36,6 @@ export default function CustomerLayout({
       document.documentElement.classList.remove('customer-app');
     };
   }, []);
-
-  useEffect(() => {
-    if (!large) {
-      setCompact(true);
-      return;
-    }
-    const el = scrollRef.current;
-    if (!el) return;
-    const onScroll = () => setCompact(el.scrollTop > 28);
-    onScroll();
-    el.addEventListener('scroll', onScroll, { passive: true });
-    return () => el.removeEventListener('scroll', onScroll);
-  }, [large, title]);
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -72,7 +55,7 @@ export default function CustomerLayout({
       >
         <Link
           href="/dashboard"
-          className="inline-flex min-h-[44px] items-center px-3 mb-4 text-[22px] font-bold tracking-tight text-gray-900 touch-manipulation"
+          className="inline-flex min-h-[44px] items-center px-3 mb-4 text-[17px] font-semibold tracking-tight text-gray-900 touch-manipulation"
         >
           MYXCROW
         </Link>
@@ -108,10 +91,10 @@ export default function CustomerLayout({
           className="absolute top-0 left-0 right-0 z-40"
           style={{
             paddingTop: 'var(--app-sat, env(safe-area-inset-top, 0px))',
-            background: compact ? 'rgba(242,242,247,0.78)' : 'transparent',
-            backdropFilter: compact ? 'blur(32px) saturate(1.9)' : 'none',
-            WebkitBackdropFilter: compact ? 'blur(32px) saturate(1.9)' : 'none',
-            boxShadow: compact ? 'inset 0 -0.5px 0 rgba(60,60,67,0.18)' : 'none',
+            background: 'rgba(242,242,247,0.78)',
+            backdropFilter: 'blur(32px) saturate(1.9)',
+            WebkitBackdropFilter: 'blur(32px) saturate(1.9)',
+            boxShadow: 'inset 0 -0.5px 0 rgba(60,60,67,0.18)',
           }}
         >
           <div className="flex items-center min-h-[44px] px-1">
@@ -128,14 +111,7 @@ export default function CustomerLayout({
               <div className="w-2 shrink-0" aria-hidden />
             )}
             <div className="flex-1 min-w-0 text-center px-1">
-              <p
-                className={cn(
-                  'text-[17px] font-semibold truncate text-gray-900 transition-opacity duration-200',
-                  compact ? 'opacity-100' : 'opacity-0'
-                )}
-              >
-                {title}
-              </p>
+              <h1 className="text-[17px] font-semibold truncate text-gray-900">{title}</h1>
             </div>
             <div className="min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0">
               {trailing}
@@ -145,15 +121,9 @@ export default function CustomerLayout({
 
         <div
           id="customer-scroll"
-          ref={scrollRef}
           className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
           style={{ paddingTop: 'calc(var(--app-sat, env(safe-area-inset-top, 0px)) + 44px)' }}
         >
-          {large && (
-            <h1 className="px-4 text-[34px] font-bold tracking-tight leading-[1.12] text-gray-900 pb-4">
-              {title}
-            </h1>
-          )}
           <div className="px-4 pb-2 max-w-2xl mx-auto xl:max-w-5xl xl:px-2">
             <ImpersonationBanner />
             {children}

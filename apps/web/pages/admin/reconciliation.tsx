@@ -150,13 +150,13 @@ export default function ReconciliationPage() {
                 <div className="grid md:grid-cols-2 gap-3">
                   <div className="p-4 rounded-[20px] bg-gray-50 border border-gray-100">
                     <p className={dash.label}>Escrow hold balance</p>
-                    <p className="mt-1 text-xl font-bold text-gray-900">
+                    <p className={`mt-1 ${dash.value}`}>
                       {formatCurrency(balance.escrowHoldBalance, 'GHS')}
                     </p>
                   </div>
                   <div className="p-4 rounded-[20px] bg-gray-50 border border-gray-100">
                     <p className={dash.label}>Pending escrows</p>
-                    <p className="mt-1 text-xl font-bold text-gray-900">
+                    <p className={`mt-1 ${dash.value}`}>
                       {formatCurrency(balance.pendingEscrows, 'GHS')}
                     </p>
                   </div>
@@ -164,7 +164,7 @@ export default function ReconciliationPage() {
                 <div className="p-4 rounded-[20px] border border-gray-200 bg-white">
                   <p className={dash.label}>Difference</p>
                   <p
-                    className={`mt-1 text-xl font-bold ${
+                    className={`mt-1 text-[22px] font-semibold tracking-tight ${
                       balance.difference === 0 ? 'text-emerald-600' : 'text-red-600'
                     }`}
                   >

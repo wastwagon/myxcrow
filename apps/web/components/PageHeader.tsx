@@ -51,7 +51,7 @@ export default function PageHeader({
           )}
           <h1
             className={cn(
-              'text-2xl md:text-3xl font-bold tracking-tight',
+              'text-[17px] font-semibold tracking-tight',
               light ? 'text-gray-900' : 'text-white',
               eyebrow && 'mt-1'
             )}

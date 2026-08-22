@@ -13,7 +13,6 @@ export default function ServerError() {
       centered
       card={false}
       maxWidthClass="max-w-md"
-      titleClassName="text-[64px] font-bold tracking-tight text-gray-900 leading-none"
     >
       <p className="text-[15px] leading-relaxed text-[rgba(60,60,67,0.6)]">
         Something went wrong on our end. Please try again in a moment.

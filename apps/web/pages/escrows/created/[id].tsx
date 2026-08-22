@@ -14,6 +14,7 @@ import { ESCROW_CATEGORY } from '@/lib/escrow-services';
 import { buildEscrowReceipt } from '@/lib/receipt-builders';
 import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
 import { PageSpinner } from '@/components/LoadingSkeleton';
+import { TitleBadge } from '@/components/ui/TitleBadge';
 
 export default function EscrowCreatedPage() {
   const router = useRouter();
@@ -71,9 +72,9 @@ export default function EscrowCreatedPage() {
               <CheckCircle2 className="h-7 w-7 text-emerald-600" />
             </div>
             <div>
-              <h2 className="text-[22px] font-bold tracking-tight text-gray-900">
+              <TitleBadge as="h2">
                 {isFunded ? 'Escrow created & funded' : 'Escrow created'}
-              </h2>
+              </TitleBadge>
               <p className="mt-1 text-sm text-[rgba(60,60,67,0.6)]">
                 {isFunded
                   ? isProfessional

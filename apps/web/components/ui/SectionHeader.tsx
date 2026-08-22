@@ -25,7 +25,7 @@ export function SectionHeader({
             {eyebrow}
           </p>
         )}
-        <h2 className={cn('text-xl font-bold tracking-tight text-white', eyebrow && 'mt-1')}>
+        <h2 className={cn('text-[17px] font-semibold tracking-tight text-white', eyebrow && 'mt-1')}>
           {title}
         </h2>
       </div>

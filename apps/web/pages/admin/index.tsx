@@ -226,10 +226,7 @@ export default function AdminDashboard() {
     <Layout title="Admin">
       <PullToRefresh onRefresh={refreshAdmin} disabled={!isMobile}>
         <LightShell>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <p className={dash.subtitle}>
-              Monitor float, clear queues, and keep escrow ops healthy.
-            </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-end">
             <div className="flex flex-wrap gap-2">
               <ButtonLink href="/admin/wallet/credit" variant="outline" size="sm">
                 <DollarSign className="w-4 h-4" />
@@ -286,7 +283,7 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <LightPanel>
                 <p className={dash.label}>Top-ups (24h)</p>
-                <p className="mt-1 text-xl font-bold text-gray-900">
+                <p className={`mt-1 ${dash.value}`}>
                   {formatCurrency(statsData.last24Hours.topUpAmountCents ?? 0, 'GHS')}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -295,7 +292,7 @@ export default function AdminDashboard() {
               </LightPanel>
               <LightPanel>
                 <p className={dash.label}>Escrows created (24h)</p>
-                <p className="mt-1 text-xl font-bold text-gray-900">
+                <p className={`mt-1 ${dash.value}`}>
                   {statsData.last24Hours.escrowsCreated ?? 0}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">
@@ -304,14 +301,14 @@ export default function AdminDashboard() {
               </LightPanel>
               <LightPanel>
                 <p className={dash.label}>Fee revenue (24h)</p>
-                <p className="mt-1 text-xl font-bold text-gray-900">
+                <p className={`mt-1 ${dash.value}`}>
                   {formatCurrency(statsData.last24Hours.feesRevenueCents ?? 0, 'GHS')}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Platform earnings</p>
               </LightPanel>
               <LightPanel>
                 <p className={dash.label}>Active escrows</p>
-                <p className="mt-1 text-xl font-bold text-gray-900">{stats.activeEscrows}</p>
+                <p className={`mt-1 ${dash.value}`}>{stats.activeEscrows}</p>
                 <p className="text-xs text-gray-500 mt-1">{stats.totalEscrows} total</p>
               </LightPanel>
             </div>

@@ -32,8 +32,8 @@ export const publicForm = {
     'absolute inset-y-0 right-0 min-h-[44px] min-w-[44px] px-3 text-gray-600 hover:text-brand-maroon flex items-center justify-center touch-manipulation',
   hint: 'mt-1 text-xs text-gray-500',
   error: 'mt-1 text-sm text-red-600',
-  cardTitle: 'text-2xl font-bold text-gray-900 mb-2',
-  cardTitleLg: 'text-2xl md:text-3xl font-bold text-gray-900 mb-2',
+  cardTitle: 'text-[17px] font-semibold text-gray-900 mb-2',
+  cardTitleLg: 'text-[17px] font-semibold text-gray-900 mb-2',
   cardSubtitle: 'text-gray-600 text-sm',
   cardSubtitleMd: 'text-gray-600 text-sm md:text-base',
   calloutError:
@@ -61,12 +61,12 @@ export const publicForm = {
   /** Legal / static content on white cards */
   legalMeta: 'text-sm text-gray-500 mb-8',
   legalProse: 'space-y-6 text-gray-700',
-  legalSectionTitle: 'text-xl font-semibold text-brand-maroon-black mb-2',
+  legalSectionTitle: 'text-[17px] font-semibold text-brand-maroon-black mb-2',
   legalFooter: 'mt-10 pt-6 border-t border-gray-200 flex flex-wrap gap-4',
   /** Support / help pages on white cards */
-  pageTitle: 'text-3xl md:text-4xl font-bold text-brand-maroon-black mb-2',
+  pageTitle: 'text-[17px] font-semibold text-brand-maroon-black mb-2',
   pageIntro: 'text-gray-600 mb-8',
-  sectionTitle: 'text-xl font-semibold text-brand-maroon-black mb-4 flex items-center gap-2',
+  sectionTitle: 'text-[17px] font-semibold text-brand-maroon-black mb-4 flex items-center gap-2',
   bodyList: 'space-y-3 text-gray-700',
   topicCard: 'p-4 rounded-[16px] border border-gray-200 bg-gray-50',
   topicCardTitle: 'font-semibold text-brand-maroon-black mb-1',

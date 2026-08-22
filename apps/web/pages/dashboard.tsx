@@ -16,6 +16,8 @@ import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import { PhoneOnly, DesktopOnly } from '@/components/ui/PhoneOnly';
+import { TitleBadge } from '@/components/ui/TitleBadge';
+import { dash } from '@/components/dashboard/lightClasses';
 import {
   TableShell,
   Table,
@@ -79,7 +81,7 @@ export default function Dashboard() {
     queryFn: async () => (await apiClient.get('/wallet')).data,
     staleTime: 0,
     refetchInterval: 30000,
-    enabled: mounted && isAuthenticated(),
+    enabled: mounted && isAuthenticated() && !isAdmin(),
   });
 
   const { data: escrowsData, isLoading: escrowsLoading } = useQuery<
@@ -87,14 +89,14 @@ export default function Dashboard() {
   >({
     queryKey: ['escrows'],
     queryFn: async () => (await apiClient.get('/escrows')).data,
-    enabled: mounted && isAuthenticated(),
+    enabled: mounted && isAuthenticated() && !isAdmin(),
   });
 
   const escrows: Escrow[] = Array.isArray(escrowsData)
     ? escrowsData
     : escrowsData?.data || escrowsData?.escrows || [];
 
-  if (!mounted || !isAuthenticated()) {
+  if (!mounted || !isAuthenticated() || isAdmin()) {
     return <PageSpinner />;
   }
 
@@ -118,14 +120,19 @@ export default function Dashboard() {
   };
 
   return (
-    <CustomerLayout title={userName || 'Home'}>
+    <CustomerLayout title="Home">
       <PullToRefresh onRefresh={refreshDashboard} disabled={!isMobile} className="space-y-6 pb-4">
         <div>
+          {userName ? (
+            <p className="mb-3">
+              <TitleBadge>Hi, {userName}</TitleBadge>
+            </p>
+          ) : null}
           <p className="text-[13px] text-[rgba(60,60,67,0.6)]">Available</p>
           {walletLoading ? (
             <div className="mt-1 h-10 w-40 animate-pulse rounded-[16px] bg-black/5" />
           ) : (
-            <p className="mt-0.5 text-[34px] font-bold tracking-tight leading-tight text-gray-900">
+            <p className={`mt-0.5 ${dash.value} leading-tight`}>
               {formatCurrency(available, 'GHS')}
             </p>
           )}

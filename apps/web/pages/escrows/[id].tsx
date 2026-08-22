@@ -316,7 +316,7 @@ export default function EscrowDetailPage() {
 
   if (isLoading) {
     return (
-      <CustomerLayout title="Escrow" back large={false}>
+      <CustomerLayout title="Escrow" back>
         <PageDetailSkeleton />
       </CustomerLayout>
     );
@@ -324,7 +324,7 @@ export default function EscrowDetailPage() {
 
   if (!escrow) {
     return (
-      <CustomerLayout title="Escrow" back large={false}>
+      <CustomerLayout title="Escrow" back>
         <EmptyState
           tone="light"
           icon={<AlertCircle className="h-6 w-6" />}
@@ -356,7 +356,7 @@ export default function EscrowDetailPage() {
   const isStaffView = isAdmin() && !isBuyer && !isSeller;
 
   return (
-    <CustomerLayout title="Escrow" back large={false}>
+    <CustomerLayout title="Escrow" back>
       <PullToRefresh onRefresh={refreshEscrow} disabled={!isMobile} className="space-y-6">
         {isStaffView && (
           <Banner light tone="brand" title="Admin view">
@@ -381,7 +381,7 @@ export default function EscrowDetailPage() {
         {/* Main Info */}
         <div className="grid md:grid-cols-2 gap-6">
           <div className="rounded-[20px] bg-white p-5">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Details</h2>
+            <h2 className="text-[17px] font-semibold text-gray-900 mb-4">Details</h2>
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-[rgba(60,60,67,0.6)]">Description</p>
@@ -427,7 +427,7 @@ export default function EscrowDetailPage() {
               )}
               <div>
                 <p className="text-sm text-[rgba(60,60,67,0.6)]">Deal Amount</p>
-                <p className="font-medium text-gray-900 text-2xl">
+                <p className="font-semibold text-gray-900 text-[22px] tracking-tight">
                   {formatCurrency(escrow.amountCents, 'GHS')}
                 </p>
               </div>
@@ -531,7 +531,7 @@ export default function EscrowDetailPage() {
 
           {/* Actions */}
           <div className="rounded-[20px] bg-white p-5">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
+            <h2 className="text-[17px] font-semibold text-gray-900 mb-4">Actions</h2>
             <div className="space-y-3">
               {canFund && (
                 <Button

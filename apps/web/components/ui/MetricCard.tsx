@@ -73,7 +73,7 @@ export function MetricCard({
       {loading ? (
         <div className={cn('h-8 w-24 animate-pulse rounded-[16px]', light ? 'bg-gray-100' : 'bg-white/10')} />
       ) : (
-        <p className={cn('text-2xl font-bold tracking-tight', light ? 'text-gray-900' : 'text-white')}>{value}</p>
+        <p className={cn('text-[22px] font-semibold tracking-tight', light ? 'text-gray-900' : 'text-white')}>{value}</p>
       )}
       {hint && (
         <p className={cn('text-xs mt-1', light ? 'text-gray-500' : 'text-white/50')}>{hint}</p>

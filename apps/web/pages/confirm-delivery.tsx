@@ -65,6 +65,7 @@ export default function ConfirmDeliveryPage() {
   return (
     <PublicPage
       title="Confirm delivery"
+      titleVariant="badge"
       subtitle="Enter the reference and code or PIN from the parcel before funds are released."
       maxWidthClass="max-w-md"
       documentTitle="Confirm Delivery - MYXCROW"

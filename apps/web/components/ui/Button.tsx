@@ -13,7 +13,7 @@ const variants = {
     'bg-white/15 text-white border border-white/50 hover:bg-white/25 active:opacity-80 backdrop-blur-sm',
   /** White outline for photography / maroon marketing surfaces */
   ghost:
-    'bg-transparent text-white border-2 border-white/75 hover:bg-white/15 hover:border-white active:opacity-90',
+    'bg-transparent text-white border-2 border-white/80 hover:bg-white/20 hover:border-white active:opacity-90',
   /** Maroon primary for light auth/customer surfaces */
   maroon:
     'bg-brand-maroon mx-cta hover:bg-brand-maroon-dark active:opacity-90',

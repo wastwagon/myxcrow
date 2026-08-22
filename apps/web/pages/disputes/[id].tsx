@@ -175,7 +175,7 @@ export default function DisputeDetailPage() {
 
   if (isLoading) {
     return (
-      <CustomerLayout title="Dispute" back large={false}>
+      <CustomerLayout title="Dispute" back>
         <PageDetailSkeleton />
       </CustomerLayout>
     );
@@ -183,7 +183,7 @@ export default function DisputeDetailPage() {
 
   if (!dispute) {
     return (
-      <CustomerLayout title="Dispute" back large={false}>
+      <CustomerLayout title="Dispute" back>
         <EmptyState
           tone="light"
           icon={<AlertCircle className="h-6 w-6" />}
@@ -199,7 +199,7 @@ export default function DisputeDetailPage() {
   const isAdminUser = isAdmin();
 
   return (
-    <CustomerLayout title="Dispute" back large={false}>
+    <CustomerLayout title="Dispute" back>
       <PullToRefresh onRefresh={refreshDispute} disabled={!isMobile} className="space-y-6">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[13px] text-[rgba(60,60,67,0.6)] truncate">ID {dispute.id}</p>
@@ -211,7 +211,7 @@ export default function DisputeDetailPage() {
 
         {/* Dispute Info */}
         <div className="rounded-[20px] bg-white p-5">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Dispute Information</h2>
+          <h2 className="text-[17px] font-semibold text-gray-900 mb-4">Dispute Information</h2>
           <div className="space-y-3">
             {escrow && (
               <div>
@@ -271,7 +271,7 @@ export default function DisputeDetailPage() {
         {/* Messages */}
         <div className="rounded-[20px] bg-white overflow-hidden">
           <div className="p-5 border-b border-[rgba(60,60,67,0.12)]">
-            <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
+            <h2 className="text-[17px] font-semibold text-gray-900">Messages</h2>
           </div>
           <div className="p-6 space-y-4 max-h-96 overflow-y-auto">
             {messagesLoading ? (
@@ -329,7 +329,7 @@ export default function DisputeDetailPage() {
         {/* Admin Actions */}
         {isAdminUser && dispute && ['OPEN', 'NEGOTIATION', 'MEDIATION', 'ARBITRATION'].includes(dispute.status) && (
           <div className="rounded-[20px] bg-white p-5">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Admin Actions</h2>
+            <h2 className="text-[17px] font-semibold text-gray-900 mb-4">Admin Actions</h2>
             <form onSubmit={handleResolve} className="space-y-4">
               <Field
                 label="Resolution outcome"

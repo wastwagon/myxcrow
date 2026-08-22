@@ -18,6 +18,7 @@ import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { StatusBadge } from '@/components/StatusBadge';
 import { PhoneOnly, DesktopOnly } from '@/components/ui/PhoneOnly';
+import { dash } from '@/components/dashboard/lightClasses';
 import {
   TableShell,
   Table,
@@ -100,7 +101,7 @@ export default function WalletPage() {
           {walletLoading ? (
             <div className="mt-1 h-10 w-40 animate-pulse rounded-[16px] bg-black/5" />
           ) : (
-            <p className="mt-0.5 text-[34px] font-bold tracking-tight leading-tight text-gray-900">
+            <p className={`mt-0.5 ${dash.value} leading-tight`}>
               {formatCurrency(available, 'GHS')}
             </p>
           )}

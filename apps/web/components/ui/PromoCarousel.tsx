@@ -103,12 +103,7 @@ export function PromoCarousel({
           <span className="mb-3 inline-flex w-fit rounded-full border border-brand-gold/30 bg-black/30 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-brand-gold backdrop-blur-sm">
             {slide.eyebrow}
           </span>
-          <h2
-            className={cn(
-              'max-w-md font-bold tracking-tight text-white',
-              isHero ? 'text-2xl md:text-4xl' : 'text-xl md:text-2xl'
-            )}
-          >
+          <h2 className="max-w-md text-[17px] font-semibold tracking-tight text-white">
             {slide.title}
           </h2>
           <p

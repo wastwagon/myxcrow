@@ -60,6 +60,7 @@ export default function SupportPage() {
   return (
     <PublicPage
       title="Support"
+      titleVariant="badge"
       subtitle="We’re here to help with escrows, payments, account issues, and disputes."
       documentTitle="Support - MYXCROW"
       description="Get help with MYXCROW escrow. Contact support via chat or email. FAQs on fees, escrow, wallet, disputes, and account."

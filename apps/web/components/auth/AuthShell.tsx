@@ -2,6 +2,7 @@ import { type ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { TitleBadge } from '@/components/ui/TitleBadge';
 
 type AuthMode = 'login' | 'register';
 
@@ -40,7 +41,7 @@ function AuthModeTabs({ mode }: { mode: AuthMode }) {
 export function AuthShell({
   title,
   subtitle,
-  titleVariant = 'heading',
+  titleVariant = 'badge',
   children,
   footer,
   mode,
@@ -82,15 +83,23 @@ export function AuthShell({
               <span className="text-[13px] font-semibold tracking-tight text-brand-maroon">MYXCROW</span>
             </Link>
 
-            <div className={cn('w-full', titleVariant === 'heading' && subtitle && 'space-y-2')}>
-              {titleVariant === 'badge' ? (
-                <h1 className="inline-flex items-center rounded-full bg-white px-3.5 py-1 text-[12px] font-semibold tracking-tight text-brand-maroon ring-1 ring-black/[0.06] shadow-sm">
-                  {title}
-                </h1>
+            <div className={cn('w-full', subtitle && 'space-y-2')}>
+              {titleVariant === 'heading' ? (
+                <h1 className="text-[17px] font-semibold tracking-tight leading-[1.2] text-gray-900">{title}</h1>
               ) : (
-                <h1 className="text-[34px] font-bold tracking-tight leading-[1.15] text-gray-900">{title}</h1>
+                <TitleBadge as="h1">{title}</TitleBadge>
               )}
-              {subtitle && <p className="text-[15px] text-[rgba(60,60,67,0.6)]">{subtitle}</p>}
+              {subtitle && (
+                <p
+                  className={cn(
+                    titleVariant === 'badge'
+                      ? 'text-[13px] text-[rgba(60,60,67,0.6)]'
+                      : 'text-[15px] text-[rgba(60,60,67,0.6)]'
+                  )}
+                >
+                  {subtitle}
+                </p>
+              )}
             </div>
 
             {mode && <AuthModeTabs mode={mode} />}
@@ -161,7 +170,7 @@ export function AuthSuccessPanel({
         {icon}
       </div>
       <div className="space-y-2">
-        <h2 className="text-[22px] font-bold text-gray-900">{title}</h2>
+        <h2 className="text-[17px] font-semibold text-gray-900">{title}</h2>
         <p className="text-[15px] text-[rgba(60,60,67,0.6)] leading-relaxed">{description}</p>
       </div>
       {children && <div className="w-full pt-2">{children}</div>}

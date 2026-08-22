@@ -103,7 +103,7 @@ export default function Navigation() {
       style={{ paddingTop: 'max(1.5rem, var(--app-sat, env(safe-area-inset-top, 0px)))' }}
       aria-label="Admin"
     >
-      <Link href="/admin" className="inline-flex min-h-[44px] items-center px-3 mb-4 text-[22px] font-bold tracking-tight text-gray-900">
+      <Link href="/admin" className="inline-flex min-h-[44px] items-center px-3 mb-4 text-[17px] font-semibold tracking-tight text-gray-900">
         MYXCROW
       </Link>
 

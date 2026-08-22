@@ -5,6 +5,7 @@ import { Loader2, ShieldCheck } from 'lucide-react';
 import { getApiBaseUrl } from '@/lib/api-base';
 import { isPaystackCheckoutUrl } from '@/lib/safe-url';
 import { publicForm } from '@/lib/form-classes';
+import { TitleBadge } from '@/components/ui/TitleBadge';
 
 const API_BASE = getApiBaseUrl();
 
@@ -104,7 +105,9 @@ export default function PartnerCheckoutPage() {
     return (
       <CheckoutShell>
         <div className="rounded-[20px] bg-white p-8 text-center">
-          <p className="text-[22px] font-bold text-gray-900">Checkout unavailable</p>
+          <TitleBadge as="h1" className="mb-3">
+            Checkout unavailable
+          </TitleBadge>
           <p className="mt-2 text-[15px] text-[rgba(60,60,67,0.6)]">{error}</p>
           <button
             type="button"
@@ -126,10 +129,12 @@ export default function PartnerCheckoutPage() {
   return (
     <CheckoutShell>
       <div className="mb-5 flex items-center gap-3">
-        <ShieldCheck className="h-7 w-7 text-brand-maroon" />
+        <ShieldCheck className="h-7 w-7 shrink-0 text-brand-maroon" />
         <div>
           <p className="text-[13px] text-[rgba(60,60,67,0.6)]">MYXCROW escrow</p>
-          <h1 className="text-[22px] font-bold tracking-tight text-gray-900">Secure checkout</h1>
+          <TitleBadge as="h1" className="mt-1">
+            Secure checkout
+          </TitleBadge>
         </div>
       </div>
 
@@ -140,7 +145,7 @@ export default function PartnerCheckoutPage() {
         {sellerName ? (
           <p className="mt-1 text-[15px] text-gray-900">Merchant: {sellerName}</p>
         ) : null}
-        <p className="mt-4 text-[34px] font-bold tracking-tight leading-none text-gray-900">
+        <p className="mt-4 text-[22px] font-semibold tracking-tight leading-none text-gray-900">
           {session?.currency || 'GHS'} {amount}
         </p>
         {session?.escrow?.description ? (

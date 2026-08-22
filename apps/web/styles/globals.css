@@ -282,10 +282,10 @@ html.public-light [class*="text-red-100"] {
   color: #b91c1c;
 }
 
-html.customer-app button[class*="bg-white/15"],
-html.customer-app a[class*="bg-white/15"],
-html.public-light button[class*="bg-white/15"],
-html.public-light a[class*="bg-white/15"] {
+html.customer-app button[class*="bg-white/15"]:not([class*="text-white"]),
+html.customer-app a[class*="bg-white/15"]:not([class*="text-white"]),
+html.public-light button[class*="bg-white/15"]:not([class*="text-white"]),
+html.public-light a[class*="bg-white/15"]:not([class*="text-white"]) {
   background-color: #e5e5ea;
   color: #111827;
   border-color: transparent;

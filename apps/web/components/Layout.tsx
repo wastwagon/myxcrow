@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode } from 'react';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import { isAdminAppPath } from '@/lib/app-chrome';
@@ -17,18 +17,6 @@ interface LayoutProps {
 export default function Layout({ children, title, trailing }: LayoutProps) {
   const router = useRouter();
   const light = isAdminAppPath(router.pathname);
-  const [compact, setCompact] = useState(false);
-
-  useEffect(() => {
-    if (!light || !title) {
-      setCompact(false);
-      return;
-    }
-    const onScroll = () => setCompact(window.scrollY > 28);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [light, title]);
 
   if (!light) {
     return (
@@ -53,23 +41,16 @@ export default function Layout({ children, title, trailing }: LayoutProps) {
             className="sticky top-0 z-40"
             style={{
               paddingTop: 'var(--app-sat, env(safe-area-inset-top, 0px))',
-              background: compact ? 'rgba(242,242,247,0.78)' : 'transparent',
-              backdropFilter: compact ? 'blur(32px) saturate(1.9)' : 'none',
-              WebkitBackdropFilter: compact ? 'blur(32px) saturate(1.9)' : 'none',
-              boxShadow: compact ? 'inset 0 -0.5px 0 rgba(60,60,67,0.18)' : 'none',
+              background: 'rgba(242,242,247,0.78)',
+              backdropFilter: 'blur(32px) saturate(1.9)',
+              WebkitBackdropFilter: 'blur(32px) saturate(1.9)',
+              boxShadow: 'inset 0 -0.5px 0 rgba(60,60,67,0.18)',
             }}
           >
             <div className="flex items-center min-h-[44px] px-1">
               <div className="min-w-[44px] shrink-0" aria-hidden />
               <div className="flex-1 min-w-0 text-center px-1">
-                <p
-                  className={cn(
-                    'text-[17px] font-semibold truncate text-gray-900 transition-opacity duration-200',
-                    compact ? 'opacity-100' : 'opacity-0'
-                  )}
-                >
-                  {title}
-                </p>
+                <h1 className="text-[17px] font-semibold truncate text-gray-900">{title}</h1>
               </div>
               <div className="min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0">
                 {trailing}
@@ -85,11 +66,6 @@ export default function Layout({ children, title, trailing }: LayoutProps) {
             overlay && 'pt-2 xl:pt-3'
           )}
         >
-          {title && (
-            <h1 className="text-[34px] font-bold tracking-tight leading-[1.12] text-gray-900 pb-5">
-              {title}
-            </h1>
-          )}
           {children}
         </main>
       </div>
