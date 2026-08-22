@@ -6,11 +6,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDateShort } from '@/lib/utils';
 import { AlertCircle, Scale } from 'lucide-react';
+import { IconWell } from '@/components/ui/IconWell';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { StatusBadge } from '@/components/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
-import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
 import { PhoneOnly, DesktopOnly } from '@/components/ui/PhoneOnly';
 import {
@@ -51,7 +52,7 @@ export default function DisputesPage() {
   });
 
   if (!isAuthenticated()) {
-    return null;
+    return <PageSpinner />;
   }
 
   const refreshDisputes = async () => {
@@ -78,11 +79,7 @@ export default function DisputesPage() {
                   >
                     <ListRow
                       href={`/disputes/${dispute.id}`}
-                      leading={
-                        <span className="flex h-8 w-8 items-center justify-center rounded-[8px] bg-red-50 text-red-600">
-                          <AlertCircle className="h-4 w-4" />
-                        </span>
-                      }
+                      leading={<IconWell icon={AlertCircle} color="orange" />}
                       title={dispute.reason.replace(/_/g, ' ')}
                       subtitle={`Escrow ${dispute.escrowId.slice(0, 8)}… · ${formatDateShort(dispute.createdAt)}`}
                       trailing={<StatusBadge status={dispute.status} onDark={false} />}

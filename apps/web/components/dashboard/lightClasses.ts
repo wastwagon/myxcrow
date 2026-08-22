@@ -1,9 +1,9 @@
 /** Light dashboard surface tokens — maroon/gold accents, no Untitled purple. */
 export const dash = {
   shell: 'text-gray-900 space-y-6',
-  panel: 'rounded-[12px] bg-white p-4 sm:p-5',
-  panelFlush: 'rounded-[12px] bg-white overflow-hidden',
-  title: 'text-[34px] font-bold tracking-tight leading-[1.15] text-gray-900',
+  panel: 'rounded-[20px] bg-white p-4 sm:p-5',
+  panelFlush: 'rounded-[20px] bg-white overflow-hidden',
+  title: 'text-[34px] font-bold tracking-tight leading-[1.12] text-gray-900',
   subtitle: 'text-[15px] text-[rgba(60,60,67,0.6)] mt-1',
   sectionTitle: 'text-[17px] font-semibold text-gray-900',
   muted: 'text-[15px] text-[rgba(60,60,67,0.6)]',
@@ -12,10 +12,10 @@ export const dash = {
   trendUp: 'text-sm font-semibold text-emerald-600',
   trendDown: 'text-sm font-semibold text-red-600',
   link: 'inline-flex min-h-[44px] items-center text-[15px] font-semibold text-brand-maroon hover:text-brand-maroon-dark touch-manipulation',
-  empty: 'rounded-[12px] bg-white text-gray-900',
-  tableHead: 'text-left text-[13px] font-normal text-[rgba(60,60,67,0.6)]',
-  th: 'px-4 py-2.5 font-normal',
-  td: 'px-4 py-[13px] text-[17px] leading-[22px] text-gray-900',
+  empty: 'rounded-[20px] bg-white text-gray-900',
+  tableHead: 'text-left text-[13px] font-normal text-[rgba(60,60,67,0.55)]',
+  th: 'px-4 py-3 font-medium',
+  td: 'px-4 py-[15px] text-[17px] leading-[22px] text-gray-900',
   tdMuted: 'text-[15px] text-[rgba(60,60,67,0.6)]',
   trHover: 'hover:bg-black/[0.03] active:bg-black/[0.05] transition-colors',
 } as const;

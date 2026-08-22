@@ -58,7 +58,7 @@ export default function DisputeSLATimer({ disputeId }: DisputeSLATimerProps) {
   };
 
   return (
-    <div className={`border rounded-[12px] p-4 ${getStatusColor()}`}>
+    <div className={`border rounded-[20px] p-4 ${getStatusColor()}`}>
       <div className="flex items-center gap-3 mb-3">
         {getStatusIcon()}
         <div>

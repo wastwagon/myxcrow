@@ -15,7 +15,7 @@ export default function EscrowFeeSummary({ fees, currency = 'GHS', className = '
 
   return (
     <div
-      className={`rounded-[12px] border border-[var(--form-panel-border)] bg-[var(--form-input-bg)] p-4 space-y-2 text-sm ${className}`}
+      className={`rounded-[20px] border border-[var(--form-panel-border)] bg-[var(--form-input-bg)] p-4 space-y-2 text-sm ${className}`}
     >
       <p className="font-semibold text-[var(--form-input-text)]">Summary</p>
       <div className="flex justify-between text-[var(--form-label)]">

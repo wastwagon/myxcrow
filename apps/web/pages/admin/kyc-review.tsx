@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 
 /**
  * KYC Review - disabled for now. Smile ID verification to be implemented later.
@@ -17,5 +18,5 @@ export default function KYCReviewPage() {
     }
   }, [router]);
 
-  return null;
+  return <PageSpinner />;
 }

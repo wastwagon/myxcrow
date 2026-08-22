@@ -70,7 +70,7 @@ export function DropdownMenu({
         aria-label={label}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px]',
+          'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[16px]',
           'transition-colors touch-manipulation',
           light
             ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900'
@@ -86,7 +86,7 @@ export function DropdownMenu({
           id={menuId}
           role="menu"
           className={cn(
-            'absolute z-50 mt-1 min-w-[200px] py-1 rounded-[12px] overflow-hidden',
+            'absolute z-50 mt-1 min-w-[200px] py-1 rounded-[16px] overflow-hidden',
             light
               ? 'bg-white border border-[rgba(60,60,67,0.12)]'
               : 'border border-white/15 bg-[#261819] shadow-ios-card',

@@ -110,7 +110,7 @@ After seeding the database, you can use these test accounts:
 
 2. **Web** (`escrow_web`)
    - Next.js frontend service
-   - Port: `3000`
+   - Host URL: http://localhost:3007 (container listens on 3000)
    - Hot-reload enabled
 
 ## 🛠️ Common Commands

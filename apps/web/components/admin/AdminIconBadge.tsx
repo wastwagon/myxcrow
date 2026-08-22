@@ -18,9 +18,9 @@ interface AdminIconBadgeProps {
 }
 
 const sizes = {
-  sm: 'w-10 h-10 rounded-[12px] [&_svg]:w-4 [&_svg]:h-4',
-  md: 'w-12 h-12 rounded-[12px] [&_svg]:w-6 [&_svg]:h-6',
-  lg: 'w-14 h-14 rounded-[12px] [&_svg]:w-7 [&_svg]:h-7',
+  sm: 'w-10 h-10 rounded-[16px] [&_svg]:w-4 [&_svg]:h-4',
+  md: 'w-12 h-12 rounded-[16px] [&_svg]:w-6 [&_svg]:h-6',
+  lg: 'w-14 h-14 rounded-[16px] [&_svg]:w-7 [&_svg]:h-7',
 };
 
 export function AdminIconBadge({

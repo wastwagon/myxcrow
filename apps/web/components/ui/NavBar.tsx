@@ -48,7 +48,7 @@ export function NavBar({
             type="button"
             onClick={handleBack}
             className={cn(
-              'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[12px] touch-manipulation',
+              'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[16px] touch-manipulation',
               light ? 'text-brand-maroon hover:bg-black/5' : 'text-brand-gold hover:bg-white/10'
             )}
             aria-label="Go back"

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /mockup
+Disallow: /mockup/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /play-store-icon.html
+Disallow: /play-store-feature-graphic.html

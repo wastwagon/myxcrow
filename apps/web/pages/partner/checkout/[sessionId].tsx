@@ -103,13 +103,13 @@ export default function PartnerCheckoutPage() {
   if (error && !session) {
     return (
       <CheckoutShell>
-        <div className="rounded-[12px] bg-white p-8 text-center">
+        <div className="rounded-[20px] bg-white p-8 text-center">
           <p className="text-[22px] font-bold text-gray-900">Checkout unavailable</p>
           <p className="mt-2 text-[15px] text-[rgba(60,60,67,0.6)]">{error}</p>
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-[12px] bg-brand-maroon px-5 text-[17px] font-semibold text-white touch-manipulation"
+            className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-[20px] bg-brand-maroon px-5 text-[17px] font-semibold text-white touch-manipulation"
           >
             Try again
           </button>
@@ -133,7 +133,7 @@ export default function PartnerCheckoutPage() {
         </div>
       </div>
 
-      <div className="rounded-[12px] bg-white p-5 sm:p-6">
+      <div className="rounded-[20px] bg-white p-5 sm:p-6">
         <p className="text-[13px] text-[rgba(60,60,67,0.6)]">
           Paying via {session?.platform?.name || 'partner'} · Order {session?.externalOrderId}
         </p>
@@ -166,7 +166,7 @@ export default function PartnerCheckoutPage() {
           type="button"
           disabled={paying}
           onClick={() => void pay()}
-          className="mt-6 flex w-full min-h-[50px] items-center justify-center gap-2 rounded-[12px] bg-brand-maroon px-4 py-3 text-[17px] font-semibold text-white touch-manipulation disabled:opacity-60"
+          className="mt-6 flex w-full min-h-[50px] items-center justify-center gap-2 rounded-[20px] bg-brand-maroon px-4 py-3 text-[17px] font-semibold text-white touch-manipulation disabled:opacity-60"
         >
           {paying ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
           Pay securely with MoMo / Card

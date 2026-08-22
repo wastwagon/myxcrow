@@ -81,7 +81,7 @@ export default function Navigation() {
         key={href}
         href={href}
         className={cn(
-          'inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[12px] text-[17px] touch-manipulation',
+          'inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[16px] text-[17px] touch-manipulation',
           active
             ? 'bg-white font-semibold text-gray-900'
             : 'font-medium text-[rgba(60,60,67,0.7)] hover:bg-black/[0.04]'
@@ -121,7 +121,7 @@ export default function Navigation() {
       <div className="flex flex-col gap-0.5 pt-3">
         <Link
           href="/profile"
-          className="inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[12px] text-[17px] font-medium text-[rgba(60,60,67,0.7)] hover:bg-black/[0.04]"
+          className="inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[16px] text-[17px] font-medium text-[rgba(60,60,67,0.7)] hover:bg-black/[0.04]"
         >
           <User className="w-[22px] h-[22px] shrink-0" strokeWidth={1.75} />
           <span className="truncate">{user?.email || 'Account'}</span>
@@ -129,7 +129,7 @@ export default function Navigation() {
         <button
           type="button"
           onClick={handleLogout}
-          className="inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[12px] text-[17px] font-medium text-[#ff3b30] hover:bg-red-50 touch-manipulation"
+          className="inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[16px] text-[17px] font-medium text-[#ff3b30] hover:bg-red-50 touch-manipulation"
         >
           <LogOut className="w-[22px] h-[22px] shrink-0" strokeWidth={1.75} />
           Sign out

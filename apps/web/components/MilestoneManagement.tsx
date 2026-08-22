@@ -149,7 +149,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[12px] bg-[#f2f2f7] p-4">
+      <div className="rounded-[20px] bg-[#f2f2f7] p-4">
         <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
           <div>
             <span className="text-[rgba(60,60,67,0.6)]">Total Milestones:</span>
@@ -182,7 +182,7 @@ export default function MilestoneManagement({ escrowId, buyerId, sellerId }: Mil
             <div
               key={milestone.id}
               className={cn(
-                'rounded-[12px] border p-4',
+                'rounded-[20px] border p-4',
                 milestone.status === 'released'
                   ? 'border-emerald-200 bg-emerald-50'
                   : milestone.status === 'completed' || milestone.status === 'approved'

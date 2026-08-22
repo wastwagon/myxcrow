@@ -16,7 +16,7 @@ import { Sheet } from '@/components/ui/Sheet';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { IconWell } from '@/components/ui/IconWell';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
-import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { CircleHelp, KeyRound, LayoutDashboard } from 'lucide-react';
 
@@ -156,7 +156,7 @@ export default function ProfilePage() {
   };
 
   if (!isAuthenticated()) {
-    return null;
+    return <PageSpinner />;
   }
 
   const displayUser = profile || user;

@@ -200,7 +200,7 @@ export default function PublicProfilePage() {
           <div className={form.panel}>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Statistics</h2>
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-[12px] bg-[#f2f2f7]">
+              <div className="flex items-center justify-between p-4 rounded-[20px] bg-[#f2f2f7]">
                 <div className="flex items-center gap-3">
                   <TrendingUp className="w-5 h-5 text-brand-maroon" />
                   <span className="font-medium text-gray-900">Completion Rate</span>
@@ -209,7 +209,7 @@ export default function PublicProfilePage() {
                   {profile.reputation.completionRate.toFixed(1)}%
                 </span>
               </div>
-              <div className="flex items-center justify-between p-4 rounded-[12px] bg-emerald-50">
+              <div className="flex items-center justify-between p-4 rounded-[20px] bg-emerald-50">
                 <div className="flex items-center gap-3">
                   <Star className="w-5 h-5 text-emerald-600" />
                   <span className="font-medium text-gray-900">Total Ratings</span>
@@ -218,7 +218,7 @@ export default function PublicProfilePage() {
                   {profile.reputation.totalRatings}
                 </span>
               </div>
-              <div className="flex items-center justify-between p-4 rounded-[12px] bg-[#f2f2f7]">
+              <div className="flex items-center justify-between p-4 rounded-[20px] bg-[#f2f2f7]">
                 <div className="flex items-center gap-3">
                   <Shield className="w-5 h-5 text-[rgba(60,60,67,0.6)]" />
                   <span className="font-medium text-gray-900">KYC Status</span>

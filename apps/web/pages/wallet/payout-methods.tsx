@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import type { SavedPayoutMethod } from '@/lib/withdrawal-payout';
 import { Sheet } from '@/components/ui/Sheet';
 import { form } from '@/lib/form-classes';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 import { PayoutDetailsFields } from '@/components/wallet/PayoutDetailsFields';
 import {
   payoutDetailsFormSchema,
@@ -107,7 +108,7 @@ export default function PayoutMethodsPage() {
     await queryClient.invalidateQueries({ queryKey: ['payout-methods'] });
   };
 
-  if (!isAuthenticated()) return null;
+  if (!isAuthenticated()) return <PageSpinner />;
 
   return (
     <CustomerLayout
@@ -125,9 +126,9 @@ export default function PayoutMethodsPage() {
     >
       <PullToRefresh onRefresh={refresh} disabled={!isMobile} className="space-y-5">
         {isLoading ? (
-          <div className="h-32 bg-white animate-pulse rounded-[12px]" />
+          <div className="h-32 bg-white animate-pulse rounded-[20px]" />
         ) : methods.length === 0 ? (
-          <div className="rounded-[12px] bg-white">
+          <div className="rounded-[20px] bg-white">
             <EmptyState
               tone="light"
               icon={<Smartphone className="w-6 h-6" />}
@@ -144,12 +145,12 @@ export default function PayoutMethodsPage() {
                 <div
                   key={method.id}
                   className={cn(
-                    'rounded-[12px] bg-white p-4',
+                    'rounded-[20px] bg-white p-4',
                     method.isDefault && 'ring-1 ring-brand-maroon/25'
                   )}
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-[12px] bg-brand-maroon/10 flex items-center justify-center shrink-0">
+                    <div className="w-10 h-10 rounded-[20px] bg-brand-maroon/10 flex items-center justify-center shrink-0">
                       <Icon className="w-5 h-5 text-brand-maroon" />
                     </div>
                     <div className="flex-1 min-w-0">

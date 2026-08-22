@@ -8,13 +8,12 @@ const footerLinks = [
   { href: '/support', label: 'Support' },
 ];
 
-// Social links - update hrefs when live
 const socialLinks = [
-  { href: process.env.NEXT_PUBLIC_TWITTER_URL || '#', icon: Twitter, label: 'Twitter' },
-  { href: process.env.NEXT_PUBLIC_FACEBOOK_URL || '#', icon: Facebook, label: 'Facebook' },
-  { href: process.env.NEXT_PUBLIC_LINKEDIN_URL || '#', icon: Linkedin, label: 'LinkedIn' },
-  { href: process.env.NEXT_PUBLIC_INSTAGRAM_URL || '#', icon: Instagram, label: 'Instagram' },
-];
+  { href: process.env.NEXT_PUBLIC_TWITTER_URL, icon: Twitter, label: 'Twitter' },
+  { href: process.env.NEXT_PUBLIC_FACEBOOK_URL, icon: Facebook, label: 'Facebook' },
+  { href: process.env.NEXT_PUBLIC_LINKEDIN_URL, icon: Linkedin, label: 'LinkedIn' },
+  { href: process.env.NEXT_PUBLIC_INSTAGRAM_URL, icon: Instagram, label: 'Instagram' },
+].filter((s) => s.href && s.href !== '#');
 
 export default function PremiumFooter() {
   return (
@@ -52,21 +51,22 @@ export default function PremiumFooter() {
             © {new Date().getFullYear()} MYXCROW. Secure escrow for safe transactions.
           </p>
 
-          {/* Socials: centered on mobile, compact spacing */}
-          <div className="flex items-center justify-center gap-3 md:justify-end md:flex-1 md:gap-4">
-            {socialLinks.map(({ href, icon: Icon, label }) => (
-              <a
-                key={label}
-                href={href}
-                target={href.startsWith('#') ? undefined : '_blank'}
-                rel={href.startsWith('#') ? undefined : 'noopener noreferrer'}
-                className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-[12px] bg-white/15 flex items-center justify-center text-white hover:bg-brand-gold hover:text-brand-maroon-black transition-all touch-manipulation"
-                aria-label={label}
-              >
-                <Icon className="w-4 h-4 md:w-5 md:h-5" />
-              </a>
-            ))}
-          </div>
+          {socialLinks.length > 0 && (
+            <div className="flex items-center justify-center gap-3 md:justify-end md:flex-1 md:gap-4">
+              {socialLinks.map(({ href, icon: Icon, label }) => (
+                <a
+                  key={label}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="min-w-[44px] min-h-[44px] w-11 h-11 rounded-[12px] bg-white/15 flex items-center justify-center text-white hover:bg-brand-gold hover:text-brand-maroon-black transition-all touch-manipulation"
+                  aria-label={label}
+                >
+                  <Icon className="w-4 h-4 md:w-5 md:h-5" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </footer>

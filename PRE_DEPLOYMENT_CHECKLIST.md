@@ -44,7 +44,7 @@ Use this checklist before deploying MYXCROW to **Render** with the Blueprint.
 
 - **API URL:** `NEXT_PUBLIC_API_BASE_URL` must be set and web redeployed so the value is in the build.
 - **Database:** Migrations run automatically via preDeployCommand.
-- **Health:** API health path is `/api/health`.
+- **Health:** API health path is `/api/health/readiness` (Render `healthCheckPath`). `/api/health` also exists for liveness.
 
 ---
 

@@ -31,6 +31,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useConfirm } from '@/components/providers/UIProvider';
 import { LightShell } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 
 interface User {
   id: string;
@@ -179,7 +180,7 @@ export default function AdminUsersPage() {
   };
 
   if (!isAuthenticated() || !isAdmin()) {
-    return null;
+    return <PageSpinner />;
   }
 
   const refreshUsers = async () => {
@@ -187,14 +188,11 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <Layout>
+    <Layout title="Users">
       <PullToRefresh onRefresh={refreshUsers} disabled={!isMobile}>
         <LightShell>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className={dash.title}>Users</h1>
-              <p className={dash.subtitle}>Search, filter roles, and manage wallet access</p>
-            </div>
+            <p className={dash.subtitle}>Search, filter roles, and manage wallet access</p>
             <ButtonLink href="/admin" variant="outline" size="sm">
               Back to admin
             </ButtonLink>
@@ -336,7 +334,7 @@ export default function AdminUsersPage() {
                             <button
                               type="button"
                               onClick={() => handleEditRoles(user)}
-                              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] text-brand-maroon hover:bg-brand-maroon/10"
+                              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[16px] text-brand-maroon hover:bg-brand-maroon/10"
                               title="Edit Roles"
                             >
                               <Edit className="w-4 h-4" />

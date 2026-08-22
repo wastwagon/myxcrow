@@ -16,6 +16,8 @@ export function IntercomChat() {
     if (typeof window !== 'undefined' && window.Intercom) {
       window.Intercom('boot', {
         app_id: INTERCOM_APP_ID,
+        vertical_padding: 90,
+        horizontal_padding: 16,
       });
     }
   }, [INTERCOM_APP_ID]);

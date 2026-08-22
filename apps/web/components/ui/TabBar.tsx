@@ -47,7 +47,7 @@ export function TabBar({ items, className, tone = 'dark' }: TabBarProps) {
           ios
             ? item.isActive
               ? 'text-brand-maroon'
-              : 'text-[rgba(60,60,67,0.6)]'
+              : 'text-[rgba(60,60,67,0.55)]'
             : item.isActive
               ? 'text-brand-gold'
               : 'text-white/50 hover:text-white/75'
@@ -57,8 +57,8 @@ export function TabBar({ items, className, tone = 'dark' }: TabBarProps) {
         <span className="relative">
           <Icon
             className="shrink-0"
-            size={ios ? 26 : 22}
-            strokeWidth={item.isActive ? 2.2 : 1.75}
+            size={26}
+            strokeWidth={item.isActive ? 2.35 : 1.7}
             fill={item.isActive ? 'currentColor' : 'none'}
             aria-hidden
           />
@@ -68,45 +68,41 @@ export function TabBar({ items, className, tone = 'dark' }: TabBarProps) {
             </span>
           )}
         </span>
-        <span className="font-medium mt-0.5 truncate max-w-full px-0.5 text-[10px]">{item.label}</span>
+        <span className="font-medium mt-0.5 truncate max-w-full px-0.5 text-[10px] tracking-tight">
+          {item.label}
+        </span>
       </Link>
     );
   });
 
-  if (ios) {
-    return (
-      <nav
-        className={cn('fixed bottom-0 left-0 right-0 z-50 xl:hidden pointer-events-none', className)}
-        style={{ padding: '8px 16px max(10px, var(--safe-bottom))' }}
-        aria-label="Main"
-      >
-        <div
-          className="pointer-events-auto flex items-stretch h-[52px] max-w-lg mx-auto rounded-[26px]"
-          style={{
-            background: 'rgba(255,255,255,0.78)',
-            backdropFilter: 'blur(40px) saturate(1.8)',
-            WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
-            boxShadow:
-              '0 10px 40px rgba(0,0,0,0.14), 0 0.5px 0 rgba(255,255,255,0.8) inset, 0 0 0 0.5px rgba(0,0,0,0.06)',
-          }}
-        >
-          {tabs}
-        </div>
-      </nav>
-    );
-  }
-
   return (
     <nav
-      className={cn(
-        'fixed bottom-0 left-0 right-0 z-50 xl:hidden',
-        'bg-[var(--tab-bar-bg)] backdrop-blur-ios border-t border-white/10 shadow-tab-bar',
-        className
-      )}
-      style={{ paddingBottom: 'var(--safe-bottom)' }}
+      className={cn('fixed bottom-0 left-0 right-0 z-50 xl:hidden pointer-events-none', className)}
+      style={{ padding: '8px 16px max(12px, var(--safe-bottom))' }}
       aria-label="Main"
     >
-      <div className="flex items-stretch max-w-lg mx-auto h-tab-bar">{tabs}</div>
+      <div
+        className="pointer-events-auto flex items-stretch h-[54px] max-w-lg mx-auto rounded-[28px]"
+        style={
+          ios
+            ? {
+                background: 'rgba(255,255,255,0.82)',
+                backdropFilter: 'blur(40px) saturate(1.9)',
+                WebkitBackdropFilter: 'blur(40px) saturate(1.9)',
+                boxShadow:
+                  '0 12px 40px rgba(0,0,0,0.12), 0 0.5px 0 rgba(255,255,255,0.9) inset, 0 0 0 0.5px rgba(0,0,0,0.04)',
+              }
+            : {
+                background: 'rgba(22,15,16,0.78)',
+                backdropFilter: 'blur(40px) saturate(1.8)',
+                WebkitBackdropFilter: 'blur(40px) saturate(1.8)',
+                boxShadow:
+                  '0 12px 40px rgba(0,0,0,0.35), 0 0.5px 0 rgba(255,255,255,0.12) inset, 0 0 0 0.5px rgba(255,255,255,0.08)',
+              }
+        }
+      >
+        {tabs}
+      </div>
     </nav>
   );
 }

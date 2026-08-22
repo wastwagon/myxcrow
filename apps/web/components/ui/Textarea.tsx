@@ -19,7 +19,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       <textarea
         ref={ref}
         className={cn(
-          'w-full min-h-[96px] px-4 py-3 rounded-[12px] border outline-none transition-colors resize-y',
+          'w-full min-h-[96px] px-4 py-3 rounded-[16px] border outline-none transition-colors resize-y',
           'focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation',
           textareaTone[tone],
           error &&

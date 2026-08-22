@@ -8,21 +8,9 @@ import { cn } from '@/lib/utils';
 const PremiumFooter = dynamic(() => import('@/components/PremiumFooter'));
 const MobileBottomNav = dynamic(() => import('@/components/MobileBottomNav'), { ssr: false });
 
-/** Routes that use the authenticated app chrome (tab bar, no marketing footer). */
-const APP_ROUTE_PREFIXES = [
-  '/dashboard',
-  '/escrows',
-  '/wallet',
-  '/disputes',
-  '/profile',
-  '/kyc',
-  '/change-password',
-  '/admin',
-  '/payments',
-];
-
-function isAppRoute(pathname: string): boolean {
-  return APP_ROUTE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+/** Focused payment flow — no tab bar so the keypad / Paystack redirect stays unobstructed. */
+function hideTabBar(pathname: string): boolean {
+  return pathname.startsWith('/partner/checkout');
 }
 
 interface AppShellProps {
@@ -39,8 +27,7 @@ export default function AppShell({ children }: AppShellProps) {
     setAuthenticated(isAuthenticated());
   }, [router.pathname]);
 
-  const onAppRoute = isAppRoute(router.pathname);
-  const showTabBar = mounted && authenticated && onAppRoute;
+  const showTabBar = mounted && !hideTabBar(router.pathname);
   const showFooter = mounted && router.pathname === '/';
   const customerShell = mounted && authenticated && isCustomerAppPath(router.pathname);
 
@@ -48,14 +35,16 @@ export default function AppShell({ children }: AppShellProps) {
     <>
       <div
         className={cn(
-            customerShell
+          customerShell
             ? 'flex-1 min-h-0 flex flex-col overflow-hidden'
             : showTabBar
               ? 'min-h-screen flex flex-col pb-tab-bar xl:pb-0'
               : 'min-h-screen flex flex-col'
         )}
       >
-        <div className={customerShell ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : 'flex-1'}>{children}</div>
+        <div className={customerShell ? 'flex-1 min-h-0 flex flex-col overflow-hidden' : 'flex-1'}>
+          {children}
+        </div>
         {showFooter && <PremiumFooter />}
       </div>
       {showTabBar && <MobileBottomNav />}

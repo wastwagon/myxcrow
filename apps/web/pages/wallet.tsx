@@ -8,12 +8,13 @@ import { formatCurrency, formatDate } from '@/lib/utils';
 import { formatPayoutSummary, formatWithdrawalStatusLabel } from '@/lib/withdrawal-payout';
 import { buildWalletFundingReceipt, buildWithdrawalReceipt } from '@/lib/receipt-builders';
 import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
-import { ArrowUpCircle, Wallet as WalletIcon } from 'lucide-react';
+import { ArrowUpCircle, Wallet as WalletIcon, Banknote, Landmark, LayoutDashboard } from 'lucide-react';
+import { IconWell } from '@/components/ui/IconWell';
 import { ButtonLink } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
-import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { StatusBadge } from '@/components/StatusBadge';
 import { PhoneOnly, DesktopOnly } from '@/components/ui/PhoneOnly';
@@ -67,7 +68,7 @@ export default function WalletPage() {
   });
 
   if (!isAuthenticated()) {
-    return null;
+    return <PageSpinner />;
   }
 
   const refreshWallet = async () => {
@@ -97,7 +98,7 @@ export default function WalletPage() {
         <div>
           <p className="text-[13px] text-[rgba(60,60,67,0.6)]">Available</p>
           {walletLoading ? (
-            <div className="mt-1 h-10 w-40 animate-pulse rounded-[12px] bg-black/5" />
+            <div className="mt-1 h-10 w-40 animate-pulse rounded-[16px] bg-black/5" />
           ) : (
             <p className="mt-0.5 text-[34px] font-bold tracking-tight leading-tight text-gray-900">
               {formatCurrency(available, 'GHS')}
@@ -112,15 +113,30 @@ export default function WalletPage() {
           <ListRow
             href="/escrows"
             title="Pending in escrow"
+            leading={<IconWell icon={WalletIcon} color="orange" />}
             trailing={
               <span className="text-[17px] text-[rgba(60,60,67,0.6)]">
                 {walletLoading ? '—' : formatCurrency(pending, 'GHS')}
               </span>
             }
           />
-          <ListRow href="/wallet/withdraw" title="Withdraw" />
-          <ListRow href="/wallet/payout-methods" title="Payout methods" />
-          {admin && <ListRow href="/admin" title="Admin" />}
+          <ListRow
+            href="/wallet/withdraw"
+            title="Withdraw"
+            leading={<IconWell icon={Banknote} color="green" />}
+          />
+          <ListRow
+            href="/wallet/payout-methods"
+            title="Payout methods"
+            leading={<IconWell icon={Landmark} color="teal" />}
+          />
+          {admin && (
+            <ListRow
+              href="/admin"
+              title="Admin"
+              leading={<IconWell icon={LayoutDashboard} color="maroon" />}
+            />
+          )}
         </ListGroup>
 
         {fundingLoading ? (

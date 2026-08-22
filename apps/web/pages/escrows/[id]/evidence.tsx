@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Banner } from '@/components/ui/Banner';
 import { form } from '@/lib/form-classes';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 
@@ -148,7 +149,7 @@ export default function EvidencePage() {
     },
   });
 
-  if (!isAuthenticated()) return null;
+  if (!isAuthenticated()) return <PageSpinner />;
 
   const evidenceList: Evidence[] = escrow?.evidence ?? [];
 
@@ -157,7 +158,7 @@ export default function EvidencePage() {
       <PullToRefresh onRefresh={refreshEvidence} disabled={!isMobile} className="space-y-6">
         <div className={form.panel}>
           <h2 className="text-[17px] font-semibold text-gray-900 mb-4">Upload evidence</h2>
-          <div id="file-upload" className="border-2 border-dashed border-[rgba(60,60,67,0.18)] rounded-[12px] p-8 text-center scroll-mt-20">
+          <div id="file-upload" className="border-2 border-dashed border-[rgba(60,60,67,0.18)] rounded-[20px] p-8 text-center scroll-mt-20">
             <Upload className="w-12 h-12 mx-auto text-gray-500 mb-4" />
             <input
               type="file"
@@ -167,7 +168,7 @@ export default function EvidencePage() {
               accept="image/*,application/pdf,.doc,.docx"
             />
             <label htmlFor="evidence-file" className="cursor-pointer inline-block">
-              <span className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-[12px] bg-brand-maroon text-white font-semibold hover:bg-brand-maroon-dark touch-manipulation">
+              <span className="inline-flex items-center justify-center gap-2 min-h-[44px] px-4 py-2.5 rounded-[20px] bg-brand-maroon text-white font-semibold hover:bg-brand-maroon-dark touch-manipulation">
                 Select file
               </span>
             </label>
@@ -201,7 +202,7 @@ export default function EvidencePage() {
           </p>
         </div>
 
-        <div className="rounded-[12px] bg-white overflow-hidden">
+        <div className="rounded-[20px] bg-white overflow-hidden">
           <div className="p-5 border-b border-[rgba(60,60,67,0.12)]">
             <h2 className="text-[17px] font-semibold text-gray-900">Uploaded evidence</h2>
           </div>
@@ -211,7 +212,7 @@ export default function EvidencePage() {
                 {evidenceList.map((evidence) => (
                   <div
                     key={evidence.id}
-                    className="flex items-center justify-between p-4 border border-[rgba(60,60,67,0.12)] rounded-[12px]"
+                    className="flex items-center justify-between p-4 border border-[rgba(60,60,67,0.12)] rounded-[20px]"
                   >
                     <div className="flex items-center gap-4 min-w-0">
                       <File className="w-8 h-8 text-brand-maroon shrink-0" />

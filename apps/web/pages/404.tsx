@@ -9,6 +9,7 @@ export default function NotFound() {
       subtitle="Page not found"
       documentTitle="Page not found - MYXCROW"
       description="The page you're looking for doesn't exist or has been moved."
+      noIndex
       centered
       card={false}
       maxWidthClass="max-w-md"

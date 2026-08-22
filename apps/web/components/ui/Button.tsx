@@ -23,9 +23,9 @@ const variants = {
 } as const;
 
 const sizes = {
-  sm: 'min-h-[44px] px-3 py-2 text-ios-footnote rounded-[12px]',
-  md: 'min-h-[44px] px-4 py-2.5 text-ios-body rounded-[12px]',
-  lg: 'min-h-[50px] px-5 py-3 text-ios-headline rounded-[12px]',
+  sm: 'min-h-[44px] px-3.5 py-2 text-ios-footnote rounded-[16px]',
+  md: 'min-h-[44px] px-4 py-2.5 text-ios-body rounded-[16px]',
+  lg: 'min-h-[50px] px-5 py-3 text-ios-headline rounded-[16px]',
 } as const;
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

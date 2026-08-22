@@ -22,7 +22,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
 
   if (!mounted) {
     return (
-      <Layout>
+      <Layout title="Admin">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-maroon" />
         </div>
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!isAuthenticated() || !isAdmin()) return null;
+  if (!isAuthenticated() || !isAdmin()) return <PageSpinner />;
 
   const stats = {
     totalEscrows: statsData?.totals?.escrowCount || 0,
@@ -223,16 +223,13 @@ export default function AdminDashboard() {
   const queueLoading = statsLoading;
 
   return (
-    <Layout>
+    <Layout title="Admin">
       <PullToRefresh onRefresh={refreshAdmin} disabled={!isMobile}>
         <LightShell>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className={dash.title}>Admin</h1>
-              <p className={dash.subtitle}>
-                Monitor float, clear queues, and keep escrow ops healthy.
-              </p>
-            </div>
+            <p className={dash.subtitle}>
+              Monitor float, clear queues, and keep escrow ops healthy.
+            </p>
             <div className="flex flex-wrap gap-2">
               <ButtonLink href="/admin/wallet/credit" variant="outline" size="sm">
                 <DollarSign className="w-4 h-4" />
@@ -327,7 +324,7 @@ export default function AdminDashboard() {
                 <Clock className="w-4 h-4 text-[rgba(60,60,67,0.55)]" />
               </div>
               {statsLoading ? (
-                <div className="h-[180px] animate-pulse rounded-[12px] bg-black/5" />
+                <div className="h-[180px] animate-pulse rounded-[20px] bg-black/5" />
               ) : (
                 <SimpleBarChart
                   height={180}
@@ -450,7 +447,7 @@ export default function AdminDashboard() {
                   <Link
                     key={href}
                     href={href}
-                    className="flex items-center gap-2 rounded-[12px] bg-white px-3 py-3 min-h-[44px] text-[15px] font-semibold text-gray-900 active:bg-black/[0.04] touch-manipulation"
+                    className="flex items-center gap-2 rounded-[20px] bg-white px-3 py-3 min-h-[44px] text-[15px] font-semibold text-gray-900 active:bg-black/[0.04] touch-manipulation"
                   >
                     <Icon className="w-4 h-4 text-brand-maroon shrink-0" />
                     {label}

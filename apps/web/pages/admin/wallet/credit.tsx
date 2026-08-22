@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Loader2, Search, User, Wallet, X } from 'lucide-react';
+import { Loader2, Search, User, X } from 'lucide-react';
 import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
@@ -18,8 +18,9 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Field } from '@/components/ui/Field';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-import PageHeader from '@/components/PageHeader';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
+import { dash } from '@/components/dashboard/lightClasses';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 
 const creditSchema = z.object({
   userId: z.string().min(1, 'User is required'),
@@ -132,7 +133,7 @@ export default function CreditWalletPage() {
   };
 
   if (!isAuthenticated() || !isAdmin()) {
-    return null;
+    return <PageSpinner />;
   }
 
   const refreshCreditPage = async () => {
@@ -143,16 +144,10 @@ export default function CreditWalletPage() {
   };
 
   return (
-    <Layout>
+    <Layout title="Credit wallet">
       <PullToRefresh onRefresh={refreshCreditPage} disabled={!isMobile} className="max-w-3xl mx-auto">
         <LightShell>
-          <PageHeader
-            tone="light"
-            eyebrow="Admin"
-            title="Credit Wallet"
-            subtitle="Manually credit a user's wallet"
-            icon={<Wallet className="w-6 h-6" />}
-          />
+          <p className={dash.subtitle}>Manually credit a user&apos;s wallet</p>
 
           <LightPanel className="p-6 sm:p-8 space-y-6">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -161,7 +156,7 @@ export default function CreditWalletPage() {
                   Select User *
                 </label>
                 {selectedUser ? (
-                  <div className="flex items-center justify-between p-4 rounded-[12px] border border-brand-maroon/25 bg-brand-maroon/5">
+                    <div className="flex items-center justify-between p-4 rounded-[16px] border border-brand-maroon/25 bg-brand-maroon/5">
                     <div className="flex items-center gap-3">
                       <AdminAvatar label={selectedUser.email} variant="maroon" />
                       <div>
@@ -175,7 +170,7 @@ export default function CreditWalletPage() {
                         setSelectedUser(null);
                         setValue('userId', '');
                       }}
-                      className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] text-gray-700 hover:bg-black/5 hover:text-gray-900 touch-manipulation"
+                      className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[16px] text-gray-700 hover:bg-black/5 hover:text-gray-900 touch-manipulation"
                       aria-label="Clear user"
                     >
                       <X className="w-5 h-5" />
@@ -196,7 +191,7 @@ export default function CreditWalletPage() {
                       leading={<Search className="h-5 w-5" />}
                     />
                     {showUserSearch && searchTerm && (
-                      <div className="absolute z-10 w-full mt-2 rounded-[12px] border border-gray-200 bg-white shadow-lg max-h-64 overflow-y-auto">
+                      <div className="absolute z-10 w-full mt-2 rounded-[16px] border border-gray-200 bg-white shadow-lg max-h-64 overflow-y-auto">
                         {usersLoading ? (
                           <div className="p-4 text-center">
                             <Loader2 className="w-5 h-5 animate-spin mx-auto text-brand-maroon" />

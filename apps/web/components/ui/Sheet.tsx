@@ -46,7 +46,7 @@ export function Sheet({ open, onClose, title, children, footer, className, tone 
         aria-modal="true"
         aria-labelledby={title ? 'sheet-title' : undefined}
         className={cn(
-          'relative z-10 w-full max-h-[90vh] flex flex-col rounded-t-[20px] shadow-2xl',
+          'relative z-10 w-full max-h-[90vh] flex flex-col rounded-t-[28px] shadow-2xl',
           tone === 'light'
             ? 'bg-[#f2f2f7] pb-[max(1rem,var(--safe-bottom))]'
             : 'bg-[#1f1414] border-t border-white/10 pb-[max(1rem,var(--safe-bottom))]',
@@ -71,7 +71,7 @@ export function Sheet({ open, onClose, title, children, footer, className, tone 
               type="button"
               onClick={onClose}
               className={cn(
-                'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[12px]',
+                'min-w-[44px] min-h-[44px] flex items-center justify-center rounded-[16px]',
                 tone === 'light' ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900' : 'text-label-secondary hover:bg-white/10'
               )}
               aria-label="Close"

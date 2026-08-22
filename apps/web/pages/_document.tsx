@@ -12,7 +12,7 @@ export default function Document() {
         <link rel="icon" href="/logo/MYXCROWLOGO.png" type="image/png" />
         <link rel="apple-touch-icon" href="/logo/MYXCROWLOGO.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#1f1414" />
+        <meta name="theme-color" content="#ffffff" />
         <meta
           name="facebook-domain-verification"
           content="v00t2xzk48f70lsl0me78o73tumca3"

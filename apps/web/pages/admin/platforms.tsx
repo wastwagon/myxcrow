@@ -13,6 +13,7 @@ import { Field } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 import {
   TableShell,
   Table,
@@ -113,13 +114,14 @@ export default function AdminPlatformsPage() {
     },
   });
 
+  if (!isAuthenticated() || !isAdmin()) {
+    return <PageSpinner />;
+  }
+
   return (
-    <Layout>
+    <Layout title="Partner platforms">
       <LightShell>
-        <div>
-          <h1 className={dash.title}>Partner platforms</h1>
-          <p className={dash.subtitle}>API keys for DwumaPOS and other commerce integrations</p>
-        </div>
+        <p className={dash.subtitle}>API keys for DwumaPOS and other commerce integrations</p>
 
         {createdSecret && (
           <LightPanel className="mb-4 border-amber-300 bg-amber-50">
@@ -194,7 +196,7 @@ export default function AdminPlatformsPage() {
                     <button
                       type="button"
                       onClick={() => setSelectedId(p.id)}
-                      className={`w-full rounded-[12px] min-h-[44px] px-3 py-2.5 text-left text-[17px] touch-manipulation ${
+                      className={`w-full rounded-[16px] min-h-[44px] px-3 py-2.5 text-left text-[17px] touch-manipulation ${
                         selectedId === p.id
                           ? 'bg-brand-maroon/5 text-gray-900'
                           : 'bg-transparent hover:bg-black/[0.03]'
@@ -259,7 +261,7 @@ export default function AdminPlatformsPage() {
                         {!k.revokedAt && (
                           <button
                             type="button"
-                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] text-[#ff3b30] hover:bg-red-50 touch-manipulation"
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[16px] text-[#ff3b30] hover:bg-red-50 touch-manipulation"
                             onClick={async () => {
                               const ok = await confirm({
                                 title: 'Revoke API key',

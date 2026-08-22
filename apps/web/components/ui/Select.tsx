@@ -19,7 +19,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       <select
         ref={ref}
         className={cn(
-          'w-full min-h-[44px] px-4 py-3 rounded-[12px] border outline-none appearance-none transition-colors',
+          'w-full min-h-[44px] px-4 py-3 rounded-[16px] border outline-none appearance-none transition-colors',
           'focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation',
           selectTone[tone],
           error &&

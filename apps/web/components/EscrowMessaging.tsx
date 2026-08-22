@@ -98,12 +98,12 @@ export default function EscrowMessaging({ escrowId }: EscrowMessagingProps) {
     <div className={form.panel}>
       {header}
 
-      <div className="border border-[var(--separator)] rounded-[12px] h-96 overflow-y-auto p-4 mb-4 space-y-4 bg-[var(--form-input-bg)]">
+      <div className="border border-[var(--separator)] rounded-[20px] h-96 overflow-y-auto p-4 mb-4 space-y-4 bg-[var(--form-input-bg)]">
         {messages && messages.length > 0 ? (
           messages.map((msg) => (
             <div key={msg.id} className={`flex ${isOwnMessage(msg) ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-[12px] ${
+                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-[20px] ${
                   isOwnMessage(msg)
                     ? 'bg-brand-maroon/10 text-[var(--form-input-text)] border border-brand-maroon/20'
                     : 'bg-[var(--form-panel-bg)] text-[var(--form-input-text)] border border-[var(--separator)]'

@@ -13,7 +13,7 @@
 Once Docker Desktop is running, execute:
 
 ```bash
-cd /Users/OceanCyber/Downloads/myexrow
+cd /Users/OceanCyber/Downloads/myxcrow
 docker-compose -f infra/docker/docker-compose.dev.yml up -d
 ```
 
@@ -23,7 +23,7 @@ This will start:
 - ✅ MinIO object storage (ports 9003, 9004)
 - ✅ Mailpit email testing (ports 1026, 8026)
 - ✅ API service (port 4000)
-- ✅ Web service (port 3000)
+- ✅ Web service (host port 3007 → container 3000)
 
 ## Step 3: Check Service Status
 
@@ -42,7 +42,7 @@ curl http://localhost:4000/api/health
 Expected: `{"status":"ok"}`
 
 ### Test Web:
-Open in browser: **http://localhost:3000**
+Open in browser: **http://localhost:3007**
 
 ## Step 5: View Logs (if needed)
 
@@ -91,7 +91,7 @@ docker-compose -f infra/docker/docker-compose.dev.yml exec api pnpm prisma migra
 ## Access Points
 
 Once services are running:
-- **Web Frontend**: http://localhost:3000
+- **Web Frontend**: http://localhost:3007
 - **API**: http://localhost:4000/api
 - **API Health**: http://localhost:4000/api/health
 - **Mailpit**: http://localhost:8026

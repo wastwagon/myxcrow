@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { Loader2, Search, User, Wallet, X, AlertTriangle } from 'lucide-react';
+import { Loader2, Search, User, X, AlertTriangle } from 'lucide-react';
 import { CURRENCY_SYMBOL } from '@/lib/constants';
 import { toast } from 'react-hot-toast';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
@@ -18,8 +18,9 @@ import { Textarea } from '@/components/ui/Textarea';
 import { Field } from '@/components/ui/Field';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-import PageHeader from '@/components/PageHeader';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
+import { dash } from '@/components/dashboard/lightClasses';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 
 const debitSchema = z.object({
   userId: z.string().min(1, 'User is required'),
@@ -133,7 +134,7 @@ export default function DebitWalletPage() {
   };
 
   if (!isAuthenticated() || !isAdmin()) {
-    return null;
+    return <PageSpinner />;
   }
 
   const refreshDebitPage = async () => {
@@ -144,18 +145,12 @@ export default function DebitWalletPage() {
   };
 
   return (
-    <Layout>
+    <Layout title="Debit wallet">
       <PullToRefresh onRefresh={refreshDebitPage} disabled={!isMobile} className="max-w-3xl mx-auto">
         <LightShell>
-          <PageHeader
-            tone="light"
-            eyebrow="Admin"
-            title="Debit Wallet"
-            subtitle="Manually debit a user's wallet"
-            icon={<Wallet className="w-6 h-6" />}
-          />
+          <p className={dash.subtitle}>Manually debit a user&apos;s wallet</p>
 
-          <div className="rounded-[12px] border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+          <div className="rounded-[16px] border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-amber-900">Warning</p>
@@ -173,7 +168,7 @@ export default function DebitWalletPage() {
                   Select User *
                 </label>
                 {selectedUser ? (
-                  <div className="flex items-center justify-between p-4 rounded-[12px] border border-red-200 bg-red-50">
+                    <div className="flex items-center justify-between p-4 rounded-[16px] border border-red-200 bg-red-50">
                     <div className="flex items-center gap-3">
                       <AdminAvatar label={selectedUser.email} variant="destructive" />
                       <div>
@@ -187,7 +182,7 @@ export default function DebitWalletPage() {
                         setSelectedUser(null);
                         setValue('userId', '');
                       }}
-                      className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] text-gray-700 hover:bg-black/5 hover:text-gray-900 touch-manipulation"
+                      className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[16px] text-gray-700 hover:bg-black/5 hover:text-gray-900 touch-manipulation"
                       aria-label="Clear user"
                     >
                       <X className="w-5 h-5" />
@@ -208,7 +203,7 @@ export default function DebitWalletPage() {
                       leading={<Search className="h-5 w-5" />}
                     />
                     {showUserSearch && searchTerm && (
-                      <div className="absolute z-10 w-full mt-2 rounded-[12px] border border-gray-200 bg-white shadow-lg max-h-64 overflow-y-auto">
+                      <div className="absolute z-10 w-full mt-2 rounded-[16px] border border-gray-200 bg-white shadow-lg max-h-64 overflow-y-auto">
                         {usersLoading ? (
                           <div className="p-4 text-center">
                             <Loader2 className="w-5 h-5 animate-spin mx-auto text-brand-maroon" />

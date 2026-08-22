@@ -9,14 +9,14 @@ function AuthModeTabs({ mode }: { mode: AuthMode }) {
   return (
     <div
       role="tablist"
-      className="flex w-full p-1 rounded-[12px] bg-[#e5e5ea]"
+      className="flex w-full p-1 rounded-[16px] bg-[#e5e5ea]"
     >
       <Link
         href="/register"
         role="tab"
         aria-selected={mode === 'register'}
         className={cn(
-          'flex-1 min-h-[44px] inline-flex items-center justify-center px-3 py-1.5 rounded-[12px] text-[15px] font-semibold transition-colors touch-manipulation',
+          'flex-1 min-h-[44px] inline-flex items-center justify-center px-3 py-1.5 rounded-[16px] text-[15px] font-semibold transition-colors touch-manipulation',
           mode === 'register' ? 'bg-white text-gray-900 shadow-sm' : 'text-[rgba(60,60,67,0.6)]'
         )}
       >
@@ -27,7 +27,7 @@ function AuthModeTabs({ mode }: { mode: AuthMode }) {
         role="tab"
         aria-selected={mode === 'login'}
         className={cn(
-          'flex-1 min-h-[44px] inline-flex items-center justify-center px-3 py-1.5 rounded-[12px] text-[15px] font-semibold transition-colors touch-manipulation',
+          'flex-1 min-h-[44px] inline-flex items-center justify-center px-3 py-1.5 rounded-[16px] text-[15px] font-semibold transition-colors touch-manipulation',
           mode === 'login' ? 'bg-white text-gray-900 shadow-sm' : 'text-[rgba(60,60,67,0.6)]'
         )}
       >
@@ -66,7 +66,7 @@ export function AuthShell({
         <div className={cn('w-full flex flex-col items-center gap-6', maxWidthClass)}>
           <div className="flex flex-col items-center gap-5 w-full text-center">
             <Link href="/" className="inline-flex flex-col items-center gap-3 group min-h-[44px]">
-              <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-[12px] bg-brand-maroon-deep ring-1 ring-brand-gold/35 shadow-sm">
+              <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-[16px] bg-brand-maroon-deep ring-1 ring-brand-gold/35 shadow-sm">
                 <Image
                   src="/logo/MYXCROWLOGO.png"
                   alt="MYXCROW"
@@ -87,7 +87,7 @@ export function AuthShell({
             {mode && <AuthModeTabs mode={mode} />}
           </div>
 
-          <div className="w-full rounded-[12px] bg-white p-5">{children}</div>
+          <div className="w-full rounded-[20px] bg-white p-5 sm:p-6">{children}</div>
 
           {footer && <div className="w-full text-center text-[15px] text-[rgba(60,60,67,0.6)]">{footer}</div>}
         </div>
@@ -118,14 +118,14 @@ export function AuthAlert({
     <div
       id={id}
       role="alert"
-      className={cn('mb-4 rounded-[12px] px-3 py-3 text-sm flex items-start gap-2', styles)}
+      className={cn('mb-4 rounded-[16px] px-3 py-3 text-sm flex items-start gap-2', styles)}
     >
       <div className="flex-1 min-w-0">{children}</div>
       {onDismiss && (
         <button
           type="button"
           onClick={onDismiss}
-          className="text-current hover:opacity-80 shrink-0 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[12px] touch-manipulation"
+          className="text-current hover:opacity-80 shrink-0 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[16px] touch-manipulation"
           aria-label="Dismiss"
         >
           ×

@@ -53,7 +53,7 @@ export class CsrfMiddleware implements NestMiddleware {
     }
 
     // Skip CSRF for webhook endpoints (they use signature verification)
-    if (req.path.includes('/webhook/')) {
+    if (req.path.includes('/webhook')) {
       return next();
     }
 

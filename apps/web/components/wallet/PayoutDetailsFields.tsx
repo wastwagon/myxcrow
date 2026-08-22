@@ -39,7 +39,7 @@ export function PayoutDetailsFields({
                 type="button"
                 onClick={() => setValue('methodType', option.value, { shouldValidate: true })}
                 className={cn(
-                  'flex flex-col items-start gap-2 p-4 rounded-[12px] border text-left transition-colors min-h-[56px] touch-manipulation',
+                  'flex flex-col items-start gap-2 p-4 rounded-[20px] border text-left transition-colors min-h-[56px] touch-manipulation',
                   selected
                     ? 'border-brand-maroon/40 bg-brand-maroon/5 ring-1 ring-brand-maroon/20'
                     : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]',
@@ -55,7 +55,7 @@ export function PayoutDetailsFields({
       </div>
 
       {methodType === 'BANK_ACCOUNT' && (
-        <div className="space-y-4 rounded-[12px] bg-[#f2f2f7] p-4">
+        <div className="space-y-4 rounded-[20px] bg-[#f2f2f7] p-4">
           <p className="text-sm font-medium text-gray-900">Bank account details</p>
           <div>
             <label htmlFor="accountName" className={form.label}>
@@ -108,7 +108,7 @@ export function PayoutDetailsFields({
       )}
 
       {methodType === 'MOBILE_MONEY' && (
-        <div className="space-y-4 rounded-[12px] bg-[#f2f2f7] p-4">
+        <div className="space-y-4 rounded-[20px] bg-[#f2f2f7] p-4">
           <p className="text-sm font-medium text-gray-900">Mobile money details</p>
           <div>
             <label htmlFor="network" className={form.label}>

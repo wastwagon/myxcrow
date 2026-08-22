@@ -49,7 +49,7 @@ export default function WalletTopupCallbackPage() {
   return (
     <CustomerLayout title="Top up" back>
       <div className="py-10 text-center">
-        <div className="rounded-[12px] bg-white p-8">
+        <div className="rounded-[20px] bg-white p-8">
             {status === 'loading' && (
               <>
                 <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-maroon" />

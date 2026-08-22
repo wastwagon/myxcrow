@@ -9,6 +9,7 @@ export default function ServerError() {
       subtitle="Server error"
       documentTitle="Server error - MYXCROW"
       description="Something went wrong on our end. Please try again in a moment."
+      noIndex
       centered
       card={false}
       maxWidthClass="max-w-md"

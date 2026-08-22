@@ -9,6 +9,7 @@ import { formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { form } from '@/lib/form-classes';
 import { isPaystackCheckoutUrl } from '@/lib/safe-url';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 
 /** Paystack processing fee % passed to customer (must match backend) */
 const PAYSTACK_FEE_PERCENT = 1.95;
@@ -47,7 +48,7 @@ export default function WalletTopupPage() {
     },
   });
 
-  if (!isAuthenticated()) return null;
+  if (!isAuthenticated()) return <PageSpinner />;
 
   return (
     <CustomerLayout title="Top up" back>

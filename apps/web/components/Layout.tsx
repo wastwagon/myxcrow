@@ -53,9 +53,9 @@ export default function Layout({ children, title, trailing }: LayoutProps) {
             className="sticky top-0 z-40"
             style={{
               paddingTop: 'var(--app-sat, env(safe-area-inset-top, 0px))',
-              background: compact ? 'rgba(242,242,247,0.72)' : 'transparent',
-              backdropFilter: compact ? 'blur(28px) saturate(1.8)' : 'none',
-              WebkitBackdropFilter: compact ? 'blur(28px) saturate(1.8)' : 'none',
+              background: compact ? 'rgba(242,242,247,0.78)' : 'transparent',
+              backdropFilter: compact ? 'blur(32px) saturate(1.9)' : 'none',
+              WebkitBackdropFilter: compact ? 'blur(32px) saturate(1.9)' : 'none',
               boxShadow: compact ? 'inset 0 -0.5px 0 rgba(60,60,67,0.18)' : 'none',
             }}
           >
@@ -81,12 +81,12 @@ export default function Layout({ children, title, trailing }: LayoutProps) {
         )}
         <main
           className={cn(
-            'flex-1 min-w-0 px-4 py-6 sm:px-6 xl:py-8 text-gray-900',
+            'flex-1 min-w-0 px-4 py-6 sm:px-6 xl:px-8 xl:py-8 text-gray-900 mx-auto w-full max-w-6xl',
             overlay && 'pt-2 xl:pt-3'
           )}
         >
           {title && (
-            <h1 className="text-[34px] font-bold tracking-tight leading-[1.15] text-gray-900 pb-5">
+            <h1 className="text-[34px] font-bold tracking-tight leading-[1.12] text-gray-900 pb-5">
               {title}
             </h1>
           )}

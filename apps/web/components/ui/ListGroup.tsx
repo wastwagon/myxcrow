@@ -36,7 +36,7 @@ export function ListGroup({ title, footer, children, className, tone = 'light' }
           className={cn(
             'overflow-hidden',
             light
-              ? 'bg-white rounded-[12px]'
+              ? 'bg-white rounded-[20px]'
               : 'rounded-[20px] border backdrop-blur-sm bg-white/[0.07] border-white/10'
           )}
         >

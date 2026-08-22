@@ -67,7 +67,7 @@ export default function CustomerLayout({
   return (
     <div className="customer-shell flex flex-1 min-h-0 overflow-hidden bg-[#f2f2f7] text-gray-900">
       <aside
-        className="hidden xl:flex w-[220px] shrink-0 flex-col px-3 pb-4"
+        className="hidden xl:flex w-[232px] shrink-0 flex-col px-3 pb-4"
         style={{ paddingTop: 'max(1.5rem, var(--app-sat, env(safe-area-inset-top, 0px)))' }}
       >
         <Link
@@ -85,7 +85,7 @@ export default function CustomerLayout({
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  'inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[12px] text-[17px] touch-manipulation',
+                  'inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[16px] text-[17px] touch-manipulation',
                   active
                     ? 'bg-white font-semibold text-gray-900'
                     : 'font-medium text-[rgba(60,60,67,0.7)] hover:bg-black/[0.04]'
@@ -108,9 +108,9 @@ export default function CustomerLayout({
           className="absolute top-0 left-0 right-0 z-40"
           style={{
             paddingTop: 'var(--app-sat, env(safe-area-inset-top, 0px))',
-            background: compact ? 'rgba(242,242,247,0.72)' : 'transparent',
-            backdropFilter: compact ? 'blur(28px) saturate(1.8)' : 'none',
-            WebkitBackdropFilter: compact ? 'blur(28px) saturate(1.8)' : 'none',
+            background: compact ? 'rgba(242,242,247,0.78)' : 'transparent',
+            backdropFilter: compact ? 'blur(32px) saturate(1.9)' : 'none',
+            WebkitBackdropFilter: compact ? 'blur(32px) saturate(1.9)' : 'none',
             boxShadow: compact ? 'inset 0 -0.5px 0 rgba(60,60,67,0.18)' : 'none',
           }}
         >
@@ -150,11 +150,11 @@ export default function CustomerLayout({
           style={{ paddingTop: 'calc(var(--app-sat, env(safe-area-inset-top, 0px)) + 44px)' }}
         >
           {large && (
-            <h1 className="px-4 text-[34px] font-bold tracking-tight leading-[1.15] text-gray-900 pb-3">
+            <h1 className="px-4 text-[34px] font-bold tracking-tight leading-[1.12] text-gray-900 pb-4">
               {title}
             </h1>
           )}
-          <div className="px-4 max-w-2xl mx-auto xl:max-w-4xl">
+          <div className="px-4 pb-2 max-w-2xl mx-auto xl:max-w-5xl xl:px-2">
             <ImpersonationBanner />
             {children}
           </div>

@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { form } from '@/lib/form-classes';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 import { type SavedPayoutMethod } from '@/lib/withdrawal-payout';
 import {
   payoutDetailsFormSchema,
@@ -123,7 +124,7 @@ export default function WithdrawPage() {
     submitWithdrawal({ payoutMethodId: selectedMethodId });
   };
 
-  if (!isAuthenticated()) return null;
+  if (!isAuthenticated()) return <PageSpinner />;
 
   const availableBalance = wallet ? wallet.availableCents / 100 : 0;
 
@@ -179,7 +180,7 @@ export default function WithdrawPage() {
                     type="button"
                     onClick={() => setSelectedMethodId(method.id)}
                     className={cn(
-                      'w-full text-left p-4 rounded-[12px] border transition-colors min-h-[56px] touch-manipulation',
+                      'w-full text-left p-4 rounded-[20px] border transition-colors min-h-[56px] touch-manipulation',
                       selected
                         ? 'border-brand-maroon/40 bg-brand-maroon/5 ring-1 ring-brand-maroon/20'
                         : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]'
@@ -243,7 +244,7 @@ export default function WithdrawPage() {
                 </div>
               )}
 
-              <div className="rounded-[12px] border border-amber-500/25 bg-amber-50 p-4">
+              <div className="rounded-[20px] border border-amber-500/25 bg-amber-50 p-4">
                 <p className="text-sm text-amber-800">
                   Withdrawals are reviewed manually. You will be notified when your request is processed.
                 </p>

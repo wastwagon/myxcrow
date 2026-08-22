@@ -77,7 +77,7 @@ Use the **actual** API URL Render gives you (e.g. `https://myxcrow-bp-api.onrend
 
 In Paystack Dashboard → Settings → Webhooks, set:
 
-- **URL:** `https://myxcrow-bp-api.onrender.com/api/payments/webhook` (or your API custom domain + `/api/payments/webhook`)
+- **URL:** `https://myxcrow-bp-api.onrender.com/api/payments/webhook` (or your API custom domain + `/api/payments/webhook`). `/api/payments/webhook/paystack` is accepted as an alias.
 - **Secret:** Copy into `PAYSTACK_WEBHOOK_SECRET` in Render.
 
 ## S3 / File Storage

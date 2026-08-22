@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { useConfirm } from '@/components/providers/UIProvider';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 
 const disputeSchema = z.object({
   escrowId: z.string().min(1, 'Escrow ID is required'),
@@ -80,7 +81,7 @@ export default function CreateDisputePage() {
     },
   });
 
-  if (!mounted || !isAuthenticated()) return null;
+  if (!mounted || !isAuthenticated()) return <PageSpinner />;
 
   return (
     <CustomerLayout title="New dispute" back>
@@ -145,7 +146,7 @@ export default function CreateDisputePage() {
             {errors.description && <p className={form.inputError}>{errors.description.message}</p>}
           </div>
 
-          <div className="rounded-[12px] border border-amber-500/25 bg-amber-50 p-4">
+          <div className="rounded-[20px] border border-amber-500/25 bg-amber-50 p-4">
             <div className="flex items-start gap-2">
               <AlertCircle className="w-5 h-5 text-amber-700 mt-0.5 shrink-0" />
               <div className="text-sm text-amber-900">

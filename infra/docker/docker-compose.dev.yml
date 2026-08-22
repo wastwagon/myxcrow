@@ -1,3 +1,8 @@
+# MYXCROW local development
+# Web: http://localhost:3007  API: http://localhost:4000
+# Dockerfiles do not install deps — this file mounts the monorepo and installs on start
+# (same pattern as docker-compose.registration.yml). @myxcrow/shared lives at packages/shared.
+
 services:
   db:
     image: postgres:15-alpine
@@ -84,9 +89,11 @@ services:
       WEB_BASE_URL: ${WEB_BASE_URL:-http://localhost:3007}
       NODE_ENV: development
     volumes:
-      - ../../services/api:/usr/src/app
-      - /usr/src/app/node_modules
-    command: sh -c "cd /usr/src/app && pnpm install --no-frozen-lockfile && pnpm prisma generate && pnpm prisma migrate deploy && pnpm dev"
+      - ../../:/usr/src/monorepo
+      - escrow_api_node_modules:/usr/src/monorepo/node_modules
+      - escrow_api_service_node_modules:/usr/src/monorepo/services/api/node_modules
+    working_dir: /usr/src/monorepo/services/api
+    command: sh -c "cd /usr/src/monorepo && pnpm install --no-frozen-lockfile && pnpm --filter @myxcrow/shared build && cd services/api && pnpm prisma generate && pnpm prisma migrate deploy && pnpm dev"
     depends_on:
       db:
         condition: service_healthy
@@ -111,10 +118,12 @@ services:
       PORT: 3000
       NODE_ENV: development
     volumes:
-      - ../../apps/web:/usr/src/app
-      - /usr/src/app/node_modules
-      - /usr/src/app/.next
-    command: pnpm dev
+      - ../../:/usr/src/monorepo
+      - escrow_web_node_modules:/usr/src/monorepo/node_modules
+      - escrow_web_app_node_modules:/usr/src/monorepo/apps/web/node_modules
+      - escrow_web_next:/usr/src/monorepo/apps/web/.next
+    working_dir: /usr/src/monorepo/apps/web
+    command: sh -c "cd /usr/src/monorepo && pnpm install --no-frozen-lockfile && pnpm --filter @myxcrow/shared build && cd apps/web && pnpm dev"
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:3000"]
       interval: 30s
@@ -129,4 +138,8 @@ volumes:
   escrow_db_data:
   redis_data:
   minio_data:
-
+  escrow_api_node_modules:
+  escrow_api_service_node_modules:
+  escrow_web_node_modules:
+  escrow_web_app_node_modules:
+  escrow_web_next:

@@ -142,7 +142,7 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
           </div>
         </div>
       ) : (
-        <div className="border-2 border-dashed border-[rgba(60,60,67,0.22)] rounded-[12px] p-6 md:p-8 text-center hover:border-brand-maroon/40 hover:bg-black/[0.03] transition-all group">
+        <div className="border-2 border-dashed border-[rgba(60,60,67,0.22)] rounded-[20px] p-6 md:p-8 text-center hover:border-brand-maroon/40 hover:bg-black/[0.03] transition-all group">
           <Camera className="w-12 h-12 md:w-16 md:h-16 mx-auto text-[rgba(60,60,67,0.45)] mb-4 group-hover:text-brand-maroon transition-colors" />
           <p className="text-sm md:text-base font-medium text-gray-900 mb-2">
             Take a clear selfie matching your Ghana Card photo
@@ -155,7 +155,7 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
               <Camera className="w-4 h-4" />
               Use camera
             </Button>
-            <label className="inline-flex min-h-[44px] px-4 py-2.5 items-center justify-center gap-2 rounded-[12px] bg-transparent border-2 border-brand-maroon text-brand-maroon hover:bg-brand-maroon/5 font-semibold text-ios-body cursor-pointer transition-colors">
+            <label className="inline-flex min-h-[44px] px-4 py-2.5 items-center justify-center gap-2 rounded-[20px] bg-transparent border-2 border-brand-maroon text-brand-maroon hover:bg-brand-maroon/5 font-semibold text-ios-body cursor-pointer transition-colors">
               <Upload className="w-4 h-4" />
               Upload file
               <input
@@ -171,7 +171,7 @@ export default function SelfieCapture({ onCapture, onRemove, value, error }: Sel
       )}
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-[12px]">
+        <div className="p-3 bg-red-50 border border-red-200 rounded-[20px]">
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}

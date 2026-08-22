@@ -31,7 +31,7 @@ import { Input } from '@/components/ui/Input';
 import { Banner } from '@/components/ui/Banner';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-import { PageDetailSkeleton } from '@/components/LoadingSkeleton';
+import { PageDetailSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import EscrowFeeSummary from '@/components/EscrowFeeSummary';
 import { StatusBadge } from '@/components/StatusBadge';
 import { buildEscrowReceipt } from '@/lib/receipt-builders';
@@ -311,7 +311,7 @@ export default function EscrowDetailPage() {
   };
 
   if (!isAuthenticated()) {
-    return null;
+    return <PageSpinner />;
   }
 
   if (isLoading) {
@@ -380,7 +380,7 @@ export default function EscrowDetailPage() {
 
         {/* Main Info */}
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="rounded-[12px] bg-white p-5">
+          <div className="rounded-[20px] bg-white p-5">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Details</h2>
             <div className="space-y-3">
               <div>
@@ -458,7 +458,7 @@ export default function EscrowDetailPage() {
                 </div>
               )}
               {(isBuyer || isSeller) && (transactionReference || escrow.deliveryPin || firstShipmentWithCode) && (
-                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-[12px] md:col-span-2">
+                <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-[20px] md:col-span-2">
                   {escrow.deliveryConfirmationMode === 'pin' && escrow.deliveryPin ? (
                     <>
                       <p className="text-sm font-semibold text-amber-900 mb-1">
@@ -483,7 +483,7 @@ export default function EscrowDetailPage() {
                         <p className="font-mono text-lg font-bold text-amber-900">Ref: {transactionReference.shortReference}</p>
                       )}
                       <div className="flex items-center gap-2 mt-2">
-                        <code className="font-mono text-lg font-bold text-amber-950 bg-amber-100 px-3 py-1 rounded-[12px]">
+                        <code className="font-mono text-lg font-bold text-amber-950 bg-amber-100 px-3 py-1 rounded-[20px]">
                           PIN: {escrow.deliveryPin}
                         </code>
                         <button
@@ -492,7 +492,7 @@ export default function EscrowDetailPage() {
                             await navigator.clipboard.writeText(escrow.deliveryPin!);
                             toast.success('PIN copied');
                           }}
-                          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-amber-900 hover:bg-amber-100 rounded-[12px] touch-manipulation"
+                          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-amber-900 hover:bg-amber-100 rounded-[20px] touch-manipulation"
                           aria-label="Copy PIN"
                         >
                           <Copy className="w-4 h-4" />
@@ -530,7 +530,7 @@ export default function EscrowDetailPage() {
           </div>
 
           {/* Actions */}
-          <div className="rounded-[12px] bg-white p-5">
+          <div className="rounded-[20px] bg-white p-5">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
             <div className="space-y-3">
               {canFund && (
@@ -673,7 +673,7 @@ export default function EscrowDetailPage() {
         </div>
 
         {/* Tabs: Timeline, Ledger, Milestones */}
-        <div className="rounded-[12px] bg-white overflow-hidden">
+        <div className="rounded-[20px] bg-white overflow-hidden">
           <div className="p-4 border-b border-[rgba(60,60,67,0.12)] overflow-x-auto">
             <SegmentedControl
               options={tabOptions}

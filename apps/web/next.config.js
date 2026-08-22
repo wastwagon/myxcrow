@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const isProd = process.env.NODE_ENV === 'production';
+
 const apiOrigin = (() => {
   try {
     return new URL(process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000/api').origin;
@@ -6,6 +8,23 @@ const apiOrigin = (() => {
     return 'http://localhost:4000';
   }
 })();
+
+const connectSrc = [
+  "'self'",
+  apiOrigin,
+  !isProd && 'http://localhost:4000',
+  'https://via.intercom.io',
+  'https://api.intercom.io',
+  'https://api-iam.intercom.io',
+  'https://api.au.intercom.io',
+  'https://api.eu.intercom.io',
+  'https://nexus-websocket-a.intercom.io',
+  'https://nexus-websocket-b.intercom.io',
+  'wss://nexus-websocket-a.intercom.io',
+  'wss://nexus-websocket-b.intercom.io',
+]
+  .filter(Boolean)
+  .join(' ');
 
 const csp = [
   "default-src 'self'",
@@ -16,7 +35,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data: https://js.intercomcdn.com https://fonts.intercomcdn.com",
-  `connect-src 'self' ${apiOrigin} http://localhost:4000 https://via.intercom.io https://api.intercom.io https://api-iam.intercom.io https://api.au.intercom.io https://api.eu.intercom.io https://nexus-websocket-a.intercom.io https://nexus-websocket-b.intercom.io wss://nexus-websocket-a.intercom.io wss://nexus-websocket-b.intercom.io`,
+  `connect-src ${connectSrc}`,
   "frame-src 'self' about:blank blob: https://*.intercom.io https://*.intercomcdn.com https://intercom-sheets.com https://www.intercom.com https://intercom.help https://widget.intercom.io https://js.intercomcdn.com",
   "media-src 'self' https://js.intercomcdn.com",
   "form-action 'self'",
@@ -31,7 +50,7 @@ const securityHeaders = [
   { key: 'X-DNS-Prefetch-Control', value: 'off' },
 ];
 
-if (process.env.NODE_ENV === 'production') {
+if (isProd) {
   securityHeaders.push({
     key: 'Strict-Transport-Security',
     value: 'max-age=63072000; includeSubDomains; preload',
@@ -53,6 +72,15 @@ const nextConfig = {
   compress: true,
   poweredByHeader: false,
   generateEtags: true,
+  async redirects() {
+    if (!isProd) return [];
+    return [
+      { source: '/mockup', destination: '/404', permanent: false },
+      { source: '/mockup/:path*', destination: '/404', permanent: false },
+      { source: '/play-store-icon.html', destination: '/404', permanent: false },
+      { source: '/play-store-feature-graphic.html', destination: '/404', permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

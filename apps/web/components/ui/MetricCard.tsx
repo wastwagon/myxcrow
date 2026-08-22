@@ -45,7 +45,7 @@ export function MetricCard({
   return (
     <div
       className={cn(
-        'rounded-[12px] p-4',
+        'rounded-[20px] p-4 sm:p-5',
         light
           ? 'bg-white'
           : cn('border border-white/10 bg-white/[0.07] backdrop-blur-sm ring-1', accentRingDark[accent]),
@@ -56,7 +56,7 @@ export function MetricCard({
         {icon && (
           <div
             className={cn(
-              'w-11 h-11 rounded-[12px] flex items-center justify-center shrink-0',
+              'w-11 h-11 rounded-[14px] flex items-center justify-center shrink-0',
               light ? accentIconLight[accent] : 'bg-brand-gold/15 text-brand-gold'
             )}
           >
@@ -71,7 +71,7 @@ export function MetricCard({
       </div>
       <p className={cn('text-xs font-medium mb-0.5', light ? 'text-gray-500' : 'text-white/65')}>{label}</p>
       {loading ? (
-        <div className={cn('h-8 w-24 animate-pulse rounded-[12px]', light ? 'bg-gray-100' : 'bg-white/10')} />
+        <div className={cn('h-8 w-24 animate-pulse rounded-[16px]', light ? 'bg-gray-100' : 'bg-white/10')} />
       ) : (
         <p className={cn('text-2xl font-bold tracking-tight', light ? 'text-gray-900' : 'text-white')}>{value}</p>
       )}

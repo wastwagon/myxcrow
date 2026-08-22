@@ -39,7 +39,7 @@ export function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
         className={cn(
-          'relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[20px] p-6',
+          'relative z-10 w-full max-w-md max-h-[90vh] overflow-y-auto rounded-[28px] p-6',
           light
             ? 'bg-[#f2f2f7] text-gray-900'
             : cn(admin.modalPanel),
@@ -60,7 +60,7 @@ export function Modal({
             type="button"
             onClick={onClose}
             className={cn(
-              'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] touch-manipulation',
+              'inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[16px] touch-manipulation',
               light
                 ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900'
                 : 'text-label-tertiary hover:bg-white/10 hover:text-label-primary'

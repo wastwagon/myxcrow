@@ -25,6 +25,7 @@ import { ButtonLink } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 
 interface ReconciliationSummary {
   escrowsByStatus: Array<{
@@ -78,7 +79,7 @@ export default function ReconciliationPage() {
   });
 
   if (!isAuthenticated() || !isAdmin()) {
-    return null;
+    return <PageSpinner />;
   }
 
   const refreshReconciliation = async () => {
@@ -89,16 +90,13 @@ export default function ReconciliationPage() {
   };
 
   return (
-    <Layout>
+    <Layout title="Reconciliation">
       <PullToRefresh onRefresh={refreshReconciliation} disabled={!isMobile}>
         <LightShell>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className={dash.title}>Reconciliation</h1>
-              <p className={dash.subtitle}>
-                Escrow holds, fees, and balance integrity checks
-              </p>
-            </div>
+            <p className={dash.subtitle}>
+              Escrow holds, fees, and balance integrity checks
+            </p>
             <ButtonLink href="/admin" variant="outline" size="sm">
               Back to admin
             </ButtonLink>
@@ -107,7 +105,7 @@ export default function ReconciliationPage() {
           {summaryLoading ? (
             <div className="grid md:grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-28 bg-gray-100 animate-pulse rounded-[12px]" />
+                <div key={i} className="h-28 bg-gray-100 animate-pulse rounded-[20px]" />
               ))}
             </div>
           ) : summary ? (
@@ -144,26 +142,26 @@ export default function ReconciliationPage() {
           ) : null}
 
           {balanceLoading ? (
-            <div className="h-40 bg-gray-100 animate-pulse rounded-[12px]" />
+            <div className="h-40 bg-gray-100 animate-pulse rounded-[20px]" />
           ) : balance ? (
             <LightPanel>
               <h2 className={`${dash.sectionTitle} mb-4`}>Balance reconciliation</h2>
               <div className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-3">
-                  <div className="p-4 rounded-[12px] bg-gray-50 border border-gray-100">
+                  <div className="p-4 rounded-[20px] bg-gray-50 border border-gray-100">
                     <p className={dash.label}>Escrow hold balance</p>
                     <p className="mt-1 text-xl font-bold text-gray-900">
                       {formatCurrency(balance.escrowHoldBalance, 'GHS')}
                     </p>
                   </div>
-                  <div className="p-4 rounded-[12px] bg-gray-50 border border-gray-100">
+                  <div className="p-4 rounded-[20px] bg-gray-50 border border-gray-100">
                     <p className={dash.label}>Pending escrows</p>
                     <p className="mt-1 text-xl font-bold text-gray-900">
                       {formatCurrency(balance.pendingEscrows, 'GHS')}
                     </p>
                   </div>
                 </div>
-                <div className="p-4 rounded-[12px] border border-gray-200 bg-white">
+                <div className="p-4 rounded-[20px] border border-gray-200 bg-white">
                   <p className={dash.label}>Difference</p>
                   <p
                     className={`mt-1 text-xl font-bold ${
@@ -191,7 +189,7 @@ export default function ReconciliationPage() {
           ) : null}
 
           {summaryLoading ? (
-            <div className="h-64 bg-gray-100 animate-pulse rounded-[12px]" />
+            <div className="h-64 bg-gray-100 animate-pulse rounded-[20px]" />
           ) : summary ? (
             <TableShell
               tone="light"
@@ -236,7 +234,7 @@ export default function ReconciliationPage() {
           ) : null}
 
           {summaryLoading ? (
-            <div className="h-64 bg-gray-100 animate-pulse rounded-[12px]" />
+            <div className="h-64 bg-gray-100 animate-pulse rounded-[20px]" />
           ) : summary ? (
             <TableShell
               tone="light"

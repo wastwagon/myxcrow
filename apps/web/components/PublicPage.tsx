@@ -16,6 +16,7 @@ interface PublicPageProps {
   card?: boolean;
   showHeader?: boolean;
   titleClassName?: string;
+  noIndex?: boolean;
 }
 
 export default function PublicPage({
@@ -29,6 +30,7 @@ export default function PublicPage({
   card = true,
   showHeader = true,
   titleClassName,
+  noIndex = false,
 }: PublicPageProps) {
   useLayoutEffect(() => {
     document.documentElement.classList.add('public-light');
@@ -41,13 +43,14 @@ export default function PublicPage({
       <Head>
         <title>{documentTitle || `${title} - MYXCROW`}</title>
         {description && <meta name="description" content={description} />}
+        {noIndex && <meta name="robots" content="noindex,nofollow" />}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
       {showHeader && <PublicHeader />}
-      <div className="min-h-screen bg-[#f2f2f7]">
+      <div className={cn('min-h-screen bg-[#f2f2f7]', !showHeader && 'pt-safe')}>
         <div
           className={cn(
-            'container mx-auto px-4 py-6',
+            'container mx-auto px-4 py-6 pb-8',
             maxWidthClass,
             centered && 'flex min-h-[70vh] flex-col items-center justify-center text-center'
           )}
@@ -63,7 +66,7 @@ export default function PublicPage({
           {subtitle && (
             <p className="text-[15px] text-[rgba(60,60,67,0.6)] pb-5">{subtitle}</p>
           )}
-          {card ? <div className="rounded-[12px] bg-white p-5 sm:p-8 text-left">{children}</div> : children}
+          {card ? <div className="rounded-[20px] bg-white p-5 sm:p-8 text-left">{children}</div> : children}
         </div>
       </div>
     </>

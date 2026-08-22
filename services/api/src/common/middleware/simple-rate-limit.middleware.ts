@@ -19,8 +19,7 @@ export class SimpleRateLimitMiddleware implements NestMiddleware {
       path.startsWith('/api/health') ||
       path.startsWith('/health/');
     
-    // Skip rate limiting for health checks
-    if (isHealthCheck) {
+    if (isHealthCheck || path.includes('/webhook')) {
       return next();
     }
 

@@ -27,8 +27,8 @@
     --tint: #d0ab63;
     --destructive: #ff453a;
 
-    /* Tab bar / chrome — opaque so the status-bar region is not an empty frost strip */
-    --app-chrome-bg: #1f1414;
+    /* Splash / first paint is white. Landing JS sets dark chrome after load. */
+    --app-chrome-bg: #ffffff;
     --app-sat: 0px;
     --app-sat: constant(safe-area-inset-top);
     --app-sat: env(safe-area-inset-top, 0px);
@@ -62,7 +62,10 @@
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-left: env(safe-area-inset-left, 0px);
     --safe-right: env(safe-area-inset-right, 0px);
-    --tab-bar-height: 3.5rem;
+    --tab-bar-height: 5.15rem;
+    --radius-control: 16px;
+    --radius-card: 20px;
+    --radius-sheet: 28px;
 
     /* Dark form surfaces (overridden on .customer-app) */
     --form-panel-bg: rgba(255, 255, 255, 0.07);
@@ -136,7 +139,7 @@ html.customer-app {
   --label-secondary: rgba(60, 60, 67, 0.6);
   --label-tertiary: rgba(60, 60, 67, 0.5);
   --tab-bar-bg: rgba(249, 249, 249, 0.92);
-  --tab-bar-height: 70px;
+  --tab-bar-height: 82px;
   --form-panel-bg: #ffffff;
   --form-panel-border: transparent;
   --form-label: rgba(60, 60, 67, 0.6);
@@ -165,12 +168,16 @@ html.public-light {
   --form-input-text: #000000;
   --form-placeholder: rgba(60, 60, 67, 0.5);
   --form-error: #ff3b30;
-  --tab-bar-height: 70px;
+  --tab-bar-height: 82px;
 }
 
 html.public-light,
 html.public-light body {
   background-color: #f2f2f7;
+}
+
+html.public-light #__next {
+  min-height: 100%;
 }
 
 html.customer-app,
@@ -321,6 +328,14 @@ iframe:not([src]) {
 .intercom-launcher-frame,
 .intercom-messenger-frame {
   pointer-events: auto !important;
+}
+
+/* Keep the launcher above the floating tab bar on phones. */
+@media (max-width: 1279px) {
+  .intercom-lightweight-app-launcher,
+  .intercom-launcher-frame {
+    bottom: calc(var(--tab-bar-height, 82px) + 10px) !important;
+  }
 }
 
 @layer utilities {

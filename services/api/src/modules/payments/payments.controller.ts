@@ -65,7 +65,8 @@ export class PaymentsController {
     return this.paymentsService.verifyEscrowFunding(reference);
   }
 
-  @Post('webhook/paystack')
+  /** Paystack dashboard docs use `/api/payments/webhook`; keep `/webhook/paystack` as an alias. */
+  @Post(['webhook', 'webhook/paystack'])
   @HttpCode(HttpStatus.OK)
   async webhook(
     @Req() req: RawBodyRequest<Request>,

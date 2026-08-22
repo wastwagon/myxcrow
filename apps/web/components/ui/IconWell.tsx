@@ -25,7 +25,7 @@ export function IconWell({
   return (
     <span
       className={cn(
-        'flex h-[29px] w-[29px] items-center justify-center rounded-[7px] text-white shrink-0',
+        'flex h-[30px] w-[30px] items-center justify-center rounded-[8px] text-white shrink-0',
         wells[color],
         className
       )}

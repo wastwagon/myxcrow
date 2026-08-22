@@ -9,7 +9,7 @@ import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { ButtonLink } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-import { PageDetailSkeleton } from '@/components/LoadingSkeleton';
+import { PageDetailSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import { LightShell } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -40,11 +40,11 @@ export default function AdminViewWalletPage() {
     enabled: !!userId && isAuthenticated() && isAdmin(),
   });
 
-  if (!isAuthenticated() || !isAdmin()) return null;
+  if (!isAuthenticated() || !isAdmin()) return <PageSpinner />;
 
   if (isLoading) {
     return (
-      <Layout>
+      <Layout title="Wallet">
         <PageDetailSkeleton />
       </Layout>
     );
@@ -52,7 +52,7 @@ export default function AdminViewWalletPage() {
 
   if (error || !data) {
     return (
-      <Layout>
+      <Layout title="Wallet">
         <EmptyState
           tone="light"
           title="Wallet unavailable"
@@ -68,20 +68,10 @@ export default function AdminViewWalletPage() {
     [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || 'User';
 
   return (
-    <Layout>
+    <Layout title="Wallet">
       <PullToRefresh onRefresh={refreshAdminWallet} disabled={!isMobile}>
         <LightShell>
-          <div>
-            <button
-              type="button"
-              onClick={() => router.back()}
-              className="inline-flex min-h-[44px] min-w-[44px] items-center text-brand-maroon text-[17px] font-semibold touch-manipulation"
-            >
-              Back
-            </button>
-            <h1 className={dash.title}>Wallet</h1>
-            <p className={dash.subtitle}>{user?.email}</p>
-          </div>
+          <p className={dash.subtitle}>{user?.email}</p>
 
           <ListGroup tone="light" title="User">
             <ListRow

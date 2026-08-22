@@ -29,8 +29,8 @@ export class ErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-[#f2f2f7] flex items-center justify-center px-4">
-          <div className="max-w-md w-full rounded-[12px] bg-white p-8 text-center">
+        <div className="min-h-screen bg-[#f2f2f7] flex items-center justify-center px-4 pt-safe">
+          <div className="max-w-md w-full rounded-[20px] bg-white p-8 text-center">
             <svg className="w-12 h-12 mx-auto text-red-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden>
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
@@ -43,7 +43,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 this.setState({ hasError: false, error: undefined });
                 window.location.href = '/';
               }}
-              className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 bg-brand-maroon text-white rounded-[12px] font-semibold touch-manipulation"
+              className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 bg-brand-maroon text-white rounded-[16px] font-semibold touch-manipulation"
             >
               Go to Home
             </button>

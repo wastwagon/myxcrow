@@ -53,7 +53,7 @@ export function WithdrawalPayoutDetailsView({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-[12px] bg-white px-4 py-3 space-y-1">
+      <div className="rounded-[20px] bg-white px-4 py-3 space-y-1">
         <p className="text-[13px] text-[rgba(60,60,67,0.6)]">User</p>
         <p className="text-[17px] font-semibold text-gray-900">{user?.email ?? '—'}</p>
         {(user?.firstName || user?.lastName) && (
@@ -65,7 +65,7 @@ export function WithdrawalPayoutDetailsView({
         {user?.id && <p className="text-[13px] text-gray-500 font-mono">ID: {user.id}</p>}
       </div>
 
-      <div className="rounded-[12px] bg-white px-4 py-3">
+      <div className="rounded-[20px] bg-white px-4 py-3">
         <p className="text-[13px] text-[rgba(60,60,67,0.6)] mb-1">Amount</p>
         <p className="text-[28px] font-bold tracking-tight text-gray-900">
           {formatCurrency(withdrawal.amountCents, currency)}
@@ -77,7 +77,7 @@ export function WithdrawalPayoutDetailsView({
         )}
       </div>
 
-      <div className="rounded-[12px] bg-white px-4 py-3">
+      <div className="rounded-[20px] bg-white px-4 py-3">
         <p className="text-[13px] text-[rgba(60,60,67,0.6)] mb-2">
           Payout — {withdrawal.methodLabel || formatWithdrawalMethodLabel(withdrawal.methodType)}
         </p>
@@ -104,7 +104,7 @@ export function WithdrawalPayoutDetailsView({
         )}
       </div>
 
-      <div className="rounded-[12px] bg-white px-4 py-3 space-y-0">
+      <div className="rounded-[20px] bg-white px-4 py-3 space-y-0">
         <DetailRow label="Status" value={formatWithdrawalStatusLabel(withdrawal.status)} />
         <DetailRow label="Requested" value={formatDate(withdrawal.createdAt)} />
         {withdrawal.processedAt && (

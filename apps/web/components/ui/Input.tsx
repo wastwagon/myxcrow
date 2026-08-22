@@ -22,7 +22,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <input
         ref={ref}
         className={cn(
-          'w-full min-h-[44px] px-4 py-3 rounded-[12px] border outline-none transition-colors',
+          'w-full min-h-[44px] px-4 py-3 rounded-[16px] border outline-none transition-colors',
           'focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation',
           inputTone[tone],
           error &&

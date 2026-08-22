@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ListGroup } from '@/components/ui/ListGroup';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
@@ -61,7 +62,7 @@ export default function ChangePasswordPage() {
   const eyeBtn =
     'absolute right-1 top-1/2 -translate-y-1/2 text-gray-600 hover:text-brand-maroon min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation';
 
-  if (!isAuthenticated()) return null;
+  if (!isAuthenticated()) return <PageSpinner />;
 
   return (
     <CustomerLayout title="Password" back>

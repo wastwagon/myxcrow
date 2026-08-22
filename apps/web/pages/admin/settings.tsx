@@ -13,6 +13,7 @@ import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { calculateEscrowFees, formatPaidByLabel } from '@/lib/fee-calculator';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 import { formatCurrency } from '@/lib/utils';
 import { LightShell } from '@/components/dashboard/LightShell';
 
@@ -96,7 +97,7 @@ export default function AdminSettingsPage() {
   }, [feePreviewAmount, settings.fees]);
 
   if (!isAuthenticated() || !isAdmin()) {
-    return null;
+    return <PageSpinner />;
   }
 
   const handleSave = async (section: keyof PlatformSettings) => {

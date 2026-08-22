@@ -67,7 +67,7 @@ export default function LedgerView({ escrowId }: LedgerViewProps) {
   return (
     <div className="space-y-6">
       {journals.map((journal) => (
-        <div key={journal.id} className="border border-[var(--separator)] rounded-[12px] overflow-hidden">
+        <div key={journal.id} className="border border-[var(--separator)] rounded-[20px] overflow-hidden">
           <div className="bg-[var(--form-input-bg)] px-4 py-3 border-b border-[var(--separator)]">
             <div className="flex items-center justify-between gap-3">
               <div>

@@ -16,6 +16,7 @@ import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { Checkbox } from '@/components/ui/Checkbox';
 import EscrowFeeSummary from '@/components/EscrowFeeSummary';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 import { calculateEscrowFees } from '@/lib/fee-calculator';
 import {
   ESCROW_CATEGORY,
@@ -243,7 +244,7 @@ export default function CreateEscrowPage() {
     wallet && fundingRequiredCents > 0 && wallet.availableCents >= fundingRequiredCents;
 
   if (!isAuthenticated()) {
-    return null;
+    return <PageSpinner />;
   }
 
   return (
@@ -300,7 +301,7 @@ export default function CreateEscrowPage() {
                         setValue('serviceType', undefined);
                       }
                     }}
-                    className={`p-4 rounded-[12px] border text-left transition-colors touch-manipulation min-h-[56px] ${
+                    className={`p-4 rounded-[20px] border text-left transition-colors touch-manipulation min-h-[56px] ${
                       selected
                         ? 'border-brand-maroon/40 bg-brand-maroon/5 ring-1 ring-brand-maroon/20'
                         : 'border-[rgba(60,60,67,0.12)] bg-[#f2f2f7]'
@@ -482,7 +483,7 @@ export default function CreateEscrowPage() {
             </div>
           )}
 
-          <div className={`p-4 rounded-[12px] border ${
+          <div className={`p-4 rounded-[20px] border ${
             hasSufficientBalance === false
               ? 'border-red-200 bg-red-50'
               : 'border-amber-200 bg-amber-50'
@@ -526,7 +527,7 @@ export default function CreateEscrowPage() {
             {useMilestones && (
               <div className="space-y-4">
                 {fields.map((field, index) => (
-                  <div key={field.id} className="p-4 rounded-[12px] bg-[#f2f2f7]">
+                  <div key={field.id} className="p-4 rounded-[20px] bg-[#f2f2f7]">
                     <div className="flex items-start justify-between mb-3">
                       <h4 className="font-medium text-gray-900">Milestone {index + 1}</h4>
                       <button
@@ -628,7 +629,7 @@ export default function CreateEscrowPage() {
                 </Button>
 
                 {fields.length > 0 && (
-                  <div className="p-4 bg-[#f2f2f7] rounded-[12px]">
+                  <div className="p-4 bg-[#f2f2f7] rounded-[20px]">
                     <div className="flex justify-between text-sm">
                       <span className="text-[rgba(60,60,67,0.6)]">Total Milestones:</span>
                       <span className="font-medium text-gray-900">{CURRENCY_SYMBOL} {totalMilestoneAmount.toFixed(2)}</span>

@@ -4,7 +4,8 @@ import CustomerLayout from '@/components/CustomerLayout';
 import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { FileText, Plus } from 'lucide-react';
+import { FileText, Plus, Wallet, Shield, Clock, CheckCircle2 } from 'lucide-react';
+import { IconWell } from '@/components/ui/IconWell';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { COMPLETED_ESCROW_STATUSES } from '@/lib/constants';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -13,7 +14,7 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import { PhoneOnly, DesktopOnly } from '@/components/ui/PhoneOnly';
 import {
   TableShell,
@@ -94,11 +95,7 @@ export default function Dashboard() {
     : escrowsData?.data || escrowsData?.escrows || [];
 
   if (!mounted || !isAuthenticated()) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-2 border-gray-200 border-t-brand-maroon" />
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   const user = getUser();
@@ -126,7 +123,7 @@ export default function Dashboard() {
         <div>
           <p className="text-[13px] text-[rgba(60,60,67,0.6)]">Available</p>
           {walletLoading ? (
-            <div className="mt-1 h-10 w-40 animate-pulse rounded-[12px] bg-black/5" />
+            <div className="mt-1 h-10 w-40 animate-pulse rounded-[16px] bg-black/5" />
           ) : (
             <p className="mt-0.5 text-[34px] font-bold tracking-tight leading-tight text-gray-900">
               {formatCurrency(available, 'GHS')}
@@ -147,6 +144,7 @@ export default function Dashboard() {
           <ListRow
             href="/wallet"
             title="Pending in escrow"
+            leading={<IconWell icon={Wallet} color="orange" />}
             trailing={
               <span className="text-[17px] text-[rgba(60,60,67,0.6)]">
                 {walletLoading ? '—' : formatCurrency(pending, 'GHS')}
@@ -156,6 +154,7 @@ export default function Dashboard() {
           <ListRow
             href="/escrows"
             title="Active"
+            leading={<IconWell icon={Shield} color="maroon" />}
             trailing={
               <span className="text-[17px] text-[rgba(60,60,67,0.6)]">{activeEscrows.length}</span>
             }
@@ -163,6 +162,7 @@ export default function Dashboard() {
           <ListRow
             href="/escrows"
             title="Awaiting you"
+            leading={<IconWell icon={Clock} color="teal" />}
             trailing={
               <span className="text-[17px] text-[rgba(60,60,67,0.6)]">{awaiting.length}</span>
             }
@@ -170,6 +170,7 @@ export default function Dashboard() {
           <ListRow
             href="/escrows"
             title="Completed"
+            leading={<IconWell icon={CheckCircle2} color="green" />}
             trailing={
               <span className="text-[17px] text-[rgba(60,60,67,0.6)]">{completed.length}</span>
             }

@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Field } from '@/components/ui/Field';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
-import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
+import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import { SwipeableListRow } from '@/components/ui/SwipeableListRow';
 import { PhoneOnly, DesktopOnly } from '@/components/ui/PhoneOnly';
 import {
@@ -118,7 +118,7 @@ export default function EscrowsPage() {
   };
 
   if (!isAuthenticated()) {
-    return null;
+    return <PageSpinner />;
   }
 
 

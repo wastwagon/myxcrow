@@ -52,7 +52,7 @@ export default function PartnerCheckoutCallbackPage() {
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
       </Head>
       <div className="flex min-h-screen items-center justify-center bg-[#f2f2f7] px-4">
-        <div className="w-full max-w-md rounded-[12px] bg-white p-8 text-center">
+        <div className="w-full max-w-md rounded-[20px] bg-white p-8 text-center">
           {status === 'loading' && <Loader2 className="mx-auto h-12 w-12 animate-spin text-brand-maroon" />}
           {status === 'success' && <CheckCircle className="mx-auto h-12 w-12 text-green-600" />}
           {status === 'error' && <XCircle className="mx-auto h-12 w-12 text-red-500" />}
@@ -61,7 +61,7 @@ export default function PartnerCheckoutCallbackPage() {
             <button
               type="button"
               onClick={() => window.location.reload()}
-              className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-[12px] bg-brand-maroon px-5 text-[17px] font-semibold text-white touch-manipulation"
+              className="mt-6 inline-flex min-h-[44px] items-center justify-center rounded-[20px] bg-brand-maroon px-5 text-[17px] font-semibold text-white touch-manipulation"
             >
               Try again
             </button>

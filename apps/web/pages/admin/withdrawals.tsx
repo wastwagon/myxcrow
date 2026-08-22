@@ -38,6 +38,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LightShell } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 import { MetricCard } from '@/components/ui/MetricCard';
 
 export default function AdminWithdrawalsPage() {
@@ -111,7 +112,7 @@ export default function AdminWithdrawalsPage() {
   };
 
   if (!isAuthenticated() || !isAdmin()) {
-    return null;
+    return <PageSpinner />;
   }
 
   const refreshWithdrawals = async () => {
@@ -121,16 +122,13 @@ export default function AdminWithdrawalsPage() {
   const pendingWithdrawals = withdrawalsData?.withdrawals?.filter((w) => w.status === 'REQUESTED') || [];
 
   return (
-    <Layout>
+    <Layout title="Withdrawals">
       <PullToRefresh onRefresh={refreshWithdrawals} disabled={!isMobile}>
         <LightShell>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 className={dash.title}>Withdrawals</h1>
-              <p className={dash.subtitle}>
-                Review payout details and approve or deny requests
-              </p>
-            </div>
+            <p className={dash.subtitle}>
+              Review payout details and approve or deny requests
+            </p>
             <div className="flex flex-wrap items-center gap-2">
               {pendingWithdrawals.length > 0 && (
                 <Badge tone="light" color="warning" variant="subtle">
@@ -279,7 +277,7 @@ export default function AdminWithdrawalsPage() {
                           <button
                             type="button"
                             onClick={() => openDetails(withdrawal)}
-                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[12px] text-brand-maroon hover:bg-brand-maroon/10"
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-[16px] text-brand-maroon hover:bg-brand-maroon/10"
                             title="View payout details"
                           >
                             <Eye className="w-4 h-4" />

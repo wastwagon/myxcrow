@@ -91,7 +91,7 @@ echo ""
 
 # Step 3: Check and free ports
 echo -e "${BLUE}📋 Step 3: Checking ports...${NC}"
-free_port 3000
+free_port 3007
 free_port 4000
 free_port 5434
 free_port 6380
@@ -181,7 +181,7 @@ sleep 10
 MAX_WAIT=120
 WAIT_COUNT=0
 while [ $WAIT_COUNT -lt $MAX_WAIT ]; then
-    if curl -s http://localhost:3000 >/dev/null 2>&1; then
+    if curl -s http://localhost:3007 >/dev/null 2>&1; then
         break
     fi
     WAIT_COUNT=$((WAIT_COUNT + 5))

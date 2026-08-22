@@ -18,7 +18,7 @@ import { Field } from '@/components/ui/Field';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-import { ListRowsSkeleton, PageDetailSkeleton } from '@/components/LoadingSkeleton';
+import { ListRowsSkeleton, PageDetailSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 
 interface Dispute {
   id: string;
@@ -170,7 +170,7 @@ export default function DisputeDetailPage() {
   };
 
   if (!isAuthenticated()) {
-    return null;
+    return <PageSpinner />;
   }
 
   if (isLoading) {
@@ -210,7 +210,7 @@ export default function DisputeDetailPage() {
         {dispute && dispute.status === 'OPEN' && <DisputeSLATimer disputeId={dispute.id} />}
 
         {/* Dispute Info */}
-        <div className="rounded-[12px] bg-white p-5">
+        <div className="rounded-[20px] bg-white p-5">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Dispute Information</h2>
           <div className="space-y-3">
             {escrow && (
@@ -269,7 +269,7 @@ export default function DisputeDetailPage() {
         </div>
 
         {/* Messages */}
-        <div className="rounded-[12px] bg-white overflow-hidden">
+        <div className="rounded-[20px] bg-white overflow-hidden">
           <div className="p-5 border-b border-[rgba(60,60,67,0.12)]">
             <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
           </div>
@@ -280,7 +280,7 @@ export default function DisputeDetailPage() {
               messages.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`p-4 rounded-[12px] ${
+                  className={`p-4 rounded-[20px] ${
                     msg.senderId === user?.id
                       ? 'bg-brand-maroon/10 ml-8 border border-brand-maroon/20'
                       : msg.isSystem
@@ -328,7 +328,7 @@ export default function DisputeDetailPage() {
 
         {/* Admin Actions */}
         {isAdminUser && dispute && ['OPEN', 'NEGOTIATION', 'MEDIATION', 'ARBITRATION'].includes(dispute.status) && (
-          <div className="rounded-[12px] bg-white p-5">
+          <div className="rounded-[20px] bg-white p-5">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Admin Actions</h2>
             <form onSubmit={handleResolve} className="space-y-4">
               <Field

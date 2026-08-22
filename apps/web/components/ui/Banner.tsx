@@ -54,7 +54,7 @@ export function Banner({
     <div
       role="status"
       className={cn(
-        'rounded-[12px] p-4 flex items-start gap-3',
+        'rounded-[20px] p-4 flex items-start gap-3',
         light ? lightToneStyles[tone] : cn('border', darkToneStyles[tone]),
         className
       )}
@@ -83,7 +83,7 @@ export function Banner({
           type="button"
           onClick={onDismiss}
           className={cn(
-            'shrink-0 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[12px] touch-manipulation',
+            'shrink-0 min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-[16px] touch-manipulation',
             light
               ? 'text-gray-700 hover:bg-black/5 hover:text-gray-900'
               : 'text-label-tertiary hover:bg-white/10 hover:text-label-primary'
