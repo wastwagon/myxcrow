@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { AdminGate } from '@/components/admin/AdminGate';
-import { isAuthenticated, isAdmin, setUser } from '@/lib/auth';
+import { isAuthenticated, isAdmin, setUser, type User as AuthUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { Search, User, CheckCircle, XCircle, DollarSign, Eye, Edit, Save, X, AlertCircle, LogIn, Minus } from 'lucide-react';
@@ -131,7 +131,7 @@ export default function AdminUsersPage() {
       const res = await apiClient.post('/auth/admin/impersonate', { userId });
       return res.data;
     },
-    onSuccess: (data: { user: User }) => {
+    onSuccess: (data: { user: AuthUser }) => {
       setUser(data.user);
       toast.success(`Viewing as ${data.user.email}`);
       router.push('/dashboard');
