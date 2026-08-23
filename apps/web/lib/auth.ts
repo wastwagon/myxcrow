@@ -83,6 +83,12 @@ export function isImpersonating(): boolean {
 export async function logout(): Promise<void> {
   if (typeof window !== 'undefined') {
     try {
+      const { disconnectChatSocket } = await import('./chat-socket');
+      disconnectChatSocket();
+    } catch {
+      /* ignore */
+    }
+    try {
       const { getApiBaseUrl } = await import('./api-base');
       await fetch(`${getApiBaseUrl()}/auth/logout`, {
         method: 'POST',

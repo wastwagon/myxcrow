@@ -35,6 +35,8 @@ const connectSrc = [
   "'self'",
   apiOrigin,
   !isProd && 'http://localhost:4000',
+  !isProd && 'ws://localhost:4000',
+  apiOrigin.replace(/^http/, 'ws'),
   'https://via.intercom.io',
   'https://api.intercom.io',
   'https://api-iam.intercom.io',
@@ -85,6 +87,10 @@ if (isProd) {
 
 const nextConfig = {
   reactStrictMode: true,
+  // Engine.IO always requests `/socket.io/?EIO=…`. Next's default trailing-slash
+  // 308 would strip that slash, Nest then 404s `/socket.io?EIO=…`, and chat
+  // falls back to REST-only.
+  skipTrailingSlashRedirect: true,
   transpilePackages: ['@myxcrow/shared'],
   // Production builds should not fail due to ESLint configuration/rules.
   // Keep linting in CI or locally via `pnpm lint`.
@@ -105,6 +111,18 @@ const nextConfig = {
   },
   async rewrites() {
     return [
+      {
+        source: '/socket.io',
+        destination: `${apiOrigin}/socket.io/`,
+      },
+      {
+        source: '/socket.io/',
+        destination: `${apiOrigin}/socket.io/`,
+      },
+      {
+        source: '/socket.io/:path*',
+        destination: `${apiOrigin}/socket.io/:path*`,
+      },
       {
         source: '/api/:path*',
         destination: `${apiOrigin}/api/:path*`,

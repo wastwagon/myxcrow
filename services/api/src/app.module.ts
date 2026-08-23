@@ -25,6 +25,7 @@ import { PlatformsModule } from './modules/platforms/platforms.module';
 import { PartnerWebhooksModule } from './modules/partner-webhooks/partner-webhooks.module';
 import { PartnerCheckoutModule } from './modules/partner-checkout/partner-checkout.module';
 import { PartnerApiModule } from './modules/partner-api/partner-api.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { CryptoModule } from './common/crypto/crypto.module';
 import { SecretsModule } from './common/secrets/secrets.module';
 import { QueueModule } from './common/queue/queue.module';
@@ -70,6 +71,7 @@ import paystackConfig from './config/paystack.config';
     PartnerWebhooksModule,
     PartnerCheckoutModule,
     PartnerApiModule,
+    ChatModule,
   ],
   controllers: [HealthController],
   providers: [PrismaService],

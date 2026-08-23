@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Optional } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { DisputeStatus, DisputeReason, DisputeResolutionOutcome, UserRole } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditService } from '../audit/audit.service';
 import { EscrowService } from '../escrow/escrow.service';
+import { ChatService } from '../chat/chat.service';
 
 @Injectable()
 export class DisputesService {
@@ -12,6 +13,7 @@ export class DisputesService {
     private notificationsService: NotificationsService,
     private auditService: AuditService,
     private escrowService: EscrowService,
+    @Optional() private chatService?: ChatService,
   ) {}
 
   async createDispute(data: {
@@ -102,6 +104,8 @@ export class DisputesService {
       resourceId: dispute.id,
       details: { escrowId: data.escrowId, reason: data.reason },
     });
+
+    void this.chatService?.announceEscrowEvent(data.escrowId, 'DISPUTED').catch(() => undefined);
 
     return dispute;
   }

@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { validateEnv } from './config/validate-env';
 import { getAllowedOrigins } from './common/http/allowed-origins';
+import { ChatIoAdapter } from './common/ws/chat-io.adapter';
 
 async function bootstrap() {
   validateEnv();
@@ -44,6 +45,7 @@ async function bootstrap() {
     origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
     credentials: true,
   });
+  app.useWebSocketAdapter(new ChatIoAdapter(app));
 
   // Global validation pipe
   app.useGlobalPipes(

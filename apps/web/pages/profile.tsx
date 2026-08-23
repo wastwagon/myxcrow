@@ -26,6 +26,7 @@ import {
   KeyRound,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   Trash2,
 } from 'lucide-react';
 
@@ -59,6 +60,13 @@ function buildAccountMenuTiles({
       subtitle: 'Your cases',
       icon: AlertCircle,
       color: 'orange',
+    },
+    {
+      href: '/messages',
+      label: 'Messages',
+      subtitle: 'Deals & support',
+      icon: MessageCircle,
+      color: 'indigo',
     },
     {
       href: '/help',

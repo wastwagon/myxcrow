@@ -15,6 +15,7 @@ import {
   Upload,
   Star,
   Copy,
+  MessageCircle,
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import ActivityTimeline from '@/components/ActivityTimeline';
@@ -74,6 +75,7 @@ interface Escrow {
   deliveryAddressLine?: string;
   deliveryPhone?: string;
   deliveryConfirmationMode?: 'code' | 'pin';
+  supportJoinedAt?: string | null;
   milestones?: any[];
   shipments?: Shipment[];
   buyer?: {
@@ -103,6 +105,10 @@ export default function EscrowDetailPage() {
   const [ratingModal, setRatingModal] = useState<{ isOpen: boolean; rateeId?: string; rateeName?: string; role?: 'buyer' | 'seller' }>({ isOpen: false });
   const isMobile = useIsMobileNav();
   const authed = useRequireAuth();
+
+  useEffect(() => {
+    if (router.query.tab === 'messages') setActiveTab('messages');
+  }, [router.query.tab]);
 
   const refreshEscrow = async () => {
     await queryClient.invalidateQueries({ queryKey: ['escrow', id] });
@@ -529,6 +535,14 @@ export default function EscrowDetailPage() {
           <div className="rounded-[20px] bg-white p-5">
             <h2 className="text-[17px] font-semibold text-gray-900 mb-4">Actions</h2>
             <div className="space-y-3">
+              <Button
+                fullWidth
+                variant="outline"
+                onClick={() => setActiveTab('messages')}
+              >
+                <MessageCircle className="w-4 h-4" />
+                Message {isBuyer ? 'seller' : isSeller ? 'buyer' : 'parties'}
+              </Button>
               {canFund && (
                 <Button
                   fullWidth
@@ -689,7 +703,9 @@ export default function EscrowDetailPage() {
                 sellerId={escrow.sellerId}
               />
             )}
-            {activeTab === 'messages' && <EscrowMessaging escrowId={escrow.id} />}
+            {activeTab === 'messages' && (
+              <EscrowMessaging escrowId={escrow.id} supportJoinedAt={escrow.supportJoinedAt} />
+            )}
           </div>
         </div>
 

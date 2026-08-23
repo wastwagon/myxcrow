@@ -13,6 +13,7 @@ import {
   Shield,
   Wallet,
   AlertCircle,
+  Headphones,
 } from 'lucide-react';
 import { isAuthenticated, getUser, logout, isAdmin } from '@/lib/auth';
 import { cn } from '@/lib/utils';
@@ -21,6 +22,7 @@ import { useConfirm } from '@/components/providers/UIProvider';
 
 const ADMIN_LINKS = [
   { href: '/admin', label: 'Home', icon: LayoutDashboard },
+  { href: '/admin/support', label: 'Live support', icon: Headphones },
   { href: '/admin/platforms', label: 'Partner APIs', icon: KeyRound },
   { href: '/admin/users', label: 'Users', icon: UsersIcon },
   { href: '/admin/withdrawals', label: 'Withdrawals', icon: DollarSign },

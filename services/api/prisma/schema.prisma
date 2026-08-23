@@ -108,6 +108,11 @@ enum WithdrawalStatus {
   CANCELED
 }
 
+enum SupportConversationStatus {
+  OPEN
+  CLOSED
+}
+
 // ============================================
 // USER & AUTHENTICATION
 // ============================================
@@ -145,6 +150,12 @@ model User {
   ratingsReceived   EscrowRating[]    @relation("RatingsReceived")
   payoutMethods     PayoutMethod[]
   platformMerchantLinks PlatformMerchantLink[]
+  escrowMessages    EscrowMessage[]
+  escrowThreadReads EscrowThreadRead[]
+  supportConversations SupportConversation[] @relation("SupportCustomer")
+  assignedSupportConversations SupportConversation[] @relation("SupportAssignee")
+  supportMessages   SupportMessage[]
+  supportThreadReads SupportThreadRead[]
 
   @@index([email])
   @@index([phone])
@@ -415,6 +426,7 @@ model EscrowAgreement {
   releasedAt           DateTime?
   refundedAt           DateTime?
   cancelledAt          DateTime?
+  supportJoinedAt      DateTime?
   
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
@@ -430,6 +442,7 @@ model EscrowAgreement {
   disputes             Dispute[]
   ledgerJournals       LedgerJournal[]
   messages             EscrowMessage[]
+  threadReads          EscrowThreadRead[]
   evidence             Evidence[]
   ratings              EscrowRating[]
   milestones           EscrowMilestone[]
@@ -628,15 +641,83 @@ model DisputeMessage {
 // ============================================
 
 model EscrowMessage {
-  id        String   @id @default(uuid())
-  escrowId  String
-  userId    String
-  content   String
-  createdAt DateTime @default(now())
+  id             String   @id @default(uuid())
+  escrowId       String
+  userId         String?
+  content        String
+  isSystem       Boolean  @default(false)
+  attachmentKey  String?
+  attachmentName String?
+  attachmentMime String?
+  createdAt      DateTime @default(now())
 
   escrow EscrowAgreement @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+  user   User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([escrowId])
+  @@index([userId])
+  @@index([escrowId, createdAt])
+}
+
+model EscrowThreadRead {
+  escrowId   String
+  userId     String
+  lastReadAt DateTime @default(now())
+
+  escrow EscrowAgreement @relation(fields: [escrowId], references: [id], onDelete: Cascade)
+  user   User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([escrowId, userId])
+  @@index([userId])
+}
+
+model SupportConversation {
+  id                 String                     @id @default(uuid())
+  userId             String
+  assignedToId       String?
+  status             SupportConversationStatus  @default(OPEN)
+  lastMessageAt      DateTime                   @default(now())
+  lastMessagePreview String                     @default("")
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+
+  user     User                 @relation("SupportCustomer", fields: [userId], references: [id], onDelete: Cascade)
+  assignee User?                @relation("SupportAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
+  messages SupportMessage[]
+  reads    SupportThreadRead[]
+
+  @@index([userId, status])
+  @@index([status, lastMessageAt])
+  @@index([assignedToId])
+}
+
+model SupportMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  senderId       String?
+  content        String
+  isSystem       Boolean  @default(false)
+  attachmentKey  String?
+  attachmentName String?
+  attachmentMime String?
+  createdAt      DateTime @default(now())
+
+  conversation SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User?               @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+}
+
+model SupportThreadRead {
+  conversationId String
+  userId         String
+  lastReadAt     DateTime @default(now())
+
+  conversation SupportConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([conversationId, userId])
   @@index([userId])
 }
 

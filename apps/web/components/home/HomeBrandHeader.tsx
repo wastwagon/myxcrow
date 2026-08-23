@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { type ReactNode } from 'react';
-import { Bell, ChevronLeft, CircleUser, X } from 'lucide-react';
+import { Bell, ChevronLeft, CircleUser, MessageCircle, X } from 'lucide-react';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export type HomeHeaderLeading = 'account' | 'close' | 'back';
@@ -20,6 +20,8 @@ export function HomeBrandHeader({
   screenTitle,
   overlapBand = true,
   bellExpanded = false,
+  chatBadge = 0,
+  onChat,
 }: {
   badge: number;
   onBell: () => void;
@@ -36,6 +38,8 @@ export function HomeBrandHeader({
   /** Extra maroon band under the mobile toolbar (wallet-card overlap on Home). */
   overlapBand?: boolean;
   bellExpanded?: boolean;
+  chatBadge?: number;
+  onChat?: () => void;
 }) {
   const accessibleTitle = screenTitle ?? pageTitle ?? greeting ?? 'Home';
   return (
@@ -70,6 +74,7 @@ export function HomeBrandHeader({
           </div>
           <div className="flex items-center shrink-0">
             {trailing}
+            {onChat ? <HomeChat badge={chatBadge} onChat={onChat} /> : null}
             <HomeBell badge={badge} onBell={onBell} expanded={bellExpanded} />
           </div>
         </div>
@@ -94,6 +99,7 @@ export function HomeBrandHeader({
               </h1>
               <div className="flex items-center shrink-0">
                 {trailing}
+                {onChat ? <HomeChat badge={chatBadge} onChat={onChat} /> : null}
                 <HomeBell badge={badge} onBell={onBell} expanded={bellExpanded} />
               </div>
               <Link
@@ -112,6 +118,7 @@ export function HomeBrandHeader({
                 <p className="mt-0.5 truncate text-[13px] text-brand-gold">{accountLabel}</p>
               </div>
               {trailing}
+              {onChat ? <HomeChat badge={chatBadge} onChat={onChat} /> : null}
               <HomeBell badge={badge} onBell={onBell} expanded={bellExpanded} />
               <Link
                 href="/profile"
@@ -173,6 +180,24 @@ function HeaderLeading({
     <Link href="/profile" className={buttonClass} aria-label="Account">
       <CircleUser className="h-7 w-7" strokeWidth={1.7} />
     </Link>
+  );
+}
+
+function HomeChat({ badge, onChat }: { badge: number; onChat: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onChat}
+      className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-brand-gold touch-manipulation focus-visible:rounded-[12px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+      aria-label="Messages"
+    >
+      <MessageCircle className="h-6 w-6" strokeWidth={1.7} />
+      {badge > 0 && (
+        <span className="absolute top-1.5 right-1.5 min-w-[16px] h-4 px-1 rounded-full bg-[#ff3b30] text-white text-[10px] font-semibold leading-4 text-center">
+          {badge > 9 ? '9+' : badge}
+        </span>
+      )}
+    </button>
   );
 }
 

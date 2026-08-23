@@ -6,9 +6,10 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { EscrowModule } from '../escrow/escrow.module';
+import { ChatModule } from '../chat/chat.module';
 
 @Module({
-  imports: [NotificationsModule, AuditModule, AuthModule, EscrowModule],
+  imports: [NotificationsModule, AuditModule, AuthModule, EscrowModule, ChatModule],
   controllers: [DisputesController],
   providers: [DisputesService, PrismaService],
   exports: [DisputesService],

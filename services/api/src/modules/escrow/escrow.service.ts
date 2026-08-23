@@ -5,6 +5,7 @@ import {
   Logger,
   Inject,
   forwardRef,
+  Optional,
 } from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
@@ -19,6 +20,7 @@ import { RulesEngineService } from '../automation/rules-engine.service';
 import { normalizeGhanaPhone } from '../../common/utils/phone.util';
 import { resolveFundingAmountCents } from '../../common/utils/fee-calculator';
 import { EncryptionService } from '../../common/crypto/encryption.service';
+import { ChatService } from '../chat/chat.service';
 
 @Injectable()
 export class EscrowService {
@@ -35,7 +37,16 @@ export class EscrowService {
     private encryptionService: EncryptionService,
     @Inject(forwardRef(() => RulesEngineService))
     private rulesEngine?: RulesEngineService,
+    @Optional()
+    @Inject(forwardRef(() => ChatService))
+    private chatService?: ChatService,
   ) {}
+
+  private announceChat(escrowId: string, event: string) {
+    void this.chatService?.announceEscrowEvent(escrowId, event).catch((err) =>
+      this.logger.warn(`Chat system message failed: ${err.message}`),
+    );
+  }
 
   /** Generate 6-char uppercase alphanumeric code (avoid 0,O,1,I for readability) */
   private generateDeliveryCode(): string {
@@ -367,6 +378,7 @@ export class EscrowService {
       ).catch((err) => this.logger.error(`Failed to evaluate rules: ${err.message}`));
     }
 
+    this.announceChat(escrowId, 'FUNDED');
     return this.getEscrow(escrowId);
   }
 
@@ -468,6 +480,7 @@ export class EscrowService {
       details: { reference: _reference },
     });
 
+    this.announceChat(escrowId, 'FUNDED');
     return this.getEscrow(escrowId);
   }
 
@@ -585,6 +598,7 @@ export class EscrowService {
       afterState: { status: EscrowStatus.SHIPPED },
     });
 
+    this.announceChat(escrowId, 'SHIPPED');
     return this.getEscrow(escrowId);
   }
 
@@ -880,6 +894,7 @@ export class EscrowService {
       }
     }
 
+    this.announceChat(escrowId, 'DELIVERED');
     return this.getEscrow(escrowId);
   }
 
@@ -1024,6 +1039,7 @@ export class EscrowService {
       afterState: { status: EscrowStatus.RELEASED },
     });
 
+    this.announceChat(escrowId, 'RELEASED');
     return this.getEscrow(escrowId);
   }
 
@@ -1277,6 +1293,7 @@ export class EscrowService {
       details: { reason },
     });
 
+    this.announceChat(escrowId, 'REFUNDED');
     return this.getEscrow(escrowId);
   }
 
@@ -1327,6 +1344,7 @@ export class EscrowService {
       afterState: { status: EscrowStatus.CANCELLED },
     });
 
+    this.announceChat(escrowId, 'CANCELLED');
     return this.getEscrow(escrowId);
   }
 

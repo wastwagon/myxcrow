@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   AlertCircle,
   FileText,
+  Headphones,
   KeyRound,
   Plus,
   Scale,
@@ -137,6 +138,7 @@ export type HelpQuickLink = {
 };
 
 export const HELP_QUICK_LINKS: HelpQuickLink[] = [
+  { href: '/messages/support', label: 'Live chat', subtitle: 'Talk to MYXCROW', icon: Headphones },
   { href: '/escrows/new', label: 'New escrow', subtitle: 'Start protected', icon: Plus },
   { href: '/wallet', label: 'Wallet', subtitle: 'Balance & top up', icon: Wallet },
   { href: '/disputes', label: 'Disputes', subtitle: 'Your cases', icon: Scale },

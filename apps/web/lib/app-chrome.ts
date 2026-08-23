@@ -15,6 +15,7 @@ const CUSTOMER_PREFIXES = [
   '/escrows',
   '/wallet',
   '/disputes',
+  '/messages',
   '/profile',
   '/help',
   '/change-password',

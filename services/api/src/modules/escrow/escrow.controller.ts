@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { EscrowService } from './escrow.service';
 import { MilestoneEscrowService } from './milestone-escrow.service';
-import { EscrowMessageService } from './escrow-message.service';
 import { EscrowExportService } from './escrow-export.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PhoneRequiredGuard } from '../auth/guards/phone-required.guard';
@@ -21,6 +20,7 @@ import type { CurrentUser as ICurrentUser } from '../auth/interfaces/current-use
 import { EscrowStatus } from '@prisma/client';
 import { Res } from '@nestjs/common';
 import { Response } from 'express';
+import { ChatService } from '../chat/chat.service';
 
 @Controller('escrows')
 @UseGuards(JwtAuthGuard, PhoneRequiredGuard)
@@ -28,7 +28,7 @@ export class EscrowController {
   constructor(
     private readonly escrowService: EscrowService,
     private readonly milestoneService: MilestoneEscrowService,
-    private readonly messageService: EscrowMessageService,
+    private readonly chatService: ChatService,
     private readonly exportService: EscrowExportService,
   ) {}
 
@@ -193,7 +193,7 @@ export class EscrowController {
   @Get(':id/messages')
   @UseGuards(EscrowAccessGuard)
   async getMessages(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
-    return this.messageService.getMessages(id, user.id, isEscrowStaff(user));
+    return this.chatService.listEscrowMessages(id, user);
   }
 
   @Post(':id/messages')
@@ -203,7 +203,7 @@ export class EscrowController {
     @Body() data: { content: string },
     @CurrentUser() user: ICurrentUser,
   ) {
-    return this.messageService.sendMessage(id, user.id, data.content);
+    return this.chatService.sendEscrowMessage(id, user, data.content || '');
   }
 
   @Get('export/csv')

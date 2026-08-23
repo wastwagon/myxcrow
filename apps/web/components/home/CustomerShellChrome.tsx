@@ -1,8 +1,10 @@
 import { type ReactNode, useState } from 'react';
+import { useRouter } from 'next/router';
 import { ImpersonationBanner } from '@/components/ImpersonationBanner';
 import { HomeApprovalsSheet } from '@/components/home/HomeApprovalsSheet';
 import { HomeBrandHeader, type HomeHeaderLeading } from '@/components/home/HomeBrandHeader';
 import { useCustomerShellHeader } from '@/lib/hooks/useCustomerShellHeader';
+import { useChatUnread } from '@/components/chat/ChatProvider';
 
 export const SHELL_CONTENT_CLASS =
   'px-4 pb-6 pt-5 max-w-2xl mx-auto xl:max-w-5xl xl:px-8 space-y-5';
@@ -28,6 +30,8 @@ export function CustomerShellChrome({
   const [approvalsOpen, setApprovalsOpen] = useState(false);
   const { greeting, accountLabel, avatarLabel, bellBadge, awaitingCount } =
     useCustomerShellHeader();
+  const router = useRouter();
+  const chatUnread = useChatUnread();
 
   return (
     <>
@@ -45,6 +49,8 @@ export function CustomerShellChrome({
         screenTitle={screenTitle}
         badge={bellBadge}
         onBell={() => setApprovalsOpen(true)}
+        chatBadge={chatUnread.total}
+        onChat={() => router.push('/messages')}
         greeting={greeting}
         accountLabel={accountLabel}
         avatarLabel={avatarLabel}

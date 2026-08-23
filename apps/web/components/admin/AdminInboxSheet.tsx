@@ -1,5 +1,12 @@
 import Link from 'next/link';
-import { AlertCircle, ChevronRight, LayoutDashboard, Users, Wallet } from 'lucide-react';
+import {
+  AlertCircle,
+  ChevronRight,
+  Headphones,
+  LayoutDashboard,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import { Sheet } from '@/components/ui/Sheet';
 
 export function AdminInboxSheet({
@@ -7,11 +14,13 @@ export function AdminInboxSheet({
   onClose,
   disputeCount,
   withdrawalCount,
+  supportCount = 0,
 }: {
   open: boolean;
   onClose: () => void;
   disputeCount: number;
   withdrawalCount: number;
+  supportCount?: number;
 }) {
   return (
     <Sheet open={open} onClose={onClose} title="Inbox" subtitle="Work waiting for you">
@@ -21,6 +30,14 @@ export function AdminInboxSheet({
           icon={LayoutDashboard}
           title="Work queue"
           subtitle="Disputes, withdrawals, and hot escrows"
+          onClose={onClose}
+        />
+        <InboxRow
+          href="/admin/support"
+          icon={Headphones}
+          title="Live support"
+          subtitle="Buyer and seller help chats"
+          badge={supportCount}
           onClose={onClose}
         />
         <InboxRow

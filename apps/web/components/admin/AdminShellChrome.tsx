@@ -1,8 +1,10 @@
 import { type ReactNode, useState } from 'react';
+import { useRouter } from 'next/router';
 import { ImpersonationBanner } from '@/components/ImpersonationBanner';
 import { AdminInboxSheet } from '@/components/admin/AdminInboxSheet';
 import { HomeBrandHeader } from '@/components/home/HomeBrandHeader';
 import { useAdminShellHeader } from '@/lib/hooks/useAdminShellHeader';
+import { useChatUnread } from '@/components/chat/ChatProvider';
 
 export function AdminShellChrome({
   screenTitle,
@@ -14,6 +16,8 @@ export function AdminShellChrome({
   const [inboxOpen, setInboxOpen] = useState(false);
   const { greeting, accountLabel, avatarLabel, bellBadge, disputeCount, withdrawalCount } =
     useAdminShellHeader();
+  const router = useRouter();
+  const chatUnread = useChatUnread();
 
   return (
     <>
@@ -22,11 +26,14 @@ export function AdminShellChrome({
         onClose={() => setInboxOpen(false)}
         disputeCount={disputeCount}
         withdrawalCount={withdrawalCount}
+        supportCount={chatUnread.support}
       />
       <HomeBrandHeader
         screenTitle={screenTitle ?? 'Admin'}
         badge={bellBadge}
         onBell={() => setInboxOpen(true)}
+        chatBadge={chatUnread.support}
+        onChat={() => router.push('/admin/support')}
         greeting={greeting}
         accountLabel={accountLabel}
         avatarLabel={avatarLabel}

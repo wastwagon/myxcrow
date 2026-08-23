@@ -6,6 +6,7 @@ import {
   Home,
   LayoutDashboard,
   LogOut,
+  MessageCircle,
   Plus,
   Scale,
   Shield,
@@ -30,6 +31,7 @@ const PRIMARY_LINKS: DesktopLink[] = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/escrows', label: 'Escrows', icon: Shield },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
+  { href: '/messages', label: 'Messages', icon: MessageCircle },
   { href: '/disputes', label: 'Disputes', icon: Scale },
 ];
 
@@ -87,6 +89,9 @@ export default function CustomerLayout({
         router.pathname === '/escrows' ||
         (router.pathname.startsWith('/escrows/') && router.pathname !== '/escrows/new')
       );
+    }
+    if (href === '/messages') {
+      return router.pathname === '/messages' || router.pathname.startsWith('/messages/');
     }
     if (href === '/disputes') {
       return router.pathname === '/disputes' || router.pathname.startsWith('/disputes/');

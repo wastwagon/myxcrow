@@ -6,6 +6,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { DeferredIntercom } from '@/components/DeferredIntercom';
 import AppShell from '@/components/AppShell';
 import PageTransition from '@/components/PageTransition';
+import { ChatProvider } from '@/components/chat/ChatProvider';
 import { UIProvider } from '@/components/providers/UIProvider';
 import { applyAppChrome, isGroupedLightPath } from '@/lib/app-chrome';
 import { migrateLegacyTokens } from '@/lib/auth';
@@ -39,6 +40,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <UIProvider>
+          <ChatProvider>
           <AppShell>
             <PageTransition>
               <Component {...pageProps} />
@@ -91,6 +93,7 @@ export default function App({ Component, pageProps, router }: AppProps) {
             }}
           />
           <DeferredIntercom />
+          </ChatProvider>
         </UIProvider>
       </QueryClientProvider>
     </ErrorBoundary>

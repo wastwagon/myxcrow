@@ -57,7 +57,16 @@ export function HelpContent({ variant = 'public' }: HelpContentProps) {
             <div>
               <p className="text-[14px] font-semibold text-brand-maroon-deep">Live chat</p>
               <p className="mt-0.5 text-[13px] leading-snug text-[rgba(60,60,67,0.6)]">
-                Use the chat widget in the bottom-right corner for the fastest help.
+                {variant === 'dashboard' ? (
+                  <>
+                    Chat with MYXCROW in the app.{' '}
+                    <Link href="/messages/support" className="font-semibold text-brand-maroon underline">
+                      Open support chat
+                    </Link>
+                  </>
+                ) : (
+                  'Sign in to chat with MYXCROW from Help, or email us from your registered account.'
+                )}
               </p>
             </div>
           </div>

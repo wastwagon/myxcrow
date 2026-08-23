@@ -2,7 +2,6 @@ import { Module, forwardRef } from '@nestjs/common';
 import { EscrowController } from './escrow.controller';
 import { EscrowService } from './escrow.service';
 import { MilestoneEscrowService } from './milestone-escrow.service';
-import { EscrowMessageService } from './escrow-message.service';
 import { EscrowExportService } from './escrow-export.service';
 import { AutoReleaseService } from './auto-release.service';
 import { EscrowSchedulerService } from './scheduler.service';
@@ -14,6 +13,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { AuditModule } from '../audit/audit.module';
 import { AuthModule } from '../auth/auth.module';
 import { AutomationModule } from '../automation/automation.module';
+import { ChatModule } from '../chat/chat.module';
 import { EscrowAccessGuard } from './guards/escrow-access.guard';
 import { EscrowParticipantGuard } from './guards/escrow-participant.guard';
 
@@ -26,12 +26,12 @@ import { EscrowParticipantGuard } from './guards/escrow-participant.guard';
     AuditModule,
     AuthModule,
     AutomationModule,
+    ChatModule,
   ],
   controllers: [EscrowController],
   providers: [
     EscrowService,
     MilestoneEscrowService,
-    EscrowMessageService,
     EscrowExportService,
     AutoReleaseService,
     EscrowSchedulerService,
@@ -39,7 +39,6 @@ import { EscrowParticipantGuard } from './guards/escrow-participant.guard';
     EscrowAccessGuard,
     EscrowParticipantGuard,
   ],
-  exports: [EscrowService, EscrowMessageService, EscrowExportService, EscrowAccessGuard],
+  exports: [EscrowService, EscrowExportService, EscrowAccessGuard],
 })
 export class EscrowModule {}
-
