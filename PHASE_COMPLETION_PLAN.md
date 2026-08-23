@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MVP Phase Completion Plan
 
 > **Note:** The native mobile app has been removed. Project is **web-only**. Phase 2 / mobile references below are historical.
@@ -16,7 +18,7 @@
 
 ### 🟡 Phase 2: Mobile App - **50% COMPLETE**
 - Core Structure: ✅ Complete
-- KYC Registration: ✅ Just Completed
+- phone verification Registration: ✅ Just Completed
 - Remaining:
   - Escrow creation & management screens
   - Paystack wallet top-up integration
@@ -34,7 +36,7 @@
 ### Phase 2 Completion (Mobile App) - Priority 1
 
 #### 1. Escrow Management (Next)
-- [x] KYC Registration with camera ✅
+- [x] phone verification Registration with camera ✅
 - [ ] Create Escrow screen
 - [ ] Escrow Details screen
 - [ ] Escrow Actions (Fund, Ship, Deliver, Release)

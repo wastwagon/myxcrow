@@ -143,17 +143,6 @@ export class EmailService {
     await this.sendEmail(adminEmail, `[MYXCROW] New user: ${data.userEmail}`, this.getEmailWrapper(content, 'New user registered'), false);
   }
 
-  async sendAdminKycPendingNotification(data: { userEmail: string; userId: string }) {
-    const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
-    if (!adminEmail) return;
-    const content = `
-      <p>A user has submitted KYC for review.</p>
-      <p><strong>Email:</strong> ${data.userEmail}</p>
-      <p><strong>User ID:</strong> ${data.userId}</p>
-    `;
-    await this.sendEmail(adminEmail, `[MYXCROW] KYC pending review`, this.getEmailWrapper(content, 'KYC pending'), false);
-  }
-
   async sendWalletDebitEmail(data: {
     to: string;
     amount: string;

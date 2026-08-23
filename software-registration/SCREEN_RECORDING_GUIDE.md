@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Screen Recording Guide — MYXCROW Demo
 
 Record a **5–15 minute** screen recording showing how MYXCROW works. Save as `MYXCROW-demo.mp4` on both pen drives under `04-screen-recording/`.
@@ -64,7 +66,7 @@ Record a **5–15 minute** screen recording showing how MYXCROW works. Save as `
 
 ### 9. Admin dashboard (1 min)
 - Log in as `admin@myxcrow.com`
-- Show admin overview: users, escrows, KYC queue, settings
+- Show admin overview: users, escrows, phone verification queue, settings
 
 ### 10. Closing (30 sec)
 - Show Terms/Privacy pages

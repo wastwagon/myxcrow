@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Pages, Menus & Transaction Flow Audit
 
 **Date:** January 2026  
@@ -17,7 +19,7 @@
 | `/dashboard` | ✅ | ✅ Nav | User dashboard |
 | `/admin` | ✅ | ✅ Nav (admin) | Admin dashboard |
 | `/admin/users` | ✅ | ✅ Nav | User management |
-| `/admin/kyc-review` | ✅ | ✅ Nav | KYC review |
+| `/admin/phone verification-review` | ✅ | ✅ Nav | phone verification review |
 | `/admin/withdrawals` | ✅ | ✅ Nav | Withdrawal approvals |
 | `/admin/reconciliation` | ✅ | ✅ Nav | Reconciliation |
 | `/admin/fees` | ✅ | ✅ Nav **(added)** | Fee config |
@@ -63,7 +65,7 @@
 ### Web Navigation
 
 - **User:** Dashboard, Escrows, Wallet, Disputes, Profile, Logout.
-- **Admin (extra):** Admin, Users, KYC, Withdrawals, Reconciliation, **Fees** **(added)**, Settings.
+- **Admin (extra):** Admin, Users, phone verification, Withdrawals, Reconciliation, **Fees** **(added)**, Settings.
 - **Wallet:** Top Up **(added)**, Request Withdrawal, (Admin Panel for admins).
 - **Admin users:** Credit Wallet → `/admin/wallet/credit?userId=...`, View Wallet → `/wallet/admin/[userId]` **(page added)**.
 
@@ -135,7 +137,7 @@ Same DB, same API; the web app uses these endpoints. Flow is consistent.
 
 ### Admin
 
-- Users, KYC, withdrawals, reconciliation, fees, settings, wallet credit/debit, **view user wallet** (`/wallet/admin/[userId]`) all hit admin or wallet admin API routes.  
+- Users, phone verification, withdrawals, reconciliation, fees, settings, wallet credit/debit, **view user wallet** (`/wallet/admin/[userId]`) all hit admin or wallet admin API routes.  
 - ✅ Implemented and linked.
 
 ---

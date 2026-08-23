@@ -1,16 +1,41 @@
-import { type ReactNode, useEffect } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { AlertCircle, ChevronLeft, Home, Shield, User, Wallet } from 'lucide-react';
+import {
+  CircleHelp,
+  Home,
+  LayoutDashboard,
+  LogOut,
+  Plus,
+  Scale,
+  Shield,
+  User,
+  Wallet,
+} from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { ImpersonationBanner } from '@/components/ImpersonationBanner';
+import { BrandMark } from '@/components/BrandMark';
+import { useConfirm } from '@/components/providers/UIProvider';
+import { isAdmin, logout } from '@/lib/auth';
+import { isCustomerAccountPath, isCustomerHelpPath } from '@/lib/app-chrome';
+import { CustomerShellChrome, SHELL_CONTENT_CLASS } from '@/components/home/CustomerShellChrome';
 
-const DESKTOP_LINKS = [
+type DesktopLink = {
+  href: string;
+  label: string;
+  icon: typeof Home;
+};
+
+const PRIMARY_LINKS: DesktopLink[] = [
   { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/escrows', label: 'Escrows', icon: Shield },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
-  { href: '/disputes', label: 'Disputes', icon: AlertCircle },
+  { href: '/disputes', label: 'Disputes', icon: Scale },
+];
+
+const SECONDARY_LINKS: DesktopLink[] = [
   { href: '/profile', label: 'Account', icon: User },
+  { href: '/help', label: 'Help', icon: CircleHelp },
 ];
 
 interface CustomerLayoutProps {
@@ -19,6 +44,8 @@ interface CustomerLayoutProps {
   back?: boolean;
   onBack?: () => void;
   children: ReactNode;
+  /** Full-bleed maroon chrome (Home, Escrows hub, and back pages). */
+  variant?: 'page' | 'home' | 'hub';
 }
 
 export default function CustomerLayout({
@@ -27,15 +54,26 @@ export default function CustomerLayout({
   back,
   onBack,
   children,
+  variant = 'page',
 }: CustomerLayoutProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const confirm = useConfirm();
+  const maroonChrome = variant === 'home' || variant === 'hub' || !!back;
+  const [admin, setAdmin] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.add('customer-app');
+    if (maroonChrome) document.documentElement.classList.add('customer-home');
     return () => {
       document.documentElement.classList.remove('customer-app');
+      document.documentElement.classList.remove('customer-home');
     };
-  }, []);
+  }, [maroonChrome]);
+
+  useEffect(() => {
+    setAdmin(isAdmin());
+  }, [router.pathname]);
 
   const handleBack = () => {
     if (onBack) onBack();
@@ -44,7 +82,56 @@ export default function CustomerLayout({
 
   const isDesktopActive = (href: string) => {
     if (href === '/dashboard') return router.pathname === '/dashboard';
+    if (href === '/escrows') {
+      return (
+        router.pathname === '/escrows' ||
+        (router.pathname.startsWith('/escrows/') && router.pathname !== '/escrows/new')
+      );
+    }
+    if (href === '/disputes') {
+      return router.pathname === '/disputes' || router.pathname.startsWith('/disputes/');
+    }
+    if (href === '/profile') return isCustomerAccountPath(router.pathname);
+    if (href === '/help') return isCustomerHelpPath(router.pathname);
+    if (href === '/admin') {
+      return router.pathname === '/admin' || router.pathname.startsWith('/admin/');
+    }
     return router.pathname === href || router.pathname.startsWith(`${href}/`);
+  };
+
+  const handleSignOut = async () => {
+    const ok = await confirm({
+      title: 'Sign out',
+      message: 'Sign out of this account?',
+      confirmLabel: 'Sign out',
+    });
+    if (!ok) return;
+    await logout();
+    queryClient.clear();
+    router.push('/login');
+  };
+
+  const navLink = ({ href, label, icon: Icon }: DesktopLink) => {
+    const active = isDesktopActive(href);
+    return (
+      <Link
+        key={href}
+        href={href}
+        className={cn(
+          'inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[16px] text-[17px] touch-manipulation',
+          active
+            ? 'bg-white font-semibold text-gray-900'
+            : 'font-medium text-[rgba(60,60,67,0.7)] hover:bg-black/[0.04]'
+        )}
+      >
+        <Icon
+          className="w-[22px] h-[22px] shrink-0"
+          strokeWidth={active ? 2.2 : 1.75}
+          fill={active ? 'currentColor' : 'none'}
+        />
+        {label}
+      </Link>
+    );
   };
 
   return (
@@ -53,81 +140,55 @@ export default function CustomerLayout({
         className="hidden xl:flex w-[232px] shrink-0 flex-col px-3 pb-4"
         style={{ paddingTop: 'max(1.5rem, var(--app-sat, env(safe-area-inset-top, 0px)))' }}
       >
+        <div className="px-1 mb-4">
+          <BrandMark href="/dashboard" tone="light" />
+        </div>
         <Link
-          href="/dashboard"
-          className="inline-flex min-h-[44px] items-center px-3 mb-4 text-[17px] font-semibold tracking-tight text-gray-900 touch-manipulation"
+          href="/escrows/new"
+          className="mx-cta mb-3 inline-flex min-h-[44px] items-center justify-center gap-2 rounded-[16px] bg-brand-maroon px-3 text-[15px] font-semibold touch-manipulation"
         >
-          MYXCROW
+          <Plus className="w-[18px] h-[18px]" strokeWidth={2.4} />
+          New escrow
         </Link>
-        <nav className="flex flex-col gap-0.5" aria-label="Main">
-          {DESKTOP_LINKS.map((link) => {
-            const Icon = link.icon;
-            const active = isDesktopActive(link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  'inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[16px] text-[17px] touch-manipulation',
-                  active
-                    ? 'bg-white font-semibold text-gray-900'
-                    : 'font-medium text-[rgba(60,60,67,0.7)] hover:bg-black/[0.04]'
-                )}
-              >
-                <Icon
-                  className="w-[22px] h-[22px] shrink-0"
-                  strokeWidth={active ? 2.2 : 1.75}
-                  fill={active ? 'currentColor' : 'none'}
-                />
-                {link.label}
-              </Link>
-            );
-          })}
+        <nav className="flex flex-col gap-0.5 overflow-y-auto" aria-label="Main">
+          {PRIMARY_LINKS.map(navLink)}
+          <div className="mt-3 flex flex-col gap-0.5">
+            {SECONDARY_LINKS.map(navLink)}
+            {admin && navLink({ href: '/admin', label: 'Admin', icon: LayoutDashboard })}
+            <button
+              type="button"
+              onClick={handleSignOut}
+              className="inline-flex min-h-[44px] items-center gap-3 px-3 rounded-[16px] text-[17px] font-medium text-[#ff3b30] hover:bg-red-50 touch-manipulation"
+            >
+              <LogOut className="w-[22px] h-[22px] shrink-0" strokeWidth={1.75} />
+              Sign out
+            </button>
+          </div>
         </nav>
       </aside>
 
       <div className="relative flex flex-col flex-1 min-h-0 min-w-0">
-        <header
-          className="absolute top-0 left-0 right-0 z-40"
-          style={{
-            paddingTop: 'var(--app-sat, env(safe-area-inset-top, 0px))',
-            background: 'rgba(242,242,247,0.78)',
-            backdropFilter: 'blur(32px) saturate(1.9)',
-            WebkitBackdropFilter: 'blur(32px) saturate(1.9)',
-            boxShadow: 'inset 0 -0.5px 0 rgba(60,60,67,0.18)',
-          }}
-        >
-          <div className="flex items-center min-h-[44px] px-1">
-            {back ? (
-              <button
-                type="button"
-                onClick={handleBack}
-                className="min-w-[44px] min-h-[44px] flex items-center justify-center text-brand-maroon touch-manipulation"
-                aria-label="Go back"
-              >
-                <ChevronLeft className="w-7 h-7" strokeWidth={2.25} />
-              </button>
-            ) : (
-              <div className="w-2 shrink-0" aria-hidden />
-            )}
-            <div className="flex-1 min-w-0 text-center px-1">
-              <h1 className="text-[17px] font-semibold truncate text-gray-900">{title}</h1>
-            </div>
-            <div className="min-w-[44px] min-h-[44px] flex items-center justify-center shrink-0">
-              {trailing}
-            </div>
-          </div>
-        </header>
-
         <div
           id="customer-scroll"
           className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden"
-          style={{ paddingTop: 'calc(var(--app-sat, env(safe-area-inset-top, 0px)) + 44px)' }}
         >
-          <div className="px-4 pb-2 max-w-2xl mx-auto xl:max-w-5xl xl:px-2">
-            <ImpersonationBanner />
-            {children}
-          </div>
+          {back ? (
+            <>
+              <CustomerShellChrome
+                leading="back"
+                onLeadingClick={handleBack}
+                pageTitle={title}
+                trailing={
+                  trailing ? (
+                    <div className="[&_button]:text-brand-gold [&_a]:text-brand-gold">{trailing}</div>
+                  ) : undefined
+                }
+              />
+              <div className={SHELL_CONTENT_CLASS}>{children}</div>
+            </>
+          ) : (
+            children
+          )}
         </div>
       </div>
     </div>

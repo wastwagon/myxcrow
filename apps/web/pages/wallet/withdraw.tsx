@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +15,7 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { form } from '@/lib/form-classes';
 import { PageSpinner } from '@/components/LoadingSkeleton';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 import { type SavedPayoutMethod } from '@/lib/withdrawal-payout';
 import {
   payoutDetailsFormSchema,
@@ -28,6 +28,7 @@ export default function WithdrawPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
+  const authed = useRequireAuth();
   const [amountGhs, setAmountGhs] = useState<string>('');
   const [payoutMode, setPayoutMode] = useState<'saved' | 'new'>('new');
   const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
@@ -41,18 +42,16 @@ export default function WithdrawPage() {
     ]);
   };
 
-  useEffect(() => {
-    if (!isAuthenticated()) router.push('/login');
-  }, [router]);
-
-  const { data: wallet } = useQuery({
+  const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ['wallet'],
     queryFn: async () => (await apiClient.get('/wallet')).data,
+    enabled: authed,
   });
 
   const { data: savedMethods = [] } = useQuery<SavedPayoutMethod[]>({
     queryKey: ['payout-methods'],
     queryFn: async () => (await apiClient.get('/wallet/payout-methods')).data,
+    enabled: authed,
   });
 
   useEffect(() => {
@@ -124,18 +123,20 @@ export default function WithdrawPage() {
     submitWithdrawal({ payoutMethodId: selectedMethodId });
   };
 
-  if (!isAuthenticated()) return <PageSpinner />;
+  if (!authed) return <PageSpinner />;
 
   const availableBalance = wallet ? wallet.availableCents / 100 : 0;
 
   return (
     <CustomerLayout title="Withdraw" back>
       <PullToRefresh onRefresh={refreshWithdraw} disabled={!isMobile} className="space-y-5">
-        {wallet && (
+        {walletLoading ? (
+          <div className="h-4 w-40 animate-pulse rounded-[8px] bg-black/5" aria-hidden />
+        ) : wallet ? (
           <p className="text-[13px] text-[rgba(60,60,67,0.6)]">
             Available {formatCurrency(wallet.availableCents, wallet.currency || 'GHS')}
           </p>
-        )}
+        ) : null}
 
         <div className={`${form.panel} space-y-5`}>
           <div>

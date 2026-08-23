@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import { AdminGate } from '@/components/admin/AdminGate';
 import { isAuthenticated, isAdmin, setUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -10,7 +10,6 @@ import { toast } from 'react-hot-toast';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { AdminAvatar } from '@/components/admin/AdminIconBadge';
-import { StatusBadge } from '@/components/StatusBadge';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -31,7 +30,6 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useConfirm } from '@/components/providers/UIProvider';
 import { LightShell } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
-import { PageSpinner } from '@/components/LoadingSkeleton';
 
 interface User {
   id: string;
@@ -40,7 +38,6 @@ interface User {
   lastName?: string;
   phone?: string;
   roles: string[];
-  kycStatus: string;
   isActive: boolean;
   createdAt: string;
 }
@@ -129,19 +126,6 @@ export default function AdminUsersPage() {
     },
   });
 
-  const approveMutation = useMutation({
-    mutationFn: async (userId: string) => {
-      return apiClient.put(`/users/${userId}/approve`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      toast.success('User approved successfully');
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || 'Failed to approve user');
-    },
-  });
-
   const impersonateMutation = useMutation({
     mutationFn: async (userId: string) => {
       const res = await apiClient.post('/auth/admin/impersonate', { userId });
@@ -179,20 +163,18 @@ export default function AdminUsersPage() {
     }
   };
 
-  if (!isAuthenticated() || !isAdmin()) {
-    return <PageSpinner />;
-  }
-
   const refreshUsers = async () => {
     await queryClient.invalidateQueries({ queryKey: ['users', searchTerm, roleFilter] });
   };
 
   return (
-    <Layout title="Users">
+    <AdminGate title="Users">
       <PullToRefresh onRefresh={refreshUsers} disabled={!isMobile}>
         <LightShell>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <p className={dash.subtitle}>Search, filter roles, and manage wallet access</p>
+            <p className={dash.subtitle}>
+              Search and manage users. Phone numbers are verified automatically at registration via SMS OTP.
+            </p>
             <ButtonLink href="/admin" variant="outline" size="sm">
               Back to admin
             </ButtonLink>
@@ -238,7 +220,7 @@ export default function AdminUsersPage() {
                 <tr>
                   <TableTh>User</TableTh>
                   <TableTh>Role</TableTh>
-                  <TableTh>KYC Status</TableTh>
+                  <TableTh>Phone</TableTh>
                   <TableTh>Status</TableTh>
                   <TableTh>Joined</TableTh>
                   <TableTh>Actions</TableTh>
@@ -342,27 +324,8 @@ export default function AdminUsersPage() {
                           </div>
                         )}
                       </TableTd>
-                      <TableTd className="whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <StatusBadge status={user.kycStatus} onDark={false} />
-                          {user.kycStatus === 'PENDING' && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={async () => {
-                                const ok = await confirm({
-                                  title: 'Approve KYC',
-                                  message: `Approve identity for ${user.email}?`,
-                                  confirmLabel: 'Approve',
-                                });
-                                if (ok) approveMutation.mutate(user.id);
-                              }}
-                              loading={approveMutation.isPending}
-                            >
-                              Approve
-                            </Button>
-                          )}
-                        </div>
+                      <TableTd className="whitespace-nowrap text-sm text-gray-600">
+                        {user.phone || '—'}
                       </TableTd>
                       <TableTd className="whitespace-nowrap">
                         <Button
@@ -456,7 +419,7 @@ export default function AdminUsersPage() {
           </TableShell>
         </LightShell>
       </PullToRefresh>
-    </Layout>
+    </AdminGate>
   );
 }
 

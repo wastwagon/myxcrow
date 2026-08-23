@@ -1,6 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { KYCStatus } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -105,34 +104,6 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id: userId },
       data: { isActive },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        phone: true,
-        roles: true,
-        kycStatus: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-  }
-
-  async approveUser(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        kycStatus: KYCStatus.VERIFIED,
-        kycVerifiedAt: new Date(),
-      },
       select: {
         id: true,
         email: true,

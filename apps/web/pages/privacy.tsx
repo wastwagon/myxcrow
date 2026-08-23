@@ -21,7 +21,7 @@ export default function PrivacyPage() {
                   <p className="mb-2">We collect the following categories of data:</p>
                   <ul className="list-disc pl-6 space-y-1">
                     <li><strong>Account data:</strong> Email, name, phone number, password (stored in hashed form), account type (buyer/seller), and registration date.</li>
-                    <li><strong>Identity verification (KYC):</strong> Ghana Card number, photos of Ghana Card (front and back), selfie photo, and face verification results (e.g. similarity score) used to verify your identity and prevent fraud.</li>
+                    <li><strong>Phone verification:</strong> Your Ghana mobile number and SMS one-time codes used to confirm the number at registration.</li>
                     <li><strong>Escrow and transaction data:</strong> Escrow IDs, amounts, parties, milestones, release/refund actions, wallet balances, top-ups, withdrawals, and related transaction history.</li>
                     <li><strong>Communications and support:</strong> Messages you send via the in-app chat widget, emails from your registered account, and any screenshots or attachments you provide when reporting issues (e.g. escrow ID, evidence).</li>
                     <li><strong>Device and usage data:</strong> IP address, device type, browser or app version, and general usage information (e.g. pages visited, actions taken) to operate the service, secure it, and improve it.</li>
@@ -33,8 +33,7 @@ export default function PrivacyPage() {
                   <h2 className={publicForm.legalSectionTitle}>3. How we use your data</h2>
                   <p>We use your data to:</p>
                   <ul className="list-disc pl-6 space-y-1 mt-2">
-                    <li>Provide and operate the escrow, wallet, and support services.</li>
-                    <li>Verify your identity (KYC) and comply with legal and fraud-prevention requirements.</li>
+                    <li>Verify your phone number at registration and operate the escrow, wallet, and support services.</li>
                     <li>Process disputes, releases, and refunds in line with escrow agreements.</li>
                     <li>Communicate with you (e.g. notifications, support, important updates).</li>
                     <li>Secure the Platform (e.g. authentication, fraud detection, risk scoring).</li>
@@ -45,7 +44,7 @@ export default function PrivacyPage() {
 
                 <div>
                   <h2 className={publicForm.legalSectionTitle}>4. Legal basis</h2>
-                  <p>We process your data on the basis of: (a) performance of our contract with you (e.g. providing escrow and account services); (b) your consent where we ask for it (e.g. marketing, optional features); (c) our legitimate interests (e.g. security, fraud prevention, improving the service); and (d) compliance with legal obligations (e.g. KYC, anti-fraud, regulatory reporting where required).</p>
+                  <p>We process your data on the basis of: (a) performance of our contract with you (e.g. providing escrow and account services); (b) your consent where we ask for it (e.g. marketing, optional features); (c) our legitimate interests (e.g. security, fraud prevention, improving the service); and (d) compliance with legal obligations (e.g. anti-fraud, regulatory reporting where required).</p>
                 </div>
 
                 <div>
@@ -61,7 +60,7 @@ export default function PrivacyPage() {
 
                 <div>
                   <h2 className={publicForm.legalSectionTitle}>6. Retention</h2>
-                  <p>We retain your data for as long as your account is active and as needed to provide the service, resolve disputes, and comply with legal obligations (e.g. tax, anti-fraud). After account closure, we may retain certain data for a limited period for legal, security, or dispute-resolution purposes. KYC and transaction records may be retained as required by law or our policies.</p>
+                  <p>We retain your data for as long as your account is active and as needed to provide the service, resolve disputes, and comply with legal obligations (e.g. tax, anti-fraud). After account closure, we may retain certain data for a limited period for legal, security, or dispute-resolution purposes. Transaction records may be retained as required by law or our policies.</p>
                 </div>
 
                 <div>

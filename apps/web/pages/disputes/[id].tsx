@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated, isAdmin, getUser } from '@/lib/auth';
+import { isAdmin, getUser } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDate } from '@/lib/utils';
@@ -18,6 +18,7 @@ import { Field } from '@/components/ui/Field';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 import { ListRowsSkeleton, PageDetailSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 
 interface Dispute {
@@ -49,6 +50,7 @@ export default function DisputeDetailPage() {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const isMobile = useIsMobileNav();
+  const authed = useRequireAuth();
 
   const refreshDispute = async () => {
     await queryClient.invalidateQueries({ queryKey: ['dispute', id] });
@@ -59,19 +61,13 @@ export default function DisputeDetailPage() {
     }
   };
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-    }
-  }, [router]);
-
   const { data: dispute, isLoading } = useQuery<Dispute>({
     queryKey: ['dispute', id],
     queryFn: async () => {
       const response = await apiClient.get(`/disputes/${id}`);
       return response.data;
     },
-    enabled: !!id,
+    enabled: authed && !!id,
   });
 
   const { data: messages, isLoading: messagesLoading } = useQuery<DisputeMessage[]>({
@@ -80,7 +76,7 @@ export default function DisputeDetailPage() {
       const response = await apiClient.get(`/disputes/${id}`);
       return response.data.messages || [];
     },
-    enabled: !!id,
+    enabled: authed && !!id,
   });
 
   const { data: escrow } = useQuery({
@@ -169,7 +165,7 @@ export default function DisputeDetailPage() {
     if (ok) closeMutation.mutate();
   };
 
-  if (!isAuthenticated()) {
+  if (!authed) {
     return <PageSpinner />;
   }
 

@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Production Checklist – Going Live
 
 Use this before deploying MYXCROW to production. **If you're already live**, keep the "Live environment" section below updated so the next person (or you in 6 months) knows exactly what "live" means.
@@ -58,4 +60,4 @@ No extra deploy step: the app already has the manifest and meta tags. On mobile 
 - [ ] Register with OTP
 - [ ] Create escrow → fund → ship → deliver → release
 - [ ] Wallet topup (Paystack)
-- [ ] Admin: users, withdrawals, KYC, wallet credit/debit
+- [ ] Admin: users, withdrawals, phone verification, wallet credit/debit

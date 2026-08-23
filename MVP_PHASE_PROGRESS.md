@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MVP Phase Progress Report
 
 > **Note:** The native mobile app has been removed. Project is **web-only**. Phase 2 / mobile references below are historical.
@@ -34,7 +36,7 @@
 
 #### 2. Authentication ✅
 - Login screen
-- Register screen with KYC upload ✅ **JUST COMPLETED**
+- Register screen with phone verification upload ✅ **JUST COMPLETED**
 - Auth context with secure token storage
 - Automatic token refresh
 
@@ -44,7 +46,7 @@
 - Wallet overview
 - Profile screen
 
-#### 4. KYC Registration ✅ **JUST COMPLETED**
+#### 4. phone verification Registration ✅ **JUST COMPLETED**
 - Multi-step registration form
 - Camera integration (expo-camera)
 - Image picker (expo-image-picker)
@@ -101,7 +103,7 @@
 ## 🎯 Next Steps (Priority Order)
 
 ### Immediate (This Session):
-1. ✅ Complete mobile KYC registration - **DONE**
+1. ✅ Complete mobile phone verification registration - **DONE**
 2. ⏭️ Create Escrow screen for mobile
 3. ⏭️ Escrow Details screen
 4. ⏭️ Paystack wallet top-up integration
@@ -122,14 +124,14 @@
 ## 📝 Files Created/Updated This Session
 
 ### Mobile App:
-- ✅ `apps/mobile/app/(auth)/register.tsx` - Complete KYC registration with camera
+- ✅ `apps/mobile/app/(auth)/register.tsx` - verify their phone at registration registration with camera
 - ✅ `PHASE_COMPLETION_PLAN.md` - Implementation roadmap
 - ✅ `MVP_PHASE_PROGRESS.md` - This file
 
 ### Previous Sessions:
 - ✅ SMS notifications implementation
 - ✅ Mobile app core structure
-- ✅ Face verification documentation
+- ✅ phone verification documentation
 
 ---
 

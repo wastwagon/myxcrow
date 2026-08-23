@@ -1,15 +1,15 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import { AdminGate } from '@/components/admin/AdminGate';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/lib/utils';
 import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { ButtonLink } from '@/components/ui/Button';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-import { PageDetailSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
+import { PageDetailSkeleton } from '@/components/LoadingSkeleton';
 import { LightShell } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -40,26 +40,30 @@ export default function AdminViewWalletPage() {
     enabled: !!userId && isAuthenticated() && isAdmin(),
   });
 
-  if (!isAuthenticated() || !isAdmin()) return <PageSpinner />;
+  const { data: transactions = [] } = useQuery<any[]>({
+    queryKey: ['admin-wallet-transactions', userId],
+    queryFn: async () => (await apiClient.get(`/wallet/admin/${userId}/transactions?limit=10`)).data,
+    enabled: !!userId && isAuthenticated() && isAdmin(),
+  });
 
   if (isLoading) {
     return (
-      <Layout title="Wallet">
+      <AdminGate title="Wallet">
         <PageDetailSkeleton />
-      </Layout>
+      </AdminGate>
     );
   }
 
   if (error || !data) {
     return (
-      <Layout title="Wallet">
+      <AdminGate title="Wallet">
         <EmptyState
           tone="light"
           title="Wallet unavailable"
           description="This wallet could not be loaded. Go back to users and try again."
           action={{ href: '/admin/users', label: 'View users', variant: 'maroon' }}
         />
-      </Layout>
+      </AdminGate>
     );
   }
 
@@ -68,7 +72,7 @@ export default function AdminViewWalletPage() {
     [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || 'User';
 
   return (
-    <Layout title="Wallet">
+    <AdminGate title="Wallet">
       <PullToRefresh onRefresh={refreshAdminWallet} disabled={!isMobile}>
         <LightShell>
           <p className={dash.subtitle}>{user?.email}</p>
@@ -112,6 +116,21 @@ export default function AdminViewWalletPage() {
             />
           </ListGroup>
 
+          <ListGroup tone="light" title="Recent activity">
+            {transactions.length === 0 ? (
+              <ListRow title="No transactions yet" showChevron={false} />
+            ) : (
+              transactions.map((tx: { id: string; amountCents: number; sourceType?: string; type?: string; createdAt: string }) => (
+                <ListRow
+                  key={tx.id}
+                  title={formatCurrency(Math.abs(tx.amountCents), wallet?.currency ?? 'GHS')}
+                  subtitle={`${tx.sourceType || tx.type || 'Transaction'} · ${formatDate(tx.createdAt)}`}
+                  showChevron={false}
+                />
+              ))
+            )}
+          </ListGroup>
+
           <div className="flex flex-col sm:flex-row gap-3">
             <ButtonLink href={`/admin/wallet/credit?userId=${userId}`} variant="maroon" size="lg">
               Credit
@@ -125,6 +144,6 @@ export default function AdminViewWalletPage() {
           </div>
         </LightShell>
       </PullToRefresh>
-    </Layout>
+    </AdminGate>
   );
 }

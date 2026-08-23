@@ -27,8 +27,8 @@ export default function TermsPage() {
                 </div>
 
                 <div>
-                  <h2 className={publicForm.legalSectionTitle}>4. Account and KYC</h2>
-                  <p>You must register with accurate and complete information (e.g. name, email, phone, Ghana Card details where required). You are responsible for keeping your account credentials secure. We may require identity verification (KYC), including Ghana Card and selfie verification, to comply with law and reduce fraud. Providing false information or failing KYC may result in account suspension or termination.</p>
+                  <h2 className={publicForm.legalSectionTitle}>4. Account and phone verification</h2>
+                  <p>You must register with accurate information (name, email, and a Ghana mobile number). We verify your number with a one-time SMS code during registration. You are responsible for keeping your account credentials secure. Providing false information or failing phone verification may result in account suspension or termination.</p>
                 </div>
 
                 <div>

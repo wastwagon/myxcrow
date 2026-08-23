@@ -159,6 +159,16 @@ export default function ResetPasswordPage() {
               autoComplete="new-password"
               placeholder="••••••••"
               error={!!errors.confirmPassword}
+              trailing={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="px-2 min-h-[44px] min-w-[44px] text-gray-600 hover:text-brand-maroon touch-manipulation"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              }
             />
           </Field>
 

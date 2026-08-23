@@ -25,6 +25,7 @@ export interface ReputationScore {
   totalRatings: number;
   completionRate: number; // Percentage of completed escrows
   kycLevel: 'PENDING' | 'IN_PROGRESS' | 'VERIFIED' | 'REJECTED' | 'EXPIRED';
+  phoneVerified: boolean;
   verifiedBadge: boolean;
   breakdown: {
     asBuyer: { rating: number; count: number };
@@ -257,6 +258,7 @@ export class ReputationService {
       totalRatings: ratings.length,
       completionRate: Math.round(completionRate * 100) / 100,
       kycLevel: user.kycStatus,
+      phoneVerified: user.kycStatus === 'VERIFIED',
       verifiedBadge,
       breakdown,
     };
@@ -289,6 +291,7 @@ export class ReputationService {
       name: user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : null,
       email: maskEmail(user.email),
       kycStatus: user.kycStatus,
+      phoneVerified: user.kycStatus === 'VERIFIED',
       verifiedBadge: reputation.verifiedBadge,
       memberSince: user.createdAt,
       reputation,

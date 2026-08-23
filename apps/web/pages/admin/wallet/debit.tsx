@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import { AdminGate } from '@/components/admin/AdminGate';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,7 +20,6 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
-import { PageSpinner } from '@/components/LoadingSkeleton';
 
 const debitSchema = z.object({
   userId: z.string().min(1, 'User is required'),
@@ -107,7 +106,9 @@ export default function DebitWalletPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet-funding'] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-wallet'] });
       toast.success('Wallet debited successfully');
       router.push('/admin');
     },
@@ -133,10 +134,6 @@ export default function DebitWalletPage() {
     setSearchTerm('');
   };
 
-  if (!isAuthenticated() || !isAdmin()) {
-    return <PageSpinner />;
-  }
-
   const refreshDebitPage = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['users'] }),
@@ -145,7 +142,7 @@ export default function DebitWalletPage() {
   };
 
   return (
-    <Layout title="Debit wallet">
+    <AdminGate title="Debit wallet">
       <PullToRefresh onRefresh={refreshDebitPage} disabled={!isMobile} className="max-w-3xl mx-auto">
         <LightShell>
           <p className={dash.subtitle}>Manually debit a user&apos;s wallet</p>
@@ -310,6 +307,6 @@ export default function DebitWalletPage() {
           </LightPanel>
         </LightShell>
       </PullToRefresh>
-    </Layout>
+    </AdminGate>
   );
 }

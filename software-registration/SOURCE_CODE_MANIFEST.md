@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MYXCROW — Source Code Manifest
 
 This document lists all source code included in the MYXCROW software registration submission.
@@ -68,7 +70,7 @@ myxcrow/
 |--------|----------------|
 | `auth` | Login, register, JWT, password reset, email/phone verification |
 | `users` | User profiles, roles |
-| `kyc` | Ghana Card verification, Smile Identity |
+| `phone verification` | Ghana Card verification, Smile ID (removed) |
 | `escrow` | Escrow CRUD, funding, release, milestones |
 | `wallet` | Balance, top-up, withdrawal |
 | `payments` | Paystack integration |
@@ -160,7 +162,7 @@ Place `MYXCROW-source-v1.0.0.zip` in `pen-drive-*/02-source-code/`.
 | Service | Used for |
 |---------|----------|
 | Paystack | Card and MoMo payments |
-| Smile Identity | Ghana Card KYC |
+| Smile ID (removed) | Ghana Card phone verification |
 | Arkesel | SMS OTP |
 | MinIO / S3 | File storage |
 | Redis | Caching and job queues |

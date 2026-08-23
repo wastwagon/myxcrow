@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import { useMemo, useState } from 'react';
+import { AdminGate } from '@/components/admin/AdminGate';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -14,7 +13,6 @@ import {
   CheckCircle,
   Wallet,
   ArrowUpCircle,
-  Clock,
 } from 'lucide-react';
 import Link from 'next/link';
 import { ButtonLink } from '@/components/ui/Button';
@@ -22,11 +20,10 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { MetricCard } from '@/components/ui/MetricCard';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
-import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
+import { ListRowsSkeleton } from '@/components/LoadingSkeleton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
-import { SimpleBarChart } from '@/components/dashboard/SimpleBarChart';
 import { dash } from '@/components/dashboard/lightClasses';
 import { buildAdminTopUpReceipt } from '@/lib/receipt-builders';
 import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
@@ -73,7 +70,6 @@ type AdminStats = {
     escrowValueCents?: number;
     pendingWithdrawalCount?: number;
   };
-  monthlyVolume?: { label: string; amountCents: number }[];
   queue?: {
     disputes?: { id: string; reason?: string; status: string; createdAt?: string }[];
     withdrawals?: {
@@ -95,51 +91,17 @@ type AdminStats = {
 };
 
 export default function AdminDashboard() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
-  const [mounted, setMounted] = useState(false);
   const [queueTab, setQueueTab] = useState<QueueTab>('all');
-
-  useEffect(() => {
-    setMounted(true);
-    if (!isAuthenticated()) {
-      router.push('/login');
-      return;
-    }
-    if (!isAdmin()) {
-      router.push('/dashboard');
-      return;
-    }
-  }, [router]);
 
   const { data: statsData, isLoading: statsLoading } = useQuery<AdminStats>({
     queryKey: ['admin-stats'],
     queryFn: async () => (await apiClient.get('/admin/stats')).data,
-    enabled: mounted && isAuthenticated() && isAdmin(),
+    enabled: isAuthenticated() && isAdmin(),
     staleTime: 30 * 1000,
     refetchInterval: 30000,
   });
-
-  const chartData = useMemo(() => {
-    const months = statsData?.monthlyVolume;
-    if (months?.length) {
-      return months.map((m) => ({
-        label: m.label,
-        values: { volume: m.amountCents || 0 },
-      }));
-    }
-    const now = new Date();
-    const points = [];
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      points.push({
-        label: d.toLocaleString('en', { month: 'short' }),
-        values: { volume: 0 },
-      });
-    }
-    return points;
-  }, [statsData?.monthlyVolume]);
 
   const queueRows: QueueRow[] = useMemo(() => {
     const openDisputes = (statsData?.queue?.disputes || []).map(
@@ -193,18 +155,6 @@ export default function AdminDashboard() {
     return row.kind === 'escrow';
   });
 
-  if (!mounted) {
-    return (
-      <Layout title="Admin">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-maroon" />
-        </div>
-      </Layout>
-    );
-  }
-
-  if (!isAuthenticated() || !isAdmin()) return <PageSpinner />;
-
   const stats = {
     totalEscrows: statsData?.totals?.escrowCount || 0,
     activeEscrows: statsData?.totals?.activeEscrowCount || 0,
@@ -223,7 +173,7 @@ export default function AdminDashboard() {
   const queueLoading = statsLoading;
 
   return (
-    <Layout title="Admin">
+    <AdminGate title="Admin">
       <PullToRefresh onRefresh={refreshAdmin} disabled={!isMobile}>
         <LightShell>
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-end">
@@ -314,118 +264,98 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
-            <LightPanel className="lg:col-span-2">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className={dash.sectionTitle}>Volume (6 months)</h2>
-                <Clock className="w-4 h-4 text-[rgba(60,60,67,0.55)]" />
-              </div>
-              {statsLoading ? (
-                <div className="h-[180px] animate-pulse rounded-[20px] bg-black/5" />
-              ) : (
-                <SimpleBarChart
-                  height={180}
-                  data={chartData}
-                  series={[{ key: 'volume', label: 'Deal volume', color: '#8f2126' }]}
+          <TableShell
+            tone="light"
+            toolbar={
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className={dash.sectionTitle}>Work queue</h2>
+                <SegmentedControl
+                  tone="light"
+                  scrollable
+                  value={queueTab}
+                  onChange={setQueueTab}
+                  className="sm:max-w-md"
+                  options={[
+                    { value: 'all', label: 'All' },
+                    { value: 'disputes', label: 'Disputes' },
+                    { value: 'withdrawals', label: 'Withdrawals' },
+                    { value: 'escrows', label: 'Escrows' },
+                  ]}
                 />
-              )}
-            </LightPanel>
-
-            <div className="lg:col-span-3 min-w-0">
-              <TableShell
-                tone="light"
-                toolbar={
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <h2 className={dash.sectionTitle}>Work queue</h2>
-                    <SegmentedControl
-                      tone="light"
-                      scrollable
-                      value={queueTab}
-                      onChange={setQueueTab}
-                      className="sm:max-w-md"
-                      options={[
-                        { value: 'all', label: 'All' },
-                        { value: 'disputes', label: 'Disputes' },
-                        { value: 'withdrawals', label: 'Withdrawals' },
-                        { value: 'escrows', label: 'Escrows' },
-                      ]}
-                    />
-                  </div>
-                }
-              >
-                <Table>
-                  <TableHead>
-                    <tr>
-                      <TableTh>Item</TableTh>
-                      <TableTh>Type</TableTh>
-                      <TableTh numeric>Amount</TableTh>
-                      <TableTh>Status</TableTh>
-                      <TableTh>When</TableTh>
-                    </tr>
-                  </TableHead>
-                  <TableBody>
-                    {queueLoading ? (
-                      <TableEmpty colSpan={5}>
-                        <ListRowsSkeleton rows={4} rowClassName="h-12" />
-                      </TableEmpty>
-                    ) : filteredQueue.length === 0 ? (
-                      <TableEmpty colSpan={5}>
-                        <div className="flex flex-col items-center py-2">
-                          <CheckCircle className="w-10 h-10 text-emerald-500 mb-2" />
-                          <p className="text-[17px] font-semibold text-gray-900">Queue clear</p>
-                          <p className="text-[13px] mt-1 mb-4 text-[rgba(60,60,67,0.6)]">
-                            Nothing needs action in this filter
-                          </p>
-                          <ButtonLink
-                            href={
-                              queueTab === 'withdrawals'
-                                ? '/admin/withdrawals'
-                                : queueTab === 'disputes'
-                                  ? '/disputes'
-                                  : '/escrows'
-                            }
-                            variant="maroon"
-                            size="sm"
-                          >
-                            {queueTab === 'withdrawals'
-                              ? 'View withdrawals'
-                              : queueTab === 'disputes'
-                                ? 'View disputes'
-                                : 'View escrows'}
-                          </ButtonLink>
-                        </div>
-                      </TableEmpty>
-                    ) : (
-                      filteredQueue.slice(0, 12).map((row) => (
-                        <TableRow key={row.id}>
-                          <TableTd>
-                            <Link href={row.href} className="block min-w-0 min-h-[44px] py-1">
-                              <p className="font-semibold text-gray-900 truncate">{row.title}</p>
-                              <p className={`text-[13px] ${dash.tdMuted} truncate`}>{row.subtitle}</p>
-                            </Link>
-                          </TableTd>
-                          <TableTd>
-                            <span className="text-[15px] capitalize text-[rgba(60,60,67,0.6)]">
-                              {row.kind}
-                            </span>
-                          </TableTd>
-                          <TableTd numeric>
-                            {row.amountCents != null ? formatCurrency(row.amountCents, 'GHS') : '—'}
-                          </TableTd>
-                          <TableTd>
-                            <StatusBadge status={row.status} onDark={false} />
-                          </TableTd>
-                          <TableTd muted>
-                            {row.createdAt ? formatDate(row.createdAt) : '—'}
-                          </TableTd>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </TableShell>
-            </div>
-          </div>
+              </div>
+            }
+          >
+            <Table>
+              <TableHead>
+                <tr>
+                  <TableTh>Item</TableTh>
+                  <TableTh>Type</TableTh>
+                  <TableTh numeric>Amount</TableTh>
+                  <TableTh>Status</TableTh>
+                  <TableTh>When</TableTh>
+                </tr>
+              </TableHead>
+              <TableBody>
+                {queueLoading ? (
+                  <TableEmpty colSpan={5}>
+                    <ListRowsSkeleton rows={4} rowClassName="h-12" />
+                  </TableEmpty>
+                ) : filteredQueue.length === 0 ? (
+                  <TableEmpty colSpan={5}>
+                    <div className="flex flex-col items-center py-2">
+                      <CheckCircle className="w-10 h-10 text-emerald-500 mb-2" />
+                      <p className="text-[17px] font-semibold text-gray-900">Queue clear</p>
+                      <p className="text-[13px] mt-1 mb-4 text-[rgba(60,60,67,0.6)]">
+                        Nothing needs action in this filter
+                      </p>
+                      <ButtonLink
+                        href={
+                          queueTab === 'withdrawals'
+                            ? '/admin/withdrawals'
+                            : queueTab === 'disputes'
+                              ? '/disputes'
+                              : '/escrows'
+                        }
+                        variant="maroon"
+                        size="sm"
+                      >
+                        {queueTab === 'withdrawals'
+                          ? 'View withdrawals'
+                          : queueTab === 'disputes'
+                            ? 'View disputes'
+                            : 'View escrows'}
+                      </ButtonLink>
+                    </div>
+                  </TableEmpty>
+                ) : (
+                  filteredQueue.slice(0, 12).map((row) => (
+                    <TableRow key={row.id}>
+                      <TableTd>
+                        <Link href={row.href} className="block min-w-0 min-h-[44px] py-1">
+                          <p className="font-semibold text-gray-900 truncate">{row.title}</p>
+                          <p className={`text-[13px] ${dash.tdMuted} truncate`}>{row.subtitle}</p>
+                        </Link>
+                      </TableTd>
+                      <TableTd>
+                        <span className="text-[15px] capitalize text-[rgba(60,60,67,0.6)]">
+                          {row.kind}
+                        </span>
+                      </TableTd>
+                      <TableTd numeric>
+                        {row.amountCents != null ? formatCurrency(row.amountCents, 'GHS') : '—'}
+                      </TableTd>
+                      <TableTd>
+                        <StatusBadge status={row.status} onDark={false} />
+                      </TableTd>
+                      <TableTd muted>
+                        {row.createdAt ? formatDate(row.createdAt) : '—'}
+                      </TableTd>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </TableShell>
 
           {/* Shortcuts + recent top-ups */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -509,6 +439,6 @@ export default function AdminDashboard() {
           </div>
         </LightShell>
       </PullToRefresh>
-    </Layout>
+    </AdminGate>
   );
 }

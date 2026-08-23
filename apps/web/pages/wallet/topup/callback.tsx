@@ -4,14 +4,18 @@ import CustomerLayout from '@/components/CustomerLayout';
 import apiClient from '@/lib/api-client';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/Button';
+import { PageSpinner } from '@/components/LoadingSkeleton';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 
 export default function WalletTopupCallbackPage() {
   const router = useRouter();
+  const authed = useRequireAuth();
   const { reference } = router.query;
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState<string>('');
 
   useEffect(() => {
+    if (!authed || !router.isReady) return;
     if (!reference || typeof reference !== 'string') {
       setStatus('error');
       setMessage('Missing payment reference.');
@@ -44,13 +48,17 @@ export default function WalletTopupCallbackPage() {
     return () => {
       cancelled = true;
     };
-  }, [reference, router]);
+  }, [reference, router, authed, router.isReady]);
+
+  if (!authed) return <PageSpinner />;
+
+  const verifying = !router.isReady || status === 'loading';
 
   return (
     <CustomerLayout title="Top up" back>
       <div className="py-10 text-center">
         <div className="rounded-[20px] bg-white p-8">
-            {status === 'loading' && (
+            {verifying && (
               <>
                 <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-maroon" />
                 <p className="text-[rgba(60,60,67,0.6)]">Verifying payment…</p>

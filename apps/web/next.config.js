@@ -1,18 +1,32 @@
 /** @type {import('next').NextConfig} */
 const isProd = process.env.NODE_ENV === 'production';
 
+function inDocker() {
+  try {
+    return require('fs').existsSync('/.dockerenv');
+  } catch {
+    return false;
+  }
+}
+
 function getApiProxyOrigin() {
   const explicit = (process.env.API_PROXY_ORIGIN || '').trim().replace(/\/$/, '');
   if (explicit) return explicit;
   const pub = (process.env.NEXT_PUBLIC_API_BASE_URL || '').trim();
   if (/^https?:\/\//i.test(pub)) {
     try {
-      return new URL(pub).origin;
+      const url = new URL(pub);
+      // NEXT_PUBLIC_* is the browser host. Rewrites run in this process — localhost
+      // inside the web container is not the API.
+      if (inDocker() && (url.hostname === 'localhost' || url.hostname === '127.0.0.1')) {
+        return 'http://api:4000';
+      }
+      return url.origin;
     } catch {
       /* ignore */
     }
   }
-  return 'http://localhost:4000';
+  return inDocker() ? 'http://api:4000' : 'http://localhost:4000';
 }
 
 const apiOrigin = getApiProxyOrigin();

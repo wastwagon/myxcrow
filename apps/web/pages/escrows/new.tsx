@@ -1,7 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated } from '@/lib/auth';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -25,6 +24,8 @@ import {
   type EscrowCategory,
 } from '@/lib/escrow-services';
 import { formatCurrency } from '@/lib/utils';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
+import { FormSection } from '@/components/ui/FormSection';
 
 const milestoneSchema = z.object({
   name: z.string().min(1, 'Milestone name is required'),
@@ -84,43 +85,25 @@ const createEscrowSchema = z.object({
 
 type CreateEscrowFormData = z.infer<typeof createEscrowSchema>;
 
-interface User {
-  id: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-}
-
 export default function CreateEscrowPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const authed = useRequireAuth();
 
   const generatePin = () => {
     return Array.from({ length: 6 }, () => Math.floor(Math.random() * 10)).join('');
   };
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-    }
-  }, [router]);
-
-  const { data: users } = useQuery<User[]>({
-    queryKey: ['users'],
-    queryFn: async () => {
-      return [];
-    },
-    enabled: false,
-  });
-
   const { data: feeSettings } = useQuery({
     queryKey: ['fee-settings'],
     queryFn: async () => (await apiClient.get('/settings/fees')).data,
+    enabled: authed,
   });
 
   const { data: wallet } = useQuery({
     queryKey: ['wallet'],
     queryFn: async () => (await apiClient.get('/wallet')).data,
+    enabled: authed,
   });
 
   const {
@@ -166,6 +149,22 @@ export default function CreateEscrowPage() {
       setValue('deliveryPin', generatePin(), { shouldValidate: true });
     }
   }, [useDeliveryPin, getValues, setValue]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const category = Array.isArray(router.query.category)
+      ? router.query.category[0]
+      : router.query.category;
+    const milestones = Array.isArray(router.query.milestones)
+      ? router.query.milestones[0]
+      : router.query.milestones;
+    const pin = Array.isArray(router.query.pin) ? router.query.pin[0] : router.query.pin;
+    if (category === ESCROW_CATEGORY.PHYSICAL_GOODS || category === ESCROW_CATEGORY.PROFESSIONAL_SERVICE) {
+      setValue('escrowCategory', category);
+    }
+    if (milestones === '1') setValue('useMilestones', true);
+    if (pin === '1') setValue('useDeliveryPin', true);
+  }, [router.isReady, router.query.category, router.query.milestones, router.query.pin, setValue]);
 
   const createMutation = useMutation({
     mutationFn: async (data: CreateEscrowFormData) => {
@@ -243,13 +242,18 @@ export default function CreateEscrowPage() {
   const hasSufficientBalance =
     wallet && fundingRequiredCents > 0 && wallet.availableCents >= fundingRequiredCents;
 
-  if (!isAuthenticated()) {
+  if (!authed) {
     return <PageSpinner />;
   }
 
   return (
     <CustomerLayout title="New escrow" back>
-      <form onSubmit={handleSubmit(onSubmit)} className={`${form.panel} space-y-6`}>
+      <form onSubmit={handleSubmit(onSubmit)} className={`${form.panel} space-y-6 pb-8`}>
+          <FormSection
+            first
+            title="Deal details"
+            description="Enter the seller's phone and what you're paying for. Funds stay in escrow until you confirm delivery."
+          >
           <div>
             <label htmlFor="sellerId" className={form.label}>
               Seller Phone *
@@ -348,7 +352,7 @@ export default function CreateEscrowPage() {
           {isPhysicalGoods && (
           <>
           <div className="border-t border-[rgba(60,60,67,0.12)] pt-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">Delivery address (ship to)</h3>
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">Delivery address</h3>
             <p className="text-xs text-gray-500 mb-3">Where the seller should send the item. Only you and the seller see this.</p>
             <div className="grid md:grid-cols-2 gap-4">
               <div>
@@ -444,7 +448,12 @@ export default function CreateEscrowPage() {
               </div>
             )}
           </div>
+          </FormSection>
 
+          <FormSection
+            title="Amount & funding"
+            description="Your wallet is charged when you submit — include fees in the total shown below."
+          >
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <label htmlFor="amountCents" className={form.label}>
@@ -512,8 +521,9 @@ export default function CreateEscrowPage() {
               )}
             </p>
           </div>
+          </FormSection>
 
-          <div className="border-t pt-6">
+          <FormSection title="Milestones (optional)" description="Split payment into stages released as work is completed.">
             <Checkbox
               id="useMilestones"
               tone="light"
@@ -653,7 +663,7 @@ export default function CreateEscrowPage() {
                 )}
               </div>
             )}
-          </div>
+          </FormSection>
 
             <Button type="submit" variant="maroon" size="lg" fullWidth loading={createMutation.isPending} disabled={hasSufficientBalance === false || createMutation.isPending}>
               {createMutation.isPending ? 'Creating…' : 'Create & fund'}

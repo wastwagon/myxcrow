@@ -1,7 +1,6 @@
-import { useEffect, useState, useMemo } from 'react';
-import { useRouter } from 'next/router';
+import { useMemo, useState } from 'react';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated, getUser } from '@/lib/auth';
+import { getUser } from '@/lib/auth';
 import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { toast } from 'react-hot-toast';
@@ -10,17 +9,14 @@ import { Button } from '@/components/ui/Button';
 import { form } from '@/lib/form-classes';
 import { isPaystackCheckoutUrl } from '@/lib/safe-url';
 import { PageSpinner } from '@/components/LoadingSkeleton';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 
 /** Paystack processing fee % passed to customer (must match backend) */
 const PAYSTACK_FEE_PERCENT = 1.95;
 
 export default function WalletTopupPage() {
-  const router = useRouter();
+  const authed = useRequireAuth();
   const [amount, setAmount] = useState<string>('100');
-
-  useEffect(() => {
-    if (!isAuthenticated()) router.push('/login');
-  }, [router]);
 
   const amountCents = useMemo(() => Math.round(parseFloat(amount || '0') * 100), [amount]);
   const feeCents = useMemo(() => Math.round((amountCents * PAYSTACK_FEE_PERCENT) / 100), [amountCents]);
@@ -48,11 +44,14 @@ export default function WalletTopupPage() {
     },
   });
 
-  if (!isAuthenticated()) return <PageSpinner />;
+  if (!authed) return <PageSpinner />;
 
   return (
     <CustomerLayout title="Top up" back>
       <div className={`${form.panel} space-y-4`}>
+          <p className="text-[14px] leading-relaxed text-[rgba(60,60,67,0.6)]">
+            Add funds via Paystack (card or mobile money). Processing fee is shown before you pay.
+          </p>
           <div>
             <label htmlFor="amount" className={form.label}>
               Amount (₵)

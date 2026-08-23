@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Ghana Market Enhancement Roadmap
 
 **Date:** January 2026  
@@ -91,7 +93,7 @@ Based on competitor analysis, MYXCROW needs **critical Ghana-specific features**
 - Dispute raised
 - Escrow approved/rejected
 - Delivery updates
-- KYC status updates
+- phone verification status updates
 
 **Technical Implementation:**
 ```typescript
@@ -162,7 +164,7 @@ SMS_SENDER_ID=MYXCROW
 1. **Authentication**
    - Login/Register
    - Biometric authentication
-   - KYC upload (camera)
+   - phone verification upload (camera)
 
 2. **Transactions**
    - Create escrow
@@ -182,7 +184,7 @@ SMS_SENDER_ID=MYXCROW
 
 5. **Profile**
    - View profile
-   - Update KYC
+   - Update phone verification
    - Transaction history
 
 #### Advanced Features (Post-MVP):
@@ -506,7 +508,7 @@ myxcrow-mobile/
 ### Q2 2026 (Months 4-6) - UX Enhancements
 **Month 4:** Mobile App Advanced Features
 - Push notifications
-- KYC upload (camera)
+- phone verification upload (camera)
 - Enhanced UI/UX
 - Performance optimization
 
@@ -581,10 +583,10 @@ myxcrow-mobile/
 ## 💡 GHANA-SPECIFIC OPPORTUNITIES (Future Phases)
 
 ### 1. Ghana Card Integration ✅ **READY**
-- ✅ KYC system already implemented
+- ✅ phone verification system already implemented
 - ✅ Ghana Card number verification (can be added)
 - ✅ Government ID integration (future enhancement)
-- ✅ Faster KYC verification
+- ✅ Faster phone verification
 
 ### 2. Mobile Money Integration 🟢 **DEFERRED TO PHASE 2+**
 - MTN Mobile Money (future)

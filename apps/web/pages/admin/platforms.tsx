@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import { AdminGate } from '@/components/admin/AdminGate';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -13,7 +13,6 @@ import { Field } from '@/components/ui/Field';
 import { Input } from '@/components/ui/Input';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
-import { PageSpinner } from '@/components/LoadingSkeleton';
 import {
   TableShell,
   Table,
@@ -114,12 +113,8 @@ export default function AdminPlatformsPage() {
     },
   });
 
-  if (!isAuthenticated() || !isAdmin()) {
-    return <PageSpinner />;
-  }
-
   return (
-    <Layout title="Partner platforms">
+    <AdminGate title="Partner platforms">
       <LightShell>
         <p className={dash.subtitle}>API keys for DwumaPOS and other commerce integrations</p>
 
@@ -285,6 +280,6 @@ export default function AdminPlatformsPage() {
           </TableShell>
         )}
       </LightShell>
-    </Layout>
+    </AdminGate>
   );
 }

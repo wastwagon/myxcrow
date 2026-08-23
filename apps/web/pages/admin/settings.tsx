@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import { AdminGate } from '@/components/admin/AdminGate';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -13,7 +13,6 @@ import { ListGroup, ListRow } from '@/components/ui/ListGroup';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { calculateEscrowFees, formatPaidByLabel } from '@/lib/fee-calculator';
-import { PageSpinner } from '@/components/LoadingSkeleton';
 import { formatCurrency } from '@/lib/utils';
 import { LightShell } from '@/components/dashboard/LightShell';
 
@@ -29,7 +28,6 @@ interface PlatformSettings {
     maintenanceMode: boolean;
   };
   security: {
-    requireKYC: boolean;
     minPasswordLength: number;
     sessionTimeout: number;
   };
@@ -54,7 +52,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<PlatformSettings>({
     fees: { percentage: 5, fixedCents: 0, paidBy: 'split' },
     general: { platformName: 'MYXCROW', supportEmail: 'support@myxcrow.com', maintenanceMode: false },
-    security: { requireKYC: true, minPasswordLength: 8, sessionTimeout: 7 },
+    security: { minPasswordLength: 8, sessionTimeout: 7 },
     notifications: { emailEnabled: true, smsEnabled: false },
   });
 
@@ -95,10 +93,6 @@ export default function AdminSettingsPage() {
     if (feePreviewAmount < 1) return null;
     return calculateEscrowFees(Math.round(feePreviewAmount * 100), settings.fees);
   }, [feePreviewAmount, settings.fees]);
-
-  if (!isAuthenticated() || !isAdmin()) {
-    return <PageSpinner />;
-  }
 
   const handleSave = async (section: keyof PlatformSettings) => {
     const sectionData = settings[section];
@@ -145,7 +139,7 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <Layout
+    <AdminGate
       title="Settings"
       trailing={
         <button
@@ -352,22 +346,8 @@ export default function AdminSettingsPage() {
           <ListGroup
             tone="light"
             title="Security"
-            footer="KYC can be required before funding. Session timeout is in days."
+            footer="Phone verification is required at registration (SMS OTP). Session timeout is in days."
           >
-            <ListRow
-              title="Require KYC"
-              subtitle="Buyers and sellers must verify identity"
-              trailing={
-                <Toggle
-                  tone="light"
-                  id="requireKYC"
-                  checked={settings.security.requireKYC}
-                  onCheckedChange={(checked) => saveToggle('security', 'requireKYC', checked)}
-                  label="Require KYC"
-                />
-              }
-              showChevron={false}
-            />
             <div className="px-4 py-3 space-y-3">
               <Field tone="light" label="Minimum password length" htmlFor="minPasswordLength">
                 <Input
@@ -440,6 +420,6 @@ export default function AdminSettingsPage() {
           </ListGroup>
         </LightShell>
       </PullToRefresh>
-    </Layout>
+    </AdminGate>
   );
 }

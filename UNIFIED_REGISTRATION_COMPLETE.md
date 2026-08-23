@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Mobile & Web Registration Unified - MVP Simplification
 
 **Date:** February 12, 2026  
@@ -22,7 +24,7 @@ Successfully removed all complex self-hosted face matching components and regist
 - ❌ **Ghana Card front upload** (camera/gallery)
 - ❌ **Ghana Card back upload** (camera/gallery)
 - ❌ **Selfie upload** (camera/gallery)
-- ❌ **2-step registration wizard** (Step 1: Info, Step 2: KYC)
+- ❌ **2-step registration wizard** (Step 1: Info, Step 2: phone verification)
 - ❌ **Camera permissions** (expo-camera, expo-image-picker)
 - ❌ **FormData submission** (multipart/form-data)
 - ❌ **Image picker logic**
@@ -53,7 +55,7 @@ Successfully removed all complex self-hosted face matching components and regist
 
 ### What Was Removed:
 - ❌ Ghana Card number field
-- ❌ Ghana Card uploads (front/back)
+- ❌ document upload (removed)s (front/back)
 - ❌ Selfie capture
 - ❌ 2-step registration process
 - ❌ Face matching logic
@@ -73,7 +75,7 @@ Step 1: Personal Info
 ├── Ghana Card Number ❌
 └── Password
 
-Step 2: KYC Verification ❌
+Step 2: phone verification ❌
 ├── Upload Ghana Card Front ❌
 ├── Upload Ghana Card Back ❌
 ├── Upload Selfie ❌
@@ -101,7 +103,7 @@ Single Page Registration
 |---------|--------------|-------------|-----------------|----------------|
 | **Steps** | 2 | 1 | 2 | 1 |
 | **Ghana Card Number** | Required | ❌ Removed | Required | ❌ Removed |
-| **Ghana Card Upload** | Required | ❌ Removed | Required | ❌ Removed |
+| **document upload (removed)** | Required | ❌ Removed | Required | ❌ Removed |
 | **Selfie** | Required | ❌ Removed | Required | ❌ Removed |
 | **Face Matching** | Yes | ❌ Removed | Yes | ❌ Removed |
 | **Submission Type** | FormData | JSON | FormData | JSON |
@@ -129,28 +131,28 @@ Single Page Registration
 ### For Business:
 - ✅ **Higher conversion** - Less abandonment
 - ✅ **Faster onboarding** - Users can start immediately
-- ✅ **Lower support** - Fewer KYC-related issues
-- ✅ **MVP ready** - Can launch without Smile ID
-- ✅ **Flexible** - Can add KYC later when needed
+- ✅ **Lower support** - Fewer phone verification-related issues
+- ✅ **MVP ready** - Can launch without Smile ID (removed)
+- ✅ **Flexible** - Can add phone verification later when needed
 
 ---
 
-## 🔮 Future: Smile ID Integration
+## 🔮 Future: Smile ID (removed) Integration
 
 When ready to add identity verification:
 
-### Option 1: Post-Registration KYC
+### Option 1: Post-Registration phone verification
 - User registers with basic info
-- Completes KYC later from profile
+- Completes phone verification later from profile
 - Can use platform with limits until verified
 
-### Option 2: Conditional KYC
-- Basic users: No KYC required
-- High-value transactions: KYC required
-- Sellers: KYC required
+### Option 2: Conditional phone verification
+- Basic users: No phone verification required
+- High-value transactions: phone verification required
+- Sellers: phone verification required
 
-### Option 3: Smile ID Integration
-- Use Smile ID SDK for verification
+### Option 3: Smile ID (removed) Integration
+- Use Smile ID (removed) SDK for verification
 - Seamless mobile integration
 - Professional verification service
 - No self-hosted infrastructure
@@ -225,11 +227,11 @@ services/api/src/modules/auth/auth.service.ts      (-11 lines, +2 lines)
 
 ## 📝 Notes
 
-- **KYC Status:** All new users get `kycStatus: PENDING`
+- **phone verification status:** All new users get `kycStatus: PENDING`
 - **No Blocking:** Users can use the platform immediately
-- **Optional KYC:** Can be added later via separate KYC page
-- **Backward Compatible:** Existing users with KYC unaffected
-- **Admin Panel:** KYC review page still works for existing submissions
+- **Optional phone verification:** Can be added later via separate phone verification page
+- **Backward Compatible:** Existing users with phone verification unaffected
+- **Admin Panel:** phone verification review page still works for existing submissions
 
 ---
 
@@ -242,7 +244,7 @@ services/api/src/modules/auth/auth.service.ts      (-11 lines, +2 lines)
 - ✅ Fast, frictionless onboarding
 - ✅ MVP-ready
 - ✅ Easy to maintain
-- ✅ Ready for Smile ID integration later
+- ✅ Ready for Smile ID (removed) integration later
 
 **The system is now truly unified!** 🚀
 

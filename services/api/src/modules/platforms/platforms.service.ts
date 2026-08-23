@@ -129,7 +129,7 @@ export class PlatformsService {
       });
       if (!user) {
         throw new NotFoundException(
-          `Seller not found with email ${params.sellerEmail}. They must register and complete KYC on MYXCROW first.`,
+          `Seller not found with email ${params.sellerEmail}. They must register and verify their phone on MYXCROW first.`,
         );
       }
       userId = user.id;

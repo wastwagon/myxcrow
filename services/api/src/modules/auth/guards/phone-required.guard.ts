@@ -1,9 +1,11 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { KYCStatus } from '@prisma/client';
+
+const STAFF_ROLES = new Set(['ADMIN', 'AUDITOR', 'SUPPORT']);
 
 /**
- * Guard to ensure user has a phone number.
- * Forces existing users to add phone before using escrows, payments, etc.
- * Allow profile routes so users can update their phone.
+ * Ensures the user has a Ghana phone on file and completed SMS verification at registration
+ * (`kycStatus === VERIFIED` — legacy DB field name).
  */
 @Injectable()
 export class PhoneRequiredGuard implements CanActivate {
@@ -20,6 +22,17 @@ export class PhoneRequiredGuard implements CanActivate {
       throw new ForbiddenException(
         'Phone number required. Please add your Ghana phone number in your profile to continue.',
       );
+    }
+
+    const isStaff = user.roles?.some((role: string) => STAFF_ROLES.has(role));
+    if (!isStaff && user.kycStatus !== KYCStatus.VERIFIED) {
+      throw new ForbiddenException(
+        'Phone verification required. Complete SMS verification during registration.',
+      );
+    }
+
+    if (user.isActive === false) {
+      throw new ForbiddenException('Account is inactive');
     }
 
     return true;

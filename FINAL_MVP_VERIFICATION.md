@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Final MVP Verification Report
 
 > **Note:** The native mobile app has been removed. Project is **web-only**. Phase 2 / `apps/mobile` references below are historical.
@@ -28,7 +30,7 @@
 - Dispute resolved: ✅ `sendDisputeResolvedNotifications`
 - Wallet top-up: ✅ `sendWalletTopUpNotifications`
 - Withdrawal: ✅ `sendWithdrawalApprovedNotifications` + `sendWithdrawalDeniedNotifications`
-- KYC status: ✅ `sendKYCStatusUpdateNotifications`
+- phone verification status: ✅ `sendKYCStatusUpdateNotifications`
 - Payment confirmation: ✅ `sendPaymentConfirmationNotifications`
 
 **✅ Integration:**
@@ -48,7 +50,7 @@
 - Login screen: ✅ `apps/mobile/app/(auth)/login.tsx` EXISTS
 - Register screen: ✅ `apps/mobile/app/(auth)/register.tsx` EXISTS
 - Biometric auth: ✅ `apps/mobile/src/services/biometric.ts` EXISTS
-- KYC upload: ✅ Camera + image picker implemented
+- phone verification upload: ✅ Camera + image picker implemented
 
 **✅ Transactions (Required):**
 - Create escrow: ✅ `apps/mobile/app/(tabs)/escrows/new.tsx` EXISTS
@@ -70,7 +72,7 @@
 
 **✅ Profile (Required):**
 - View profile: ✅ `apps/mobile/app/(tabs)/profile/index.tsx` EXISTS
-- Update KYC: ✅ `apps/mobile/app/(tabs)/profile/kyc.tsx` CREATED
+- Update phone verification: ✅ `apps/mobile/app/(tabs)/profile/phone verification.tsx` CREATED
 - Transaction history: ✅ `apps/mobile/app/(tabs)/profile/transactions.tsx` CREATED
 - Settings: ✅ `apps/mobile/app/(tabs)/profile/settings.tsx` CREATED
 

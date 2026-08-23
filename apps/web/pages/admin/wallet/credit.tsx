@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import { AdminGate } from '@/components/admin/AdminGate';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,7 +20,6 @@ import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
-import { PageSpinner } from '@/components/LoadingSkeleton';
 
 const creditSchema = z.object({
   userId: z.string().min(1, 'User is required'),
@@ -107,7 +106,9 @@ export default function CreditWalletPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
+      queryClient.invalidateQueries({ queryKey: ['wallet-funding'] });
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-wallet'] });
       toast.success('Wallet credited successfully');
       router.push('/admin');
     },
@@ -132,10 +133,6 @@ export default function CreditWalletPage() {
     setSearchTerm('');
   };
 
-  if (!isAuthenticated() || !isAdmin()) {
-    return <PageSpinner />;
-  }
-
   const refreshCreditPage = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['users'] }),
@@ -144,7 +141,7 @@ export default function CreditWalletPage() {
   };
 
   return (
-    <Layout title="Credit wallet">
+    <AdminGate title="Credit wallet">
       <PullToRefresh onRefresh={refreshCreditPage} disabled={!isMobile} className="max-w-3xl mx-auto">
         <LightShell>
           <p className={dash.subtitle}>Manually credit a user&apos;s wallet</p>
@@ -286,6 +283,6 @@ export default function CreditWalletPage() {
           </LightPanel>
         </LightShell>
       </PullToRefresh>
-    </Layout>
+    </AdminGate>
   );
 }

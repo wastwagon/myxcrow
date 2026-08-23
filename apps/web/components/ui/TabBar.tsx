@@ -9,6 +9,8 @@ export interface TabBarItem {
   icon: LucideIcon;
   isActive: boolean;
   badge?: number;
+  /** Raised gold center action (New escrow). */
+  raised?: boolean;
 }
 
 interface TabBarProps {
@@ -36,6 +38,31 @@ export function TabBar({ items, className, tone = 'dark' }: TabBarProps) {
 
   const tabs = items.map((item) => {
     const Icon = item.icon;
+    if (item.raised) {
+      return (
+        <Link
+          key={item.href + item.label}
+          href={item.href}
+          onClick={(e) => onTabClick(e, item)}
+          className="relative flex flex-1 flex-col items-center justify-end min-w-0 px-0.5 pb-1 touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 rounded-[16px]"
+          aria-label={item.label}
+          aria-current={item.isActive ? 'page' : undefined}
+        >
+          <span
+            className={cn(
+              'absolute -top-7 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-brand-gold text-brand-maroon-black',
+              item.isActive && 'ring-2 ring-brand-maroon/25'
+            )}
+          >
+            <Icon size={26} strokeWidth={2.4} aria-hidden />
+          </span>
+          <span className="font-medium truncate max-w-full px-0.5 text-[10px] tracking-tight text-brand-maroon">
+            {item.label}
+          </span>
+        </Link>
+      );
+    }
+
     return (
       <Link
         key={item.href + item.label}
@@ -44,6 +71,7 @@ export function TabBar({ items, className, tone = 'dark' }: TabBarProps) {
         className={cn(
           'relative flex flex-1 flex-col items-center justify-center min-w-0 px-0.5',
           'touch-manipulation transition-colors duration-200',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2',
           ios
             ? item.isActive
               ? 'text-brand-maroon'
@@ -77,12 +105,12 @@ export function TabBar({ items, className, tone = 'dark' }: TabBarProps) {
 
   return (
     <nav
-      className={cn('fixed bottom-0 left-0 right-0 z-50 xl:hidden pointer-events-none', className)}
+      className={cn('fixed bottom-0 left-0 right-0 z-50 xl:hidden pointer-events-none overflow-visible', className)}
       style={{ padding: '8px 16px max(12px, var(--safe-bottom))' }}
       aria-label="Main"
     >
       <div
-        className="pointer-events-auto flex items-stretch h-[54px] max-w-lg mx-auto rounded-[28px]"
+        className="pointer-events-auto relative flex items-stretch h-[54px] max-w-lg mx-auto rounded-[28px] overflow-visible"
         style={
           ios
             ? {

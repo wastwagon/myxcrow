@@ -10,6 +10,7 @@ import { publicForm } from '@/lib/form-classes';
 import { ButtonLink } from '@/components/ui/Button';
 import { ImageCard, ImageCardRow } from '@/components/ui/ImageCard';
 import { SectionHeader } from '@/components/ui/SectionHeader';
+import { PageSpinner } from '@/components/LoadingSkeleton';
 
 const HOW_IT_WORKS = [
   { step: 1, title: 'Agree on terms', desc: 'Buyer and seller agree on the amount, goods or services, and delivery terms before starting.' },
@@ -30,18 +31,28 @@ const FAQ_ITEMS = [
   { q: 'How are my funds protected?', a: 'MYXCROW holds funds in a secure escrow account. Money is released only when both buyer and seller confirm the transaction is complete. If there is a dispute, our team mediates before any release.' },
   { q: 'What fees do you charge?', a: 'We charge a small percentage fee on each successful transaction. There are no monthly subscriptions or hidden charges. The exact fee is shown before you confirm an escrow. See our Terms for full details.' },
   { q: 'Is MYXCROW available in Ghana?', a: 'Yes. MYXCROW is built for Ghana and operates in Ghana Cedis (₵). It is suitable for local and diaspora transactions, including real estate, goods, and services.' },
-  { q: 'How do I start an escrow?', a: 'Register, complete KYC verification, then create a new escrow. Add the other party (buyer or seller), set the amount and terms, and fund the escrow. The other party receives instructions to complete their part.' },
+  { q: 'How do I start an escrow?', a: 'Register with your Ghana phone and SMS code, then create a new escrow. Add the other party, set the amount and terms, and fund the escrow.' },
 ];
 
 export default function Home() {
   const router = useRouter();
   const [faqModal, setFaqModal] = useState<typeof FAQ_ITEMS[0] | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (isAuthenticated()) {
-      router.push('/dashboard');
+      router.replace('/dashboard');
     }
   }, [router]);
+
+  if (!mounted) {
+    return <PageSpinner />;
+  }
+
+  if (isAuthenticated()) {
+    return <PageSpinner />;
+  }
 
   const isLocal = process.env.NEXT_PUBLIC_ENV === 'local';
 
@@ -49,7 +60,7 @@ export default function Home() {
     { icon: Shield, title: 'Secure Escrow', description: 'Your funds are held safely until transaction completion', color: 'blue' },
     { icon: Lock, title: 'Protected Payments', description: 'Advanced encryption and fraud protection', color: 'green' },
     { icon: Zap, title: 'Fast Processing', description: 'Quick verification and instant notifications', color: 'yellow' },
-    { icon: Users, title: 'Trusted Platform', description: 'KYC-verified users and reputation system', color: 'purple' },
+    { icon: Users, title: 'Trusted Platform', description: 'Phone-verified users and reputation system', color: 'purple' },
   ];
 
   return (
@@ -117,7 +128,7 @@ export default function Home() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
               {[
                 { label: 'Ghana-based', sub: 'Built for Ghana Cedis' },
-                { label: 'KYC verified', sub: 'Identity-checked users' },
+                { label: 'Phone verified', sub: 'SMS-checked at signup' },
                 { label: 'Secure', sub: 'Encrypted & protected' },
                 { label: 'No chargebacks', sub: 'Funds released on approval' },
               ].map((badge) => (

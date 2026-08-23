@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Software Registration — Submission Checklist
 
 **Application:** MYXCROW Escrow Platform v1.0.0  
@@ -52,7 +54,7 @@ Choose **one** approach (Docker recommended for reviewers):
 - [ ] **Option B — Node builds:** `services/api/dist/` + `apps/web/.next/` + `package.json` files + `START.sh` script
 - [ ] **Option C — Offline demo:** Docker Compose dev stack pre-seeded with test data (`./setup-local.sh` instructions in README)
 
-- [ ] Reviewer can start app without your Paystack/Smile ID production keys (document test mode)
+- [ ] Reviewer can start app without your Paystack/Smile ID (removed) production keys (document test mode)
 - [ ] Default test login documented (from seed: `admin@myxcrow.com` / see seed script)
 
 ---

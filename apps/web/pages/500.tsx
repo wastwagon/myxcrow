@@ -14,9 +14,6 @@ export default function ServerError() {
       card={false}
       maxWidthClass="max-w-md"
     >
-      <p className="text-[15px] leading-relaxed text-[rgba(60,60,67,0.6)]">
-        Something went wrong on our end. Please try again in a moment.
-      </p>
       <ButtonLink href="/" variant="maroon" className="mt-8">
         <Home className="w-5 h-5" />
         Go to Home

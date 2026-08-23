@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MYXCROW - Complete Project Review
 
 **Review Date:** 2024  
@@ -13,7 +15,7 @@ The MYXCROW escrow platform is a well-architected, feature-complete application 
 
 **Key Strengths:**
 - ✅ Clean monorepo structure with proper workspace configuration
-- ✅ Comprehensive feature set (KYC, Escrow, Wallet, Disputes, Reputation)
+- ✅ Comprehensive feature set (phone verification, Escrow, Wallet, Disputes, Reputation)
 - ✅ Modern tech stack (NestJS, Next.js, Prisma, PostgreSQL)
 - ✅ Production-ready Docker configuration
 - ✅ Proper authentication with JWT refresh tokens
@@ -73,7 +75,7 @@ All modules are well-organized and follow NestJS best practices:
 1. **Auth Module** ✅
    - JWT authentication with refresh tokens
    - Role-based access control (RBAC)
-   - KYC verification guards
+   - phone verification guards
    - Proper password hashing with bcrypt
 
 2. **Escrow Module** ✅
@@ -88,7 +90,7 @@ All modules are well-organized and follow NestJS best practices:
    - Transaction history
    - Ledger integration
 
-4. **KYC Module** ✅
+4. **phone verification Module** ✅
    - Ghana Card verification
    - Face matching with face-api.js
    - Liveness detection
@@ -159,7 +161,7 @@ All modules are well-organized and follow NestJS best practices:
 
 **Models Reviewed:**
 - User, Wallet, EscrowAgreement, Payment, Dispute
-- Evidence, KYC, Ledger, AuditLog
+- Evidence, phone verification, Ledger, AuditLog
 - All properly indexed and related
 
 ---
@@ -178,7 +180,7 @@ All modules are well-organized and follow NestJS best practices:
 
 **User Pages:**
 - ✅ Landing page with health check
-- ✅ Login/Register with KYC flow
+- ✅ Login/Register with phone verification flow
 - ✅ Dashboard with escrow overview
 - ✅ Escrow management (list, create, detail, evidence)
 - ✅ Wallet management
@@ -188,7 +190,7 @@ All modules are well-organized and follow NestJS best practices:
 **Admin Pages:**
 - ✅ Admin dashboard
 - ✅ User management
-- ✅ KYC review
+- ✅ phone verification review
 - ✅ Withdrawal approvals
 - ✅ Platform settings
 - ✅ Fee configuration
@@ -320,7 +322,7 @@ All modules are well-organized and follow NestJS best practices:
 
 - ✅ Role-based access control (RBAC)
 - ✅ Guards for protected routes
-- ✅ KYC verification guards
+- ✅ phone verification guards
 - ✅ Admin-only endpoints protected
 
 ### Data Protection: ✅ **GOOD**

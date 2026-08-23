@@ -139,7 +139,7 @@ html.customer-app {
   --label-secondary: rgba(60, 60, 67, 0.6);
   --label-tertiary: rgba(60, 60, 67, 0.5);
   --tab-bar-bg: rgba(249, 249, 249, 0.92);
-  --tab-bar-height: 82px;
+  --tab-bar-height: 112px;
   --form-panel-bg: #ffffff;
   --form-panel-border: transparent;
   --form-label: rgba(60, 60, 67, 0.6);
@@ -151,6 +151,22 @@ html.customer-app {
   --separator: rgba(60, 60, 67, 0.12);
   --skeleton: #e5e5ea;
   --table-sticky-top: calc(var(--app-sat, env(safe-area-inset-top, 0px)) + 44px);
+}
+
+html.customer-app.customer-home {
+  --app-chrome-bg: #331518;
+  /* Home has no 44px iOS title bar. Sticky table heads must not offset by that gap. */
+  --table-sticky-top: 0px;
+}
+
+html.public-light.customer-home {
+  --app-chrome-bg: #331518;
+}
+
+html.public-light.customer-home,
+html.public-light.customer-home body,
+html.public-light.customer-home #__next {
+  background-color: #f2f2f7;
 }
 
 /* Public utility pages: same grouped light surface, without locking the viewport */
@@ -244,6 +260,11 @@ html.public-light [class*="bg-black/40"] {
   box-shadow: none;
 }
 
+/* Overlay dim must not be rewritten by the leftover dark-glass rules above. */
+.mx-overlay-dim {
+  background-color: rgba(22, 15, 16, 0.48);
+}
+
 html.customer-app [class*="border-white/10"],
 html.customer-app [class*="border-white/15"],
 html.customer-app [class*="border-white/20"],
@@ -255,6 +276,45 @@ html.public-light [class*="border-white/20"] {
 
 html.customer-app .shadow-ios-card,
 html.public-light .shadow-ios-card {
+  box-shadow: none;
+}
+
+/* Photographic menu cards keep dark overlays and white type on the light customer shell. */
+html.customer-app .mx-photo-card,
+html.public-light .mx-photo-card {
+  border-color: rgba(255, 255, 255, 0.14) !important;
+  background-color: #160f10 !important;
+}
+
+html.customer-app .mx-photo-card [class*='text-white'],
+html.public-light .mx-photo-card [class*='text-white'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html.customer-app .mx-photo-card [class*='bg-black/'],
+html.public-light .mx-photo-card [class*='bg-black/'] {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Maroon identity header keeps white type on the light customer shell.
+   Only pin `text-white` nodes — a blanket fill on the header made the
+   account avatar initial inherit white on a pale disc. */
+html.customer-app .mx-on-maroon [class*='text-white'],
+html.public-light .mx-on-maroon [class*='text-white'] {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html.customer-app .mx-on-maroon .mx-avatar,
+html.public-light .mx-on-maroon .mx-avatar {
+  color: #160f10 !important;
+  -webkit-text-fill-color: #160f10 !important;
+}
+
+/* Home wallet card — flat grouped surface, not a floating panel. */
+.mx-wallet-card {
+  border: 0.5px solid rgba(60, 60, 67, 0.12);
   box-shadow: none;
 }
 
@@ -334,7 +394,7 @@ iframe:not([src]) {
 @media (max-width: 1279px) {
   .intercom-lightweight-app-launcher,
   .intercom-launcher-frame {
-    bottom: calc(var(--tab-bar-height, 82px) + 10px) !important;
+    bottom: calc(var(--tab-bar-height, 96px) + 10px) !important;
   }
 }
 
@@ -460,6 +520,47 @@ iframe:not([src]) {
   }
 }
 
+@keyframes mx-overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mx-sheet-in {
+  from {
+    transform: translateY(28px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes mx-dialog-in {
+  from {
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.mx-overlay-in {
+  animation: mx-overlay-in 0.22s ease-out both;
+}
+
+.mx-sheet-in {
+  animation: mx-sheet-in 0.38s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+@media (min-width: 1280px) {
+  .mx-sheet-in {
+    animation: mx-dialog-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -473,7 +574,9 @@ iframe:not([src]) {
   .page-transition-in,
   .v2-fade-up,
   .v2-fade-up-delay-1,
-  .v2-fade-up-delay-2 {
+  .v2-fade-up-delay-2,
+  .mx-overlay-in,
+  .mx-sheet-in {
     animation: none !important;
   }
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated, getUser, isAdmin } from '@/lib/auth';
+import { getUser, isAdmin } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { ESCROW_CATEGORY, ESCROW_CATEGORY_LABELS } from '@/lib/escrow-services';
@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/Input';
 import { Banner } from '@/components/ui/Banner';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 import { PageDetailSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import EscrowFeeSummary from '@/components/EscrowFeeSummary';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -101,16 +102,11 @@ export default function EscrowDetailPage() {
   const [activeTab, setActiveTab] = useState<'timeline' | 'ledger' | 'milestones' | 'messages'>('timeline');
   const [ratingModal, setRatingModal] = useState<{ isOpen: boolean; rateeId?: string; rateeName?: string; role?: 'buyer' | 'seller' }>({ isOpen: false });
   const isMobile = useIsMobileNav();
+  const authed = useRequireAuth();
 
   const refreshEscrow = async () => {
     await queryClient.invalidateQueries({ queryKey: ['escrow', id] });
   };
-
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-    }
-  }, [router]);
 
   const { data: escrow, isLoading } = useQuery<Escrow>({
     queryKey: ['escrow', id],
@@ -118,7 +114,7 @@ export default function EscrowDetailPage() {
       const response = await apiClient.get(`/escrows/${id}`);
       return response.data;
     },
-    enabled: !!id,
+    enabled: authed && !!id,
   });
 
   const isBuyer = escrow?.buyerId === user?.id;
@@ -310,7 +306,7 @@ export default function EscrowDetailPage() {
     if (ok) serviceCompletedMutation.mutate();
   };
 
-  if (!isAuthenticated()) {
+  if (!authed) {
     return <PageSpinner />;
   }
 
@@ -330,7 +326,7 @@ export default function EscrowDetailPage() {
           icon={<AlertCircle className="h-6 w-6" />}
           title="Escrow not found"
           description="It may have been removed, or the link is incorrect."
-          action={{ href: '/escrows', label: 'View escrows', variant: 'maroon' }}
+          action={{ href: '/escrows/history', label: 'View escrow history', variant: 'maroon' }}
         />
       </CustomerLayout>
     );

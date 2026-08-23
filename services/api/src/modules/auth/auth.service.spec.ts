@@ -7,7 +7,6 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SMSService } from '../notifications/sms.service';
 import { AuditService } from '../audit/audit.service';
 import { EmailService } from '../email/email.service';
-import { KYCService } from '../kyc/kyc.service';
 import * as bcrypt from 'bcrypt';
 
 // Mock bcrypt
@@ -77,10 +76,6 @@ describe('AuthService', () => {
     get: jest.fn().mockReturnValue('test-secret'),
   };
 
-  const mockKYCService = {
-    processKYCRegistration: jest.fn(),
-  };
-
   const mockSMSService = {
     sendVerificationOtpSms: jest.fn().mockResolvedValue({ success: true }),
     sendSMS: jest.fn().mockResolvedValue({ success: true }),
@@ -99,7 +94,6 @@ describe('AuthService', () => {
         { provide: AuditService, useValue: mockAuditService },
         { provide: EmailService, useValue: mockEmailService },
         { provide: ConfigService, useValue: mockConfigService },
-        { provide: KYCService, useValue: mockKYCService },
         { provide: SMSService, useValue: mockSMSService },
       ],
     }).compile();
@@ -201,7 +195,12 @@ describe('AuthService', () => {
 
       expect(result).toHaveProperty('accessToken');
       expect(result).toHaveProperty('user');
-      expect(mockPrismaService.user.create).toHaveBeenCalled();
+      expect(result.user.kycStatus).toBe('VERIFIED');
+      expect(mockPrismaService.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ kycStatus: 'VERIFIED' }),
+        }),
+      );
     });
 
     it('should throw BadRequestException if email already exists', async () => {

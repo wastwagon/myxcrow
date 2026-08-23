@@ -31,7 +31,7 @@ export function Modal({
       <button
         type="button"
         aria-label="Close dialog"
-        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+        className="mx-overlay-dim absolute inset-0"
         onClick={onClose}
       />
       <div

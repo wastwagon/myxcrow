@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated } from '@/lib/auth';
 import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { toast } from 'react-hot-toast';
@@ -9,19 +8,17 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { ListGroup } from '@/components/ui/ListGroup';
 import { PageSpinner } from '@/components/LoadingSkeleton';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 
 export default function ChangePasswordPage() {
   const router = useRouter();
+  const authed = useRequireAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  useEffect(() => {
-    if (!isAuthenticated()) router.push('/login');
-  }, [router]);
 
   const changePasswordMutation = useMutation({
     mutationFn: async (data: { currentPassword: string; newPassword: string }) =>
@@ -62,7 +59,7 @@ export default function ChangePasswordPage() {
   const eyeBtn =
     'absolute right-1 top-1/2 -translate-y-1/2 text-gray-600 hover:text-brand-maroon min-h-[44px] min-w-[44px] flex items-center justify-center touch-manipulation';
 
-  if (!isAuthenticated()) return <PageSpinner />;
+  if (!authed) return <PageSpinner />;
 
   return (
     <CustomerLayout title="Password" back>
@@ -80,7 +77,12 @@ export default function ChangePasswordPage() {
                 required
                 autoComplete="current-password"
               />
-              <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className={eyeBtn}>
+              <button
+                type="button"
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                className={eyeBtn}
+                aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+              >
                 {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
@@ -101,7 +103,12 @@ export default function ChangePasswordPage() {
                 minLength={8}
                 autoComplete="new-password"
               />
-              <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className={eyeBtn}>
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className={eyeBtn}
+                aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+              >
                 {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
@@ -119,7 +126,12 @@ export default function ChangePasswordPage() {
                 minLength={8}
                 autoComplete="new-password"
               />
-              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className={eyeBtn}>
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className={eyeBtn}
+                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              >
                 {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>

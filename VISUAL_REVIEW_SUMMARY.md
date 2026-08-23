@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # 🎨 MYXCROW Visual Review Summary
 **Review Date:** February 10, 2026  
 **Platform:** Web App (mobile-first, PWA-ready)  
@@ -104,7 +106,7 @@ I've successfully reviewed your MYXCROW platform running on Docker Desktop. The 
 - **Admin Sections:** (Gold header)
   - Dashboard
   - Users
-  - KYC
+  - phone verification
   - Withdrawals
   - Reconciliation
 

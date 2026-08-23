@@ -19,7 +19,6 @@ import { AutomationModule } from './modules/automation/automation.module';
 import { RiskModule } from './modules/risk/risk.module';
 import { ComplianceModule } from './modules/compliance/compliance.module';
 import { ReputationModule } from './modules/reputation/reputation.module';
-import { KYCModule } from './modules/kyc/kyc.module';
 import { DeliveryModule } from './modules/delivery/delivery.module';
 import { ApiKeysModule } from './modules/api-keys/api-keys.module';
 import { PlatformsModule } from './modules/platforms/platforms.module';
@@ -65,7 +64,6 @@ import paystackConfig from './config/paystack.config';
     RiskModule,
     ComplianceModule,
     ReputationModule,
-    KYCModule,
     DeliveryModule,
     ApiKeysModule,
     PlatformsModule,

@@ -133,6 +133,10 @@ Authentication is handled via JWT tokens stored in localStorage:
 
 Protected routes check authentication and redirect to `/login` if not authenticated.
 
+### Phone verification
+
+Accounts are verified by **SMS one-time code during registration** only. There is no document or ID upload flow. See [`docs/PHONE_VERIFICATION.md`](../../docs/PHONE_VERIFICATION.md).
+
 ## 📊 Data Fetching
 
 We use React Query for all data fetching:

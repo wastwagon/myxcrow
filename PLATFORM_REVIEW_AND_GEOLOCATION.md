@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MYXCROW Platform Review & Geolocation/Maps Assessment
 
 **Date:** February 2026  
@@ -12,7 +14,7 @@
 | Area | Status | Notes |
 |------|--------|--------|
 | **Auth** | ✅ | JWT + refresh, roles (BUYER, SELLER, ADMIN, AUDITOR, SUPPORT), password reset, change password, biometric (mobile) |
-| **KYC** | ✅ | Ghana Card + selfie, face matching, admin review, status flow |
+| **phone verification** | ✅ | SMS OTP, face matching, admin review, status flow |
 | **Escrow** | ✅ | Create → Fund → Ship → Deliver → Release; milestones; auto-release; cancel/refund |
 | **Wallet** | ✅ | Balance, Paystack top-up, withdrawals (admin approval), ledger, transaction history |
 | **Disputes** | ✅ | Create, status flow, messages, evidence, admin resolution |
@@ -20,7 +22,7 @@
 | **Messaging** | ✅ | Escrow messages (buyer–seller), dispute messages (with admin) |
 | **Notifications** | ✅ | Email, SMS (Africa’s Talking/Twilio), push (mobile), password-change emails |
 | **Support** | ✅ | Intercom (web), support page, Terms & Privacy (web) |
-| **Admin** | ✅ | Users, KYC review, withdrawals, wallet credit/debit, fees, reconciliation, settings |
+| **Admin** | ✅ | Users, phone verification review, withdrawals, wallet credit/debit, fees, reconciliation, settings |
 | **Reputation** | ✅ | Escrow ratings (API + UI); RatingModal (web) |
 | **Risk/Compliance** | ✅ | Risk scoring, sanctions screening, audit log |
 | **Automation** | ✅ | Scheduler, rules engine, auto-release |
@@ -141,7 +143,7 @@ Short answer:
 
 ## 5. Conclusion
 
-- **Platform:** Core escrow, wallet, disputes, KYC, notifications, and admin are in place. Main gaps are **delivery address**, **seller discovery** (if you want it), **shipment tracking UX**, and **test coverage**.  
+- **Platform:** Core escrow, wallet, disputes, phone verification, notifications, and admin are in place. Main gaps are **delivery address**, **seller discovery** (if you want it), **shipment tracking UX**, and **test coverage**.  
 - **Geo:** You **do need structured delivery address** (no map for MVP). **Optional geo-tagging on evidence** is recommended for proof of delivery and disputes.  
 - **Maps:** A **maps service is not required for MVP**; add when you need to show locations on a map (evidence, meetup, or carrier tracking).
 

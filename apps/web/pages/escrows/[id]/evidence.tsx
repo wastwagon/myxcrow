@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDate } from '@/lib/utils';
@@ -13,9 +12,10 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Banner } from '@/components/ui/Banner';
 import { form } from '@/lib/form-classes';
-import { PageSpinner } from '@/components/LoadingSkeleton';
+import { PageSpinner, PageDetailSkeleton } from '@/components/LoadingSkeleton';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 
 interface Evidence {
   id: string;
@@ -34,6 +34,7 @@ export default function EvidencePage() {
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const isMobile = useIsMobileNav();
+  const authed = useRequireAuth();
   const [uploading, setUploading] = useState(false);
 
   const refreshEvidence = async () => {
@@ -43,17 +44,13 @@ export default function EvidencePage() {
   const [includeLocation, setIncludeLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isAuthenticated()) router.push('/login');
-  }, [router]);
-
-  const { data: escrow } = useQuery({
+  const { data: escrow, isLoading } = useQuery({
     queryKey: ['escrow', escrowId],
     queryFn: async () => {
       const response = await apiClient.get(`/escrows/${escrowId}`);
       return response.data;
     },
-    enabled: !!escrowId,
+    enabled: authed && !!escrowId,
   });
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -149,7 +146,15 @@ export default function EvidencePage() {
     },
   });
 
-  if (!isAuthenticated()) return <PageSpinner />;
+  if (!authed) return <PageSpinner />;
+
+  if (!router.isReady || !escrowId || isLoading) {
+    return (
+      <CustomerLayout title="Evidence" back>
+        <PageDetailSkeleton />
+      </CustomerLayout>
+    );
+  }
 
   const evidenceList: Evidence[] = escrow?.evidence ?? [];
 

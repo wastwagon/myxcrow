@@ -4,15 +4,19 @@ import CustomerLayout from '@/components/CustomerLayout';
 import apiClient from '@/lib/api-client';
 import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import { Button, ButtonLink } from '@/components/ui/Button';
+import { PageSpinner } from '@/components/LoadingSkeleton';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 
 export default function EscrowPaymentCallbackPage() {
   const router = useRouter();
+  const authed = useRequireAuth();
   const { reference } = router.query;
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState<string>('');
   const [escrowId, setEscrowId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!authed || !router.isReady) return;
     if (!reference || typeof reference !== 'string') {
       setStatus('error');
       setMessage('Missing payment reference.');
@@ -30,7 +34,7 @@ export default function EscrowPaymentCallbackPage() {
           const escrowIdFromRef = reference.split('_')[1];
           if (escrowIdFromRef) setEscrowId(escrowIdFromRef);
           setTimeout(
-            () => router.replace(escrowIdFromRef ? `/escrows/${escrowIdFromRef}` : '/escrows'),
+            () => router.replace(escrowIdFromRef ? `/escrows/${escrowIdFromRef}` : '/escrows/history'),
             2000
           );
         }
@@ -50,13 +54,17 @@ export default function EscrowPaymentCallbackPage() {
     return () => {
       cancelled = true;
     };
-  }, [reference, router]);
+  }, [reference, router, authed, router.isReady]);
+
+  if (!authed) return <PageSpinner />;
+
+  const verifying = !router.isReady || status === 'loading';
 
   return (
     <CustomerLayout title="Payment" back>
       <div className="py-10 text-center">
         <div className="rounded-[20px] bg-white p-8">
-            {status === 'loading' && (
+            {verifying && (
               <>
                 <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-brand-maroon" />
                 <p className="text-[rgba(60,60,67,0.6)]">Verifying payment…</p>
@@ -68,7 +76,7 @@ export default function EscrowPaymentCallbackPage() {
                 <p className="font-medium text-gray-900">{message}</p>
                 <p className="mt-2 text-sm text-[rgba(60,60,67,0.6)]">Redirecting to escrow…</p>
                 <ButtonLink
-                  href={escrowId ? `/escrows/${escrowId}` : '/escrows'}
+                  href={escrowId ? `/escrows/${escrowId}` : '/escrows/history'}
                   variant="maroon"
                   className="mt-5"
                 >
@@ -83,9 +91,9 @@ export default function EscrowPaymentCallbackPage() {
                 <Button
                   variant="maroon"
                   className="mt-5"
-                  onClick={() => router.replace(escrowId ? `/escrows/${escrowId}` : '/escrows')}
+                  onClick={() => router.replace(escrowId ? `/escrows/${escrowId}` : '/escrows/history')}
                 >
-                  Back to Escrows
+                  Back to escrows
                 </Button>
               </>
             )}

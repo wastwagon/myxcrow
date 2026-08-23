@@ -7,60 +7,62 @@ import {
   HelpCircle,
   Shield,
   Wallet,
-  User,
-  AlertCircle,
+  Plus,
+  MoreHorizontal,
 } from 'lucide-react';
-import { isAuthenticated, isAdmin } from '@/lib/auth';
+import { isCustomerMorePath } from '@/lib/app-chrome';
+import { isAuthenticated } from '@/lib/auth';
 import { TabBar, type TabBarItem } from '@/components/ui/TabBar';
 
-const LOGGED_OUT_ITEMS = [
+const LOGGED_OUT_ITEMS: Omit<TabBarItem, 'isActive'>[] = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/login', label: 'Sign In', icon: LogIn },
   { href: '/register', label: 'Register', icon: UserPlus },
   { href: '/support', label: 'Support', icon: HelpCircle },
 ];
 
-const getLoggedInItems = (admin: boolean): Omit<TabBarItem, 'isActive'>[] => [
-  { href: admin ? '/admin' : '/dashboard', label: 'Home', icon: Home },
+const getLoggedInItems = (): Omit<TabBarItem, 'isActive'>[] => [
+  { href: '/dashboard', label: 'Home', icon: Home },
   { href: '/escrows', label: 'Escrows', icon: Shield },
+  { href: '/escrows/new', label: 'New', icon: Plus, raised: true },
   { href: '/wallet', label: 'Wallet', icon: Wallet },
-  { href: '/disputes', label: 'Disputes', icon: AlertCircle },
-  { href: '/profile', label: 'Account', icon: User },
+  { href: '/profile', label: 'More', icon: MoreHorizontal },
 ];
+
+function pathIsActive(pathname: string, href: string) {
+  if (href === '/') return pathname === '/';
+  if (href === '/dashboard') return pathname === '/dashboard';
+  if (href === '/admin') return pathname === '/admin' || pathname.startsWith('/admin/');
+  if (href === '/escrows/new') return pathname === '/escrows/new';
+  if (href === '/escrows') {
+    return (
+      pathname === '/escrows' ||
+      (pathname.startsWith('/escrows/') && pathname !== '/escrows/new')
+    );
+  }
+  if (href === '/profile') return isCustomerMorePath(pathname);
+  if (href === '/support') {
+    return pathname === '/support' || pathname === '/terms' || pathname === '/privacy';
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export default function MobileBottomNav() {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
-  const [admin, setAdmin] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     setAuthenticated(isAuthenticated());
-    setAdmin(isAdmin());
   }, [router.pathname]);
 
   if (!mounted) return null;
 
-  const isActive = (href: string) => {
-    if (href === '/') return router.pathname === '/';
-    if (href === '/dashboard') return router.pathname === '/dashboard';
-    if (href === '/admin')
-      return router.pathname === '/admin' || router.pathname.startsWith('/admin/');
-    if (href === '/support') {
-      return (
-        router.pathname === '/support' ||
-        router.pathname === '/terms' ||
-        router.pathname === '/privacy'
-      );
-    }
-    return router.pathname === href || router.pathname.startsWith(`${href}/`);
-  };
-
-  const baseItems = authenticated ? getLoggedInItems(admin) : LOGGED_OUT_ITEMS;
+  const baseItems = authenticated ? getLoggedInItems() : LOGGED_OUT_ITEMS;
   const items: TabBarItem[] = baseItems.map((item) => ({
     ...item,
-    isActive: isActive(item.href),
+    isActive: pathIsActive(router.pathname, item.href),
   }));
 
   return <TabBar items={items} tone={router.pathname === '/' ? 'dark' : 'ios'} />;

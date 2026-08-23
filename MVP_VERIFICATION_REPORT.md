@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MVP Verification Report
 
 > **Note:** The native mobile app has been removed. Project is **web-only**. Phase 2 / `apps/mobile` references below are historical.
@@ -28,7 +30,7 @@
   - Dispute resolved notifications ✅
   - Wallet top-up notifications ✅
   - Withdrawal notifications ✅
-  - KYC status update notifications ✅
+  - phone verification status update notifications ✅
   - Payment confirmation notifications ✅
 
 - ✅ **Integration:**
@@ -48,7 +50,7 @@
    - ✅ Login screen (`apps/mobile/app/(auth)/login.tsx`)
    - ✅ Register screen (`apps/mobile/app/(auth)/register.tsx`)
    - ✅ Biometric authentication (`apps/mobile/src/services/biometric.ts`)
-   - ✅ KYC upload with camera (`apps/mobile/app/(auth)/register.tsx`)
+   - ✅ phone verification upload with camera (`apps/mobile/app/(auth)/register.tsx`)
 
 2. **Transactions** ✅
    - ✅ Create escrow (`apps/mobile/app/(tabs)/escrows/new.tsx`)
@@ -69,7 +71,7 @@
 
 5. **Profile** ✅
    - ✅ View profile (`apps/mobile/app/(tabs)/profile/index.tsx`)
-   - ✅ Update KYC (`apps/mobile/app/(tabs)/profile/kyc.tsx`)
+   - ✅ Update phone verification (`apps/mobile/app/(tabs)/profile/phone verification.tsx`)
    - ✅ Transaction history (`apps/mobile/app/(tabs)/profile/transactions.tsx`)
    - ✅ Settings (`apps/mobile/app/(tabs)/profile/settings.tsx`)
 
@@ -115,7 +117,7 @@
 | **Phase 2: Mobile** |
 | Login/Register | ✅ Required | ✅ Complete | ✅ |
 | Biometric Auth | ✅ Required | ✅ Complete | ✅ |
-| KYC Upload | ✅ Required | ✅ Complete | ✅ |
+| phone verification Upload | ✅ Required | ✅ Complete | ✅ |
 | Create Escrow | ✅ Required | ✅ Complete | ✅ |
 | View Escrows | ✅ Required | ✅ Complete | ✅ |
 | Escrow Actions | ✅ Required | ✅ Complete | ✅ |
@@ -124,7 +126,7 @@
 | Payment History | ✅ Required | ✅ Complete | ✅ |
 | Push Notifications | ✅ Required | ✅ Complete | ✅ |
 | Profile View | ✅ Required | ✅ Complete | ✅ |
-| Update KYC | ✅ Required | ✅ Complete | ✅ |
+| Update phone verification | ✅ Required | ✅ Complete | ✅ |
 | Transaction History | ✅ Required | ✅ Complete | ✅ |
 | **Phase 3: Live Chat** |
 | Web Widget | ✅ Required | ✅ Complete | ✅ |

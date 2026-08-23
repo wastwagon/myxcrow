@@ -44,11 +44,5 @@ export class UsersController {
   async updateUserStatus(@Param('id') id: string, @Body() body: { isActive: boolean }) {
     return this.usersService.updateUserStatus(id, body.isActive);
   }
-
-  @Put(':id/approve')
-  @Roles(UserRole.ADMIN)
-  async approveUser(@Param('id') id: string) {
-    return this.usersService.approveUser(id);
-  }
 }
 

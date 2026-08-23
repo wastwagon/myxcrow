@@ -28,7 +28,7 @@ Admin JWT routes:
 
 ## Core flow
 
-1. `POST /api/v1/partner/merchants` — link KYC-verified MYXCROW seller  
+1. `POST /api/v1/partner/merchants` — link phone-verified MYXCROW seller  
    `{ "externalMerchantId": "<tenantId>", "sellerEmail": "merchant@…" }`
 2. `POST /api/v1/partner/webhook-endpoints` — `{ "url": "https://…/api/v1/webhooks/myxcrow/<slug>" }`  
    Store returned `secret` as DwumaPOS webhook secret.
@@ -58,7 +58,7 @@ MYXCROW admin → **Partner APIs** (`/admin/platforms`) to create platforms and 
 When a merchant enables MYXCROW in **DwumaPOS → Settings → Payments**:
 
 1. Set server env `MYXCROW_PLATFORM_API_KEY` (from bootstrap) and `MYXCROW_API_BASE_URL`.
-2. Merchant enters **MYXCROW seller email** (KYC-verified myxcrow.com account).
+2. Merchant enters **MYXCROW seller email** (phone-verified myxcrow.com account).
 3. On save, DwumaPOS automatically:
    - links the seller via `POST /v1/partner/merchants`
    - registers webhook `…/webhooks/myxcrow/<tenantSlug>` and stores `whsec_…`

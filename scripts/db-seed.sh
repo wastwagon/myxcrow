@@ -7,7 +7,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 if docker ps --format '{{.Names}}' | grep -q '^myxcrow_reg_api$'; then
   echo "🌱 Seeding via myxcrow_reg_api container..."
-  docker exec myxcrow_reg_api sh -c 'cd /usr/src/app && pnpm seed'
+  docker exec myxcrow_reg_api sh -c 'cd /usr/src/monorepo/services/api && pnpm seed'
 elif docker ps --format '{{.Names}}' | grep -q '^escrow_api$'; then
   echo "🌱 Seeding via escrow_api container..."
   docker exec escrow_api pnpm seed

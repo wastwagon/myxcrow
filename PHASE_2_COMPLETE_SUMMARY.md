@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Phase 2 Completion Summary
 
 > **Note:** The native mobile app has been removed. Project is **web-only**. This doc is historical.
@@ -11,10 +13,10 @@
 
 ### ✅ All Features Implemented
 
-#### 1. Authentication & KYC ✅
+#### 1. Authentication & phone verification ✅
 - ✅ Login screen with biometric authentication
 - ✅ Register screen with multi-step form
-- ✅ KYC document upload (camera + image picker)
+- ✅ phone verification document upload (camera + image picker)
 - ✅ Ghana Card front/back capture
 - ✅ Selfie capture with camera
 - ✅ Secure token storage (SecureStore)
@@ -51,7 +53,7 @@
 
 #### 6. Profile & Settings ✅
 - ✅ Profile screen
-- ✅ KYC status display
+- ✅ phone verification status display
 - ✅ Account information
 - ✅ Logout functionality
 
@@ -61,7 +63,7 @@
 
 ### Screens:
 - `apps/mobile/app/(auth)/login.tsx` - Login with biometric
-- `apps/mobile/app/(auth)/register.tsx` - KYC registration
+- `apps/mobile/app/(auth)/register.tsx` - phone verification registration
 - `apps/mobile/app/(tabs)/escrows/index.tsx` - Escrows list
 - `apps/mobile/app/(tabs)/escrows/new.tsx` - Create escrow
 - `apps/mobile/app/(tabs)/escrows/[id].tsx` - Escrow details
@@ -93,7 +95,7 @@
 ### Authentication:
 - [ ] Login with email/password
 - [ ] Biometric login (Face ID/Touch ID)
-- [ ] Registration with KYC upload
+- [ ] Registration with phone verification upload
 - [ ] Token refresh on 401
 
 ### Escrows:

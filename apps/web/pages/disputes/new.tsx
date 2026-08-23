@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -15,7 +14,9 @@ import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { useConfirm } from '@/components/providers/UIProvider';
-import { PageSpinner } from '@/components/LoadingSkeleton';
+import { EmptyState } from '@/components/ui/EmptyState';
+import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 
 const disputeSchema = z.object({
   escrowId: z.string().min(1, 'Escrow ID is required'),
@@ -33,25 +34,15 @@ export default function CreateDisputePage() {
   const { escrowId } = router.query;
   const queryClient = useQueryClient();
   const confirm = useConfirm();
-  const [mounted, setMounted] = useState(false);
+  const authed = useRequireAuth();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted && !isAuthenticated()) {
-      router.push('/login');
-    }
-  }, [mounted, router]);
-
-  const { data: escrow } = useQuery({
+  const { data: escrow, isLoading: escrowLoading } = useQuery({
     queryKey: ['escrow', escrowId],
     queryFn: async () => {
       const response = await apiClient.get(`/escrows/${escrowId}`);
       return response.data;
     },
-    enabled: mounted && !!escrowId && isAuthenticated(),
+    enabled: authed && !!escrowId,
   });
 
   const {
@@ -81,11 +72,30 @@ export default function CreateDisputePage() {
     },
   });
 
-  if (!mounted || !isAuthenticated()) return <PageSpinner />;
+  if (!authed) return <PageSpinner />;
+
+  if (router.isReady && !escrowId) {
+    return (
+      <CustomerLayout title="New dispute" back>
+        <EmptyState
+          tone="light"
+          icon={<AlertCircle className="h-6 w-6" />}
+          title="Open from an escrow"
+          description="Disputes are opened from a specific escrow. Go to your escrow history and choose Open dispute on the transaction."
+          action={{ href: '/escrows/history', label: 'View escrows', variant: 'maroon' }}
+        />
+      </CustomerLayout>
+    );
+  }
 
   return (
     <CustomerLayout title="New dispute" back>
       <div className="space-y-6">
+        {escrowId && escrowLoading && (
+          <div className={form.panel}>
+            <ListRowsSkeleton rows={2} rowClassName="h-10" />
+          </div>
+        )}
         {escrow && (
           <div className={form.calloutInfo}>
             <p className="text-[15px] text-gray-900">

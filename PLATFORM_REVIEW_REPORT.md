@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # 🎯 MYXCROW Platform Review Report
 **Review Date:** February 10, 2026  
 **Reviewer:** AI Assistant  
@@ -64,9 +66,9 @@ MYXCROW is a **comprehensive, production-ready escrow platform** (web app only; 
 apps/web/pages/
 ├── index.tsx                    # Landing page with health check
 ├── login.tsx                    # User login
-├── register.tsx                 # Multi-step registration + KYC
+├── register.tsx                 # Multi-step registration + phone verification
 ├── dashboard.tsx                # User dashboard
-├── kyc.tsx                      # KYC verification
+├── phone verification.tsx                      # phone verification
 ├── profile.tsx                  # User profile
 ├── change-password.tsx          # Password change
 ├── wallet.tsx                   # Wallet overview
@@ -88,7 +90,7 @@ apps/web/pages/
 ├── admin/
 │   ├── index.tsx               # Admin dashboard
 │   ├── users.tsx               # User management
-│   ├── kyc-review.tsx          # KYC approval
+│   ├── phone verification-review.tsx          # phone verification approval
 │   ├── withdrawals.tsx         # Withdrawal approvals
 │   ├── settings.tsx            # Platform settings
 │   ├── fees.tsx                # Fee configuration
@@ -130,11 +132,11 @@ apps/web/pages/
 
 ---
 
-### 2. KYC Verification ✅ **EXCELLENT**
+### 2. phone verification ✅ **EXCELLENT**
 
 **Implementation:**
 - Two-step registration process
-- Ghana Card upload (front + back)
+- document upload (removed) (front + back)
 - Selfie capture with liveness detection
 - Face matching using face-api.js (self-hosted)
 - Admin review interface
@@ -153,7 +155,7 @@ apps/web/pages/
 - ✅ Instant preview before upload
 
 **Admin Features:**
-- KYC review dashboard
+- phone verification review dashboard
 - Side-by-side document comparison
 - Face match score display
 - Approve/reject with notes
@@ -284,7 +286,7 @@ OPEN → NEGOTIATION → MEDIATION → ARBITRATION → RESOLVED → CLOSED
 
 **Comprehensive Admin Tools:**
 - User management (view, edit roles, activate/deactivate)
-- KYC review and approval
+- phone verification review and approval
 - Withdrawal approvals
 - Wallet management (credit/debit)
 - Platform settings
@@ -294,7 +296,7 @@ OPEN → NEGOTIATION → MEDIATION → ARBITRATION → RESOLVED → CLOSED
 **Dashboard Metrics:**
 - Total users, escrows, transactions
 - Revenue, pending withdrawals
-- KYC pending reviews
+- phone verification pending reviews
 - Active disputes
 - System health
 
@@ -302,7 +304,7 @@ OPEN → NEGOTIATION → MEDIATION → ARBITRATION → RESOLVED → CLOSED
 - User role management
 - Platform fee configuration
 - Withdrawal approval workflow
-- KYC verification
+- phone verification
 - Dispute resolution
 - Financial oversight
 
@@ -322,7 +324,7 @@ OPEN → NEGOTIATION → MEDIATION → ARBITRATION → RESOLVED → CLOSED
 - Escrow status changes
 - Payment confirmations
 - Dispute updates
-- KYC status changes
+- phone verification status changes
 - Withdrawal approvals
 - Password changes
 
@@ -365,7 +367,7 @@ OPEN → NEGOTIATION → MEDIATION → ARBITRATION → RESOLVED → CLOSED
 
 ### Core Tables
 
-1. **User** - User accounts with roles and KYC status
+1. **User** - User accounts with roles and phone verification status
 2. **Session** - User sessions (if implemented)
 3. **Wallet** - User wallets with balances
 4. **EscrowAgreement** - Escrow contracts
@@ -377,8 +379,8 @@ OPEN → NEGOTIATION → MEDIATION → ARBITRATION → RESOLVED → CLOSED
 10. **Withdrawal** - Withdrawal requests
 11. **Dispute** - Dispute records
 12. **Evidence** - Evidence files (real storage)
-13. **KYCDetail** - KYC information
-14. **KYCDocument** - KYC documents (Ghana Card, selfie)
+13. **KYCDetail** - phone verification information
+14. **KYCDocument** - phone verification documents (Ghana Card, selfie)
 15. **LivenessCheck** - Liveness verification results
 16. **LedgerEntry** - Financial ledger
 17. **LedgerJournal** - Ledger journals
@@ -451,7 +453,7 @@ OPEN → NEGOTIATION → MEDIATION → ARBITRATION → RESOLVED → CLOSED
    - JWT with access and refresh tokens
    - Automatic token refresh on 401
    - Role-based access control (RBAC)
-   - KYC verification guards
+   - phone verification guards
    - Password hashing (bcrypt)
 
 2. **Data Protection**
@@ -537,7 +539,7 @@ OPEN → NEGOTIATION → MEDIATION → ARBITRATION → RESOLVED → CLOSED
 
 Found in 6 API files:
 - `auth.service.ts`
-- `kyc.service.ts`
+- `phone verification.service.ts`
 - `face-matching.service.ts`
 - `main.ts`
 - `milestone-escrow.service.ts`
@@ -559,7 +561,7 @@ Found in 6 API files:
 
 **Components:**
 - `PageHeader` - Consistent page headers with gradients
-- `SelfieCapture` - Camera-based selfie capture
+(removed)
 - `PublicHeader` - Navigation for public pages
 - Form components with validation
 - Loading states and skeletons
@@ -804,7 +806,7 @@ MYXCROW is a **production-ready escrow platform** with:
 3. **Comprehensive Features**
    - Complete escrow lifecycle
    - Milestone-based escrows
-   - KYC verification with face matching
+   - phone verification with face matching
    - Multi-channel notifications
    - Dispute resolution
    - Admin dashboard
@@ -937,7 +939,7 @@ cd services/api && pnpm build
 - `MVP_ENHANCEMENT_PLAN.md` - Detailed MVP plan
 - `SMS_NOTIFICATIONS_IMPLEMENTATION.md` - SMS feature guide
 - `LIVE_CHAT_IMPLEMENTATION.md` - Live chat guide
-- `SELF_HOSTED_FACE_VERIFICATION.md` - Face verification docs
+- `SELF_HOSTED_FACE_VERIFICATION.md` - phone verification docs
 
 ### Market Analysis
 - `COMPETITOR_ANALYSIS_AND_ENHANCEMENTS.md` - Competitor analysis

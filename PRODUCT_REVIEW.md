@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MYXCROW - Complete Product Review
 
 **Date:** Generated on startup  
@@ -23,11 +25,11 @@
 **Framework:** NestJS with TypeScript  
 **Database:** PostgreSQL with Prisma ORM  
 **Key Modules:**
-- `auth/` - Authentication, JWT, KYC verification guards
+- `auth/` - Authentication, JWT, phone verification guards
 - `escrow/` - Escrow agreements, milestones, auto-release, messaging
 - `wallet/` - Wallet management, top-ups, withdrawals
 - `disputes/` - Dispute management and resolution
-- `kyc/` - KYC verification, face matching, liveness detection
+- `phone verification/` - phone verification, face matching, liveness detection
 - `reputation/` - User reputation system with weighted scoring
 - `payments/` - Paystack integration, payment processing
 - `admin/` - Admin dashboard, reconciliation, user management
@@ -48,7 +50,7 @@
 **Key Pages:**
 - `/` - Landing page with API health check
 - `/login` - User login
-- `/register` - Two-step registration (Account + KYC)
+- `/register` - Two-step registration (Account + phone verification)
 - `/dashboard` - User dashboard
 - `/escrows` - Escrow listing and management
 - `/escrows/new` - Create new escrow
@@ -59,7 +61,7 @@
 - `/profile` - User profile
 - `/admin` - Admin dashboard
 - `/admin/users` - User management
-- `/admin/kyc-review` - KYC verification
+- `/admin/phone verification-review` - phone verification
 - `/admin/withdrawals` - Withdrawal approvals
 - `/admin/settings` - Platform settings
 - `/admin/fees` - Fee configuration
@@ -72,16 +74,16 @@
 ### 1. Authentication & Authorization
 - ✅ JWT-based authentication with refresh tokens
 - ✅ Role-based access control (BUYER, SELLER, ADMIN, AUDITOR, SUPPORT)
-- ✅ KYC verification guard for transaction protection
+- ✅ phone verification guard for transaction protection
 - ✅ Automatic token refresh on frontend
 
-### 2. KYC & Identity Verification
+### 2. phone verification & Identity Verification
 - ✅ Two-step registration process
-- ✅ Ghana Card upload (front & back)
+- ✅ document upload (removed) (front & back)
 - ✅ Selfie capture with liveness detection
 - ✅ Face matching (self-hosted using face-api.js)
-- ✅ Admin KYC review interface
-- ✅ KYC status tracking (PENDING, IN_PROGRESS, VERIFIED, REJECTED)
+- ✅ Admin phone verification review interface
+- ✅ phone verification status tracking (PENDING, IN_PROGRESS, VERIFIED, REJECTED)
 
 ### 3. Escrow Management
 - ✅ Create escrow agreements
@@ -115,7 +117,7 @@
 
 ### 7. Admin Features
 - ✅ User management (view, edit roles, activate/deactivate)
-- ✅ KYC review and approval
+- ✅ phone verification review and approval
 - ✅ Withdrawal approvals
 - ✅ Wallet management (credit/debit)
 - ✅ Platform settings
@@ -179,7 +181,7 @@
 ## 📊 Database Schema
 
 ### Core Models
-- `User` - User accounts with roles and KYC status
+- `User` - User accounts with roles and phone verification status
 - `Wallet` - User wallets with balances
 - `EscrowAgreement` - Escrow contracts
 - `EscrowMilestone` - Milestone-based escrows
@@ -188,8 +190,8 @@
 - `Withdrawal` - Withdrawal requests
 - `Dispute` - Dispute records
 - `Evidence` - Evidence files
-- `KYCDetail` - KYC information
-- `KYCDocument` - KYC documents (Ghana Card, selfie)
+- `KYCDetail` - phone verification information
+- `KYCDocument` - phone verification documents (Ghana Card, selfie)
 - `LivenessCheck` - Liveness verification results
 - `LedgerEntry` - Financial ledger
 - `AuditLog` - Audit trail

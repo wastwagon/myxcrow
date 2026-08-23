@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Live Chat Support Implementation Guide
 
 **Date:** January 2026  
@@ -145,11 +147,11 @@ Live chat runs on the **web app** only. Use the web app in a mobile browser for 
    - "How do I create an escrow?"
    - "How do I fund my wallet?"
    - "What are the fees?"
-   - "How do I verify my KYC?"
+   - "How do I verify my phone verification?"
 
 3. **Escalation Rules**
    - Escalate to human if query contains: "dispute", "refund", "problem"
-   - Auto-respond to: "fees", "kyc", "wallet"
+   - Auto-respond to: "fees", "phone verification", "wallet"
 
 ---
 

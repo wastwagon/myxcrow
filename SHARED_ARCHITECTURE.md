@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Shared Architecture: One Database, One Backend, One Admin
 
 **Date:** January 2026  
@@ -22,7 +24,7 @@
               │  (Next.js)    │                       │  Dashboard    │
               │               │                       │  (Web only)   │
               │  • Dashboard  │                       │  • Users      │
-              │  • Escrows    │                       │  • KYC Review │
+              │  • Escrows    │                       │  • phone verification review │
               │  • Wallet     │                       │  • Withdrawals│
               │  • Disputes   │                       │  • Fees       │
               │  • Profile    │                       │  • Reconcile  │
@@ -46,8 +48,8 @@
 
 **Implications:**
 - All users are in the same `User` table.
-- All escrows, wallets, disputes, KYC, etc. are in the same tables.
-- Admin actions (KYC approval, withdrawals, etc.) affect the same data users see.
+- All escrows, wallets, disputes, phone verification, etc. are in the same tables.
+- Admin actions (phone verification approval, withdrawals, etc.) affect the same data users see.
 
 ---
 
@@ -56,7 +58,7 @@
 - **NestJS** (`services/api`) — one backend for web and admin.
 - **Base URL:** `NEXT_PUBLIC_API_BASE_URL` (e.g. `http://localhost:4000/api`)
 - **Auth:** Same JWT issuance, validation, and refresh for the web app.
-- **Endpoints:** Same routes for auth, escrows, wallet, disputes, KYC, payments, etc.
+- **Endpoints:** Same routes for auth, escrows, wallet, disputes, phone verification, payments, etc.
 
 **Key API surface (shared):**
 
@@ -67,7 +69,7 @@
 | Wallet     | `/wallet`, `/wallet/transactions` | ✅   |
 | Payments   | `/payments/wallet/topup`    | ✅          |
 | Disputes   | `/disputes`                 | ✅          |
-| KYC        | `/kyc/*`                    | ✅          |
+| phone verification        | `/phone verification/*`                    | ✅          |
 | Users      | `/users`                    | ✅ (admin)  |
 | Admin      | `/admin/reconciliation`     | ✅ (admin)  |
 
@@ -78,12 +80,12 @@
 - **Admin backend** = same NestJS API. Admin-specific logic lives in:
   - `modules/admin` (e.g. reconciliation),
   - `modules/users` (user management),
-  - KYC review, fee config, wallet credit/debit, withdrawal approvals, etc.
+  - phone verification review, fee config, wallet credit/debit, withdrawal approvals, etc.
 - **Admin dashboard UI** = **web only** (`apps/web/pages/admin/*`).  
-- **Data:** Admin actions (approve KYC, approve withdrawals, adjust wallets, etc.) write to the **same database** that the web app reads from. **One source of truth.**
+- **Data:** Admin actions (approve phone verification, approve withdrawals, adjust wallets, etc.) write to the **same database** that the web app reads from. **One source of truth.**
 
 **Implications:**
-- KYC approved on admin dashboard → immediately reflects for that user on the web app.
+- phone verification approved on admin dashboard → immediately reflects for that user on the web app.
 - Withdrawal approved on admin → wallet balance updates everywhere.
 - No separate “admin database” or “admin API” — only additional **admin-only** routes and UI.
 

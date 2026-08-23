@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated } from '@/lib/auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -18,7 +17,8 @@ import { cn } from '@/lib/utils';
 import type { SavedPayoutMethod } from '@/lib/withdrawal-payout';
 import { Sheet } from '@/components/ui/Sheet';
 import { form } from '@/lib/form-classes';
-import { PageSpinner } from '@/components/LoadingSkeleton';
+import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 import { PayoutDetailsFields } from '@/components/wallet/PayoutDetailsFields';
 import {
   payoutDetailsFormSchema,
@@ -31,13 +31,10 @@ export default function PayoutMethodsPage() {
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
   const confirm = useConfirm();
+  const authed = useRequireAuth();
   const [addOpen, setAddOpen] = useState(false);
   const [label, setLabel] = useState('');
   const [setDefault, setSetDefault] = useState(false);
-
-  useEffect(() => {
-    if (!isAuthenticated()) router.push('/login');
-  }, [router]);
 
   const { data: methods = [], isLoading } = useQuery<SavedPayoutMethod[]>({
     queryKey: ['payout-methods'],
@@ -45,6 +42,7 @@ export default function PayoutMethodsPage() {
       const res = await apiClient.get('/wallet/payout-methods');
       return res.data;
     },
+    enabled: authed,
   });
 
   const {
@@ -108,7 +106,7 @@ export default function PayoutMethodsPage() {
     await queryClient.invalidateQueries({ queryKey: ['payout-methods'] });
   };
 
-  if (!isAuthenticated()) return <PageSpinner />;
+  if (!authed) return <PageSpinner />;
 
   return (
     <CustomerLayout
@@ -118,7 +116,7 @@ export default function PayoutMethodsPage() {
         <button
           type="button"
           onClick={() => setAddOpen(true)}
-          className="min-h-[44px] px-2 text-[17px] font-semibold text-brand-maroon touch-manipulation"
+          className="min-h-[44px] px-2 text-[17px] font-semibold text-brand-gold touch-manipulation"
         >
           Add
         </button>
@@ -126,7 +124,7 @@ export default function PayoutMethodsPage() {
     >
       <PullToRefresh onRefresh={refresh} disabled={!isMobile} className="space-y-5">
         {isLoading ? (
-          <div className="h-32 bg-white animate-pulse rounded-[20px]" />
+          <ListRowsSkeleton rows={3} rowClassName="h-20 rounded-[20px]" />
         ) : methods.length === 0 ? (
           <div className="rounded-[20px] bg-white">
             <EmptyState

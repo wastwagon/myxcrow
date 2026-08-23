@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import { AdminGate } from '@/components/admin/AdminGate';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -38,7 +38,6 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LightShell } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
-import { PageSpinner } from '@/components/LoadingSkeleton';
 import { MetricCard } from '@/components/ui/MetricCard';
 
 export default function AdminWithdrawalsPage() {
@@ -111,10 +110,6 @@ export default function AdminWithdrawalsPage() {
     });
   };
 
-  if (!isAuthenticated() || !isAdmin()) {
-    return <PageSpinner />;
-  }
-
   const refreshWithdrawals = async () => {
     await queryClient.invalidateQueries({ queryKey: ['admin-withdrawals'] });
   };
@@ -122,7 +117,7 @@ export default function AdminWithdrawalsPage() {
   const pendingWithdrawals = withdrawalsData?.withdrawals?.filter((w) => w.status === 'REQUESTED') || [];
 
   return (
-    <Layout title="Withdrawals">
+    <AdminGate title="Withdrawals">
       <PullToRefresh onRefresh={refreshWithdrawals} disabled={!isMobile}>
         <LightShell>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -437,6 +432,6 @@ export default function AdminWithdrawalsPage() {
           </Modal>
         </LightShell>
       </PullToRefresh>
-    </Layout>
+    </AdminGate>
   );
 }

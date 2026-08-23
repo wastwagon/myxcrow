@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MYXCROW — Database Data Dictionary
 
 **Database engine:** PostgreSQL 15  
@@ -14,7 +16,7 @@
 |----------|-------|
 | Tables | 30 |
 | Enums | 13 |
-| Core domains | Users & Auth, KYC, Wallets, Escrows, Payments, Shipments, Disputes, Ledger, Audit, Risk |
+| Core domains | Users & Auth, phone verification, Wallets, Escrows, Payments, Shipments, Disputes, Ledger, Audit, Risk |
 
 ---
 
@@ -53,8 +55,8 @@ Primary account table for all platform users.
 | firstName, lastName | String? | Display name |
 | phone | String? (unique) | Ghana format: 0XXXXXXXXX |
 | roles | UserRole[] | Default [BUYER] |
-| kycStatus | KYCStatus | KYC state |
-| kycVerifiedAt | DateTime? | When KYC approved |
+| kycStatus | KYCStatus | phone verification state |
+| kycVerifiedAt | DateTime? | When phone verification approved |
 | isActive | Boolean | Account enabled |
 | deletedAt | DateTime? | Soft delete timestamp |
 | createdAt, updatedAt | DateTime | Audit timestamps |
@@ -125,21 +127,21 @@ Optional profile extension.
 
 ---
 
-### KYC (Know Your Customer)
+### phone verification (Know Your Customer)
 
 #### `KYCDetail`
-Ghana Card verification and Smile Identity integration.
+Ghana Card verification and Smile ID (removed) integration.
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | UUID | Primary key |
-| userId | UUID FK → User (unique) | One KYC record per user |
+| userId | UUID FK → User (unique) | One phone verification record per user |
 | ghanaCardNumber | String? | National ID number |
 | cardFrontUrl, cardBackUrl | String? | MinIO/S3 image URLs |
 | selfieUrl | String? | Liveness selfie |
 | faceMatchScore | Float? | 0–1 similarity |
 | faceMatchPassed, livenessVerified | Boolean | Verification results |
-| smileJobId | String? (unique) | Smile Identity job |
+| smileJobId | String? (unique) | Smile ID (removed) job |
 | smileResultCode, smileResultText | String? | Provider response |
 | reviewedBy, reviewedAt | String?, DateTime? | Admin review |
 | reviewNotes, rejectionReason | String? | Admin notes |

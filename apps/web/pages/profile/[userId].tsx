@@ -11,12 +11,14 @@ import { form } from '@/lib/form-classes';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
 import { ProfilePageSkeleton } from '@/components/LoadingSkeleton';
+import { formatPhoneVerificationStatus } from '@/lib/phone-verification';
 
 interface PublicProfile {
   userId: string;
   name: string | null;
   email: string;
   kycStatus: string;
+  phoneVerified?: boolean;
   verifiedBadge: boolean;
   memberSince: string;
   reputation: {
@@ -24,6 +26,7 @@ interface PublicProfile {
     totalRatings: number;
     completionRate: number;
     kycLevel: string;
+    phoneVerified?: boolean;
     verifiedBadge: boolean;
     breakdown: {
       asBuyer: { rating: number; count: number };
@@ -136,7 +139,10 @@ export default function PublicProfilePage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <Shield className="w-4 h-4" />
-                    KYC: {profile.kycStatus}
+                    Phone:{' '}
+                    {formatPhoneVerificationStatus(
+                      profile.phoneVerified ? 'VERIFIED' : profile.kycStatus,
+                    )}
                   </div>
                 </div>
               </div>
@@ -221,10 +227,12 @@ export default function PublicProfilePage() {
               <div className="flex items-center justify-between p-4 rounded-[20px] bg-[#f2f2f7]">
                 <div className="flex items-center gap-3">
                   <Shield className="w-5 h-5 text-[rgba(60,60,67,0.6)]" />
-                  <span className="font-medium text-gray-900">KYC Status</span>
+                  <span className="font-medium text-gray-900">Phone verification</span>
                 </div>
                 <span className="text-lg font-semibold text-gray-900">
-                  {profile.reputation.kycLevel}
+                  {formatPhoneVerificationStatus(
+                    profile.reputation.phoneVerified ? 'VERIFIED' : profile.reputation.kycLevel,
+                  )}
                 </span>
               </div>
             </div>

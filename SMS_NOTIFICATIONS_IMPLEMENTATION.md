@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # SMS Notifications Implementation
 
 **Date:** January 2026  
@@ -38,7 +40,7 @@ SMS notifications have been successfully implemented as part of the MVP enhancem
   - Dispute resolved
   - Wallet top-up
   - Withdrawal approved/denied
-  - KYC status updates
+  - phone verification status updates
   - Payment confirmations
 
 ---

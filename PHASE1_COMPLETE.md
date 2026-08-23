@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # ✅ Phase 1 Complete: Face Matching Removed
 
 > **Note:** Project is **web-only**; any "mobile" or "Phase 2" references below are historical.
@@ -13,21 +15,21 @@
 ### ✅ Removed Self-Hosted Face Matching
 
 **Files Modified:**
-1. ✅ `services/api/src/modules/kyc/kyc.service.ts`
+1. ✅ `services/api/src/modules/phone verification/phone verification.service.ts`
    - Removed `FaceMatchingService` dependency
    - Removed face matching validation
    - Removed face comparison logic
    - Updated `processKYCRegistration()` to skip face matching
    - Updated `resubmitKYC()` to match new return type
    - Updated `listPendingVerifications()` to show ALL pending submissions
-   - All KYC submissions now set to PENDING status
+   - All phone verification submissions now set to PENDING status
 
-2. ✅ `services/api/src/modules/kyc/kyc.module.ts`
+2. ✅ `services/api/src/modules/phone verification/phone verification.module.ts`
    - Removed `FaceMatchingService` from providers
    - Removed `FaceMatchingService` from exports
 
 **Files Deleted:**
-3. ✅ `services/api/src/modules/kyc/face-matching.service.ts` - DELETED
+3. ✅ `services/api/src/modules/phone verification/face-matching.service.ts` - DELETED
 4. ✅ `services/api/scripts/download-face-models.sh` - DELETED
 
 **Dependencies Removed:**
@@ -41,7 +43,7 @@
 ### Before (Self-Hosted Face Matching)
 ```typescript
 // Old flow:
-1. User submits KYC → 
+1. User submits phone verification → 
 2. Validate images with face-api.js → 
 3. Compare faces (60% threshold) → 
 4. Auto-approve if passed → 
@@ -58,7 +60,7 @@ Promise<{ faceMatchScore: number; faceMatchPassed: boolean }>
 ### After (Admin Manual Review)
 ```typescript
 // New flow:
-1. User submits KYC → 
+1. User submits phone verification → 
 2. Upload documents to MinIO → 
 3. Set status to PENDING → 
 4. Admin reviews ALL submissions → 
@@ -140,17 +142,17 @@ where: {
 ## 🚀 Next Steps
 
 ### Immediate (Now)
-- [ ] **Test locally** - Verify KYC submission works
+- [ ] **Test locally** - Verify phone verification submission works
 - [ ] **Check admin dashboard** - Verify all submissions appear
 - [ ] **Commit changes** - Git commit and push
 
 ### This Week
 - [ ] **Deploy to production** - Push to Render
 - [ ] **Monitor logs** - Ensure no errors
-- [ ] **Test end-to-end** - Register new user with KYC
+- [ ] **Test end-to-end** - Register new user with phone verification
 
 ### Next 2-3 Weeks (Phase 2)
-- [ ] **Sign up for Smile Identity** - Get API keys
+- [ ] **Sign up for Smile ID (removed)** - Get API keys
 - [ ] **Integrate liveness detection** - Mobile + backend
 - [ ] **Test thoroughly** - Sandbox testing
 - [ ] **Launch** - Production deployment
@@ -167,7 +169,7 @@ cd /Users/OceanCyber/Downloads/myxcrow
 ./setup-local.sh
 ```
 
-2. **Test KYC submission:**
+2. **Test phone verification submission:**
    - Register new user
    - Upload Ghana Card front/back
    - Upload selfie
@@ -176,7 +178,7 @@ cd /Users/OceanCyber/Downloads/myxcrow
 
 3. **Test admin review:**
    - Login as admin
-   - Go to KYC review page
+   - Go to phone verification review page
    - Verify submission appears
    - Approve/reject submission
    - Verify user status updates
@@ -187,7 +189,7 @@ cd /Users/OceanCyber/Downloads/myxcrow
 - ✅ Documents upload successfully
 - ✅ No face matching validation
 - ✅ Status set to PENDING
-- ✅ Message: "KYC documents submitted successfully. Admin will review your submission."
+- ✅ Message: "phone verification documents submitted successfully. Admin will review your submission."
 
 **Admin Review:**
 - ✅ ALL pending submissions visible
@@ -257,38 +259,38 @@ Phase 1 is complete when:
 - ✅ Face matching service removed
 - ✅ Dependencies uninstalled
 - ✅ Code compiles without errors
-- ✅ KYC submission works locally
+- ✅ phone verification submission works locally
 - ✅ Admin can review all submissions
 - ✅ Changes deployed to production
 
 ---
 
-## 📞 While You're Registering with Smile Identity...
+## 📞 While You're Registering with Smile ID (removed)...
 
 **Get these ready:**
-1. **Partner ID** - Your Smile Identity partner ID
+1. **Partner ID** - Your Smile ID (removed) partner ID
 2. **API Key** - Sandbox API key for testing
 3. **Production API Key** - For production deployment
-4. **Callback URL** - `https://myxcrow-bp-api.onrender.com/api/kyc/smile-callback`
+4. **Callback URL** - `https://myxcrow-bp-api.onrender.com/api/phone verification/smile-callback`
 
 **Documentation to review:**
-- Smile Identity Docs: https://docs.smileidentity.com
+- Smile ID (removed) Docs: https://docs.smileidentity.com
 - Web API (server-to-server): https://docs.smileidentity.com/integration-options/server-to-server
 
 ---
 
 ## 🚀 Ready for Phase 2!
 
-Once you have your Smile Identity credentials, we'll:
-1. ✅ Use Smile Identity via API (backend + web)
+Once you have your Smile ID (removed) credentials, we'll:
+1. ✅ Use Smile ID (removed) via API (backend + web)
 2. ✅ Liveness capture in web app
 3. ✅ Integrate liveness verification (backend)
-4. ✅ Update KYC flow to include liveness
+4. ✅ Update phone verification flow to include liveness
 5. ✅ Test and deploy
 
 **Estimated Time:** 2-3 weeks  
 **Cost:** ~$0.20-0.40 per verification  
-**Result:** Production-ready, secure KYC with certified liveness detection! 🎉
+**Result:** Production-ready, secure phone verification with certified liveness detection! 🎉
 
 ---
 

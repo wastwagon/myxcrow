@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import Layout from '@/components/Layout';
+import { AdminGate } from '@/components/admin/AdminGate';
 import { isAuthenticated, isAdmin } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
@@ -25,7 +25,6 @@ import { ButtonLink } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { LightShell, LightPanel } from '@/components/dashboard/LightShell';
 import { dash } from '@/components/dashboard/lightClasses';
-import { PageSpinner } from '@/components/LoadingSkeleton';
 
 interface ReconciliationSummary {
   escrowsByStatus: Array<{
@@ -78,10 +77,6 @@ export default function ReconciliationPage() {
     queryFn: async () => (await apiClient.get('/admin/reconciliation/balance')).data,
   });
 
-  if (!isAuthenticated() || !isAdmin()) {
-    return <PageSpinner />;
-  }
-
   const refreshReconciliation = async () => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['reconciliation-summary'] }),
@@ -90,7 +85,7 @@ export default function ReconciliationPage() {
   };
 
   return (
-    <Layout title="Reconciliation">
+    <AdminGate title="Reconciliation">
       <PullToRefresh onRefresh={refreshReconciliation} disabled={!isMobile}>
         <LightShell>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -211,7 +206,7 @@ export default function ReconciliationPage() {
                         icon={<BarChart3 className="w-6 h-6" />}
                         title="No escrow status data yet"
                         description="Funded and released deals will populate this table."
-                        action={{ href: '/escrows', label: 'View escrows', variant: 'maroon' }}
+                        action={{ href: '/escrows/history', label: 'View escrows', variant: 'maroon' }}
                         className="py-6"
                       />
                     </TableEmpty>
@@ -258,7 +253,7 @@ export default function ReconciliationPage() {
                         icon={<DollarSign className="w-6 h-6" />}
                         title="No currency breakdown yet"
                         description="Amounts appear here once escrows are funded."
-                        action={{ href: '/escrows', label: 'View escrows', variant: 'maroon' }}
+                        action={{ href: '/escrows/history', label: 'View escrows', variant: 'maroon' }}
                         className="py-6"
                       />
                     </TableEmpty>
@@ -291,6 +286,6 @@ export default function ReconciliationPage() {
           )}
         </LightShell>
       </PullToRefresh>
-    </Layout>
+    </AdminGate>
   );
 }

@@ -13,6 +13,7 @@ import { dash } from '@/components/dashboard/lightClasses';
 type TableTone = 'dark' | 'light';
 
 const TableToneContext = createContext<TableTone>('light');
+const TableStickyContext = createContext(true);
 
 function useTableTone() {
   return useContext(TableToneContext);
@@ -24,21 +25,26 @@ export function TableShell({
   footer,
   className,
   tone = 'light',
+  stickyHeader = true,
 }: {
   children: ReactNode;
   toolbar?: ReactNode;
   footer?: ReactNode;
   className?: string;
   tone?: TableTone;
+  /** Overflow-hidden cards clip sticky heads offset for the iOS title bar. */
+  stickyHeader?: boolean;
 }) {
   const light = tone === 'light';
   return (
     <TableToneContext.Provider value={tone}>
+      <TableStickyContext.Provider value={stickyHeader}>
       <div
         className={cn(
           light ? dash.panelFlush : admin.tableWrap,
           className
         )}
+        style={{ ['--table-sticky-top' as string]: '0px' }}
       >
         {toolbar && (
           <div
@@ -64,6 +70,7 @@ export function TableShell({
           </div>
         )}
       </div>
+      </TableStickyContext.Provider>
     </TableToneContext.Provider>
   );
 }
@@ -118,13 +125,14 @@ export function TableTh({
   ...props
 }: ThHTMLAttributes<HTMLTableCellElement> & { numeric?: boolean }) {
   const tone = useTableTone();
+  const sticky = useContext(TableStickyContext);
   return (
     <th
       className={cn(
         tone === 'light' ? dash.th : admin.th,
         numeric && 'text-right tabular-nums',
-        tone === 'light' &&
-          'sticky z-10 bg-white/90 backdrop-blur-xl top-[var(--table-sticky-top,0px)] shadow-[inset_0_-0.5px_0_rgba(60,60,67,0.12)]',
+        tone === 'light' && 'bg-white shadow-[inset_0_-0.5px_0_rgba(60,60,67,0.12)]',
+        tone === 'light' && sticky && 'sticky top-0 z-10',
         className
       )}
       {...props}

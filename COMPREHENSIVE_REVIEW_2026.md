@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MYXCROW Platform - Comprehensive Review
 **Review Date:** January 24, 2026  
 **Reviewer:** AI Assistant  
@@ -70,8 +72,8 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 - **NEW:** Change password feature (web)
 - Biometric auth (mobile - Face ID/Touch ID)
 
-#### 2. KYC Verification ✅
-- Ghana Card upload (front + back)
+#### 2. phone verification ✅
+- document upload (removed) (front + back)
 - Selfie capture with face matching (self-hosted face-api.js)
 - Admin review interface
 - Status tracking: PENDING → IN_PROGRESS → VERIFIED/REJECTED
@@ -109,7 +111,7 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 
 #### 7. Admin Dashboard ✅
 - User management
-- KYC review and approval
+- phone verification review and approval
 - Withdrawal approvals
 - Wallet credit/debit
 - Platform settings
@@ -142,7 +144,7 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 - **Relations:** Proper foreign keys and indexes
 
 ### Key Tables
-1. User (with roles, KYC status)
+1. User (with roles, phone verification status)
 2. Wallet (balance management)
 3. EscrowAgreement (main escrow entity)
 4. EscrowMilestone (milestone payments)
@@ -200,7 +202,7 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 - JWT authentication with refresh tokens
 - Password hashing (bcrypt)
 - Role-based access control (RBAC)
-- KYC verification guards
+- phone verification guards
 - Input validation (Zod, class-validator)
 - SQL injection prevention (Prisma ORM)
 - XSS prevention (React escaping)
@@ -241,7 +243,7 @@ MYXCROW is a **fully-implemented, production-ready escrow platform** designed fo
 ### Console.log Usage
 Found in 6 files (API):
 - `auth.service.ts`
-- `kyc.service.ts`
+- `phone verification.service.ts`
 - `face-matching.service.ts`
 - `main.ts`
 - `milestone-escrow.service.ts`

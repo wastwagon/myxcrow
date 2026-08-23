@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # 🎯 MYXCROW Platform - Quick Review Summary
 
 **Date:** February 10, 2026  
@@ -55,7 +57,7 @@
 ### Core Features (100% Complete)
 
 - ✅ **Authentication** - JWT with refresh tokens
-- ✅ **KYC Verification** - Ghana Card + face matching
+- ✅ **Phone verification** — SMS OTP at registration
 - ✅ **Escrow Management** - Complete lifecycle
 - ✅ **Milestone Escrows** - Multi-phase payments
 - ✅ **Wallet System** - Paystack integration

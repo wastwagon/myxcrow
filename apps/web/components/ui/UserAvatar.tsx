@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 const variants = {
-  gold: 'bg-amber-50 text-amber-800 ring-amber-200',
+  gold: 'mx-avatar bg-brand-gold text-brand-maroon-black ring-white/30',
   maroon: 'bg-brand-maroon text-white ring-brand-maroon/40',
   muted: 'bg-[#e5e5ea] text-gray-700 ring-[#d1d1d6]',
 } as const;

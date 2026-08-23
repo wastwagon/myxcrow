@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # 🎉 MVP Implementation Complete!
 
 > **Note:** The native mobile app has been removed. The project is **web-only** (mobile-first, PWA-ready). Phase 2 below is historical.
@@ -35,9 +37,9 @@
 
 ### Implemented:
 
-#### Authentication & KYC ✅
+#### Authentication & phone verification ✅
 - ✅ Login with biometric authentication (Face ID/Touch ID)
-- ✅ Multi-step registration with KYC upload
+- ✅ Multi-step registration with phone verification upload
 - ✅ Camera integration for document capture
 - ✅ Image picker for gallery selection
 - ✅ Secure token storage
@@ -90,7 +92,7 @@
 - `services/api/src/common/queue/processors/sms.processor.ts`
 
 ### Phase 2 (Mobile):
-- `apps/mobile/app/(auth)/register.tsx` - KYC registration
+- `apps/mobile/app/(auth)/register.tsx` - phone verification registration
 - `apps/mobile/app/(tabs)/escrows/new.tsx` - Create escrow
 - `apps/mobile/app/(tabs)/escrows/[id].tsx` - Escrow details
 - `apps/mobile/app/(tabs)/wallet/topup.tsx` - Paystack top-up
@@ -185,7 +187,7 @@
 All implementation guides are available:
 - [SMS Notifications](SMS_NOTIFICATIONS_IMPLEMENTATION.md)
 - [Live Chat](LIVE_CHAT_IMPLEMENTATION.md)
-- [Face Verification](SELF_HOSTED_FACE_VERIFICATION.md)
+- [phone verification](SELF_HOSTED_FACE_VERIFICATION.md)
 
 ---
 
@@ -216,7 +218,7 @@ All implementation guides are available:
 - ✅ SMS notifications for engagement
 - ✅ Mobile-first responsive web app (PWA-ready)
 - ✅ Live chat support
-- ✅ Self-hosted face verification
+- ✅ Self-hosted phone verification
 - ✅ Complete escrow platform
 
 **Ready for production deployment and launch!** 🚀

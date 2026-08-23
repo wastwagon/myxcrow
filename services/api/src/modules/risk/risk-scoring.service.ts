@@ -72,13 +72,13 @@ export class RiskScoringService {
       description: `Transaction patterns: ${transactionPatterns.description}`,
     });
 
-    // Factor 6: KYC status
-    const kycStatus = await this.calculateKYCStatus(userId);
+    // Factor 6: Phone verification (DB field: kycStatus)
+    const phoneStatus = await this.calculatePhoneVerificationStatus(userId);
     factors.push({
       type: 'kyc_status',
-      score: kycStatus.score,
+      score: phoneStatus.score,
       weight: 0.15,
-      description: `KYC status: ${kycStatus.description}`,
+      description: `Phone verification: ${phoneStatus.description}`,
     });
 
     // Calculate weighted overall score
@@ -268,9 +268,9 @@ export class RiskScoringService {
   }
 
   /**
-   * Calculate KYC status risk
+   * Phone verification risk (legacy DB field: kycStatus)
    */
-  private async calculateKYCStatus(userId: string): Promise<{ score: number; description: string }> {
+  private async calculatePhoneVerificationStatus(userId: string): Promise<{ score: number; description: string }> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { kycStatus: true },
@@ -280,7 +280,7 @@ export class RiskScoringService {
       return { score: 100, description: 'User not found' };
     }
 
-    // Score: Lower for verified KYC
+    // Lower risk when phone is verified
     let score = 0;
     switch (user.kycStatus) {
       case 'VERIFIED':
@@ -304,7 +304,7 @@ export class RiskScoringService {
 
     return {
       score,
-      description: `KYC status: ${user.kycStatus}`,
+      description: `Phone: ${user.kycStatus}`,
     };
   }
 

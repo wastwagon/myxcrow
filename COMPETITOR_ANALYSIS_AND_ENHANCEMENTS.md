@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Competitor Analysis & Ghana-Based Enhancement Recommendations
 
 **Date:** January 2026  
@@ -463,7 +465,7 @@
    - Push notifications
    - Enhanced UI/UX
    - Performance optimization
-   - KYC camera upload
+   - phone verification camera upload
 
 5. ✅ Live Chat Optimization
    - Chatbot implementation
@@ -515,7 +517,7 @@
 - ❌ Local Language Support (Phase 3+)
 
 ### Competitive Advantages (MVP):
-- ✅ Ghana Card KYC (ready)
+- ✅ Ghana Card phone verification (ready)
 - ✅ Comprehensive escrow features
 - ✅ Professional Network (future)
 - ✅ Revenue Sharing (future)
@@ -526,7 +528,7 @@
 ## 💡 UNIQUE GHANA OPPORTUNITIES
 
 ### 1. Ghana Card Integration
-- Use Ghana Card for KYC (already have KYC)
+- Use Ghana Card for phone verification (already have phone verification)
 - Ghana Card number verification
 - Government ID integration
 
@@ -633,7 +635,7 @@
 - ❌ Local Language Support (Phase 3+)
 
 **Competitive Advantages (MVP):**
-- ✅ Ghana Card KYC integration (ready)
+- ✅ Ghana Card phone verification integration (ready)
 - ✅ Paystack payment processing (reliable)
 - ✅ Comprehensive escrow features
 - ✅ Professional network (future)

@@ -19,6 +19,12 @@ export function PullToRefresh({ onRefresh, children, className, disabled }: Pull
   return (
     <div className={cn('relative', className)} {...pullHandlers}>
       <div
+        className="sr-only"
+        aria-live="polite"
+      >
+        {refreshing ? 'Refreshing' : ''}
+      </div>
+      <div
         className={cn(
           'pointer-events-none absolute left-0 right-0 flex justify-center z-10 transition-opacity duration-150',
           pull > 0 || refreshing ? 'opacity-100' : 'opacity-0'

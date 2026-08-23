@@ -1,7 +1,4 @@
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated } from '@/lib/auth';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { formatDateShort } from '@/lib/utils';
@@ -24,6 +21,8 @@ import {
   TableTd,
 } from '@/components/ui/Table';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
+import { CustomerShellChrome, SHELL_CONTENT_CLASS } from '@/components/home/CustomerShellChrome';
 import Link from 'next/link';
 
 interface Dispute {
@@ -36,22 +35,17 @@ interface Dispute {
 }
 
 export default function DisputesPage() {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
-
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-    }
-  }, [router]);
+  const authed = useRequireAuth();
 
   const { data: disputes, isLoading } = useQuery<Dispute[]>({
     queryKey: ['disputes'],
     queryFn: async () => (await apiClient.get('/disputes')).data,
+    enabled: authed,
   });
 
-  if (!isAuthenticated()) {
+  if (!authed) {
     return <PageSpinner />;
   }
 
@@ -60,8 +54,10 @@ export default function DisputesPage() {
   };
 
   return (
-    <CustomerLayout title="Disputes">
-      <PullToRefresh onRefresh={refreshDisputes} disabled={!isMobile} className="space-y-5 pb-4">
+    <CustomerLayout title="Disputes" variant="home">
+      <PullToRefresh onRefresh={refreshDisputes} disabled={!isMobile}>
+        <CustomerShellChrome screenTitle="Disputes" />
+        <div className={SHELL_CONTENT_CLASS}>
         {isLoading ? (
           <ListRowsSkeleton rows={3} />
         ) : disputes && disputes.length > 0 ? (
@@ -134,9 +130,10 @@ export default function DisputesPage() {
             icon={<Scale className="h-6 w-6" />}
             title="No disputes"
             description="Cases you open on an escrow will show up here."
-            action={{ href: '/escrows', label: 'View escrows', variant: 'maroon' }}
+            action={{ href: '/escrows/history', label: 'View escrows', variant: 'maroon' }}
           />
         )}
+        </div>
       </PullToRefresh>
     </CustomerLayout>
   );

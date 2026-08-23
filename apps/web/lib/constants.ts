@@ -92,15 +92,18 @@ export function formatWithdrawalStatusLabel(status: string): string {
 }
 
 /**
- * KYC Status Colors
+ * Phone verification status colors (API field: kycStatus)
  */
-export const KYC_STATUS_COLORS: Record<string, string> = {
+export const PHONE_VERIFICATION_STATUS_COLORS: Record<string, string> = {
   PENDING: darkStatus.yellow,
   IN_PROGRESS: darkStatus.blue,
   VERIFIED: darkStatus.green,
   REJECTED: darkStatus.red,
   EXPIRED: darkStatus.neutral,
 };
+
+/** @deprecated Use PHONE_VERIFICATION_STATUS_COLORS */
+export const KYC_STATUS_COLORS = PHONE_VERIFICATION_STATUS_COLORS;
 
 /**
  * Active Escrow Statuses

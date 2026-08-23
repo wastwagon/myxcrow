@@ -130,7 +130,7 @@ export class PartnerCheckoutService {
     );
     if (merchant.user.kycStatus !== KYCStatus.VERIFIED) {
       throw new BadRequestException(
-        'Merchant KYC must be VERIFIED on MYXCROW before accepting escrow payments',
+        'Merchant must verify their phone on MYXCROW before accepting escrow payments',
       );
     }
 

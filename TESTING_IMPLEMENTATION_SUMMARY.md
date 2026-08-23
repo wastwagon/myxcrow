@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Automated Testing Implementation Summary
 **Date:** January 25, 2026  
 **Status:** ✅ Complete
@@ -395,7 +397,7 @@ pnpm test:e2e
    - Dispute creation and resolution flow
 
 5. **Add integration tests:**
-   - KYC service (face matching)
+   - phone verification service (face matching)
    - Payment service (Paystack)
    - Notification service (Email/SMS)
 

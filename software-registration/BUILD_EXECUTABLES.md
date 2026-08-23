@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # Building Executables for Registration Submission
 
 MYXCROW is a **Node.js web application** — there is no single `.exe` file. For software registration, you submit **runnable deployable artifacts** that a reviewer can start locally.
@@ -150,4 +152,4 @@ Use **32 GB pen drives** to be safe. Format as **exFAT** for Windows + macOS com
 - Remove real API keys from `.env` files
 - Include `.env.example` with placeholder values
 - Use seed data only — no production customer data
-- Paystack/Smile ID can run in test/sandbox mode for the demo
+- Paystack/Smile ID (removed) can run in test/sandbox mode for the demo

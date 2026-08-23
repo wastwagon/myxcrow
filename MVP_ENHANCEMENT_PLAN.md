@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MYXCROW MVP Enhancement Plan
 
 **Date:** January 2026  
@@ -15,7 +17,7 @@
 - ✅ Milestone-based escrows
 - ✅ Payment processing
 - ✅ Dispute resolution
-- ✅ KYC verification
+- ✅ phone verification
 - ✅ Wallet system
 - ✅ Admin dashboard
 
@@ -68,7 +70,7 @@
    - Dispute raised
    - Escrow approved/rejected
    - Delivery updates
-   - KYC status updates
+   - phone verification status updates
 
 4. **Integration:**
    - Integrate with existing email service
@@ -93,7 +95,7 @@
 1. **Authentication**
    - Login/Register
    - Biometric authentication
-   - KYC upload (camera)
+   - phone verification upload (camera)
 
 2. **Transactions**
    - Create escrow
@@ -113,7 +115,7 @@
 
 5. **Profile**
    - View profile
-   - Update KYC
+   - Update phone verification
    - Transaction history
 
 **Expected Impact:**

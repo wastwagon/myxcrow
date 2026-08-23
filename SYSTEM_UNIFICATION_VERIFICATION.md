@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # System Unification Verification Report
 **Date:** January 25, 2026  
 **Status:** ✅ **UNIFIED & VERIFIED**
@@ -48,7 +50,7 @@ Mobile: API_BASE_URL = http://localhost:4000/api
 |--------|-----|--------|--------|
 | **Endpoint** | `POST /auth/register` | `POST /auth/register` | ✅ **Same** |
 | **Required Fields** | email, password, firstName, lastName | email, password, firstName, lastName | ✅ **Same** |
-| **Optional Fields** | phone, role | phone, role, ghanaCardNumber, KYC docs | ✅ **Compatible** |
+| **Optional Fields** | phone, role | phone, role, ghanaCardNumber, phone verification docs | ✅ **Compatible** |
 | **Response** | `{ user, accessToken, refreshToken }` | `{ user, accessToken, refreshToken, faceMatchScore }` | ✅ **Compatible** |
 
 #### Token Refresh Implementation
@@ -205,10 +207,10 @@ User Action (Web/Mobile)
    ✅ Wallet balance updated
 ```
 
-**Scenario 3: Admin Approves KYC on Mobile, User Sees on Web**
+**Scenario 3: Admin Approves phone verification on Mobile, User Sees on Web**
 ```
-1. Admin approves KYC on Mobile
-   → PUT /admin/kyc/:id/approve
+1. Admin approves phone verification on Mobile
+   → PUT /admin/phone verification/:id/approve
    
 2. Backend updates user status
    → users.kycStatus = 'VERIFIED'
@@ -216,7 +218,7 @@ User Action (Web/Mobile)
 3. User refreshes Web profile
    → GET /auth/profile
    
-4. ✅ KYC status shows VERIFIED
+4. ✅ phone verification status shows VERIFIED
 ```
 
 #### React Query Cache Management
@@ -348,7 +350,7 @@ audit_logs {
 ```
 Day 1 - Web (Buyer):
   1. Register account              → users table
-  2. Complete KYC                  → users.kycStatus = 'VERIFIED'
+  2. verify their phone at registration                  → users.kycStatus = 'VERIFIED'
   3. Top up wallet (Paystack)     → wallets.availableCents += amount
   4. Create escrow                → escrow_agreements (buyerId = user.id)
   
@@ -410,7 +412,7 @@ Admin Dashboard (Web or Mobile):
 | **Wallet Operations** | ✅ | ✅ | ✅ **100% Parity** |
 | **Disputes** | ✅ | ✅ | ✅ **100% Parity** |
 | **Evidence Upload** | ✅ | ✅ | ✅ **100% Parity** |
-| **KYC Verification** | ✅ | ✅ | ✅ **100% Parity** |
+| **phone verification** | ✅ | ✅ | ✅ **100% Parity** |
 | **Rating System** | ✅ | ✅ | ✅ **100% Parity** |
 | **Public Profiles** | ✅ | ✅ | ✅ **100% Parity** |
 | **Admin Panel** | ✅ | ✅ | ✅ **100% Parity** |
@@ -504,13 +506,13 @@ Profile → Change Password → Enter current/new passwords → Submit
 
 ### Test Case 6: Admin Operations
 ```
-1. User submits KYC on Mobile
+1. User submits phone verification on Mobile
 2. Admin reviews on Mobile
-3. Admin approves KYC
+3. Admin approves phone verification
 ✅ RESULT: User.kycStatus = 'VERIFIED'
 4. User checks profile on Web
 ✅ RESULT: Verified badge shows
-5. User can now perform actions requiring KYC
+5. User can now perform actions requiring phone verification
 ✅ RESULT: All platforms recognize verified status
 ```
 

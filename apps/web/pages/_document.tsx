@@ -23,7 +23,7 @@ export default function Document() {
         <script
           dangerouslySetInnerHTML={{
             __html:
-              "(function(){var p=location.pathname;if(p.length>1&&p.charAt(p.length-1)==='/')p=p.slice(0,-1);var light=p!=='/';var c=light?'#f2f2f7':'#1f1414';document.documentElement.style.setProperty('--app-chrome-bg',c);if(/^\\/(dashboard|escrows|wallet|disputes|profile|kyc|change-password|payments)(\\/|$)/.test(p)&&!/^\\/wallet\\/admin/.test(p))document.documentElement.classList.add('customer-app');if(light)document.documentElement.classList.add('public-light');})();",
+              "(function(){var p=location.pathname;if(p.length>1&&p.charAt(p.length-1)==='/')p=p.slice(0,-1);var light=p!=='/';var customer=/^\\/(dashboard|escrows|wallet|disputes|profile|help|change-password|payments)(\\/|$)/.test(p)&&!/^\\/wallet\\/admin/.test(p);var admin=/^\\/admin(\\/|$)/.test(p)||/^\\/wallet\\/admin/.test(p);var maroon=customer||admin;var c=maroon?'#331518':light?'#f2f2f7':'#1f1414';document.documentElement.style.setProperty('--app-chrome-bg',c);if(customer)document.documentElement.classList.add('customer-app');if(maroon)document.documentElement.classList.add('customer-home');if(light)document.documentElement.classList.add('public-light');})();",
           }}
         />
       </Head>

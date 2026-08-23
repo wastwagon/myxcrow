@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MYXCROW - Complete Product Review
 
 **Review Date:** January 2026  
@@ -8,11 +10,11 @@
 
 ## 📋 Executive Summary
 
-MYXCROW is a comprehensive escrow platform designed for secure transactions in Ghana. Built with modern technologies (Next.js, NestJS, PostgreSQL), it provides a complete solution for escrow management, KYC verification, payment processing, dispute resolution, and administrative oversight.
+MYXCROW is a comprehensive escrow platform designed for secure transactions in Ghana. Built with modern technologies (Next.js, NestJS, PostgreSQL), it provides a complete solution for escrow management, phone verification, payment processing, dispute resolution, and administrative oversight.
 
 ### Key Strengths
 - ✅ Full-featured escrow management system
-- ✅ Comprehensive KYC verification with face matching
+- ✅ Comprehensive phone verification with face matching
 - ✅ Integrated payment processing (Paystack)
 - ✅ Robust admin dashboard
 - ✅ Modern, responsive UI/UX
@@ -93,24 +95,24 @@ myxcrow/
 
 ---
 
-### 2. KYC & Identity Verification
+### 2. phone verification & Identity Verification
 
 **Implementation:**
 - Two-step registration process:
   1. Account creation (email, password)
-  2. KYC verification (Ghana Card + selfie)
+  2. phone verification (SMS OTP at registration)
 - Document upload:
   - Ghana Card front & back
   - Selfie capture with liveness detection
 - Face matching using face-api.js (self-hosted)
-- Admin review interface for KYC approval
-- KYC status tracking: `PENDING` → `IN_PROGRESS` → `VERIFIED` / `REJECTED`
+- Admin review interface for phone verification approval
+- phone verification status tracking: `PENDING` → `IN_PROGRESS` → `VERIFIED` / `REJECTED`
 
 **Files:**
-- `services/api/src/modules/kyc/` - KYC module
+- `services/api/src/modules/phone verification/` - phone verification module
 - `apps/web/pages/register.tsx` - Registration flow
-- `apps/web/components/SelfieCapture.tsx` - Selfie capture component
-- `apps/web/pages/admin/kyc-review.tsx` - Admin KYC review
+- (removed)
+- `apps/web/pages/admin/phone verification-review.tsx` - Admin phone verification review
 
 **Status:** ✅ Fully implemented
 
@@ -184,7 +186,7 @@ myxcrow/
 **Implementation:**
 - Weighted reputation scoring algorithm
 - Public user profiles with reputation scores
-- Verified badges (for KYC-verified users)
+- Verified badges (for phone-verified users)
 - Rating system (buyer/seller ratings)
 - Anti-gaming rules (prevent manipulation)
 
@@ -200,7 +202,7 @@ myxcrow/
 
 **Implementation:**
 - User management (view, edit roles, activate/deactivate)
-- KYC review and approval
+- phone verification review and approval
 - Withdrawal approvals
 - Wallet management (credit/debit)
 - Platform settings
@@ -209,7 +211,7 @@ myxcrow/
 - Dashboard with key metrics:
   - Total users, escrows, transactions
   - Revenue, pending withdrawals
-  - KYC pending reviews
+  - phone verification pending reviews
 
 **Files:**
 - `services/api/src/modules/admin/` - Admin module
@@ -257,7 +259,7 @@ myxcrow/
 
 ### Core Tables (25 tables total)
 
-1. **User** - User accounts with roles and KYC status
+1. **User** - User accounts with roles and phone verification status
 2. **Session** - User sessions (if implemented)
 3. **Wallet** - User wallets with balances
 4. **EscrowAgreement** - Escrow contracts
@@ -269,8 +271,8 @@ myxcrow/
 10. **Withdrawal** - Withdrawal requests
 11. **Dispute** - Dispute records
 12. **Evidence** - Evidence files
-13. **KYCDetail** - KYC information
-14. **KYCDocument** - KYC documents (Ghana Card, selfie)
+13. **KYCDetail** - phone verification information
+14. **KYCDocument** - phone verification documents (Ghana Card, selfie)
 15. **LivenessCheck** - Liveness verification results
 16. **LedgerEntry** - Financial ledger
 17. **LedgerJournal** - Ledger journals
@@ -312,7 +314,7 @@ myxcrow/
 
 ### Components
 - `PageHeader` - Consistent page headers with gradients
-- `SelfieCapture` - Camera-based selfie capture
+(removed)
 - Form components with validation
 - Loading states and error handling
 - Toast notifications (React Hot Toast)
@@ -433,7 +435,7 @@ myxcrow/
 - ✅ JWT authentication with refresh tokens
 - ✅ Password hashing (bcrypt)
 - ✅ Role-based access control (RBAC)
-- ✅ KYC verification guards
+- ✅ phone verification guards
 - ✅ Input validation (Zod, class-validator)
 - ✅ SQL injection prevention (Prisma ORM)
 - ✅ XSS prevention (React escaping)

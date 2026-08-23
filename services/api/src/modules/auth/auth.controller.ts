@@ -8,13 +8,10 @@ import {
   Req,
   Res,
   UseGuards,
-  UseInterceptors,
-  UploadedFiles,
   BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { FilesInterceptor } from '@nestjs/platform-express';
 import { plainToClass } from 'class-transformer';
 import { validate } from 'class-validator';
 import { AuthService } from './auth.service';
@@ -44,17 +41,10 @@ export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
   @Post('register')
-  @UseInterceptors(
-    FilesInterceptor('files', 3, {
-      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB max per file
-    }),
-  )
   async register(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
-    @UploadedFiles() files?: any[],
   ) {
-    // Multipart/form-data: global ValidationPipe can leave @Body() empty; multer puts fields in req.body.
     const raw = (req.body || {}) as Record<string, any>;
     const data = plainToClass(RegisterDto, raw, { enableImplicitConversion: true });
     const errors = await validate(data, { whitelist: true });
@@ -63,39 +53,7 @@ export class AuthController {
       throw new BadRequestException(messages.length ? messages.join('; ') : 'Validation failed');
     }
 
-    // Parse files if provided (optional for MVP)
-    let fileBuffers: { cardFront?: Buffer; cardBack?: Buffer; selfie?: Buffer } | undefined;
-
-    if (files && files.length > 0) {
-      fileBuffers = {};
-      for (const file of files) {
-        const fileName = file.originalname?.toLowerCase() || '';
-        if (fileName.includes('card-front') || fileName.includes('front')) {
-          fileBuffers.cardFront = file.buffer;
-        } else if (fileName.includes('card-back') || fileName.includes('back')) {
-          fileBuffers.cardBack = file.buffer;
-        } else if (fileName.includes('selfie')) {
-          fileBuffers.selfie = file.buffer;
-        } else {
-          if (!fileBuffers.cardFront) {
-            fileBuffers.cardFront = file.buffer;
-          } else if (!fileBuffers.cardBack) {
-            fileBuffers.cardBack = file.buffer;
-          } else if (!fileBuffers.selfie) {
-            fileBuffers.selfie = file.buffer;
-          }
-        }
-      }
-
-      // Only validate all files are present if any files were uploaded
-      if (!fileBuffers.cardFront || !fileBuffers.cardBack || !fileBuffers.selfie) {
-        throw new BadRequestException(
-          'If uploading files, all three are required: Ghana Card front, Ghana Card back, and selfie',
-        );
-      }
-    }
-
-    const result = await this.authService.register(data, fileBuffers);
+    const result = await this.authService.register(data);
     setAuthCookies(req, res, result);
     return result;
   }

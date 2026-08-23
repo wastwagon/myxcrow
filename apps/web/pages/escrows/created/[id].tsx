@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { Button, ButtonLink } from '@/components/ui/Button';
 import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated } from '@/lib/auth';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { CheckCircle2, Copy, Shield } from 'lucide-react';
@@ -13,22 +12,20 @@ import { Banner } from '@/components/ui/Banner';
 import { ESCROW_CATEGORY } from '@/lib/escrow-services';
 import { buildEscrowReceipt } from '@/lib/receipt-builders';
 import { PrintReceiptButton } from '@/components/receipts/PrintReceiptButton';
-import { PageSpinner } from '@/components/LoadingSkeleton';
+import { PageSpinner, PageDetailSkeleton } from '@/components/LoadingSkeleton';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
 import { TitleBadge } from '@/components/ui/TitleBadge';
 
 export default function EscrowCreatedPage() {
   const router = useRouter();
   const { id } = router.query;
+  const authed = useRequireAuth();
   const [generatedPin, setGeneratedPin] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isAuthenticated()) router.push('/login');
-  }, [router]);
-
-  const { data: escrow } = useQuery({
+  const { data: escrow, isLoading } = useQuery({
     queryKey: ['escrow', id],
     queryFn: async () => (await apiClient.get(`/escrows/${id}`)).data,
-    enabled: !!id,
+    enabled: authed && !!id,
   });
 
   useEffect(() => {
@@ -62,7 +59,15 @@ export default function EscrowCreatedPage() {
     return formatCurrency(feeSummary.fundingAmountCents, escrow?.currency || 'GHS');
   }, [feeSummary, amountText, escrow?.currency]);
 
-  if (!isAuthenticated()) return <PageSpinner />;
+  if (!authed) return <PageSpinner />;
+
+  if (!router.isReady || !id || isLoading) {
+    return (
+      <CustomerLayout title="Escrow" back>
+        <PageDetailSkeleton />
+      </CustomerLayout>
+    );
+  }
 
   return (
     <CustomerLayout title="Escrow" back>
@@ -155,8 +160,8 @@ export default function EscrowCreatedPage() {
             <ButtonLink href={`/escrows/${id}`} variant="maroon" className="flex-1">
               View escrow details
             </ButtonLink>
-            <ButtonLink href="/escrows" variant="outline" className="flex-1">
-              Go to escrows list
+            <ButtonLink href="/escrows/history" variant="outline" className="flex-1">
+              Escrow history
             </ButtonLink>
           </div>
         </div>

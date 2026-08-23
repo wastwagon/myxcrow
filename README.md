@@ -1,3 +1,5 @@
+> **Verification policy (Aug 2026):** MYXCROW uses SMS OTP at registration only. No ID/document KYC. See [docs/PHONE_VERIFICATION.md](docs/PHONE_VERIFICATION.md).
+
 # MYXCROW - Escrow Platform
 
 A comprehensive escrow platform built with Next.js and NestJS, designed for secure transactions in Ghana.
@@ -114,11 +116,11 @@ myxcrow/
 - **[Complete Product Review](PRODUCT_REVIEW_COMPLETE.md)** - Full product review and architecture overview
 
 ### Market Analysis & Enhancements
+- **[Phone verification](docs/PHONE_VERIFICATION.md)** - SMS OTP at registration (no document phone verification)
 - **[MVP Focus Summary](MVP_FOCUS_SUMMARY.md)** - Quick MVP overview (start here!)
 - **[MVP Enhancement Plan](MVP_ENHANCEMENT_PLAN.md)** - Detailed MVP implementation plan
 - **[SMS Notifications Implementation](SMS_NOTIFICATIONS_IMPLEMENTATION.md)** - ✅ SMS feature implementation guide
 - **[Live Chat Implementation](LIVE_CHAT_IMPLEMENTATION.md)** - ✅ Live chat integration guide
-- **[Self-Hosted Face Verification](SELF_HOSTED_FACE_VERIFICATION.md)** - ✅ Face verification system documentation
 - **[Phase 3 Complete Summary](PHASE_3_COMPLETE_SUMMARY.md)** - Live chat completion summary
 - **[Competitor Analysis](COMPETITOR_ANALYSIS_AND_ENHANCEMENTS.md)** - Comprehensive competitor feature analysis
 - **[Ghana Enhancement Roadmap](GHANA_ENHANCEMENT_ROADMAP.md)** - 12-month enhancement plan (updated for MVP)

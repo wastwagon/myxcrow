@@ -71,14 +71,7 @@ export class AuthService {
     return { success: true, message: 'Verification code sent to your phone' };
   }
 
-  async register(
-    data: RegisterDto,
-    files?: {
-      cardFront?: Buffer;
-      cardBack?: Buffer;
-      selfie?: Buffer;
-    },
-  ) {
+  async register(data: RegisterDto) {
     const normalizedPhone = normalizeGhanaPhone(data.phone);
     if (!normalizedPhone || !/^0[0-9]{9}$/.test(normalizedPhone)) {
       throw new BadRequestException('Invalid Ghana phone number (e.g. 0551234567)');
@@ -135,7 +128,9 @@ export class AuthService {
         lastName: data.lastName,
         phone: normalizedPhone,
         roles: [UserRole.BUYER, UserRole.SELLER],
+        // Phone OTP verified above — account is fully verified (legacy field: kycStatus)
         kycStatus: KYCStatus.VERIFIED,
+        kycVerifiedAt: new Date(),
         isActive: true,
       },
     });

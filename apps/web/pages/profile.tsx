@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import CustomerLayout from '@/components/CustomerLayout';
-import { isAuthenticated, getUser, setUser, logout, isAdmin } from '@/lib/auth';
+import { getUser, setUser, logout, isAdmin } from '@/lib/auth';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/lib/api-client';
 import { getErrorMessage } from '@/lib/error-messages';
@@ -13,12 +13,21 @@ import { useConfirm } from '@/components/providers/UIProvider';
 import { Input } from '@/components/ui/Input';
 import { Field } from '@/components/ui/Field';
 import { Sheet } from '@/components/ui/Sheet';
-import { UserAvatar } from '@/components/ui/UserAvatar';
-import { IconWell } from '@/components/ui/IconWell';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 import { ListRowsSkeleton, PageSpinner } from '@/components/LoadingSkeleton';
 import { useIsMobileNav } from '@/lib/hooks/useMediaQuery';
-import { CircleHelp, KeyRound, LayoutDashboard } from 'lucide-react';
+import { useRequireAuth } from '@/lib/hooks/useRequireAuth';
+import { CustomerShellChrome, SHELL_CONTENT_CLASS } from '@/components/home/CustomerShellChrome';
+import { AccountProfileCard } from '@/components/account/AccountProfileCard';
+import { WalletMenuGrid, type WalletMenuTile } from '@/components/wallet/WalletMenuGrid';
+import {
+  AlertCircle,
+  CircleHelp,
+  KeyRound,
+  LayoutDashboard,
+  LogOut,
+  Trash2,
+} from 'lucide-react';
 
 interface ProfileData {
   firstName?: string;
@@ -26,8 +35,59 @@ interface ProfileData {
   email?: string;
   phone?: string;
   roles?: string[];
-  kycStatus?: string;
   createdAt?: string;
+}
+
+function buildAccountMenuTiles({
+  admin,
+  onSignOut,
+}: {
+  admin: boolean;
+  onSignOut: () => void;
+}): WalletMenuTile[] {
+  const tiles: WalletMenuTile[] = [
+    {
+      href: '/change-password',
+      label: 'Password',
+      subtitle: 'Security',
+      icon: KeyRound,
+      color: 'gray',
+    },
+    {
+      href: '/disputes',
+      label: 'Disputes',
+      subtitle: 'Your cases',
+      icon: AlertCircle,
+      color: 'orange',
+    },
+    {
+      href: '/help',
+      label: 'Help',
+      subtitle: 'Get support',
+      icon: CircleHelp,
+      color: 'teal',
+    },
+  ];
+
+  if (admin) {
+    tiles.push({
+      href: '/admin',
+      label: 'Admin',
+      subtitle: 'Dashboard',
+      icon: LayoutDashboard,
+      color: 'indigo',
+    });
+  }
+
+  tiles.push({
+    onClick: onSignOut,
+    label: 'Sign out',
+    subtitle: 'This device',
+    icon: LogOut,
+    color: 'maroon',
+  });
+
+  return tiles;
 }
 
 export default function ProfilePage() {
@@ -35,6 +95,7 @@ export default function ProfilePage() {
   const queryClient = useQueryClient();
   const isMobile = useIsMobileNav();
   const confirm = useConfirm();
+  const authed = useRequireAuth();
   const user = getUser();
   const [isEditing, setIsEditing] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -42,19 +103,11 @@ export default function ProfilePage() {
   const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
-    if (
-      typeof window !== 'undefined' &&
-      new URLSearchParams(window.location.search).get('phone_required') === '1'
-    ) {
+    if (!authed) return;
+    if (new URLSearchParams(window.location.search).get('phone_required') === '1') {
       setIsEditing(true);
     }
-  }, []);
-
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-    }
-  }, [router]);
+  }, [authed]);
 
   const { data: profile, isLoading } = useQuery<ProfileData>({
     queryKey: ['profile'],
@@ -62,6 +115,7 @@ export default function ProfilePage() {
       const response = await apiClient.get('/auth/profile');
       return response.data;
     },
+    enabled: authed,
   });
 
   const {
@@ -155,55 +209,68 @@ export default function ProfilePage() {
     setDeleteError('');
   };
 
-  if (!isAuthenticated()) {
+  if (!authed) {
     return <PageSpinner />;
   }
 
   const displayUser = profile || user;
-  const phoneRequired =
-    typeof window !== 'undefined' &&
-    new URLSearchParams(window.location.search).get('phone_required') === '1';
+  const phoneRequired = router.query.phone_required === '1';
   const displayName =
     [displayUser?.firstName, displayUser?.lastName].filter(Boolean).join(' ') ||
     displayUser?.phone ||
     displayUser?.email ||
     'Your account';
-  const kycVerified = displayUser?.kycStatus === 'VERIFIED';
 
   const refreshProfile = async () => {
     await queryClient.invalidateQueries({ queryKey: ['profile'] });
   };
 
-  return (
-    <CustomerLayout
-      title="Account"
-      back={isEditing}
-      onBack={isEditing ? handleCancel : undefined}
-      trailing={
-        isEditing ? (
-          <button
-            type="submit"
-            form="account-edit"
-            disabled={updateMutation.isPending}
-            className="min-h-[44px] px-3 text-[17px] font-semibold text-brand-maroon touch-manipulation disabled:opacity-50"
-          >
-            {updateMutation.isPending ? 'Saving' : 'Done'}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setIsEditing(true)}
-            className="min-h-[44px] px-3 text-[17px] font-semibold text-brand-maroon touch-manipulation"
-          >
-            Edit
-          </button>
-        )
-      }
+  const handleSignOut = async () => {
+    const ok = await confirm({
+      title: 'Sign out',
+      message: 'Sign out of this account?',
+      confirmLabel: 'Sign out',
+    });
+    if (!ok) return;
+    await logout();
+    queryClient.clear();
+    router.push('/login');
+  };
+
+  const editTrailing = isEditing ? (
+    <button
+      type="submit"
+      form="account-edit"
+      disabled={updateMutation.isPending}
+      className="min-h-[44px] px-3 text-[17px] font-semibold text-brand-gold touch-manipulation disabled:opacity-50"
     >
-      <PullToRefresh onRefresh={refreshProfile} disabled={!isMobile} className="space-y-6 pb-4">
+      {updateMutation.isPending ? 'Saving' : 'Done'}
+    </button>
+  ) : (
+    <button
+      type="button"
+      onClick={() => setIsEditing(true)}
+      className="min-h-[44px] px-3 text-[17px] font-semibold text-brand-gold touch-manipulation"
+    >
+      Edit
+    </button>
+  );
+
+  return (
+    <CustomerLayout title="Account" variant="home">
+      <PullToRefresh onRefresh={refreshProfile} disabled={!isMobile}>
+        <CustomerShellChrome
+          screenTitle="Account"
+          pageTitle={isEditing ? 'Edit account' : undefined}
+          leading={isEditing ? 'back' : 'close'}
+          closeHref="/dashboard"
+          onLeadingClick={isEditing ? handleCancel : undefined}
+          trailing={editTrailing}
+        />
+        <div className={`${SHELL_CONTENT_CLASS} space-y-6`}>
         {phoneRequired && !displayUser?.phone && (
           <p className="text-[13px] text-[rgba(60,60,67,0.6)] px-1">
-            Add a Ghana phone number to use escrows and payments.
+            Add a Ghana phone number to use escrows and payments. Verification is by SMS code when you register.
           </p>
         )}
 
@@ -258,96 +325,39 @@ export default function ProfilePage() {
             )}
           </form>
         ) : (
-          <>
-            <ListGroup title="Profile">
-              <ListRow
-                title={displayName}
-                subtitle={displayUser?.phone || displayUser?.email || 'Add your details'}
-                leading={
-                  <UserAvatar
-                    label={displayUser?.firstName || displayUser?.phone || displayUser?.email || 'User'}
-                    size="md"
-                    variant="maroon"
-                  />
-                }
-                showChevron={false}
-              />
-              <ListRow
-                title="Phone"
-                trailing={
-                  <span className="text-[17px] text-[rgba(60,60,67,0.6)]">
-                    {displayUser?.phone || 'Not set'}
-                  </span>
-                }
-                showChevron={false}
-              />
-              {displayUser?.email && (
-                <ListRow
-                  title="Email"
-                  trailing={
-                    <span className="max-w-[180px] truncate text-[17px] text-[rgba(60,60,67,0.6)]">
-                      {displayUser.email}
-                    </span>
-                  }
-                  showChevron={false}
-                />
-              )}
-              <ListRow
-                title="Identity"
-                trailing={
-                  <span className="text-[17px] text-[rgba(60,60,67,0.6)]">
-                    {kycVerified ? 'Verified' : 'Unverified'}
-                  </span>
-                }
-                showChevron={false}
-              />
-            </ListGroup>
+          <div className="space-y-5">
+            <AccountProfileCard
+              name={displayName}
+              phone={displayUser?.phone}
+              email={displayUser?.email}
+              avatarLabel={displayUser?.firstName || displayUser?.phone || displayUser?.email || 'User'}
+              loading={isLoading}
+            />
 
-            <ListGroup title="Account">
-              {isAdmin() && (
-                <ListRow
-                  href="/admin"
-                  title="Admin"
-                  leading={<IconWell icon={LayoutDashboard} color="orange" />}
-                />
-              )}
-              <ListRow
-                href="/change-password"
-                title="Password"
-                leading={<IconWell icon={KeyRound} color="gray" />}
+            <div className="space-y-2.5">
+              <p className="px-1 text-[13px] text-[rgba(60,60,67,0.6)]">Account</p>
+              <WalletMenuGrid
+                tiles={buildAccountMenuTiles({
+                  admin: isAdmin(),
+                  onSignOut: handleSignOut,
+                })}
               />
-              <ListRow
-                href="/support"
-                title="Help"
-                leading={<IconWell icon={CircleHelp} color="teal" />}
-              />
-              <ListRow
-                onClick={async () => {
-                  const ok = await confirm({
-                    title: 'Sign out',
-                    message: 'Sign out of this account?',
-                    confirmLabel: 'Sign out',
-                  });
-                  if (!ok) return;
-                  await logout();
-                  queryClient.clear();
-                  router.push('/login');
-                }}
-                title="Sign out"
-                showChevron={false}
-              />
-            </ListGroup>
+            </div>
 
-            <ListGroup tone="light" footer="This permanently removes your account.">
-              <ListRow
-                onClick={() => setDeleteModalOpen(true)}
-                title="Delete account"
-                destructive
-                showChevron={false}
-              />
-            </ListGroup>
-          </>
+            <button
+              type="button"
+              onClick={() => setDeleteModalOpen(true)}
+              className="flex w-full min-h-[52px] items-center justify-center gap-2 rounded-[16px] border border-red-200/80 bg-white px-4 text-[15px] font-semibold text-red-600 touch-manipulation active:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" strokeWidth={2} aria-hidden />
+              Delete account
+            </button>
+            <p className="px-1 text-center text-[12px] text-[rgba(60,60,67,0.5)]">
+              This permanently removes your account.
+            </p>
+          </div>
         )}
+        </div>
       </PullToRefresh>
 
       <Sheet

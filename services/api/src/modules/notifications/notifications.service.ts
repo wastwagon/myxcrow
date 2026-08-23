@@ -491,32 +491,6 @@ export class NotificationsService {
       } : undefined,
     });
   }
-
-  /**
-   * Send KYC status update notifications
-   */
-  async sendKYCStatusUpdateNotifications(data: {
-    email: string;
-    phone: string;
-    status: string;
-  }) {
-    const statusText = data.status === 'APPROVED' ? 'approved' : data.status === 'REJECTED' ? 'rejected' : 'pending';
-    await this.sendNotifications({
-      emails: {
-        to: data.email,
-        subject: 'KYC Status Update',
-        html: `
-          <h2>KYC Status Update</h2>
-          <p>Your KYC verification has been ${statusText}.</p>
-        `,
-      },
-      sms: {
-        to: data.phone,
-        message: `MYXCROW: Your KYC verification has been ${statusText}. Check your dashboard for details.`,
-      },
-    });
-  }
-
   /**
    * Send wallet credit notifications (admin manual credit)
    */
